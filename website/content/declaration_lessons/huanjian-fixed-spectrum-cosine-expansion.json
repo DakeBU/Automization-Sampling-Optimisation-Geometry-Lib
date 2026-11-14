@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion.actual_inverse_spectrum_cosine_expansion",
+      "title": "Cosine expansion of the inverse spectrum",
+      "reader_note": "The expansion is shown first; the exact parameter, convergence scope, formula proof and Lean are folded below.",
+      "statement": "The reciprocal cosine spectrum has an absolutely and uniformly convergent cosine expansion.",
+      "formula": "\\lambda(\\theta)^{-1}=\\frac1{\\sqrt\\kappa}\\left(1+2\\sum_{j\\ge1}(-r)^j\\cos(j\\theta)\\right).",
+      "assumptions": [
+        "Fix \\(\\kappa\\in\\mathbb R\\) with \\(\\kappa\\ge2\\), and set \\(r=(\\sqrt\\kappa-1)/(\\sqrt\\kappa+1)\\). The square root is the nonnegative real square root.",
+        "For every real angle \\(\\theta\\), define \\(\\lambda(\\theta)=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta/2\\). The displayed equality is therefore exactly the source left side \\(2/(\\kappa+1+(\\kappa-1)\\cos\\theta)\\).",
+        "The source series starts at \\(j=1\\). Lean uses \\(j\\in\\mathbb N\\) and mode \\(j+1\\) in both the power and cosine. Its partial sum indexed by \\(N\\) has exactly the first \\(N\\) positive modes.",
+        "Absolute convergence is pointwise for each real angle. Uniform convergence is on all \\(\\mathbb R\\) in the angle for this fixed \\(\\kappa\\): one threshold works for every angle. No uniformity over unbounded \\(\\kappa\\) is asserted.",
+        "The bounds \\(0<r<1\\), nonzero denominators, summability and uniform convergence are proved internally. No dimension, Gaussian law, matrix input, radius certificate or convergence premise is supplied by the caller."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S_N(\\theta)\\)",
+          "text": "The first N positive cosine modes; kappa stays fixed.",
+          "formula": "S_N(\\theta)=\\sum_{j=1}^{N}(-r)^j\\cos(j\\theta)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Produce the geometric radius",
+          "text": "The source condition gives a square root strictly greater than one. Its literal fractional transform lies strictly between zero and one, so the complex geometric ratios have norm below one.",
+          "formula": "s=\\sqrt\\kappa>1,\\qquad r=\\frac{s-1}{s+1}\\in(0,1).",
+          "lean": "The private radius_bounds proof uses Real.sq_sqrt and Real.sqrt_nonneg, then positive-denominator division. These are internal outputs, not public hypotheses."
+        },
+        {
+          "title": "Take the real part of a convergent geometric series",
+          "text": "Set z=−r exp(iθ). The complex phase has modulus one. Sum the geometric series and take its real part; De Moivre identifies each real term with the cosine mode. This packages the source pair of conjugate geometric sums by real-part linearity.",
+          "formula": "z=-re^{i\\theta},\\quad |z|=r<1,\\qquad\\sum_{j\\ge0}(-r)^j\\cos(j\\theta)=\\operatorname{Re}(1-z)^{-1}.",
+          "lean": "cosine_series_value invokes hasSum_geometric_of_norm_lt_one and Complex.hasSum_re. hterm checks the casts and exp_nat_mul identity explicitly; hreal carries an actual HasSum certificate."
+        },
+        {
+          "title": "Compute the real rational expression",
+          "text": "The squared norm of 1−z is the positive denominator D. The real part of its inverse is (1+r cosθ)/D. Separate the zero mode, then double the positive modes and subtract the zero term.",
+          "formula": "D=1+2r\\cos\\theta+r^2>0,\\qquad1+2\\sum_{j\\ge1}(-r)^j\\cos(j\\theta)=\\frac{1-r^2}{D}.",
+          "lean": "hre, him and hnorm use the trigonometric unit-circle identity; hD is produced from r<1 and cosθ≥−1. Complex.inv_re and hreal.summable.tsum_eq_zero_add give hsplit; the final calculation proves the displayed rational identity."
+        },
+        {
+          "title": "Restore the exact source normalization",
+          "text": "Substitute the literal radius and s²=κ. Two algebraic identities cancel the positive factors and yield the reciprocal source eigenvalue, with the exact factor two and square-root scale.",
+          "formula": "1-r^2=s(1-r)^2,\\quad D=\\frac{(1-r)^2}{2}\\bigl(\\kappa+1+(\\kappa-1)\\cos\\theta\\bigr).",
+          "lean": "hparam and hnorm in the public producer prove these identities by field algebra; hspec and h1r supply nonzero denominators internally. The sealed pointwise conclusion follows from cosine_series_value."
+        },
+        {
+          "title": "Prove absolute and uniform convergence",
+          "text": "Every absolute mode is bounded by the same positive geometric mode. The geometric majorant is summable. It proves absolute summability at each angle and, through the uniform majorant test, convergence of the partial sums uniformly over every real angle.",
+          "formula": "\\left|(-r)^{j+1}\\cos((j+1)\\theta)\\right|\\le r^{j+1},\\qquad\\sum_{j\\ge0}r^{j+1}<\\infty.",
+          "lean": "hgeom proves the shifted geometric sum is summable. hmajor uses the real cosine bound. Summable.of_norm_bounded yields the absolute output, and tendstoUniformly_tsum_nat yields exactly the sealed all-real-angle uniform output."
+        },
+        {
+          "title": "Consume the expansion on the actual finite grid",
+          "text": "For d≥2 and the literal hard grid, the private Test takes cosine weights at any natural frequency n. It consumes the new pointwise expansion and absolute summability, proves weighted summability, normalizes each reciprocal eigenvalue and genuinely exchanges the finite grid sum with the infinite series. This is a private generalized intermediate, before Gaussian expectation identification or alias cancellation.",
+          "formula": "\\sum_i\\frac{\\cos(n\\theta_i)}{\\lambda_i}=\\frac1{\\sqrt\\kappa}\\left[\\sum_i\\cos(n\\theta_i)+2\\sum_{j\\ge1}(-r)^j\\sum_i\\cos(n\\theta_i)\\cos(j\\theta_i)\\right].",
+          "lean": "actual_inverse_grid_cosine_series obtains heq and habs from the new canonical producer. hs, hsg and hlin use absolute summability; heigen proves literal reciprocal normalization; Summable.tsum_finsetSum is the actual exchange. The compiled private proof has exactly one public ASTIS parent, this producer; it is not a Registry node or a C8 Gaussian moment theorem."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "hasSum_geometric_of_norm_lt_one",
+        "Complex.hasSum_re",
+        "Complex.exp_nat_mul",
+        "Complex.inv_re",
+        "Complex.normSq_apply",
+        "Real.sin_sq_add_cos_sq",
+        "Summable.tsum_eq_zero_add",
+        "summable_geometric_of_lt_one",
+        "Summable.of_norm_bounded",
+        "tendstoUniformly_tsum_nat"
+      ],
+      "lean_statement": "Exactly real kappa>=2 and literal r; the identity for every real angle, absolute summability and all-real-angle uniform convergence are all conclusions.",
+      "lean_proof": "Complex geometric summation and real-part algebra produce the exact normalized identity. A common geometric majorant proves both convergence conclusions. The private actual finite-grid consumer separately uses the new producer and its absolute summability.",
+      "boundary": "Selected FactC7 identity, pointwise absolute convergence and fixed-kappa all-real-angle uniform convergence, plus an actual private finite-grid series-interchange consumer, are compiled locally. The consumer is an all-natural-n intermediate; source1<=n<d remains required later for C8 alias classification and closed moments. Gaussian second-moment/expectation and orthogonal target-law bridges, C8 closed formulas, variance/bias/Krylov, both full main bounds and adaptive/oracle/precision/TV/deterministic-cap/expected-cost adapters, local integration/remote delivery and postmerge purification/Exposition Seal remain separate.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Thmtheorem7",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Fact C.7/A3.Ex133-137, full proof A3.SS3.2; standing kappa S4.SS1.p1.m4 and literal rho S4.Thmtheorem5; private C8 finite-grid use A3.SS3.p4.2.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Full scalar FactC7. Private deterministic grid exchange is a separately checked source-proof intermediate, not the Gaussian expectation or full C8 statement.",
+          "label": "Zhou–Suzuki Fact C.7 and C.8 finite-grid use"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumCosineExpansion"
+      ]
+    }
+  ]
+}

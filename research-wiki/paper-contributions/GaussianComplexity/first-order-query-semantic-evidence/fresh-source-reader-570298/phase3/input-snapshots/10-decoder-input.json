@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-af48377ac71a73e6",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ),\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let B : Fin (d / n) → Matrix (Fin n) (Fin n) ℝ := fun j =>\n      ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -\n        ((κ - 1) / 4) • ((Os j : Matrix (Fin n) (Fin n) ℝ) +\n          (Os j : Matrix (Fin n) (Fin n) ℝ).transpose)\n    let A := Matrix.reindex e e\n      (Matrix.fromBlocks (Matrix.blockDiagonal B) 0 0\n        (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : Fin (d / n) → EuclideanSpace ℝ (Fin n) → Bool →\n        EuclideanSpace ℝ (Fin n) := fun j v inverse =>\n      WithLp.toLp 2 (if inverse then\n        (Os j : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp v\n      else (Os j : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp v)\n    let xb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n    let gb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n        (query j (xb x j) false + query j (xb x j) true)\n    let g : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n      WithLp.toLp 2 (fun a => Sum.elim\n        (fun ij => gb x ij.2 ij.1)\n        (fun i => x (e (Sum.inr i))) (e.symm a))\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (g x) x ∧\n      (f x, gradient f x) = (inner ℝ x (g x) / 2, g x)\n",
+    "statement_sha256": "af48377ac71a73e610c2c66f7de328d228bc21aff0a6ef9a8c727c67ad5a6953",
+    "compiled": true,
+    "approved_definition_context": [
+      "EuclideanSpace real (Fin m) is the real m-dimensional inner product space with the l2 norm. Fin m indexes coordinates from zero. WithLp.toLp 2 and WithLp.ofLp preserve entries; inner real is the ordinary real Euclidean inner product.",
+      "Matrix.orthogonalGroup (Fin n) real is the full group of real orthogonal matrices, containing either determinant sign. A matrix coerced from this group has inverse equal to its transpose. Matrix multiplication by a vector and the dot product are finite sums.",
+      "Matrix.reindex e e M has entries M (e.symm i) (e.symm j). Matrix.blockDiagonal B is indexed by pairs (local coordinate, block index) and vanishes between distinct blocks. Matrix.fromBlocks assembles its four displayed blocks. The symbol 1 denotes the identity matrix.",
+      "Equiv.prodComm exchanges the factors. finProdFinEquiv sends (a,b) to a times the cardinality of the second factor plus b. finSumFinEquiv concatenates the summands; finCongr transports along its displayed equality of cardinalities. Sum.elim selects the indicated branch.",
+      "HasGradientAt f v x means that f has a genuine Frechet derivative at x represented by the inner product with v. The operation gradient f x is totalized: it selects the derivative-representing vector when differentiability holds and otherwise returns zero. The displayed conjunction includes HasGradientAt as a conclusion; this context does not supply it as a premise.",
+      "Bool has the two values false and true; the displayed conditional chooses its first branch when true and its second branch when false. Scalar multiplication and real arithmetic have their usual meanings; natural division and remainder are floor division and remainder. A product equality asserts equality of both components."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "4a63586ed610738defcc10b2c2cf8fe91ebe6da40aed6fd5f9a00a9efcce0322"
+}

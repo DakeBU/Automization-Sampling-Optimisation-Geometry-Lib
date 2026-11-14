@@ -1,0 +1,350 @@
+PROCESS_DEFINITION tools/astis_harness.py 114
+114: def file_lock(path: Path) -> Iterator[None]:
+115:     """Take a cross-process exclusive lock associated with ``path``."""
+116: 
+117:     canonical = os.path.normcase(str(path.resolve()))
+118:     lock_root = ROOT / ".astis" / "locks"
+119:     lock_root.mkdir(parents=True, exist_ok=True)
+120:     lock_path = lock_root / (hashlib.sha256(canonical.encode("utf-8")).hexdigest() + ".lock")
+121:     with lock_path.open("a+b") as handle:
+122:         if os.name == "nt":
+123:             # Byte-range locks may extend beyond EOF, including on a new empty
+124:             # lock file. Always lock byte zero, independent of append position.
+125:             handle.seek(0)
+126:             while True:
+127:                 try:
+128:                     msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+129:                     break
+130:                 except OSError as exc:
+131:                     if exc.errno != errno.EACCES:
+132:                         raise
+133:                     # LK_LOCK gives up after ten attempts; match flock's
+134:                     # blocking behavior without swallowing unrelated failures.
+135:                     time.sleep(0.05)
+136:         else:
+137:             fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+138:         try:
+139:             yield
+140:         finally:
+141:             if os.name == "nt":
+142:                 handle.seek(0)
+143:                 msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+144:             else:
+145:                 fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+146: 
+147: 
+148: def _fsync_directory(path: Path) -> None:
+149:     """Sync a POSIX directory; Windows publication uses write-through rename."""
+150: 
+151:     fd = os.open(path, os.O_RDONLY)
+152:     try:
+153:         os.fsync(fd)
+154:     finally:
+155:         os.close(fd)
+156: 
+157: 
+158: def _replace_and_sync(source: str, destination: Path) -> None:
+159:     if os.name == "nt":
+160:         move_file_ex = ctypes.WinDLL("kernel32", use_last_error=True).MoveFileExW
+161:         move_file_ex.argtypes = (wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD)
+162:         move_file_ex.restype = wintypes.BOOL
+163:         # Same-volume replacement, never a copy/delete fallback. The payload
+164:         # was fsynced before closing; request write-through for the rename too.
+165:         flags = 0x1 | 0x8  # MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH
+166:         if not move_file_ex(source, str(destination), flags):
+167:             raise ctypes.WinError(ctypes.get_last_error())
+168:     else:
+169:         os.replace(source, destination)
+170:         _fsync_directory(destination.parent)
+171: 
+172: 
+173: def atomic_write_text(path: Path, text: str) -> None:
+174:     """Publish a complete text file under a canonical-path lock.
+175: 
+176:     Sync the staged payload before same-directory replacement. POSIX then
+177:     fsyncs the parent directory; Windows requests a write-through native rename
+178:     instead, not a directory fsync. Crash durability remains bounded by the
+179:     filesystem/device's flush guarantees; newly created ancestors are not
+180:     individually synced. Windows readers denying delete sharing can prevent
+181:     replacement, in which case the native error is propagated.
+182:     """
+183: 
+PROCESS_DEFINITION tools/astis_harness.py 199
+199: def _recover_jsonl_unlocked(path: Path) -> tuple[list[dict[str, Any]], bool]:
+200:     if not path.exists():
+201:         return [], False
+202:     raw = path.read_bytes()
+203:     complete_end = raw.rfind(b"\n") + 1
+204:     complete = raw[:complete_end]
+205:     trailing = raw[complete_end:]
+206:     records: list[dict[str, Any]] = []
+207:     for line_number, line in enumerate(complete.splitlines(), start=1):
+208:         if not line.strip():
+209:             continue
+210:         try:
+211:             value = json.loads(line)
+212:         except json.JSONDecodeError as exc:
+213:             raise ValueError(f"invalid complete JSONL record {path}:{line_number}: {exc}") from exc
+214:         if not isinstance(value, dict):
+215:             raise ValueError(f"JSONL record must be an object: {path}:{line_number}")
+216:         records.append(value)
+217:     recovered = bool(trailing)
+218:     if recovered:
+219:         with path.open("r+b") as handle:
+220:             handle.truncate(complete_end)
+221:             handle.flush()
+222:             os.fsync(handle.fileno())
+223:     return records, recovered
+224: 
+225: 
+226: def recover_jsonl(path: Path) -> tuple[list[dict[str, Any]], bool]:
+227:     path.parent.mkdir(parents=True, exist_ok=True)
+228:     with file_lock(path.resolve()):
+229:         return _recover_jsonl_unlocked(path.resolve())
+230: 
+231: 
+232: def _append_jsonl_unlocked(path: Path, record: dict[str, Any]) -> None:
+233:     payload = (canonical_json(record) + "\n").encode("utf-8")
+234:     # Windows CRT text-mode descriptors translate even os.write(bytes) LF to
+235:     # CRLF. The durable ledger must store exactly the canonical UTF-8 payload.
+236:     fd = os.open(path, os.O_CREAT | os.O_WRONLY | os.O_APPEND | getattr(os, "O_BINARY", 0), 0o644)
+237:     try:
+238:         written = 0
+239:         while written < len(payload):
+240:             written += os.write(fd, payload[written:])
+241:         os.fsync(fd)
+242:     finally:
+243:         os.close(fd)
+244: 
+245: 
+246: def append_jsonl(path: Path, record: dict[str, Any]) -> None:
+247:     """Recover an interrupted tail, then append one durable JSON record."""
+248: 
+249:     path = path.resolve()
+250:     path.parent.mkdir(parents=True, exist_ok=True)
+251:     with file_lock(path):
+252:         _recover_jsonl_unlocked(path)
+253:         _append_jsonl_unlocked(path, record)
+254: 
+255: 
+256: def load_jsonl(path: Path) -> list[dict[str, Any]]:
+257:     return recover_jsonl(path)[0]
+258: 
+259: 
+260: @dataclasses.dataclass(frozen=True)
+261: class MemoryRecord:
+262:     record_id: str
+263:     kind: str
+264:     task_id: str
+265:     target: str
+266:     exact_assumptions: tuple[str, ...]
+267:     measure: str
+268:     codomain: str
+PROCESS_DEFINITION tools/astis_harness.py 232
+232: def _append_jsonl_unlocked(path: Path, record: dict[str, Any]) -> None:
+233:     payload = (canonical_json(record) + "\n").encode("utf-8")
+234:     # Windows CRT text-mode descriptors translate even os.write(bytes) LF to
+235:     # CRLF. The durable ledger must store exactly the canonical UTF-8 payload.
+236:     fd = os.open(path, os.O_CREAT | os.O_WRONLY | os.O_APPEND | getattr(os, "O_BINARY", 0), 0o644)
+237:     try:
+238:         written = 0
+239:         while written < len(payload):
+240:             written += os.write(fd, payload[written:])
+241:         os.fsync(fd)
+242:     finally:
+243:         os.close(fd)
+244: 
+245: 
+246: def append_jsonl(path: Path, record: dict[str, Any]) -> None:
+247:     """Recover an interrupted tail, then append one durable JSON record."""
+248: 
+249:     path = path.resolve()
+250:     path.parent.mkdir(parents=True, exist_ok=True)
+251:     with file_lock(path):
+252:         _recover_jsonl_unlocked(path)
+253:         _append_jsonl_unlocked(path, record)
+254: 
+255: 
+256: def load_jsonl(path: Path) -> list[dict[str, Any]]:
+257:     return recover_jsonl(path)[0]
+258: 
+259: 
+260: @dataclasses.dataclass(frozen=True)
+261: class MemoryRecord:
+262:     record_id: str
+263:     kind: str
+264:     task_id: str
+265:     target: str
+266:     exact_assumptions: tuple[str, ...]
+267:     measure: str
+268:     codomain: str
+269:     declaration_hash: str
+270:     source: str
+271:     verifier_status: str = "not_reviewed"
+272:     local_status: str = "planned"
+273:     supersedes: tuple[str, ...] = ()
+274:     details: dict[str, Any] = dataclasses.field(default_factory=dict)
+275:     created_at: str = dataclasses.field(default_factory=utc_stamp)
+276: 
+277:     def validate(self) -> None:
+278:         if self.kind not in MEMORY_KINDS:
+279:             raise ValueError(f"unsupported memory kind: {self.kind}")
+280:         if self.verifier_status not in VERIFIER_STATUSES:
+281:             raise ValueError(f"unsupported verifier status: {self.verifier_status}")
+282:         if self.local_status not in LOCAL_STATUSES:
+283:             raise ValueError(f"unsupported local status: {self.local_status}")
+284:         required = {
+285:             "record_id": self.record_id,
+286:             "task_id": self.task_id,
+287:             "target": self.target,
+288:             "measure": self.measure,
+289:             "codomain": self.codomain,
+290:             "declaration_hash": self.declaration_hash,
+291:             "source": self.source,
+292:         }
+293:         missing = [name for name, value in required.items() if not value.strip()]
+294:         if missing:
+295:             raise ValueError("empty required memory fields: " + ", ".join(missing))
+296: 
+297:     def as_dict(self) -> dict[str, Any]:
+298:         self.validate()
+299:         value = dataclasses.asdict(self)
+300:         value["schema_version"] = HARNESS_SCHEMA_VERSION
+301:         return value
+PROCESS_DEFINITION tools/astis_publication.py 418
+418: def check_advance(declarations: list[str], *, reviewed: bool) -> None:
+419:     inputs.cache_clear()
+420:     load.cache_clear()
+421:     errors = roundtrip.validate_registry(roundtrip.load_registry())
+422:     errors += validate(strict_names=set(declarations) if reviewed else None)
+423:     known = {b['declaration'] for i in load() for b in i['bindings']}
+424:     errors += [f'{n}: publication record missing' for n in declarations if n not in known]
+425:     if errors:
+426:         raise ValueError('Reader/round-trip publication gate:\n' + '\n'.join(errors))
+427: 
+428: 
+429: def main(argv=None) -> int:
+430:     parser = argparse.ArgumentParser(description=__doc__)
+431:     sub = parser.add_subparsers(dest='command', required=True)
+432:     check = sub.add_parser('check')
+433:     check.add_argument('--base')
+434:     check.add_argument('--ci', action='store_true')
+435:     sub.add_parser('summary')
+436:     p = sub.add_parser('packet')
+437:     p.add_argument('--cell', required=True)
+438:     graph = sub.add_parser('graph-check')
+439:     graph.add_argument('--cell', required=True)
+440:     graph.add_argument('--output', type=Path, default=ROOT / '_site')
+441:     context = sub.add_parser('review-context')
+442:     context.add_argument('--declaration', required=True)
+443:     context.add_argument('--item', required=True)
+444:     args = parser.parse_args(argv)
+445:     try:
+446:         if args.command == 'graph-check':
+447:             print(json.dumps(graph_report(args.cell, args.output), ensure_ascii=False, indent=2))
+448:         elif args.command == 'review-context':
+449:             item = next(i for i in load() if i['id'] == args.item)
+450:             b = next(b for b in item['bindings'] if b['declaration'] == args.declaration)
+451:             print(json.dumps({'publication_binding_sha256': binding_digest(item, b),
+452:                               'publication_context': review_context(item, b)}, ensure_ascii=False, indent=2))
+453:         elif args.command == 'packet':
+454:             print(json.dumps(packet(args.cell), ensure_ascii=False, indent=2))
+455:         elif args.command == 'summary':
+456:             print(json.dumps({l: chapter_progress(l) for l in sorted({i['library'] for i in load()})}, indent=2))
+457:         else:
+458:             base = args.base
+459:             if args.ci:
+460:                 base = os.environ.get('PUBLICATION_BASE') or None
+461:                 if not base or set(base) == {'0'}:
+462:                     base = 'HEAD^'
+463:             errors = roundtrip.validate_registry(roundtrip.load_registry())
+464:             errors += validate(strict_names=release_targets(base) if base or args.ci else None)
+465:             if errors:
+466:                 print('\n'.join(errors), file=sys.stderr)
+467:                 return 1
+468:             for row in PRIVATE_IMPLEMENTATION_COVERAGE:
+469:                 print('Private implementation coverage: ' + json.dumps(row, ensure_ascii=False))
+470:             print(f'Publication PASS: {len(load())} source items; code, prose, assumptions and semantic-audit links checked. Legacy audit debt remains explicit.')
+471:     except (ValueError, KeyError, StopIteration, subprocess.CalledProcessError) as exc:
+472:         print(str(exc), file=sys.stderr)
+473:         return 1
+474:     return 0
+475: 
+476: 
+477: if __name__ == '__main__':
+478:     raise SystemExit(main())
+PROCESS_DEFINITION tools/astis_semantic_roundtrip_core.py 280
+280: def semantic_reviewer_packet(audit: dict[str, Any]) -> dict[str, Any]:
+281:     """Create an independent source-review packet after blind reconstruction.
+282: 
+283:     This packet intentionally includes the source contract because the reviewer
+284:     must compare it with the reconstruction. It intentionally omits any existing
+285:     semantic slots, deltas, verdict, reviewer decision, or repair proposal so the
+286:     reviewer is not anchored by a previous model's conclusions.
+287:     """
+288: 
+289:     source = audit.get("source", {}) if isinstance(audit.get("source"), dict) else {}
+290:     lean = audit.get("lean", {}) if isinstance(audit.get("lean"), dict) else {}
+291:     reconstruction = audit.get("reconstruction", {}) if isinstance(audit.get("reconstruction"), dict) else {}
+292:     identity_material = {
+293:         "source_text_sha256": source.get("text_sha256", ""),
+294:         "lean_statement_sha256": lean.get("statement_sha256", ""),
+295:         "reconstructed_text_sha256": reconstruction.get("text_sha256", ""),
+296:     }
+297:     core = {
+298:         "schema_version": 1,
+299:         "task": "independent-semantic-source-review",
+300:         "packet_id": "ASTIS-REVIEW-" + sha256_json(identity_material)[:16],
+301:         "anti_anchoring": {
+302:             "prior_semantic_slots_included": False,
+303:             "prior_deltas_included": False,
+304:             "prior_verdict_included": False,
+305:             "prior_repairs_included": False,
+306:         },
+307:         "roles": {
+308:             "formalizer": lean.get("formalizer", ""),
+309:             "blind_decoder": reconstruction.get("decoder", ""),
+310:             "reviewer_must_differ_from_both": True,
+311:         },
+312:         "source": {
+313:             "source_id": source.get("source_id", ""),
+314:             "anchor": source.get("anchor", ""),
+315:             "original_text": source.get("original_text", ""),
+316:             "text_sha256": source.get("text_sha256", ""),
+317:         },
+318:         "lean": {
+319:             "declaration": lean.get("declaration", ""),
+320:             "file": lean.get("file", ""),
+321:             "statement": lean.get("statement", ""),
+322:             "statement_sha256": lean.get("statement_sha256", ""),
+323:             "compiled": lean.get("compiled", False),
+324:         },
+325:         "blind_reconstruction": {
+326:             "text": reconstruction.get("text", ""),
+327:             "text_sha256": reconstruction.get("text_sha256", ""),
+328:             "decoder": reconstruction.get("decoder", ""),
+329:             "decoder_packet_sha256": reconstruction.get("decoder_packet_sha256", ""),
+330:             "decoder_run_sha256": reconstruction.get("decoder_run_sha256", ""),
+331:             "source_text_visible": reconstruction.get("source_text_visible"),
+332:         },
+333:         "review_contract": {
+334:             "semantic_slots": list(SEMANTIC_SLOTS),
+335:             "slot_relations": sorted(SLOT_RELATIONS),
+336:             "verdicts": sorted(VERDICTS - {"pending"}),
+337:             "repair_classes": sorted(REPAIR_CLASSES),
+338:             "repair_necessities": sorted(REPAIR_NECESSITIES),
+339:             "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem.",
+340:         },
+341:         "output_contract": {
+342:             "semantic_slots": {
+343:                 slot: {
+344:                     "original": "",
+345:                     "reconstructed": "",
+346:                     "relation": "not-audited",
+347:                     "evidence": "",
+348:                 }
+349:                 for slot in SEMANTIC_SLOTS
+ACTUAL_HEAD d4ff03bf3574da615cca39a812cd9b442dca47f0
+GIT_GUARD_INVENTORY_COUNT --stage 129005
+GIT_GUARD_INVENTORY_COUNT --others 86
+PRIVATE_CONTROL_LIST_GUARD_SUMMARY {"control_paths": 929, "atlas_named_metadata_exclusion_count": 0, "c8_named_metadata_exclusion_count": 12}

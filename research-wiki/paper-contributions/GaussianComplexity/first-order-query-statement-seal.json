@@ -1,0 +1,127 @@
+{
+  "seal_id": "GC-FirstOrderQuery-StatementSeal-20261107",
+  "recorded_utc": "2026-11-07T07:28:44.098868+00:00",
+  "state": "ELABORATED_STATEMENT_SEALED_PREPROOF",
+  "source": {
+    "id": "arxiv2610.20492v1",
+    "sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "A2.SS1.SSS0.Px1.p1 (Oracle reduction)",
+    "related_anchors": [
+      "S2 exact first-order oracle model and quadratic potential",
+      "S3.E4",
+      "S3.E5",
+      "S3.SS1.p3.2 zero-residual convention",
+      "S3 Lemma3.4 / AppendixB.3 actual matrix regularity"
+    ],
+    "selected_claim": "The three pointwise first-order reconstruction formulas: A_Oj xj is the affine combination of actual forward/transpose primitive replies; the actual full quadratic gradient is the concatenation of these block replies and residual x; f_A(x)=onehalf inner(x,gradient f_A(x)).",
+    "outside_scope": "The last source sentence asserting T first-order queries simulated at2T primitive queries per block, and full LemmaB1/3.2 posterior/transcript/random-seed law equivalence, remain separate open nodes. This packet does not count expression occurrences as an operational budget theorem."
+  },
+  "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+  "production_file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FirstOrderQuery.lean",
+  "lean_signature": "theorem actual_first_order_query {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let A := blockPrecision κ Os\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : Fin (d / n) → EuclideanSpace ℝ (Fin n) → Bool →\n        EuclideanSpace ℝ (Fin n) := fun j v inverse =>\n      WithLp.toLp 2 (if inverse then\n        (Os j : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp v\n      else (Os j : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp v)\n    let xb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n    let gb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n        (query j (xb x j) false + query j (xb x j) true)\n    let g : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n      WithLp.toLp 2 (fun a => Sum.elim\n        (fun ij => gb x ij.2 ij.1)\n        (fun i => x (e (Sum.inr i))) (e.symm a))\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (g x) x ∧\n      (f x, gradient f x) = (inner ℝ x (g x) / 2, g x)\n",
+  "signature_sha256": "9198f9cdd0d30f238cccfd9c1ad1a20240c14766f317756ce376ad6521061c2e",
+  "public_binder_audit": [
+    {
+      "binder": "{d n : Nat}, hn:3<=n,hnd:n<=d,{kappa:Real},hKappa:4<=kappa",
+      "role": "Standing source construction bounds; source hypothesis",
+      "classification": "SOURCE_INPUT_NOT_EXCESS"
+    },
+    {
+      "binder": "Os:Fin(d/n)->orthogonalGroup(Fin n)Real",
+      "role": "Actual arbitrary tuple of source hidden orthogonal blocks. No determinant-component or equality/differentiability/spectral witness is supplied.",
+      "classification": "SOURCE_INPUT_NOT_EXCESS"
+    },
+    {
+      "binder": "forall x:EuclideanSpace real(Fin d)",
+      "role": "Every actual first-order query vector in ambient real Euclidean coordinates, including x=0.",
+      "classification": "SOURCE_QUERY_INPUT_NOT_EXCESS"
+    },
+    {
+      "binder": "e,A,f,query,xb,gb,g",
+      "role": "Explicit definitions determined by source inputs; neither assumptions nor existential witnesses. False=forward O_j v,true=inverse O_j^T v; g uses only these two responses per block and the unchanged residual vector.",
+      "classification": "DEFINITIONAL_LOCAL_LETS"
+    },
+    {
+      "binder": "HasGradientAt f(gx)x and actual first-order pair equality",
+      "role": "Both conclusions, never convenience premises. HasGradientAt certifies genuine Frechet gradient and excludes the total gradient default.",
+      "classification": "OUTPUT_NOT_INPUT"
+    }
+  ],
+  "EXCESS": [],
+  "definition_kind_audit": [
+    {
+      "term": "blockPrecision and singleBlockPrecision/private blockCoordinates",
+      "kind": "meaning-def",
+      "audit": "Exact canonical source Eq4/5 bodies pinned above. Matrix.reindex e e M means entries M(e.symm i)(e.symm j); e(inl(i,j))=j*n+i, residual starts at k*n. Same compiled family as prior accepted results; no new renamed matrix family."
+    },
+    {
+      "term": "f",
+      "kind": "meaning-def",
+      "audit": "Actual source potential x dot(Ax)/2 with zero additive constant. Not the negative log of a supplied surrogate density. Source quadratic family already has min0 at0; no minimum/regularity witness is added."
+    },
+    {
+      "term": "query,xb,gb,g",
+      "kind": "meaning-def",
+      "audit": "Literal exact-real forward/transpose primitive responses, source block-coordinate extraction and arithmetic reconstruction. Inverse flag refers to hidden O inverse=transpose, not to querying precision A inverse. No approximation/noisy/matvec-cost substitution."
+    },
+    {
+      "term": "HasGradientAt and gradient",
+      "kind": "meaning-def",
+      "audit": "HasGradientAt f v x is genuine Frechet differentiability with derivative the Riesz functional toDual v. gradient f x is inverse-Riesz(fderiv f x), totalized to zero if no derivative. The public HasGradientAt output discharges existence; no default-zero interpretation may close the source claim."
+    },
+    {
+      "term": "EuclideanSpace/WithLp/inner",
+      "kind": "meaning-def",
+      "audit": "Real finite l2 geometry with canonical coordinate-preserving WithLp aliases. inner real x y is the usual Euclidean real inner product. Return value and gradient use the same actual ambient coordinates."
+    },
+    {
+      "term": "r=d%n=0",
+      "kind": "definition-and-boundary",
+      "audit": "Finite empty residual coordinates implement source omitted residual identity block without a positive-remainder assumption. Natural division/remainder retained exactly."
+    },
+    {
+      "term": "finite-horizon2T budget, adaptive histories, seed laws, TV precision and expected cost",
+      "kind": "OUTSIDE_SELECTED_STATEMENT",
+      "audit": "The source downstream budget sentence remains an open separate operational adapter. This pointwise calculus/reconstruction theorem alone neither proves a deterministic cap theorem nor an expected-cost/query lower bound. No such proof ingredient is added as a premise."
+    }
+  ],
+  "exact_definition_context": [
+    {
+      "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/DeterminantFamily.lean",
+      "file_sha256": "10ea9afafdee6f10a92e95d8e1570f56f7037c9362c06037c2c6523c58b78dd4",
+      "exact_definition_bodies": "noncomputable def singleBlockPrecision {n : ℕ} (κ : ℝ)\n    (O : Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin n) (Fin n) ℝ :=\n  ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -\n    ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) +\n      (O : Matrix (Fin n) (Fin n) ℝ).transpose)\n\n"
+    },
+    {
+      "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/BlockFamily.lean",
+      "file_sha256": "79661674e9b934d948242c80b1f1a0bb7b71c1b87c5293dc8468a3457ae7d2df",
+      "exact_definition_bodies": "private def blockCoordinates (d n : ℕ) :\n    ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n  ((Equiv.sumCongr\n    ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n    (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n    (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n\n/-- Literal equation (5), with contiguous size-n blocks and the residual identity. -/\nnoncomputable def blockPrecision {d n : ℕ} (κ : ℝ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin d) (Fin d) ℝ :=\n  Matrix.reindex (blockCoordinates d n) (blockCoordinates d n)\n    (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))\n      0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))\n\n"
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/Gradient/Basic.lean",
+      "file_sha256": "89f93934750efd40fd2eb8e261b888be4566d34a293eda1436f43ff5500817a8",
+      "exact_definition_bodies": "def HasGradientAtFilter (f : F → 𝕜) (f' x : F) (L : Filter F) :=\n  HasFDerivAtFilter f (toDual 𝕜 F f') (L ×ˢ pure x)\n\n/-- `f` has the gradient `f'` at the point `x` within the subset `s` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef HasGradientWithinAt (f : F → 𝕜) (f' : F) (s : Set F) (x : F) :=\n  HasGradientAtFilter f f' x (𝓝[s] x)\n\n/-- `f` has the gradient `f'` at the point `x` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef HasGradientAt (f : F → 𝕜) (f' x : F) :=\n  HasGradientAtFilter f f' x (𝓝 x)\n\n/-- Gradient of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.\n\nIf the derivative exists (i.e., `∃ f', HasGradientWithinAt f f' s x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef gradientWithin (f : F → 𝕜) (s : Set F) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderivWithin 𝕜 f s x)\n\n/-- Gradient of `f` at the point `x`, if it exists.  Zero otherwise.\nDenoted as `∇` within the Gradient namespace.\n\nIf the derivative exists (i.e., `∃ f', HasGradientAt f f' x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef gradient (f : F → 𝕜) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderiv 𝕜 f x)\n\n",
+      "scope": "Definition-only HasGradientAtFilter/Within/At and gradient/gradientWithin text; no derivative proof APIs retrieved. Original raw whole-file hash is authoritative; excerpt is UTF8 text after normal newline decoding."
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/PiL2.lean",
+      "file_sha256": "1f9827b2db67213c725a2dcc3fec52a87772966d1fbd3fc6857a019dbd7a6053",
+      "meaning": "EuclideanSpace real(Fin m) is the canonical finite l2 real inner-product space; WithLp.toLp/ofLp preserve coordinate entries. No norm-infinity oracle surrogate is substituted."
+    }
+  ],
+  "producer_facts_not_public_inputs": [
+    "Actual source matrix symmetry/regularity",
+    "Genuine quadratic Frechet differentiability and gradient formula",
+    "Actual block-coordinate matrix-vector recombination",
+    "Actual potential-value recovery from actual gradient",
+    "Empty residual handling"
+  ],
+  "intended_real_consumer": {
+    "statement": "For two actual source tuples Os1/Os2, at the same arbitrary actual query x, equality of all their forward and inverse primitive block responses implies equality of their actual first-order observations (f_A(x),gradient f_A(x)).",
+    "reason": "A true source-family oracle-factorization/observational-equivalence consumer. Does not assume first-order response equality, a gradient identity, derivative existence or an arbitrary surrogate oracle as a premise of the source theorem.",
+    "boundary": "One-query actual math only; adaptive history equality, deterministic2T worst-case cap, sampling TV precision, expected costs and both main lower bounds remain unproved here."
+  },
+  "preproof_read_scope": "Original S2/S3 Eq4-5 and A2.SS1.SSS0.Px1.p1 oracle-reduction formulas; existing local declaration inventory, literal single/block precision + private coordinate definition and regularity/minimizer interfaces. Existing matrix-bound proof context was incidentally visible in bounded source reads; no new target proof or derivative proof APIs retrieved. Only upstream HasGradientAt/gradient definitions at Gradient.Basic:57-83 inspected for meaning. Exact-signature Prop only, no theorem proof.",
+  "actual_elaboration_receipt": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/actual-checks/20261107T072405936559Z-first-order-query-signature-only-elaboration.receipt.json",
+  "signature_only_boundary": "Actual Prop declaration compiled12.066s at dfcc with empty raw log; no target theorem proof, proof placeholder, derivative proof API search or source-fidelity verdict exists. Exact public target is sealed before new mathematical proof search.",
+  "truth_boundary": "Prior Ex72 and all old results/frontiers/queues preserved; STAB empty. Root sole math worker. Distinct raw-source graph, definition/binder/topology challenge and preproof admission still required. No new source/Lean VERIFIED, canonical integration/publication/purification or Goal completion."
+}

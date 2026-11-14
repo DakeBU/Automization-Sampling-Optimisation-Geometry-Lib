@@ -1,0 +1,67 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+
+open Matrix MeasureTheory ProbabilityTheory
+open scoped RealInnerProductSpace
+
+set_option autoImplicit false
+
+example (d n : ℕ) : True := by
+  classical
+  let E := EuclideanSpace ℝ (Fin d)
+  let En := EuclideanSpace ℝ (Fin n)
+  let Er := EuclideanSpace ℝ (Fin (d % n))
+  let F := (Fin (d / n) → En) × Er
+  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+    ((Equiv.sumCongr
+      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+  let split : E → F := fun x =>
+    (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+      WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+  have he_block (i : Fin n) (j : Fin (d / n)) :
+      (e (Sum.inl (i, j))).val = j.val * n + i.val := by
+    simp [e, finProdFinEquiv, finSumFinEquiv, Nat.mul_comm, Nat.add_comm]
+  have he_tail (i : Fin (d % n)) :
+      (e (Sum.inr i)).val = (d / n) * n + i.val := by
+    simp [e, finProdFinEquiv, finSumFinEquiv, Nat.mul_comm]
+  let Tlin : E →ₗ[ℝ] F :=
+    { toFun := split
+      map_add' := by intro x y; ext i j <;> rfl
+      map_smul' := by intro a x; ext i j <;> rfl }
+  let T : E →L[ℝ] F := Tlin.toContinuousLinearMap
+  have hT (x : E) : T x = split x := rfl
+  have hcontinuous : Continuous split := T.continuous
+  have hrepresent (L : F →L[ℝ] ℝ) :
+      ∃ v : E, L.comp T = InnerProductSpace.toDual ℝ E v := by
+    let Lb := L.comp (ContinuousLinearMap.inl ℝ (Fin (d / n) → En) Er)
+    let Lj (j : Fin (d / n)) :=
+      Lb.comp (ContinuousLinearMap.single ℝ (fun _ : Fin (d / n) => En) j)
+    let Lr := L.comp (ContinuousLinearMap.inr ℝ (Fin (d / n) → En) Er)
+    let vj (j : Fin (d / n)) : En := (InnerProductSpace.toDual ℝ En).symm (Lj j)
+    let vr : Er := (InnerProductSpace.toDual ℝ Er).symm Lr
+    let w : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) → ℝ :=
+      Sum.elim (fun ij => vj ij.2 ij.1) (fun i => vr i)
+    let v : E := WithLp.toLp 2 (fun i => w (e.symm i))
+    have heval (i) : v (e i) = w i := by simp [v]
+    have hinner (x : E) :
+        ⟪v, x⟫ = (∑ j, ⟪vj j, (split x).1 j⟫) + ⟪vr, (split x).2⟫ := by
+      change (∑ i : Fin d, x i * v i) =
+        (∑ j, ∑ i : Fin n, (split x).1 j i * vj j i) +
+          ∑ i : Fin (d % n), (split x).2 i * vr i
+      rw [← e.sum_comp (fun i => x i * v i)]
+      simp only [heval, Fintype.sum_sum_type, Fintype.sum_prod_type, w,
+        Sum.elim_inl, Sum.elim_inr]
+      dsimp only [split]
+      congr 1
+      exact Finset.sum_comm
+    refine ⟨v, ?_⟩
+    ext x
+    change L (split x) = ⟪v, x⟫
+    rw [hinner]
+    simp_rw [vj, vr, InnerProductSpace.toDual_symm_apply]
+    rw [show (∑ j, (Lj j) ((split x).1 j)) = Lb (split x).1 from
+      ContinuousLinearMap.sum_comp_single ℝ _ Lb (split x).1]
+    exact (L.comp_inl_add_comp_inr (split x)).symm
+  trivial

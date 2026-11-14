@@ -1,0 +1,23 @@
+.astis/huanjian-gc-averaged-block-law-20261106/StatementProbe.lean:21:13: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  MeasurableSpace (Matrix (Fin d) (Fin d) ℝ)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+fun {d n} hn hnd {κ} hκ {b} hb =>
+  let e :=
+    ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+          finSumFinEquiv).trans
+      (finCongr ⋯);
+  let split := fun x =>
+    (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)));
+  let ν := 2 • (orthogonalHaar n).restrict {O | (↑O).det = b};
+  let D := sorry;
+  let γ := fun A => multivariateGaussian 0 A⁻¹;
+  let P := (fun O => multivariateGaussian 0 (singleBlockPrecision κ O)⁻¹) ∘ₘ ν;
+  IsProbabilityMeasure D ∧
+    IsProbabilityMeasure P ∧
+      IsProbabilityMeasure (γ ∘ₘ D) ∧
+        Measure.map split (γ ∘ₘ D) =
+          (Measure.pi fun x => P).prod
+            (stdGaussian
+              (EuclideanSpace ℝ
+                (Fin (d % n)))) : {d n : ℕ} → 3 ≤ n → n ≤ d → {κ : ℝ} → 4 ≤ κ → {b : ℝ} → b = 1 ∨ b = -1 → Prop

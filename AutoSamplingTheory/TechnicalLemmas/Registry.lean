@@ -42,6 +42,21 @@ import AutoSamplingTheory.ExampleCases.GaussianComplexity.SelectedNumerator
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.EvaluatedGaussian
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation
 import AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDeterminant
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGeometry
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Taylor
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.Generator
 import AutoSamplingTheory.TechnicalLemmas.FunctionalInequalities.CanonicalLogSobolev
@@ -275,6 +290,176 @@ def analysisMemory : List LemmaMemoryEntry := [
     tags := ["convex", "subgradient", "finite-horizon", "optimisation"],
     saldUse := "Finite best-iterate guarantee for a supplied nonsmooth subgradient run and arbitrary comparator",
     note := "Positive steps and nonempty horizon justify division. Native index witness replaces attained finite sInf; no minimizer, iterate convergence, stochastic oracle or sampling rate is claimed."
+  },
+  {
+    key := "density.normalized-tv-affinity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity",
+    upstreamDecl := "ASTIS canonical common-measure normalized-density TV/Hellinger comparison",
+    upstreamFile := "ASTIS-authored generalization; arXiv2610.20492v1 B.2.3 Ex69 and leading Ex72 as Euclidean motivation",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["density", "total-variation", "Hellinger-affinity", "shared", "Cauchy-Schwarz"],
+    saldUse := "Actual Gaussian Eq25 calls the upper comparison; actual product-density amplification has a planned lower-comparison consumer after its separate product-law proof",
+    note := "Independently VERIFIED at a5d10714ca01eb29c934acec06bb8983413182c2. Any common measure space, pointwise nonnegative measurable genuine L1 densities of mass1; no finite/probability/sigma-finite base assumption. Proves genuine affinity L1/range, event-sup TV=half-L1 and1-a<=TV<=sqrt(1-a^2). Intrinsic library density conditions are internally supplied by actual paper consumers, never added to the source theorem. One canonical node, no arbitrary-law wrapper or product-law/main-bound claim."
+  },
+  {
+    key := "gaussian-complexity.single-block-affinity",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockAffinity.single_block_affinity_bound",
+    upstreamDecl := "arXiv2610.20492v1 B.2.3 Ex68-69 and Eq25",
+    upstreamFile := "A2.SS2.SSS3 p2.1-p2.4, A2.Ex68-69, A2.E25; actual B7 and density canonical parents",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture", "total-variation", "Hellinger-affinity", "Eq25"],
+    saldUse := "For all source n,kappa and natural k, actual single-block affinity a satisfies a^k<=exp(-(k/8)exp(-10n/sqrt(kappa)))",
+    note := "Independently VERIFIED at a5d10714ca01eb29c934acec06bb8983413182c2. Exactly n>=3,kappa>=4; literal actual conditioned full-Haar inverse-precision Gaussian mixtures. Actual q is genuinely integrable,0<=a<=1, normalized event TV<=sqrt(1-a^2), and both Eq25 inequalities hold with exact1/4,10,1/8 constants. Density, probability, L1, unit masses, TV comparison and B7 are internal dependency edges. Scalar powers are not an actual independent-block law, tensorization or amplified TV; oracle/precision/query/cost/hidden-eigenbasis and both main bounds remain open."
+  },
+  {
+    key := "gaussian-complexity.conditional-block-law",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product",
+    upstreamDecl := "ASTIS-completed conditional Gaussian producer for arXiv2610.20492v1 Eq6",
+    upstreamFile := "Section3.1 Eq4-Eq6; regularity Lemma3.4 and AppendixB.3 Ex73/Eq26/Ex74",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-Gaussian", "block-covariance", "product-law", "Eq6-prerequisite"],
+    saldUse := "Actual all-source-parameter Gaussian marginals and canonical production consumer AveragedBlockLaw.actual_averaged_block_product for the true common-sign prior-averaged Eq6",
+    note := "Independently VERIFIED at83bb8c9361d0dba4077db5994f682a1f4b45d85a by a distinct fresh source/module reviewer. Exactly3<=n<=d,kappa>=4 and any fixed tuple in full O(n)^floor(d/n). The literal contiguous split maps actual N(0,blockPrecision^-1) to the finite independent product of actual N(0,A_Oj^-1) and the standard residual Gaussian, including zero residual. Positive definiteness, genuine block inverse, map continuity, every dual-frequency factorization and product-law identification are internal dependency edges. The source prints the prior-averaged Eq6; this is its conditional prerequisite, not that whole assertion. No product density, affinity tensorization, amplified TV, oracle/precision/cap/cost, hidden-eigenbasis, main-bound, public-delivery or purification claim."
+  },
+  {
+    key := "gaussian-complexity.averaged-block-law",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product",
+    upstreamDecl := "arXiv2610.20492v1 Eq6 actual common-sign prior-averaged Gaussian product law",
+    upstreamFile := "Section2 conditioned Haar/actual target; Section3.1 Eq4-Eq6 and zero residual; AppendixB.3 regularity",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-matrix-prior", "actual-Gaussian-mixture", "independent-common-sign-blocks", "Eq6"],
+    saldUse := "Actual all-source-parameter common-sign averaged block-mixture/residual marginals and canonical production consumer ProductDensity.actual_product_density for the actual Ex70 density and volume adapter",
+    note := "Independently VERIFIED at98cc6c8953d38dd54bc4e4ef7a547fd68a381ac8 by a distinct fresh source/module reviewer. Exactly3<=n<=d,kappa>=4,b=+1 or-1. D is the actual product conditioned-Haar tuple prior pushed through the same literal block precision; D.bind gamma is the actual inverse-precision Gaussian average. True prior/block-mixture/target probabilities and D-a.e.PositiveDef support are conclusions. Kernel measurability, matrix-prior bind transport and finite independent-prior integration are internal producers. The one canonical fixed-tuple Gaussian product node is genuinely reused. Zero residual is the probability unit factor. No product-density/affinity tensorization/amplifiedTV, oracle/precision/query cap/expected-cost/hidden-eigenbasis, main lower-bound, remote delivery or purification claim."
+  },
+  {
+    key := "gaussian-complexity.product-density",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity.actual_product_density",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.2.3 Ex70 actual product density",
+    upstreamFile := "A2.SS2.p2.1 actual densities; Eq6 and Ex70; source zero-residual omission",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture-density", "Lebesgue-volume", "Ex70", "zero-residual"],
+    saldUse := "Actual ambient/split measurable-set density-integral consumers and canonical production consumer AffinityTensorization.actual_affinity_tensorization for actual ambient RN-affinity Ex71",
+    note := "Independently VERIFIED at a83254ef00c8e6fd0548a25fae03f07e2a82e2b7 by the distinct fresh source/module reviewer. Exactly3<=n<=d,kappa>=4,b=+1 or-1. The actual matrix-prior Gaussian bind has the product of the actual Haar-average block densities and standard residual density under the exact volume-preserving contiguous split, and the corresponding ambient density. Genuine L1, mass1 and the zero-dimensional unit density are internally proved. The same actual Eq6, actual mixture-density, finite-product density, measurable-equivalence transport and isotropic Gaussian nodes are genuinely reused. Ex71 affinity tensorization, Ex72 amplifiedTV, oracle/precision/deterministic query cap/expected-cost, fixed-spectrum hidden eigenbasis, both main bounds, remote publication and purification remain separate."
+  },
+  {
+    key := "gaussian-complexity.affinity-tensorization",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization.actual_affinity_tensorization",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.2.3 Ex71 actual Hellinger affinity",
+    upstreamFile := "A2.Ex68, Ex70, Ex71; actual Eq4-Eq6 priors and zero-residual omission",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture-law", "Radon-Nikodym", "Hellinger-affinity", "Ex71"],
+    saldUse := "Actual all-source-parameter ambient Gaussian-mixture RN-affinity exponential-decay consumer and canonical production consumer TVAmplification.actual_averaged_tv_lower_bound for actual measurable-event TV Ex72",
+    note := "Independently VERIFIED at mathematical source candidate4014feb9c6dff0b4e0dcb9fb49ae1b961cf3cf0b by the distinct fresh source/module reviewer; post-candidate source-reviewed audit is separately pinned. Exactly3<=n<=d,kappa>=4. Both actual source-prior Gaussian binds are absolutely continuous; their canonical ambient RN-affinity integrand is genuinely L1 and its integral is the actual block affinity to exact power d/n. Actual Ex70 densities, normalized-density affinity and actual single-block densities are genuinely consumed. RN finite-a.e. identification and toReal conversion are internal; both residual cases are retained, without density/integrability/volume convenience premises. Eq25 is used only in the actual-law Test consumer, not as an Ex71 proof ancestor. Ex72 TV, oracle/transcript/precision/deterministic worst-case cap/expected-cost, hidden eigenbasis, both main bounds, remote publication and purification remain separate."
+  },
+  {
+    key := "gaussian-complexity.tv-amplification",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification.actual_averaged_tv_lower_bound",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.2.3 Ex72 final actual Gaussian-mixture TV inequality",
+    upstreamFile := "S2.Ex2 TV convention; S3.E4-E6; A2.E25/Ex71/Ex72 and zero-residual omission",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-mixture-law", "measurable-event-TV", "Radon-Nikodym", "Ex72"],
+    saldUse := "Actual all-source-parameter measurable-event TV amplification and actual-TV>=1/2 Test consumer under the explicit scale>=log2 threshold",
+    note := "Mathematical source candidateebf76119351b23ef0718fc69aa5081515bab0b52; independent source/whole-module review and normal source V are pinned by separate exact receipts. Exactly3<=n<=d,kappa>=4. For the actual two common-sign matrix-prior inverse-precision Gaussian binds, measurable-event TV is at least1-exp(-floor(d/n)/8*exp(-10n/sqrt(kappa))). Actual Eq6 probability, RN L1/unit mass/event integration, the canonical normalized-density TV comparison, actual Ex71 tensorization and actual Eq25 are genuinely consumed internally; no probability/density/integrability/scalar-affinity or positive-remainder premise is added. Both residual cases are retained. The focused Test has actual TV>=1/2 under the explicit scale>=log2 condition. Oracle/transcript/precision/deterministic worst-case cap/expected-cost, hidden eigenbasis, both main bounds, remote publication and purification remain separate."
+  },
+  {
+    key := "gaussian-complexity.first-order-query",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+    upstreamDecl := "arXiv2610.20492v1 AppendixB.1 actual pointwise first-order query reconstruction",
+    upstreamFile := "S2 centered first-order model; S3.E4-E5 actual precision; A2.SS1.SSS0.Px1.p1 and Ex33-Ex35",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "actual-quadratic", "Frechet-gradient", "exact-matvec", "oracle-reconstruction"],
+    saldUse := "Actual two-hidden-tuple observational-equivalence Test: equal exact forward/inverse block replies at one point imply equal actual potential/gradient observations; planned finite-horizon simulation consumer",
+    note := "Mathematical candidate515f9401d4c324680bb2a1c010274cafa47efc02 carried a draft semantic audit; independent source/whole-module review and normal source V are separately pinned. Exactly3<=n<=d,kappa>=4 with arbitrary actual orthogonal blocks. Canonical blockPrecision_regular supplies symmetry; genuine Frechet derivative/Riesz identification, actual primitive block actions, literal contiguous assembly and residual identity are internal dependency edges. HasGradientAt is an output, so no totalized-gradient fallback closes the source claim. The precision is the actual block family and f=x^T A x/2 with zero additive constant; Qfalse=O v and Qtrue=O^T v, not precision inverse. Zero residual is included. This is pointwise actual observation reconstruction, not a finite-horizon cap or transcript/output law. Per-block2T versus total2Tk, strict2T<n downstream indistinguishability, seed/measurability/TV-precision/expected-cost adapters, fixed-spectrum route and both main bounds remain separate."
+  },
+  {
+    key := "gaussian-complexity.fixed-spectrum-query",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine.actual_affine_precision_query",
+    upstreamDecl := "arXiv2610.20492v1 Section4.1 Eq11 and Remark4.2 actual same-rotation precision replies",
+    upstreamFile := "S4.E11 literal cosine grid; S4.Thmtheorem2 Remark4.2; S2 exact precision-matvec oracle",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "fixed-spectrum", "same-hidden-rotation", "exact-matvec", "bidirectional-affine-replies"],
+    saldUse := "Actual two-hidden-input same-point kappa-reply equality iff reference-condition-number2 reply equality; planned operational exact-query adapter remains separate",
+    note := "Mathematical candidate1ff1cb79413a853e977a50e598ce04211806dad8 carried a draft semantic audit; later genuine independent source/whole-module review and normal source V are separately pinned. Exactlyd>=2,kappa>=2 and one arbitrary actual full orthogonal O. Literal source theta_i=(i-1/2)pi/d and rotated diagonal precision are used at both kappa and2 with the SAME hidden O. The subscript2 is the reference condition number, not two calls, transpose/inverse oracle or covariance inverse. Scalar, source-index, diagonal, orthogonality/conjugation, actual matvec and genuinely nonzero kappa-1 reciprocal bridges are internal proofs. Actual source code has no ASTIS proof parents; FirstOrderQuery is a conceptual sibling, not a formal parent. Both directions hold at every actual x, and the focused two-input consumer proves actual reply-equality equivalence. This pointwise precursor does not establish spectral/PosDef/normalizer, Gaussian covariance/target/TV transport, adaptive Borel/seed/transcript/output simulation, deterministic or expected query/bit costs, finite-precision error adapters, Krylov/moment estimates or the full fixed-spectrum/main determinant lower bounds."
+  },
+  {
+    key := "gaussian-complexity.fixed-spectrum-admissibility",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible",
+    upstreamDecl := "arXiv2610.20492v1 Eq11 and Lemma4.6 actual cosine-grid precision admissibility",
+    upstreamFile := "S4.E11 literal precision; S4.Thmtheorem6 Lemma4.6; selected AppendixC.4 A3.SS4",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "fixed-spectrum", "actual-precision", "Loewner-bounds", "positive-definite"],
+    saldUse := "Actual same-precision inverse-covariance Gaussian law-density Test consumes produced PosDef through the existing canonical GaussianPrecisionDensity declaration",
+    note := "Mathematical candidate2df0cd116cd21a71113ae67997b7482878633460 carried a draft audit; later corrected publication binding and genuine independent source/whole-module review and normal source V are separately pinned. Exactlyd>=2,kappa>=2 and every actual full real orthogonal O, including either determinant sign. The literal cosine-grid O diagonal Otranspose precision satisfies both quadratic-form bounds I<=A<=kappaI and internally produced PosDef. Real cosine bounds, diagonal positivity, actual orthogonal conjugation and strict positivity from the identity are internal proof components, not public assumptions. Source dimension hd is deliberately retained though the cosine envelope needs no angle restriction. Producer ASTIS proof parents are empty; FixedSpectrumAffine and FirstOrderQuery are not formal parents. The real Test reuses the identical canonical GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef for actual N(0,Ainv) and its Euclidean-Lebesgue quadratic density with real d/2. This is a consumer dependency, not a new duplicate node or producer parent. Basis-independent determinant/known-normalizer product, C4 calculus/minimizer, moments/Krylov, target-law/TV parameter transport, adaptive/seed/transcript/output simulation, finite precision, deterministic/expected costs, both main lower bounds, remote publication and purification remain separate."
+  },
+  {
+    key := "measure.det-conj-star-alg-aut-existing-canonical",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.DisplacementJacobianEntropy.det_conjStarAlgAut_eq",
+    upstreamDecl := "Existing ASTIS finite real unitary-conjugation determinant identity; compilation-only inventory admission",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Measure/DisplacementJacobianEntropy.lean:154; legacy source-audit debt remains",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["determinant", "unitary-conjugation", "existing-compiled-node", "compilation-only-index", "legacy-source-audit-debt"],
+    saldUse := "The actual fixed-spectrum cosine-grid determinant producer literally reuses this identical canonical declaration; normal indexing exposes its existing owning module and conservative source-name reference",
+    note := "Index admission of an EXISTING public compiled declaration, not a new theorem, proof, SAU or mathematical packet. Exact canonical source SHAa1bf2e9e21e00f1ad7dd01acadc47ea914c2a03b45c82db2aeb927336612fd85 remains unchanged. For every finite index type, real unitary matrix U and arbitrary real matrix B, det(conjStarAlgAut U B)=detB. No determinant-one, positivity, symmetry, spectral-window or Gaussian premise. Existing Tests.DisplacementJacobianEntropy checks this declaration and the new fixed-spectrum producer contains it as its ONE actual kernel ASTIS parent; the held39798 official root gate also compiled the actual reused code. formalizedLocal here records compilation and canonical retrieval only. Legacy source/whole-module publication audit debt of this old module is explicitly retained: the new producer sourceV by /root/reader_835194 does not create a sourceV, fresh source-fidelity verdict or publication coverage for this old parent module. No new source result or main-bound progress is credited. The graph module ownership is structural and the true parent-to-producer name scan remains dashed, incomplete and not a kernel dependency export. No duplicate canonical node, new formal conceptual transport or oracle-factorization candidate is introduced."
+  },
+  {
+    key := "gaussian-complexity.fixed-spectrum-determinant",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDeterminant.actual_precision_det",
+    upstreamDecl := "arXiv2610.20492v1 Eq11 and AppendixC.4 actual cosine-grid precision determinant product",
+    upstreamFile := "S4.E11 literal precision; A3.SS4 determinant equality component of Ex160",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "fixed-spectrum", "actual-precision", "determinant", "canonical-reuse"],
+    saldUse := "The actual same-A inverse-precision Gaussian density Test consumes this determinant product with existing actual admissibility and the identical canonical GaussianPrecisionDensity declaration",
+    note := "Mathematical candidatea0310046dc10c06ce9f61959094322fb9016be1e and bindingc70bb9b23e335acf768bb889f8229fcdf2a7af160e10fa89779d00dcba58374b pin exact code and authored mathematics. Independent source/whole-module review and normal source V are separate application prerequisites. Exactlyd>=2,kappa>=2 and every actual full real orthogonal O, including either determinant sign. The actual O diagonal(lambda) Otranspose precision has determinant equal to its full literal cosine-grid finite product. Its ONE actual compiled ASTIS producer parent is existing DisplacementJacobianEntropy.det_conjStarAlgAut_eq; this is identical canonical formal reuse, not a new generic lemma or weaker concept transport. Real star/transpose and Matrix.det_diagonal are internal proof steps; no determinant, positivity, spectral-window or density certificate is added as a source premise. The actual Test-only private Gaussian consumer has this producer, existing FixedSpectrumAdmissibility.actual_precision_admissible and canonical GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef as its three kernel ASTIS parents. It creates no public declaration or Registry node. Only the Gaussian prefactor is orientation-independent; the exponent retains actual A and real d/2 includes odd dimensions. Full unweighted Gaussian integral/knownZ, C4 calculus/minimizer, moments/Krylov, target-law/TV and adaptive/seed/transcript/output simulation, finite precision, deterministic/expected costs, both main lower bounds, remote publication and purification remain separate."
+  },
+  {
+    key := "measure.gaussian-precision-density-existing-canonical",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef",
+    upstreamDecl := "Existing ASTIS actual SPD inverse-precision Gaussian Lebesgue density; compilation-only inventory admission",
+    upstreamFile := "AutoSamplingTheory/TechnicalLemmas/Measure/GaussianPrecisionDensity.lean:48; legacy source/publication audit debt remains",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["Gaussian", "SPD-precision", "existing-compiled-node", "compilation-only-index", "legacy-source-publication-audit-debt"],
+    saldUse := "Compilation-only admission of the existing canonical density, with historical source/publication audit debt. The old gaussian-precision-density frontier remains proved_locally without independent verification; no old sourceV or completed audit is claimed. The actual fixed-spectrum normalizing-integral producer literally reuses this identical canonical declaration; retain its existing canonical node identity and expose conservative source-name references",
+    note := "Existing public compiled declaration inventory only: no new theorem, proof, SAU, sourceV or completed source/publication audit. Exact old module SHA1a1b9a929076ab77bf0e0f207f0d3d4fa25ac30dd56b2275e1fc319970f0f5e5 remains unchanged. Every finite dimension including zero and actual SPD real precision A: the existing multivariateGaussian with covariance Ainv equals the stated density against unweighted Euclidean Lebesgue volume, with real d/2. The new normalizer producer actually consumes this exact canonical node, existing actual admissibility and actual determinant as its three kernel ASTIS parents. The current normalizer review inspects critical ancestors for this new proof; it does not confer a standalone historical sourceV or completed publication audit on this GPD parent, and does not alter its old frontier/audit. The old ASTIS-SHARED-gaussian-precision-density frontier remains proved_locally with no independent_verification, and the old gaussian-complexity-law-density source/publication debt remains unchanged. formalizedLocal records compilation and canonical retrieval only; the same already source-present partial graph node may acquire compilation inventory status without old source-fidelity credit. Its generic generated theorem card displays the explicit compilation-only and debt warning through saldUse, upstreamFile and tags; the full Registry note remains in source. The owning-module edge is structural; conservative name references remain dashed and incomplete, not a kernel dependency export. Natural existing references from AveragedBlockLaw and to RadonNikodym may become visible solely through this inventory admission. No other missing parent is swept in, no duplicate density or conceptual transport is created."
+  },
+  {
+    key := "gaussian-complexity.fixed-spectrum-normalizer",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer.actual_normalizing_integral",
+    upstreamDecl := "arXiv2610.20492v1 Eq11 and Appendix C.4 actual finite unweighted Gaussian normalizing integral",
+    upstreamFile := "S4.SS1 Eq11/public-normalizer; S2 actual target; A3.SS4 Gaussian integration component of Ex160",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "fixed-spectrum", "actual-normalizing-integral", "Lebesgue-integrability", "canonical-reuse"],
+    saldUse := "The actual same-A inverse-precision Gaussian Test consequentially consumes the new actual integral in its weight divided by integral density; its positive actual mass is proved internally",
+    note := "Mathematical candidate8d33e06485edc17320cc01308af40da44945659d and bindingb2f41e36a9d705ff68da71f72f0ec14f1cd2ff105bcf0ae5000ef1406a5d1f41 pin exact code and authored mathematics. Independent current source/whole-module review, normal source V and sole STAB are application prerequisites. Exactlyd>=2,kappa>=2 and every full real orthogonal O, including either determinant sign: the literal quadratic weight is Integrable against actual unweighted Euclidean Lebesgue volume and its actual integral equals (2pi)^(real d/2)/sqrt(full cosine-grid product). Actual precision admissibility, determinant and the identical GaussianPrecisionDensity declaration are the three genuine kernel ASTIS producer parents. Actual probability mass, continuity and nonnegativity prove finite integrability internally before recovering the real integral; no positivity, determinant, integrability, finite mass or normalization certificate is assumed. Using the canonical density and its probability mass is an explicit implementation OR-route, not a rewritten author Source Proof Graph. The Test-only private consumer contains all three old canonical parents plus this new integral producer; it creates no public or Registry consumer node. Only the normalizing scalar is independent of O; covariance and exponent retain actual A. The Lebesgue integral interpretation and explicit integrability are disclosed source-implicit elaborations. Historical GPD source/publication debt remains separate from this new review. Remaining C4 calculus/minimizer, strict historical angle/cosine route, moments/Krylov, true adaptive/private-seed/transcript/output laws, actual oracle/finiteprecision/TV, deterministic worstcap and explicit expectedcost adapters, both complete main lower bounds, remote publication and postmerge purification/ExpositionSeal remain separate."
+  },
+  {
+    key := "gaussian-complexity.fixed-spectrum-first-order",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query",
+    upstreamDecl := "arXiv2610.20492v1 Eq1 actual fixed-spectrum first-order observation and genuine derivative existence",
+    upstreamFile := "S2.E1 first-order pair; S4.E11 literal cosine-grid family; Remark4.2 same-O affine response; AppendixC.4 derivative meaning",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "fixed-spectrum", "Frechet-gradient", "exact-precision-reply", "canonical-reuse"],
+    saldUse := "The real private Test combines the new actual gradient/value producer with the existing canonical SAME-O reference2 affine precision reply; derivative existence is an output, not a premise",
+    note := "Mathematical candidate9d306d837fbddf1518b0035494baaf5c21c24488 and publication binding51d5a5e9390a0d66c2d5b72d042a042eec8d3d60433043ea3909bf9320ccb31e pin exact source, Test and authored mathematics. Current independent source/whole-module review, normal source V and sole STAB are prerequisites to applying this conditional integration. Exactlyd>=2,kappa>=2, every full real orthogonal O including either determinant sign, and every actual x: the literal cosine-grid precision response Ax is a genuine Euclidean Frechet gradient of the centered potential xTAx/2 and gives its exact value/gradient pair. Existing FixedSpectrumAdmissibility.actual_precision_admissible is the ONE direct kernel ASTIS producer parent; symmetry, real CLM/coordinate identification, derivative existence and Riesz-functional algebra are internal. No derivative, gradient, admissibility or reply certificate is an extra public premise. The real private Test has exactly TWO direct kernel ASTIS parents: this producer and FixedSpectrumAffine.actual_affine_precision_query. Its forward same-O reference2 response uses multiplication by kappa-1; no reciprocal/nonzero bridge is a new consumer premise. The private Test creates no public or Registry node. Existing block FirstOrderQuery is a conceptual sibling, not a formal parent. The separately independently validated supplement retains the same typed transport ID and old review/critical-estimate history; dashed module correspondence is not Lean implication or functor certification. C-infinity/Hessian/strong-convexity/smoothness/minimizer, operational query caps, adaptive/private-seed/transcript/output laws, target-law/TV, finite precision/arithmetic and deterministic/expected-cost adapters, both complete main bounds, remote publication and postmerge purification/ExpositionSeal remain separate."
+  },
+  {
+    key := "gaussian-complexity.fixed-spectrum-geometry",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGeometry.actual_potential_geometry",
+    upstreamDecl := "arXiv2610.20492v1 Eq11 and AppendixC.4 actual potential geometry",
+    upstreamFile := "S4.SS1/E11 literal family; AppendixC.4 smoothness/Hessian/convexity/minimizer; S2.E1 fixed-input Borel reply background",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "fixed-spectrum", "actual-potential", "strong-convexity", "Borel-consumer", "canonical-reuse"],
+    saldUse := "The real private fixed-input Borel Test consumes this producer's scalar smoothness and genuine gradient derivative, then the identical canonical FirstOrder identity to identify the actual value/precision reply",
+    note := "Mathematical candidate ab8b47caed9f781191f8408154cd355c7e7c104c and publication binding 69c4f115a417c0aea6a8ebc9384cfc66ff07e6fae92de806831b79075a4760fa pin exact code, Test and authored mathematics. Genuine current-binding independent source/whole-module review, normal source V and sole STAB are prerequisites to applying this conditional payload. Exactly d>=2, kappa>=2 and every full real orthogonal O, including either determinant sign: the literal centered cosine-grid potential is globally C-infinity; its actual Euclidean gradient has Frechet derivative A at every point; it is 1-strongly convex with the r-squared/2 modulus and kappa-Lipschitz gradient; f(0)=0 and a point is a global minimizer iff it is zero. Actual admissibility, actual FirstOrder and the identical StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound are the THREE direct kernel ASTIS producer parents, already canonical Registry nodes. Symmetry, closed quadratic bounds, regularity, operator norm and minimizer facts are derived internally, never caller certificate premises. The private Test genuinely consumes Geometry and canonical FirstOrder as its TWO direct kernel ASTIS parents to prove the literal same-A ordered value/reply pair Borel for each fixed O. It creates no public or Registry consumer node. The strict source angle/cosine prefix and author's generic Hessian-criterion route remain distinct source obligations; this implementation uses closed canonical admissibility and the same gradient-monotonicity converse. No new conceptual transport is proposed; GraphMemory, Functor and discovery ledger stay unchanged. Joint hidden-input/adaptive/private-seed/history/transcript/output-law, actual Gaussian target/TV and finite precision, deterministic worst-query caps and explicit expected-cost reductions, moments/Krylov and both complete main lower bounds, remote publication and postmerge purification/Exposition Seal remain separate."
+  },
+  {
+    key := "gaussian-complexity.fixed-spectrum-cosine-expansion",
+    localDecl := "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion.actual_inverse_spectrum_cosine_expansion",
+    upstreamDecl := "arXiv2610.20492v1 FactC.7 inverse-spectrum cosine expansion",
+    upstreamFile := "A3.Ex133-137 and full proof A3.SS3.2; private finite-grid use A3.SS3.p4.2",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["GaussianComplexity", "fixed-spectrum", "cosine-series", "uniform-convergence", "canonical-reuse"],
+    saldUse := "The genuine private actual_inverse_grid_cosine_series consumes the new identity and absolute summability, proves weighted summability and exchanges the literal finite grid sum with the infinite series",
+    note := "Mathematical candidate 37645c774481c4cad19fc29bcaa76799da64db7d and publication binding 8ddbbdb086becb57b2b8212154d9f607b121f7955cfcce132927210eaa04b95c pin exact code, private Test and authored mathematics. Applying this conditional payload requires genuine current-binding independent source/whole-module review, normal source V, real reconciliation with current main and sole STAB. Exactly real kappa>=2; literal r=(sqrt(kappa)-1)/(sqrt(kappa)+1); pointwise reciprocal-spectrum identity for every real angle, absolute summability and all-real-angle uniform convergence for each fixed kappa. No dimension, Gaussian law, matrix, radius or convergence certificate is a public premise. ZERO direct public ASTIS producer parents; canonical Mathlib geometric, real-part and majorant APIs are proof ingredients. The genuine private Test has exactly ONE public ASTIS parent, this producer; it materializes the same literal d>=2 midpoint grid at all natural frequencies n and genuinely interchanges its weighted finite sum with the series. It creates no public or Registry node. Source1<=n<d remains necessary later for C8 alias classification and closed moments. The independently validated Poisson family is typed conceptual memory only: retain A1 n>=2/n>=3 ambiguity and n=2 extension/HFT-route debt, auxiliary-circle/sign/measure adapters, fixed-kappa uniformity and finite-grid alias corrections; no Lean implication or functor certificate. Gaussian expectation/target-law, C8 closed moments, variance/bias/Krylov, adaptive/seed/transcript/output laws, exact-oracle/finite-precision/TV/deterministic-cap/expected-cost adapters, both full main lower bounds, remote publication and postmerge purification/Exposition Seal remain separate."
   },
   {
     key := "gaussian-complexity.single-block-separation",

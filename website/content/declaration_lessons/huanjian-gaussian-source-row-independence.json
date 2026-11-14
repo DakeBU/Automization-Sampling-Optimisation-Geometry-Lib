@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowIndependence.actual_source_rows_independent",
+      "title": "Independent Gaussian rows and their truncated matrix images",
+      "reader_note": "Open the assumptions and source steps for the exact experiment, matrix maps and adjacent Lean.",
+      "statement": "The coordinate-row vectors of the independent-column Gaussian experiment are jointly independent. Their actual truncated matrix images are measurable and jointly independent in that same experiment.",
+      "formula": "\\mu\\!\\left(\\bigcap_{i\\in S}\\Phi_i^{-1}(A_i)\\right)=\\prod_{i\\in S}\\mu\\bigl(\\Phi_i^{-1}(A_i)\\bigr),\\qquad S\\subseteq\\{1,\\ldots,d\\},\\quad A_i\\text{ Borel}.",
+      "assumptions": [
+        "Let \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), and \\(r=q+1\\). In particular \\(d\\ge2\\), \\(r\\ge1\\), and \\(q=0\\) is included.",
+        "Write \\(\\gamma_n=N(0,I_n)\\) on real Euclidean \\(n\\)-space. The outcome space is \\(\\Omega=(\\mathbb R^d)^r\\), with the literal column-product probability law \\(\\mu=\\gamma_d^{\\otimes r}\\). Define \\(\\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\in\\mathbb R^r\\).",
+        "The public independence conclusion means factorization for every finite family of Borel row events. The canonical row-law declaration supplies row measurability and Gaussian marginal laws internally; neither law nor independence is a caller-supplied certificate.",
+        "For the actual matrix consumer, put \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(t_i[0]=1\\), \\(t_i[k]=\\sqrt2\\cos(k\\theta_i)\\) for \\(1\\le k\\le q\\), and \\(L=2r+3\\log(1000d)\\). Lean uses source indices \\(i.val+1\\) and \\(a.val+1\\).",
+        "Each \\(Y_i\\) has the displayed literal formula with its own closed cutoff. At entry \\(((a,j),(b,k))\\), the value inside the cutoff is \\(d^{-1}\\Phi_i[a]\\Phi_i[b]t_i[j]t_i[k]\\). Gaussian coordinates come first in both paired indices.",
+        "Matrices use their finite real-entry product measurable structure. Both measurability of all \\(Y_i\\) and full-family independence are proved outputs. The deterministic features vary with \\(i\\), so no identical-distribution claim for the matrices is made. No Gram, norm, moment, integrability, tail, \\(\\tau\\), or condition-number premise is added."
+      ],
+      "steps": [
+        {
+          "title": "Expose the full scalar-coordinate product",
+          "text": "Set up the same actual column experiment and reuse the existing canonical row-law theorem. The Mathlib equality identifying the Euclidean image of a scalar Gaussian product with stdGaussian supplies the full physical-coordinate joint law of each column. Unwrap each Euclidean column and apply the finite product-map theorem across columns.",
+          "formula": "\\omega\\longmapsto(\\omega_{a,i})_{a,i}\\quad\\text{pushes }\\mu\\text{ to }\\nu=\\bigotimes_{a=1}^r\\bigotimes_{i=1}^d N(0,1).",
+          "lean": "  classical\n  dsimp only\n  let Q := Fin (q + 1)\n  let I := Fin d\n  let D := EuclideanSpace ℝ I\n  let E := EuclideanSpace ℝ Q\n  let Ω := Q → D\n  let μ : Measure Ω := Measure.pi (fun _ : Q => stdGaussian D)\n  let row : I → Ω → E := fun i ω => WithLp.toLp 2 (fun a : Q => ω a i)\n  let σ : Measure ℝ := gaussianReal 0 1\n  let ν : Measure (Q → I → ℝ) :=\n    Measure.pi (fun _ : Q => Measure.pi (fun _ : I => σ))\n  let ρ : Measure (I → Q → ℝ) :=\n    Measure.pi (fun _ : I => Measure.pi (fun _ : Q => σ))\n  change iIndepFun row μ\n  have row_law := actual_source_row_marginal_law (d := d) (q := q) hq\n  change ∀ i : I, MeasurePreserving (row i) μ (stdGaussian E) at row_law\n\n  -- The full physical-coordinate product law, not merely scalar marginals.\n  have column_product :\n      Measure.map (WithLp.toLp 2 : (I → ℝ) → D)\n        (Measure.pi (fun _ : I => σ)) = stdGaussian D :=\n    map_pi_eq_stdGaussian\n  have unwrap_column :\n      MeasurePreserving (fun x : D => fun i : I => x i)\n        (stdGaussian D) (Measure.pi (fun _ : I => σ)) := by\n    have hm : Measurable (fun x : D => fun i : I => x i) := by\n      dsimp [D]\n      fun_prop\n    refine ⟨hm, ?_⟩\n    rw [← column_product, Measure.map_map hm (by fun_prop)]\n    change Measure.map id (Measure.pi (fun _ : I => σ)) = _\n    exact Measure.map_id\n  have unwrap_columns :\n      MeasurePreserving (fun ω : Ω => fun a : Q => fun i : I => ω a i) μ ν :=\n    measurePreserving_pi (fun _ : Q => stdGaussian D)\n      (fun _ : Q => Measure.pi (fun _ : I => σ)) (fun _ => unwrap_column)\n"
+        },
+        {
+          "title": "Regroup the same coordinate array into physical rows",
+          "text": "Flatten the finite scalar array, exchange its two index factors, and curry it back with the physical-row index outside. The general product-measure curry rules are specialized using the exact equality of finite and infinite product constructions. Each step is a measurable measure-preserving map on the same sampled array.",
+          "formula": "\\tau(x)_{i,a}=x_{a,i},\\qquad\\tau_\\#\\nu=\\rho=\\bigotimes_{i=1}^d\\bigotimes_{a=1}^rN(0,1).",
+          "lean": "  -- Flatten, permute the two finite indices, and regroup the same scalar array.\n  have flatten :\n      MeasurePreserving (MeasurableEquiv.curry Q I ℝ).symm ν\n        (Measure.pi (fun _ : Q × I => σ)) := by\n    refine ⟨(MeasurableEquiv.curry Q I ℝ).symm.measurable, ?_⟩\n    simpa only [Measure.infinitePi_eq_pi] using\n      (Measure.infinitePi_map_curry_symm (fun (_ : Q) (_ : I) => σ))\n  have swap :=\n    measurePreserving_piCongrLeft (α := fun _ : I × Q => ℝ)\n      (fun _ : I × Q => σ) (Equiv.prodComm Q I)\n  have regroup :\n      MeasurePreserving (MeasurableEquiv.curry I Q ℝ)\n        (Measure.pi (fun _ : I × Q => σ)) ρ := by\n    refine ⟨(MeasurableEquiv.curry I Q ℝ).measurable, ?_⟩\n    simpa only [Measure.infinitePi_eq_pi] using\n      (Measure.infinitePi_map_curry (fun (_ : I) (_ : Q) => σ))\n  have transpose :\n      MeasurePreserving (fun x : Q → I → ℝ => fun i : I => fun a : Q => x a i) ν ρ :=\n    regroup.comp (swap.comp flatten)\n"
+        },
+        {
+          "title": "Wrap rows and identify their joint law",
+          "text": "Wrap each scalar row in Euclidean r-space using the same canonical Gaussian product-image equality. Compose column unwrapping, coordinate regrouping and row wrapping. This gives a measurable exact joint pushforward for the actual row maps. The joint transport is an internal proof step.",
+          "formula": "(\\omega\\mapsto(\\Phi_i(\\omega))_{i=1}^d)_\\#\\mu=\\gamma_r^{\\otimes d}.",
+          "lean": "  have wrap_rows :\n      MeasurePreserving (fun x : I → Q → ℝ => fun i : I => WithLp.toLp 2 (x i))\n        ρ (Measure.pi (fun _ : I => stdGaussian E)) :=\n    measurePreserving_pi (fun _ : I => Measure.pi (fun _ : Q => σ))\n      (fun _ : I => stdGaussian E) (fun _ => ⟨by fun_prop, map_pi_eq_stdGaussian⟩)\n  have actual_joint :\n      MeasurePreserving (fun ω : Ω => fun i : I => row i ω) μ\n        (Measure.pi (fun _ : I => stdGaussian E)) :=\n    wrap_rows.comp (transpose.comp unwrap_columns)\n"
+        },
+        {
+          "title": "Read full independence from the joint product law",
+          "text": "The reused row-law theorem supplies measurability and the exact marginal map equalities. Apply the finite-family independence characterization by joint product pushforward. Combining the genuine joint law with those canonical marginal equalities yields full event factorization for every finite family.",
+          "formula": "\\mu\\!\\left(\\bigcap_{i\\in S}\\Phi_i^{-1}(A_i)\\right)=\\prod_{i\\in S}\\mu\\bigl(\\Phi_i^{-1}(A_i)\\bigr),\\qquad S\\subseteq\\{1,\\ldots,d\\},\\quad A_i\\text{ Borel}.",
+          "lean": "  -- Exact joint product law implies full finite-family independence.\n  apply (iIndepFun_iff_map_fun_eq_pi_map (fun i => (row_law i).aemeasurable)).2\n  calc\n    μ.map (fun ω i => row i ω) = Measure.pi (fun _ : I => stdGaussian E) :=\n      actual_joint.map_eq\n    _ = Measure.pi (fun i : I => μ.map (row i)) := by\n      congr 1\n      funext i\n      exact (row_law i).map_eq.symm\n"
+        },
+        {
+          "title": "Keep the actual truncated matrices as separate row images",
+          "text": "Define the literal source features and cutoff. For each fixed i, let F_i map one Euclidean row to its inverse-d scaled, locally truncated outer-product tensor. The actual Y_i equals F_i composed with the actual row map on Omega. Reuse both the new independence producer and the same canonical row-law declaration. This fold contains the complete private statement and setup.",
+          "formula": "Y_i(\\omega)=\\frac1d\\bigl(\\Phi_i(\\omega)\\Phi_i(\\omega)^\\top\\otimes t_it_i^\\top\\bigr)\\mathbf1_{\\{\\|\\Phi_i(\\omega)\\|^2\\le L\\}}.\\qquad Y_i=F_i\\circ\\Phi_i.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowIndependence\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowIndependence\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceRowIndependence\n\nprivate theorem actual_truncated_matrices_measurable_and_independent\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun a : Fin (q + 1) => ω a i)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i =>\n    (((i.val : ℝ) + 1 - (1 / 2 : ℝ)) * Real.pi) / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let Y : Fin d → Ω →\n      ((Fin (q + 1) × Fin (q + 1)) → (Fin (q + 1) × Fin (q + 1)) → ℝ) := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (fun a => row i ω a) (fun a => row i ω a))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  (∀ i : Fin d, Measurable (Y i)) ∧ iIndepFun Y μ := by\n  classical\n  dsimp only\n  let Q := Fin (q + 1)\n  let I := Fin d\n  let D := EuclideanSpace ℝ I\n  let E := EuclideanSpace ℝ Q\n  let Ω := Q → D\n  let μ : Measure Ω := Measure.pi (fun _ : Q => stdGaussian D)\n  let row : I → Ω → E := fun i ω => WithLp.toLp 2 (fun a : Q => ω a i)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : I → ℝ := fun i =>\n    (((i.val : ℝ) + 1 - (1 / 2 : ℝ)) * Real.pi) / (d : ℝ)\n  let t : I → Q → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let F : I → E → ((Q × Q) → (Q × Q) → ℝ) := fun i x =>\n    if ‖x‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (fun a => x a) (fun a => x a))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let Y : I → Ω → ((Q × Q) → (Q × Q) → ℝ) := fun i ω => F i (row i ω)\n  change (∀ i : I, Measurable (Y i)) ∧ iIndepFun Y μ\n  have row_law := actual_source_row_marginal_law (d := d) (q := q) hq\n  change ∀ i : I, MeasurePreserving (row i) μ (stdGaussian E) at row_law\n  have row_independent := actual_source_rows_independent (d := d) (q := q) hq\n  change iIndepFun row μ at row_independent\n"
+        },
+        {
+          "title": "Prove measurable images and preserve independence",
+          "text": "The squared-norm cutoff is a measurable closed event. Inside it, each matrix entry is a polynomial in two row coordinates with fixed scalar coefficients; outside it, the entry is zero. Thus each F_i is measurable into the finite real-entry product space. Compose with row measurability, then apply full-family independence preservation under the separate measurable F_i. The rule requires no injectivity, and the F_i may differ.",
+          "formula": "F_i(x)_{(a,j),(b,k)}=\\frac{x_ax_b\\,t_i[j]t_i[k]}d\\mathbf1_{\\{\\|x\\|^2\\le L\\}},\\qquad\\forall i,\\ Y_i\\text{ is measurable};\\qquad (Y_i)_{i=1}^d\\text{ is independent under }\\mu.",
+          "lean": "  have coordinate (a : Q) : Measurable (fun x : E => x a) := by\n    dsimp [E]\n    fun_prop\n  have cutoff : MeasurableSet {x : E | ‖x‖ ^ 2 ≤ L} :=\n    measurableSet_le (by fun_prop) measurable_const\n  have F_measurable (i : I) : Measurable (F i) := by\n    apply Measurable.ite cutoff\n    · apply measurable_pi_lambda\n      intro u\n      apply measurable_pi_lambda\n      intro v\n      change Measurable (fun x : E =>\n        (d : ℝ)⁻¹ * ((x u.1 * x v.1) * (t i u.2 * t i v.2)))\n      exact measurable_const.mul (((coordinate u.1).mul (coordinate v.1)).mul measurable_const)\n    · exact measurable_const\n  constructor\n  · intro i\n    exact (F_measurable i).comp (row_law i).measurable\n  · exact row_independent.comp F F_measurable\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceRowIndependence\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law"
+      ],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.map_pi_eq_stdGaussian",
+        "MeasureTheory.Measure.map_map",
+        "MeasureTheory.Measure.map_id",
+        "MeasureTheory.measurePreserving_pi",
+        "MeasureTheory.Measure.infinitePi_eq_pi",
+        "MeasureTheory.Measure.infinitePi_map_curry_symm",
+        "MeasureTheory.measurePreserving_piCongrLeft",
+        "MeasureTheory.Measure.infinitePi_map_curry",
+        "MeasureTheory.MeasurePreserving.comp",
+        "ProbabilityTheory.iIndepFun_iff_map_fun_eq_pi_map",
+        "measurableSet_le",
+        "measurable_pi_lambda",
+        "Measurable.ite",
+        "Measurable.comp",
+        "ProbabilityTheory.iIndepFun.comp"
+      ],
+      "dependency_notes": "The producer materially reuses the same existing compiled row-law node. The actual private consumer uses this new independence producer and that same row-law node. Canonical Gaussian/product/map facts remain shared Mathlib calls; no duplicate row-law theorem or separate public matrix-consumer credit is introduced.",
+      "lean_statement": "The literal physical coordinate-row family is iIndepFun under the fixed independent-column Gaussian product law.",
+      "lean_proof": "Unwrap the full joint Gaussian coordinate law, flatten/swap/regroup the finite array, wrap rows, and use the joint-product characterization of independence. The actual consumer proves each local truncated matrix image measurable and transports full independence through it.",
+      "boundary": "This local result proves full row-family independence in the canonical independent-column realization and the complete private consumer proves measurability and independence of the actual source truncated matrices. The producer adds independence to the same existing canonical row-law node; it creates no second marginal-law proof. Arbitrary extended-ambient transfer, original matrix-expectation adapters, public aggregate canonicalization, centered variance, matrix concentration, full Lemma4.4, both main lower bounds and exact oracle/TV/precision/worst-query-cap/expected-cost adapters remain open. Serialized integration, actual desktop/mobile/source-index/globalgraph/copy/download/public delivery and purification remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p1",
+          "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Appendix C.2 p1 full row independence, p12 first sentence and Ex107 independent truncated matrices; S4.E11 half-grid, p10 cutoff and standing2q+1<d",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+          "scope": "Joint independence in the concrete source column-product realization and actual measurable Ex107 images; no arbitrary ambient-space transfer.",
+          "label": "Appendix C.2 row and actual truncated-matrix independence"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumSourceRowIndependence.lean",
+          "line": 11,
+          "label": "Complete private actual matrix-independence consumer",
+          "scope": "All actual Yi are measurable and jointly independent under the identical product measure."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumSourceRowIndependence"
+      ]
+    }
+  ]
+}

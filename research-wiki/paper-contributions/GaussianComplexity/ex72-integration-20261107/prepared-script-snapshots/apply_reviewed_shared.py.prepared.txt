@@ -1,0 +1,49 @@
+from pathlib import Path
+import json,gzip,hashlib,subprocess,sys
+sys.path.insert(0,'tools')
+import astis_advance as a
+import astis_publication as pub
+ADV='ASTIS-SA-20261107-GaussianComplexityTVAmplification'
+OWNER='huanjian_gc_20261107_ex72_integration'
+DECL='AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification.actual_averaged_tv_lower_bound'
+OUT=Path('research-wiki/paper-contributions/GaussianComplexity/ex72-integration-20261107')
+def sha(b):return hashlib.sha256(b).hexdigest()
+states=a.current_advances();s=states[ADV]
+assert s['state']=='STABILIZING' and s['latest_evidence']['integration_owner']==OWNER
+assert [k for k,v in states.items() if v['state']=='STABILIZING']==[ADV]
+pub.check_advance([DECL],reviewed=True)
+report=OUT/'independent-integration-reader-review/preparation-report-v3.json'
+assert sha(report.read_bytes())=='b593861ac8a24728055a2626c11eea0c85fbc613f5f9530cac3459087fe17e9b'
+x=json.loads(report.read_text());assert x['publication_binding_sha256']=='fdfc58efe464c10868cac35682d8bd5202e0fc69f46880f957582e707b667265'
+for p,h in x['source_test_publication_lesson_pins'].items():assert sha(Path(p).read_bytes())==h
+assert len(x['shared_paths'])==7
+head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+subprocess.run(['git','merge-base','--is-ancestor','origin/main','HEAD'],check=True)
+assert not (OUT/'shared-integration-manifest.json').exists()
+plans=[]
+for row in x['shared_paths']:
+ p=Path(row['path']);before=p.read_bytes() if p.exists() else None
+ assert (sha(before) if before is not None else None)==row['before_sha256'],row['path']
+ if before is not None:assert subprocess.check_output(['git','show',head+':'+row['path']])==before
+ q=Path(row['planned_after_archive']['path']);raw=q.read_bytes();assert sha(raw)==row['planned_after_archive']['gzip_sha256']
+ after=gzip.decompress(raw);assert sha(after)==row['planned_after_sha256']
+ plans.append((row,before,after))
+for row,b,c in plans:
+ if row['path']=='website/content/samplewiki_companion_frontiers.json':
+  old=json.loads(b);new=json.loads(c)
+  def diff(x,y,p=''):
+   assert type(x)==type(y)
+   if isinstance(x,dict):
+    assert x.keys()==y.keys();return sum((diff(x[k],y[k],p+'/'+str(k)) for k in x),[])
+   if isinstance(x,list):
+    assert len(x)==len(y);return sum((diff(u,v,p+'/'+str(i)) for i,(u,v) in enumerate(zip(x,y))),[])
+   return [] if x==y else [p]
+  delta=diff(old,new);assert set(delta)=={'/cases/4/reader_guide/3','/cases/4/theorems/0/boundary'}
+  assert old['execution']==new['execution']
+  frag=new['cases'][4]['theorems'][0]['boundary'].split('Actual amplified TV Ex72',1)[1].split('The source-specific oracle',1)[0]
+  assert '\\\\(' not in frag and frag.count('\\(')==frag.count('\\)')==5
+for row,b,c in plans:
+ p=Path(row['path']);p.parent.mkdir(exist_ok=True,parents=True);p.write_bytes(c)
+manifest={'base_commit':head,'integration_owner':OWNER,'mathematical_candidate':'ebf76119351b23ef0718fc69aa5081515bab0b52','actual_existing_source_verifier':'/root/ex72_fresh_source_v2','reviewed_proposal_raw_sha256':sha(report.read_bytes()),'paths':[{'path':row['path'],'before_sha256':sha(b) if b is not None else None,'after_sha256':sha(c)} for row,b,c in plans],'case_scalar_pointer_delta':delta,'all_other_case_values_and_execution_preserved':True,'old_Ex71_entry_note_and_proof_scope_preserved':True,'new_canonical_entries':1,'count_change':'614->615 administrative inventory only','state':'guarded normal STAB shared write completed; actual gates/reader acceptance pending'}
+(OUT/'shared-integration-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+print(json.dumps({'shared_paths':len(plans),'canonical_nodes_added':1,'all_other_case_and_execution_values_preserved':True}))

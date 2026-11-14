@@ -1,0 +1,187 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity
+import AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity
+import Mathlib.MeasureTheory.Integral.Pi
+open Matrix MeasureTheory ProbabilityTheory
+open scoped ENNReal BigOperators
+open AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+/-!
+# Actual Gaussian-mixture Hellinger-affinity tensorization
+
+Zhou--Suzuki, arXiv:2610.20492v1, Appendix B.2.3 Ex71. The two laws
+are the actual matrix-prior Gaussian binds. Their canonical ambient-volume
+Radon--Nikodym derivatives agree a.e. with the actual Ex70 product densities;
+the real conversion therefore represents finite densities, independently of
+null-set choices. Normalized product densities give genuine L1 affinity.
+The volume-preserving contiguous split, finite-product Fubini and common
+residual normalization yield the exact power of the actual block affinity.
+The argument includes the zero-dimensional omitted-residual convention.
+Amplified TV Ex72 and the oracle/query lower bounds remain separate.
+-/
+
+namespace AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization
+set_option autoImplicit false
+theorem actual_affinity_tensorization {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) :
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let μ := orthogonalHaar n
+    let νpos := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}
+    let νneg := (2 : ℝ≥0∞) • μ.restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}
+    let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (blockPrecision κ)
+    let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (blockPrecision κ)
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let Mpos := Dpos.bind γ
+    let Mneg := Dneg.bind γ
+    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=
+      fun O x => Real.sqrt (singleBlockPrecision κ O).det /
+        (2 * Real.pi) ^ ((n : ℝ) / 2) *
+        Real.exp (-((WithLp.ofLp x) ⬝ᵥ
+          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)
+    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos
+    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg
+    let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)
+    let F : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+      Real.sqrt (((Mpos.rnDeriv volume) x).toReal * ((Mneg.rnDeriv volume) x).toReal)
+    Mpos ≪ volume ∧ Mneg ≪ volume ∧ Integrable F volume ∧
+      (∫ x, F x) = a ^ (d / n) := by
+  classical
+  dsimp only
+  let : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+  let μ := orthogonalHaar n
+  let νpos := (2 : ℝ≥0∞) • μ.restrict
+    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}
+  let νneg := (2 : ℝ≥0∞) • μ.restrict
+    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}
+  let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (blockPrecision κ)
+  let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (blockPrecision κ)
+  let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+    fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+  let Mpos := Dpos.bind γ
+  let Mneg := Dneg.bind γ
+  let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=
+    fun O x => Real.sqrt (singleBlockPrecision κ O).det /
+      (2 * Real.pi) ^ ((n : ℝ) / 2) *
+      Real.exp (-((WithLp.ofLp x) ⬝ᵥ
+        (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)
+  let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos
+  let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg
+  let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)
+  let F : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+    Real.sqrt (((Mpos.rnDeriv volume) x).toReal * ((Mneg.rnDeriv volume) x).toReal)
+  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+    ((Equiv.sumCongr
+      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+  let X := (Fin (d / n) → EuclideanSpace ℝ (Fin n)) ×
+    EuclideanSpace ℝ (Fin (d % n))
+  let split : EuclideanSpace ℝ (Fin d) → X :=
+    fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+      WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+  let φ : EuclideanSpace ℝ (Fin (d % n)) → ℝ :=
+    fun z => (2 * Real.pi) ^ (-((d % n : ℕ) : ℝ) / 2) * Real.exp (-‖z‖ ^ 2 / 2)
+  let Qpos : X → ℝ := fun y => (∏ j, qpos (y.1 j)) * φ y.2
+  let Qneg : X → ℝ := fun y => (∏ j, qneg (y.1 j)) * φ y.2
+  let G : X → ℝ := fun y => Real.sqrt (Qpos y * Qneg y)
+  let r : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.sqrt (qpos x * qneg x)
+  -- Both actual laws and the coordinate-volume identity use the same Ex70 node.
+  have hp := ProductDensity.actual_product_density hn hnd hκ (b := 1) (Or.inl rfl)
+  have hn' := ProductDensity.actual_product_density hn hnd hκ (b := -1) (Or.inr rfl)
+  have hvol : MeasurePreserving split volume volume := hp.1
+  have hP0 : ∀ y, 0 ≤ Qpos y := hp.2.1
+  have hN0 : ∀ y, 0 ≤ Qneg y := hn'.2.1
+  have hPm : Measurable Qpos := hp.2.2.1
+  have hNm : Measurable Qneg := hn'.2.2.1
+  have hPi : Integrable Qpos volume := hp.2.2.2.1
+  have hNi : Integrable Qneg volume := hn'.2.2.2.1
+  have hP1 : (∫ y, Qpos y) = 1 := hp.2.2.2.2.1
+  have hN1 : (∫ y, Qneg y) = 1 := hn'.2.2.2.2.1
+  have hPD : Mpos = volume.withDensity (fun x => ENNReal.ofReal (Qpos (split x))) :=
+    hp.2.2.2.2.2.2.1
+  have hND : Mneg = volume.withDensity (fun x => ENNReal.ofReal (Qneg (split x))) :=
+    hn'.2.2.2.2.2.2.1
+  have hPmA : Measurable (fun x => ENNReal.ofReal (Qpos (split x))) :=
+    ENNReal.measurable_ofReal.comp (hPm.comp hvol.measurable)
+  have hNmA : Measurable (fun x => ENNReal.ofReal (Qneg (split x))) :=
+    ENNReal.measurable_ofReal.comp (hNm.comp hvol.measurable)
+  have hPRN : Mpos.rnDeriv volume =ᵐ[volume]
+      (fun x => ENNReal.ofReal (Qpos (split x))) := by
+    rw [hPD]
+    exact Measure.rnDeriv_withDensity volume hPmA
+  have hNRN : Mneg.rnDeriv volume =ᵐ[volume]
+      (fun x => ENNReal.ofReal (Qneg (split x))) := by
+    rw [hND]
+    exact Measure.rnDeriv_withDensity volume hNmA
+  -- In particular these actual derivatives are finite a.e.; toReal uses no fallback.
+  have hFG : F =ᵐ[volume] G ∘ split := by
+    filter_upwards [hPRN, hNRN] with x hpx hnx
+    dsimp only [F, Function.comp_def, G]
+    rw [hpx, hnx, ENNReal.toReal_ofReal (hP0 _), ENNReal.toReal_ofReal (hN0 _)]
+  have hGi : Integrable G volume :=
+    (AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity
+      volume hP0 hN0 hPm hNm hPi hNi hP1 hN1).1
+  have hGm : Measurable G := (hPm.mul hNm).sqrt
+  have htrans : (∫ x, G (split x)) = ∫ y, G y := by
+    have h := integral_map_of_stronglyMeasurable (μ := volume)
+      hvol.measurable hGm.stronglyMeasurable
+    rw [hvol.map_eq] at h
+    exact h.symm
+  have hm := MixtureDensities.actual_mixture_densities hn hκ
+  rcases hm with ⟨hq0, _, _, _, _, hqp1, _, _, _⟩
+  have hqpos0 : ∀ x, 0 ≤ qpos x := fun x => (hq0 x).1
+  have hqneg0 : ∀ x, 0 ≤ qneg x := fun x => (hq0 x).2
+  have hqpos1 : (∫ x, qpos x) = 1 := hqp1
+  have hφ0 (z : EuclideanSpace ℝ (Fin (d % n))) : 0 ≤ φ z := by
+    dsimp [φ]
+    positivity
+  -- Unit mass of the common residual follows from the actual normalized Ex70
+  -- density and unit mass of each block, including the zero-dimensional case.
+  have hblocks1 : (∫ y : Fin (d / n) → EuclideanSpace ℝ (Fin n),
+      ∏ j, qpos (y j)) = 1 := by
+    rw [integral_fintype_prod_volume_eq_pow, hqpos1, one_pow]
+  have hφ1 : (∫ z, φ z) = 1 := by
+    have h : (∫ y : X, Qpos y) =
+        (∫ y : Fin (d / n) → EuclideanSpace ℝ (Fin n), ∏ j, qpos (y j)) *
+          (∫ z, φ z) := by
+      simpa only [Qpos, X, Measure.volume_eq_prod] using
+        (integral_prod_mul (μ := volume) (ν := volume)
+          (fun y : Fin (d / n) → EuclideanSpace ℝ (Fin n) => ∏ j, qpos (y j)) φ)
+    rw [hP1, hblocks1, one_mul] at h
+    exact h.symm
+  have hfactor (y : X) : G y = (∏ j, r (y.1 j)) * φ y.2 := by
+    have heq : Qpos y * Qneg y =
+        (∏ j, qpos (y.1 j) * qneg (y.1 j)) * (φ y.2) ^ 2 := by
+      dsimp [Qpos, Qneg]
+      rw [Finset.prod_mul_distrib]
+      ring
+    dsimp only [G]
+    rw [heq, Real.sqrt_mul (Finset.prod_nonneg (fun j _ =>
+      mul_nonneg (hqpos0 _) (hqneg0 _))), Real.sqrt_sq (hφ0 _),
+      Real.sqrt_prod _ (fun j _ => mul_nonneg (hqpos0 _) (hqneg0 _))]
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · change Mpos ≪ volume
+    rw [hPD]
+    exact withDensity_absolutelyContinuous _ _
+  · change Mneg ≪ volume
+    rw [hND]
+    exact withDensity_absolutelyContinuous _ _
+  · exact (hvol.integrable_comp_of_integrable hGi).congr hFG.symm
+  · calc
+      (∫ x, F x) = ∫ x, G (split x) := integral_congr_ae hFG
+      _ = ∫ y, G y := htrans
+      _ = ∫ y : X, (∏ j, r (y.1 j)) * φ y.2 :=
+        integral_congr_ae (Filter.Eventually.of_forall hfactor)
+      _ = (∫ y : Fin (d / n) → EuclideanSpace ℝ (Fin n), ∏ j, r (y j)) *
+          (∫ z, φ z) := by
+        simpa only [X, Measure.volume_eq_prod] using
+          (integral_prod_mul (μ := volume) (ν := volume)
+            (fun y : Fin (d / n) → EuclideanSpace ℝ (Fin n) => ∏ j, r (y j)) φ)
+      _ = a ^ (d / n) := by
+        rw [hφ1, mul_one, integral_fintype_prod_volume_eq_pow]
+        simp only [Fintype.card_fin]
+        rfl
+
+end AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization

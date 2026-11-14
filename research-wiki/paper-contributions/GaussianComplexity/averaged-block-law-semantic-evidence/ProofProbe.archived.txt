@@ -1,0 +1,194 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws
+import Mathlib.Probability.Independence.Integration
+open Matrix MeasureTheory ProbabilityTheory
+open scoped ENNReal
+open AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar
+open AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws
+set_option autoImplicit false
+theorem actual_averaged_block_product {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1) :
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let ν := (2 : ℝ≥0∞) • (orthogonalHaar n).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (blockPrecision κ)
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+      (singleBlockPrecision κ O)⁻¹)
+    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧
+      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧
+      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod
+        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+ := by
+  classical
+  dsimp only
+  letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+  let : BorelSpace (Matrix (Fin d) (Fin d) ℝ) := ⟨rfl⟩
+  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+    ((Equiv.sumCongr
+      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+  let split : EuclideanSpace ℝ (Fin d) →
+      (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+    fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+      WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+  let G := Matrix.orthogonalGroup (Fin n) ℝ
+  let E := EuclideanSpace ℝ (Fin d)
+  let En := EuclideanSpace ℝ (Fin n)
+  let Er := EuclideanSpace ℝ (Fin (d % n))
+  let ν := (2 : ℝ≥0∞) • (orthogonalHaar n).restrict
+    {O : G | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+  let f : (Fin (d / n) → G) → Matrix (Fin d) (Fin d) ℝ := blockPrecision κ
+  let ρ := Measure.pi (fun _ : Fin (d / n) => ν)
+  let D := ρ.map f
+  let γ : Matrix (Fin d) (Fin d) ℝ → Measure E := fun A => multivariateGaussian (0 : E) A⁻¹
+  let νr := stdGaussian Er
+  let γn : G → Measure (EuclideanSpace ℝ (Fin n)) := fun O =>
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin n)) (singleBlockPrecision κ O)⁻¹
+  have hpriors := component_probabilities (lt_of_lt_of_le (by decide : 0 < 3) hn)
+  have hν : IsProbabilityMeasure ν := by
+    rcases hb with rfl | rfl
+    · exact hpriors.2.2.1
+    · exact hpriors.2.2.2
+  let : IsProbabilityMeasure ν := hν
+  have hf : Continuous f := by
+    dsimp only [f]
+    unfold blockPrecision singleBlockPrecision
+    fun_prop
+  have hfM : Measurable f := hf.measurable
+  have hD : IsProbabilityMeasure D := Measure.isProbabilityMeasure_map hfM.aemeasurable
+  have hpos (O : Fin (d / n) → G) : (f O).PosDef := by
+    have hr := blockPrecision_regular hn hnd hκ O
+    apply Matrix.posDef_iff_dotProduct_mulVec.mpr
+    refine ⟨hr.1, fun v hv => ?_⟩
+    have hdot : 0 < v ⬝ᵥ v := by
+      simpa only [star_trivial] using (dotProduct_star_self_pos_iff.mpr hv)
+    simpa only [star_trivial] using lt_of_lt_of_le hdot (hr.2 v).1
+  have hcompact : IsCompact (Set.range f) := isCompact_range hf
+  have hrange : ∀ᵐ A ∂D, A ∈ Set.range f := by
+    rw [ae_iff]
+    change (ρ.map f) (Set.range f)ᶜ = 0
+    rw [Measure.map_apply hfM hcompact.isClosed.measurableSet.compl]
+    simp
+  have hDpos : ∀ᵐ A ∂D, A.PosDef := hrange.mono (by rintro A ⟨O, rfl⟩; exact hpos O)
+  let q : Matrix (Fin d) (Fin d) ℝ → E → ℝ := fun A x =>
+    Real.sqrt A.det / (2 * Real.pi) ^ ((d : ℝ) / 2) *
+      Real.exp (-((WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x)) / 2)
+  let δ : Matrix (Fin d) (Fin d) ℝ → Measure E := fun A =>
+    (volume : Measure E).withDensity (fun x => ENNReal.ofReal (q A x))
+  have hq : Continuous (Function.uncurry q) := by dsimp only [q, E]; fun_prop
+  have hδ : Measurable δ := measurable_withDensity (ENNReal.measurable_ofReal.comp hq.measurable)
+  have hγ : AEMeasurable γ D := hδ.aemeasurable.congr (hDpos.mono fun A hA =>
+    (multivariateGaussian_eq_withDensity_of_posDef A hA).symm)
+  have hP : IsProbabilityMeasure (ν.bind γn) := by
+    have hl := actual_mixture_laws hn hκ
+    rcases hb with rfl | rfl
+    · exact hl.2.1
+    · exact hl.2.2.1
+  let P := ν.bind γn
+  let : IsProbabilityMeasure P := hP
+  let : IsProbabilityMeasure D := hD
+  have hγn : Measurable γn := (actual_mixture_laws hn hκ).1
+  have hγf : Measurable (fun O => γ (f O)) := by
+    have heq : (fun O => γ (f O)) = δ ∘ f := by
+      funext O
+      exact multivariateGaussian_eq_withDensity_of_posDef _ (hpos O)
+    rw [heq]
+    exact hδ.comp hfM
+  let F := (Fin (d / n) → En) × Er
+  let Tlin : E →ₗ[ℝ] F :=
+    { toFun := split
+      map_add' := by intro x y; ext i j <;> rfl
+      map_smul' := by intro a x; ext i j <;> rfl }
+  have hsplit : Measurable split := Tlin.toContinuousLinearMap.continuous.measurable
+  have hc (O : Fin (d / n) → G) : (γ (f O)).map split =
+      (Measure.pi (fun j => γn (O j))).prod νr :=
+    AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product
+      hn hnd hκ O
+  have hfull : Measurable (fun O => (γ (f O)).map split) :=
+    (Measure.measurable_map split hsplit).comp hγf
+  have hπeq (O : Fin (d / n) → G) :
+      ((γ (f O)).map split).map Prod.fst = Measure.pi (fun j => γn (O j)) := by
+    rw [hc, Measure.map_fst_prod]
+    simp only [measure_univ, one_smul]
+  have hπ : Measurable (fun O : Fin (d / n) → G => Measure.pi (fun j => γn (O j))) := by
+    have heq : (fun O => ((γ (f O)).map split).map Prod.fst) =
+        (fun O : Fin (d / n) → G => Measure.pi (fun j => γn (O j))) := funext hπeq
+    rw [← heq]
+    exact (Measure.measurable_map Prod.fst measurable_fst).comp hfull
+  have hprod : Measurable (fun O : Fin (d / n) → G =>
+      (Measure.pi (fun j => γn (O j))).prod νr) := by
+    have heq : (fun O => (γ (f O)).map split) =
+        (fun O : Fin (d / n) → G => (Measure.pi (fun j => γn (O j))).prod νr) := funext hc
+    rw [← heq]
+    exact hfull
+  have hblocks : ρ.bind (fun O => Measure.pi (fun j => γn (O j))) =
+      Measure.pi (fun _ : Fin (d / n) => P) := by
+    symm
+    apply Measure.pi_eq
+    intro s hs
+    rw [Measure.bind_apply (MeasurableSet.univ_pi hs) hπ.aemeasurable]
+    simp_rw [Measure.pi_pi]
+    let X : Fin (d / n) → G → ℝ≥0∞ := fun j O => γn O (s j)
+    have hX (j : Fin (d / n)) : Measurable (X j) := (Measure.measurable_coe (hs j)).comp hγn
+    have hI := iIndepFun_pi (μ := fun _ : Fin (d / n) => ν) (X := X)
+      (fun j => (hX j).aemeasurable)
+    have hfac := lintegral_prod_eq_prod_lintegral_of_indepFun Finset.univ
+      (fun j (O : Fin (d / n) → G) => X j (O j)) hI
+      (fun j => (hX j).comp (measurable_pi_apply j))
+    change (∫⁻ O, ∏ j, X j (O j) ∂ρ) = ∏ j, P (s j)
+    rw [hfac]
+    apply Finset.prod_congr rfl
+    intro j hj
+    calc
+      (∫⁻ O, X j (O j) ∂ρ) = ∫⁻ O, X j O ∂ν :=
+        (measurePreserving_eval (fun _ : Fin (d / n) => ν) j).lintegral_comp (hX j)
+      _ = P (s j) := (Measure.bind_apply (hs j) hγn.aemeasurable).symm
+  have hjoint : ρ.bind (fun O => (Measure.pi (fun j => γn (O j))).prod νr) =
+      (Measure.pi (fun _ : Fin (d / n) => P)).prod νr := by
+    symm
+    apply Measure.prod_eq
+    intro s t hs ht
+    rw [Measure.bind_apply (hs.prod ht) hprod.aemeasurable]
+    simp_rw [Measure.prod_prod]
+    have heval : Measurable (fun O : Fin (d / n) → G =>
+        (Measure.pi (fun j => γn (O j))) s) := (Measure.measurable_coe hs).comp hπ
+    rw [lintegral_mul_const (μ := ρ) (f := fun O : Fin (d / n) → G =>
+      (Measure.pi (fun j => γn (O j))) s) (νr t) heval,
+      ← Measure.bind_apply hs hπ.aemeasurable, hblocks]
+  have hback : D.bind γ = ρ.bind (fun O => γ (f O)) := by
+    change Measure.join ((ρ.map f).map γ) = Measure.join (ρ.map (fun O => γ (f O)))
+    rw [hγ.map_map_of_aemeasurable hfM.aemeasurable]
+    rfl
+  have hpush : (D.bind γ).map split =
+      ρ.bind (fun O => (Measure.pi (fun j => γn (O j))).prod νr) := by
+    rw [hback]
+    ext s hs
+    rw [Measure.map_apply hsplit hs,
+      Measure.bind_apply (hsplit hs) hγf.aemeasurable,
+      Measure.bind_apply hs hprod.aemeasurable]
+    apply lintegral_congr_ae
+    exact Filter.Eventually.of_forall fun O => by
+      have h := congrArg (fun μ => μ s) (hc O)
+      rw [Measure.map_apply hsplit hs] at h
+      exact h
+  have htarget : IsProbabilityMeasure (D.bind γ) :=
+    isProbabilityMeasure_bind hγ (Filter.Eventually.of_forall fun A => by dsimp only [γ]; infer_instance)
+  change IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧ IsProbabilityMeasure P ∧
+    IsProbabilityMeasure (D.bind γ) ∧ (D.bind γ).map split =
+      (Measure.pi (fun _ : Fin (d / n) => P)).prod νr
+  exact ⟨hD, hDpos, hP, htarget, hpush.trans hjoint⟩

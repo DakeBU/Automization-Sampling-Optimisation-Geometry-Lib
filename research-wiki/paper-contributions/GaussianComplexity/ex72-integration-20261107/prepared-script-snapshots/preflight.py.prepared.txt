@@ -1,0 +1,30 @@
+from pathlib import Path
+import json,hashlib,subprocess,sys,datetime
+sys.path.insert(0,'tools')
+import astis_advance as a
+import astis_publication as pub
+
+def sha(b):return hashlib.sha256(b).hexdigest()
+def git(*args):return subprocess.check_output(['git',*args],text=True).strip()
+out=Path('research-wiki/paper-contributions/GaussianComplexity/ex72-integration-20261107');out.mkdir(exist_ok=True)
+m=Path('lake-manifest.json');assert sha(m.read_bytes())=='b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37'
+manifest=json.loads(m.read_text());packages=[]
+for p in manifest['packages']:
+ d=Path('.lake/packages')/p['name'];rev=git('-C',str(d),'rev-parse','HEAD');status=git('-C',str(d),'status','--porcelain','--untracked-files=no');assert rev==p['rev'] and not status,(p['name'],rev,status)
+ packages.append({'name':p['name'],'actual_revision':rev,'manifest_revision':p['rev'],'tracked_status':status})
+lean=subprocess.check_output(['lake','env','lean','--version'],text=True).strip();assert '4.33.0' in lean and 'd8b18978322de05a8f3dba51ef03cf5461676c17' in lean
+s=a.current_advances();aid='ASTIS-SA-20261107-GaussianComplexityTVAmplification';assert s[aid]['state']=='VERIFIED' and s[aid]['owner_id']=='huanjian_gc_20261107_ex72';assert not [k for k,v in s.items() if v['state']=='STABILIZING']
+pub.check_advance(['AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification.actual_averaged_tv_lower_bound'],reviewed=True)
+assert git('rev-parse','origin/main')=='d9bcd4231df69061c5221f8d557ee179a945c1eb'
+subprocess.run(['git','merge-base','--is-ancestor','origin/main','HEAD'],check=True)
+receipts=[]
+for p in Path('.astis/huanjian-resume-20261103').glob('*-ex72-preintegration-remote-owner-readback.receipt.json'):
+ r=json.loads(p.read_text());assert sha(Path(r['log']).read_bytes())==r['log_sha256'];receipts.append((p,r))
+p,r=next((p,r) for p,r in sorted(receipts) if r['exit_code']==0);remote=json.loads(Path(r['log']).read_text())
+assert remote['headRefOid']=='5a257960edfbeff0905d1ee938db32bb7303ea7e' and remote['baseRefOid']==git('rev-parse','origin/main')
+checks=remote['statusCheckRollup'];assert any(x['name']=='native-runtime' and x['conclusion']=='FAILURE' and '42155528532' in x['detailsUrl'] for x in checks)
+assert any(x['name']=='Lean / Mathlib formalization' and x['conclusion']=='SUCCESS' for x in checks)
+x={'recorded_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'head':git('rev-parse','HEAD'),'branch':git('branch','--show-current'),'origin_main_after_actual_fetch':git('rev-parse','origin/main'),'main_is_ancestor':True,'actual_lean':lean,'manifest_sha256':sha(m.read_bytes()),'packages':packages,'source_raw_sha256':sha(Path('.astis/huanjian-resume-20261103/2610.20492v1.html').read_bytes()),'own_state':'VERIFIED','proof_owner_retained':s[aid]['owner_id'],'single_stabilization_lane':[],'foreign_projected_states':len(s)-1,'canonical_audit_sha256':sha(Path('research-wiki/semantic-roundtrip/audits/huanjian-tv-amplification.json').read_bytes()),'ledger_sha256':sha(Path('runs/substantive_advances.jsonl').read_bytes()),'existing_remote_hold':{'actual_readback_receipt':str(p),'raw_sha256':r['log_sha256'],'head':remote['headRefOid'],'state':remote['state'],'merge_state':remote['mergeStateStatus'],'scope':'Old native-runtime failure unchanged; no rerun/cap-widen/push/merge/PR384 modification or remote publication attempted.'},'scope':'Actual fresh environment/queue/publication preflight only; actual canonical Lean/site/Chrome integration still pending.'}
+assert x['source_raw_sha256']=='6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915' and x['canonical_audit_sha256']=='67b1c0484faf78ca170cc65a407bac46d26b40a316daf3cb19edc1cefb6933ab'
+(out/'preintegration-environment-and-owner-boundary.json').write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n')
+print(json.dumps({'actual_lean':lean,'exact_clean_packages':len(packages),'origin_main':x['origin_main_after_actual_fetch'],'own_state':'VERIFIED','single_lane_empty':True,'old_remote_head_unchanged':True}))

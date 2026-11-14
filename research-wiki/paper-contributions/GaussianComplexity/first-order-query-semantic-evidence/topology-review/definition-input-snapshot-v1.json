@@ -1,0 +1,162 @@
+{
+  "recorded_utc": "2026-11-07T07:34:14.697470+00:00",
+  "context": [
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Logic/Equiv/Fin/Basic.lean",
+      "file_sha256": "c3470797814c2d81c32c21bfeb6e7ce503e28231a7d38aad665931f3f377bc12",
+      "definition_only_excerpts": [
+        {
+          "start_line": 228,
+          "end_line": 233,
+          "raw_excerpt": "def finSumFinEquiv : Fin m ⊕ Fin n ≃ Fin (m + n) where\n  toFun := Sum.elim (Fin.castAdd n) (Fin.natAdd m)\n  invFun i := @Fin.addCases m n (fun _ => Fin m ⊕ Fin n) Sum.inl Sum.inr i\n  left_inv x := by rcases x with y | y <;> simp\n  right_inv x := by refine Fin.addCases (fun i => ?_) (fun i => ?_) x <;> simp\n\n"
+        },
+        {
+          "start_line": 334,
+          "end_line": 357,
+          "raw_excerpt": "def finProdFinEquiv : Fin m × Fin n ≃ Fin (m * n) where\n  toFun x :=\n    ⟨x.2 + n * x.1,\n      calc\n        x.2.1 + n * x.1.1 + 1 = x.1.1 * n + x.2.1 + 1 := by ac_rfl\n        _ ≤ x.1.1 * n + n := Nat.add_le_add_left x.2.2 _\n        _ = (x.1.1 + 1) * n := Eq.symm <| Nat.succ_mul _ _\n        _ ≤ m * n := Nat.mul_le_mul_right _ x.1.2\n        ⟩\n  invFun x := (x.divNat, x.modNat)\n  left_inv := fun ⟨x, y⟩ =>\n    have H : 0 < n := Nat.pos_of_ne_zero fun H => Nat.not_lt_zero y.1 <| H ▸ y.2\n    Prod.ext\n      (Fin.eq_of_val_eq <|\n        calc\n          (y.1 + n * x.1) / n = y.1 / n + x.1 := Nat.add_mul_div_left _ _ H\n          _ = 0 + x.1 := by rw [Nat.div_eq_of_lt y.2]\n          _ = x.1 := Nat.zero_add x.1)\n      (Fin.eq_of_val_eq <|\n        calc\n          (y.1 + n * x.1) % n = y.1 % n := Nat.add_mul_mod_self_left _ _ _\n          _ = y.1 := Nat.mod_eq_of_lt y.2)\n  right_inv _ := Fin.eq_of_val_eq <| Nat.mod_add_div _ _\n\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Data/Matrix/Block.lean",
+      "file_sha256": "c15b7cd49955438bd2334788946fe742b9a827dd1fc485e2e70ef42885d5ea9e",
+      "definition_only_excerpts": [
+        {
+          "start_line": 46,
+          "end_line": 48,
+          "raw_excerpt": "def fromBlocks (A : Matrix n l α) (B : Matrix n m α) (C : Matrix o l α) (D : Matrix o m α) :\n    Matrix (n ⊕ o) (l ⊕ m) α :=\n  of <| Sum.elim (fun i => Sum.elim (A i) (B i)) (fun j => Sum.elim (C j) (D j))\n"
+        },
+        {
+          "start_line": 329,
+          "end_line": 330,
+          "raw_excerpt": "def blockDiagonal (M : o → Matrix m n α) : Matrix (m × o) (n × o) α :=\n  of <| (fun ⟨i, k⟩ ⟨j, k'⟩ => if k = k' then M k i j else 0 : m × o → n × o → α)\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/LinearAlgebra/Matrix/Defs.lean",
+      "file_sha256": "d4e5b5a2762eb91e47bd4d913ed72cd3fac2f7ebf40b32ae4dc0db7f34332d54",
+      "definition_only_excerpts": [
+        {
+          "start_line": 526,
+          "end_line": 530,
+          "raw_excerpt": "def reindex (eₘ : m ≃ l) (eₙ : n ≃ o) : Matrix m n α ≃ Matrix l o α where\n  toFun M := M.submatrix eₘ.symm eₙ.symm\n  invFun M := M.submatrix eₘ eₙ\n  left_inv M := by simp\n  right_inv M := by simp\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/PiL2.lean",
+      "file_sha256": "1f9827b2db67213c725a2dcc3fec52a87772966d1fbd3fc6857a019dbd7a6053",
+      "definition_only_excerpts": [
+        {
+          "start_line": 83,
+          "end_line": 86,
+          "raw_excerpt": "instance PiLp.innerProductSpace {ι : Type*} [Fintype ι] (f : ι → Type*)\n    [∀ i, NormedAddCommGroup (f i)] [∀ i, InnerProductSpace 𝕜 (f i)] :\n    InnerProductSpace 𝕜 (PiLp 2 f) where\n  inner x y := ∑ i, ⟪x i, y i⟫\n"
+        },
+        {
+          "start_line": 113,
+          "end_line": 114,
+          "raw_excerpt": "abbrev EuclideanSpace (𝕜 : Type*) (n : Type*) : Type _ :=\n  PiLp 2 fun _ : n => 𝕜\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Normed/Lp/WithLp.lean",
+      "file_sha256": "b05b66fcc68f3e3e7c20aae323b880e9edd8af18e5e096a207746df8bd3e79ba",
+      "definition_only_excerpts": [
+        {
+          "start_line": 50,
+          "end_line": 54,
+          "raw_excerpt": "structure WithLp (p : ℝ≥0∞) (V : Type*) where\n  /-- Converts an element of `V` to an element of `WithLp p V`. -/\n  toLp (p) ::\n  /-- Converts an element of `WithLp p V` to an element of `V`. -/\n  ofLp : V\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/InnerProductSpace/Dual.lean",
+      "file_sha256": "84f219ae95e919e3f3e96d83787ddc0d1a67b10bebf7340df374d3dab4cd4ecc",
+      "definition_only_excerpts": [
+        {
+          "start_line": 66,
+          "end_line": 67,
+          "raw_excerpt": "def toDualMap : E →ₗᵢ⋆[𝕜] StrongDual 𝕜 E :=\n  { innerSL 𝕜 with norm_map' := innerSL_apply_norm _ }\n"
+        },
+        {
+          "start_line": 135,
+          "end_line": 136,
+          "raw_excerpt": "def toDual : E ≃ₗᵢ⋆[𝕜] StrongDual 𝕜 E :=\n  LinearIsometryEquiv.ofSurjective (toDualMap 𝕜 E)\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/FDeriv/Defs.lean",
+      "file_sha256": "82628404673d0691bdfdfb757cce7308a628abcdff75f1909611efa44d105a9b",
+      "definition_only_excerpts": [
+        {
+          "start_line": 107,
+          "end_line": 110,
+          "raw_excerpt": "@[mk_iff hasFDerivAtFilter_iff_isLittleOTVS]\nstructure HasFDerivAtFilter (f : E → F) (f' : E →L[𝕜] F) (L : Filter (E × E)) : Prop where\n  of_isLittleOTVS ::\n    isLittleOTVS : (fun p ↦ f p.1 - f p.2 - f' (p.1 - p.2)) =o[𝕜; L] (fun p ↦ p.1 - p.2)\n"
+        },
+        {
+          "start_line": 121,
+          "end_line": 122,
+          "raw_excerpt": "def HasFDerivAt (f : E → F) (f' : E →L[𝕜] F) (x : E) :=\n  HasFDerivAtFilter f f' (𝓝 x ×ˢ pure x)\n"
+        },
+        {
+          "start_line": 149,
+          "end_line": 154,
+          "raw_excerpt": "irreducible_def fderivWithin (f : E → F) (s : Set E) (x : E) : E →L[𝕜] F :=\n  if HasFDerivWithinAt f (0 : E →L[𝕜] F) s x\n    then 0\n  else if h : DifferentiableWithinAt 𝕜 f s x\n    then Classical.choose h\n  else 0\n"
+        },
+        {
+          "start_line": 158,
+          "end_line": 159,
+          "raw_excerpt": "irreducible_def fderiv (f : E → F) (x : E) : E →L[𝕜] F :=\n  fderivWithin 𝕜 f univ x\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/LinearAlgebra/UnitaryGroup.lean",
+      "file_sha256": "3ccca127baa069caae242291a9bf52f57aa876c24bb8b0aca43612a3e143561d",
+      "definition_only_excerpts": [
+        {
+          "start_line": 60,
+          "end_line": 61,
+          "raw_excerpt": "abbrev unitaryGroup : Submonoid (Matrix n n α) :=\n  unitary (Matrix n n α)\n"
+        },
+        {
+          "start_line": 295,
+          "end_line": 295,
+          "raw_excerpt": "abbrev orthogonalGroup := unitaryGroup n R\n"
+        }
+      ]
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Algebra/Star/Unitary.lean",
+      "file_sha256": "e7cbed9e7b9047f20ef1766c592540a2df9b3fb1c7cb578e35784aa0108d0b67",
+      "definition_only_excerpts": [
+        {
+          "start_line": 35,
+          "end_line": 36,
+          "raw_excerpt": "def unitary (R : Type*) [Monoid R] [StarMul R] : Submonoid R where\n  carrier := { U | star U * U = 1 ∧ U * star U = 1 }\n"
+        }
+      ]
+    },
+    {
+      "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/DeterminantFamily.lean",
+      "file_sha256": "10ea9afafdee6f10a92e95d8e1570f56f7037c9362c06037c2c6523c58b78dd4",
+      "exact_definition_bodies": "noncomputable def singleBlockPrecision {n : ℕ} (κ : ℝ)\n    (O : Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin n) (Fin n) ℝ :=\n  ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -\n    ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) +\n      (O : Matrix (Fin n) (Fin n) ℝ).transpose)\n\n",
+      "match_checked": true
+    },
+    {
+      "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/BlockFamily.lean",
+      "file_sha256": "79661674e9b934d948242c80b1f1a0bb7b71c1b87c5293dc8468a3457ae7d2df",
+      "exact_definition_bodies": "private def blockCoordinates (d n : ℕ) :\n    ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n  ((Equiv.sumCongr\n    ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n    (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n    (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n\n/-- Literal equation (5), with contiguous size-n blocks and the residual identity. -/\nnoncomputable def blockPrecision {d n : ℕ} (κ : ℝ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin d) (Fin d) ℝ :=\n  Matrix.reindex (blockCoordinates d n) (blockCoordinates d n)\n    (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))\n      0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))\n\n",
+      "match_checked": true
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Analysis/Calculus/Gradient/Basic.lean",
+      "file_sha256": "89f93934750efd40fd2eb8e261b888be4566d34a293eda1436f43ff5500817a8",
+      "exact_definition_bodies": "def HasGradientAtFilter (f : F → 𝕜) (f' x : F) (L : Filter F) :=\n  HasFDerivAtFilter f (toDual 𝕜 F f') (L ×ˢ pure x)\n\n/-- `f` has the gradient `f'` at the point `x` within the subset `s` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef HasGradientWithinAt (f : F → 𝕜) (f' : F) (s : Set F) (x : F) :=\n  HasGradientAtFilter f f' x (𝓝[s] x)\n\n/-- `f` has the gradient `f'` at the point `x` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef HasGradientAt (f : F → 𝕜) (f' x : F) :=\n  HasGradientAtFilter f f' x (𝓝 x)\n\n/-- Gradient of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.\n\nIf the derivative exists (i.e., `∃ f', HasGradientWithinAt f f' s x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef gradientWithin (f : F → 𝕜) (s : Set F) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderivWithin 𝕜 f s x)\n\n/-- Gradient of `f` at the point `x`, if it exists.  Zero otherwise.\nDenoted as `∇` within the Gradient namespace.\n\nIf the derivative exists (i.e., `∃ f', HasGradientAt f f' x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef gradient (f : F → 𝕜) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderiv 𝕜 f x)\n\n",
+      "match_checked": true
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw
+open Matrix MeasureTheory ProbabilityTheory
+open scoped ENNReal
+open AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw
+set_option autoImplicit false
+set_option pp.universes true in
+#check @AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product
+#print axioms AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product
+#print axioms AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product
+#print axioms AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws
+#print axioms AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities
+#print axioms AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular
+#print axioms AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef
+#print axioms AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar_spec
+
+-- The source-facing signature with all meaning-carrying project definitions
+-- expanded to their actual bodies. No family, probability, PD or factorization
+-- certificate is admitted as a new binder.
+example :
+∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let ν := (2 : ℝ≥0∞) • (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (fun O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • (((O j) : Matrix (Fin n) (Fin n) ℝ) + ((O j) : Matrix (Fin n) (Fin n) ℝ).transpose)))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+      (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹)
+    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧
+      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧
+      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod
+        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+ := by
+  intro d n hn hnd κ hκ b hb
+  exact actual_averaged_block_product hn hnd hκ hb
+
+-- Verify the contiguous coordinate ordering used by the source, independently
+-- of the prose/decoder: first e(inl(i,j)) = j*n+i, then e(inr(t)) = q*n+t.
+example {d n : ℕ} (i : Fin n) (j : Fin (d / n)) :
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    (e (Sum.inl (i,j))).val = j.val*n+i.val := by
+  simp [finProdFinEquiv, Nat.mul_comm, Nat.add_comm]
+example {d n : ℕ} (t : Fin (d % n)) :
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    (e (Sum.inr t)).val = (d/n)*n+t.val := by
+  simp
+
+-- The zero-dimensional residual factor is the unique probability unit.
+example : stdGaussian (EuclideanSpace ℝ (Fin 0)) = Measure.dirac 0 := by
+  apply Measure.ext
+  intro s hs
+  by_cases h : (0 : EuclideanSpace ℝ (Fin 0)) ∈ s
+  · have heq : s = Set.univ := by
+      ext x
+      simpa only [Subsingleton.elim x 0, Set.mem_univ, iff_true] using h
+    simp [heq]
+  · have heq : s = ∅ := by
+      ext x
+      simpa only [Subsingleton.elim x 0, Set.mem_empty_iff_false, iff_false] using h
+    simp [heq]

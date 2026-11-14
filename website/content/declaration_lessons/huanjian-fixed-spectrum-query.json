@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAffine.actual_affine_precision_query",
+      "title": "Actual fixed-spectrum precision reply conversion",
+      "reader_note": "The two reply formulas are shown first; actual source matrices, domains, proof steps and exact Lean are folded below.",
+      "statement": "For the same hidden rotation, either exact precision-matvec reply reconstructs its counterpart at the same query point.",
+      "formula": "\\begin{aligned}Q_\\kappa(x)&=(\\kappa-1)Q_2(x)-(\\kappa-2)x,\\\\Q_2(x)&=\\frac{Q_\\kappa(x)+(\\kappa-2)x}{\\kappa-1}.\\end{aligned}",
+      "assumptions": [
+        "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Both endpoints are included. Fix one arbitrary actual \\(O\\in O(d)\\); both precision matrices use this same rotation, which remains the hidden input.",
+        "For source indices \\(i=1,\\ldots,d\\), define \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i(\\eta)=(\\eta+1)/2+(\\eta-1)\\cos\\theta_i/2\\), and the actual matrices \\(A_\\eta=O\\operatorname{diag}(\\lambda_1(\\eta),\\ldots,\\lambda_d(\\eta))O^\\top\\). Lean uses zero-based indices, so its angle is \\((i.\\mathrm{val}+\\tfrac12)\\pi/d\\). The local formula is total in \\(\\eta\\); the assertions use only source-valid \\(\\eta=\\kappa\\) and \\(\\eta=2\\).",
+        "The actual reply is \\(Q_\\eta(x)=A_\\eta x\\) for every \\(x\\in\\mathbb R^d\\). The subscript 2 is the reference condition number, rather than a number of calls, a transpose query or a covariance inverse.",
+        "The scalar \\(\\kappa-1\\) is at least one and hence nonzero; this is derived internally from the source parameter range. Orthogonality, the scalar/diagonal/matrix affine identities and both actual reply formulas are not additional premises.",
+        "The source experiment draws a Haar rotation independently of private randomness. The selected identity holds pointwise for every realization; this declaration does not assert a joint law, adaptive simulation, query cap, precision/cost comparison, Gaussian-target transport, or a separate formal spectral/positive-definite/normalizer theorem. The full fixed-spectrum lower bound retains its own fixed \\(\\delta\\in(0,1)\\), sufficiently large \\(d\\), \\(2\\le\\kappa\\le d^{1-\\delta}\\) and \\(0<\\varepsilon\\le1/10\\) conditions."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(Q_\\eta,A_\\eta\\)",
+          "text": "Actual precision reply at scalar parameter η; both κ and 2 use the same hidden rotation and deterministic angle grid.",
+          "formula": "Q_\\eta(x)=A_\\eta x,\\qquad A_\\eta=O\\operatorname{diag}(\\lambda_i(\\eta))O^\\top."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Align the actual cosine grid",
+          "text": "The zero-based coordinate i.val corresponds to source coordinate i.val+1. Derive positivity of d from the source dimension bound, then identify the two exact angle expressions. All matrices retain the same angle grid.",
+          "formula": "\\theta_i=\\frac{(i.\\mathrm{val}+1/2)\\pi}{d}=\\frac{(i.\\mathrm{val}+1-1/2)\\pi}{d}.",
+          "lean": "hdpos/hd0 derive a genuine nonzero denominator; hindex proves the exact source-index alignment."
+        },
+        {
+          "title": "Lift the scalar affine identity to the diagonal",
+          "text": "Expand the literal eigenvalue formula at κ and at 2. The entrywise affine equality lifts to the diagonal matrix by comparing equal and distinct indices; no arbitrary scalar sequence or hypothesized matrix equality is introduced.",
+          "formula": "\\lambda_i(\\kappa)=(\\kappa-1)\\lambda_i(2)-(\\kappa-2),\\qquad\\Lambda_\\kappa=(\\kappa-1)\\Lambda_2-(\\kappa-2)I_d.",
+          "lean": "hscalar uses hindex and real polynomial arithmetic; hdiag proves the actual diagonal identity entrywise."
+        },
+        {
+          "title": "Conjugate through the same hidden rotation",
+          "text": "Full orthogonal-group membership supplies OOᵀ=I. Distribute the actual matrix product and commute the known scalars through it. This yields the actual source precision identity with the same rotation on both sides.",
+          "formula": "A_\\kappa=O\\Lambda_\\kappa O^\\top=(\\kappa-1)O\\Lambda_2O^\\top-(\\kappa-2)OO^\\top=(\\kappa-1)A_2-(\\kappa-2)I_d.",
+          "lean": "hO applies the actual mem_orthogonalGroup_iff with explicit Fin d/real parameters. hmatrix consumes hdiag, matrix distribution, scalar multiplication and hO."
+        },
+        {
+          "title": "Recover each actual reply",
+          "text": "Apply that matrix equality to the actual queried vector and transport its entries through the Euclidean representation. The forward formula gives a reply at κ from the reply at 2. Rearrange it and multiply by the genuinely nonzero inverse κ−1 for the reverse formula.",
+          "formula": "\\begin{aligned}Q_\\kappa(x)&=(\\kappa-1)Q_2(x)-(\\kappa-2)x,\\\\Q_2(x)&=\\frac{Q_\\kappa(x)+(\\kappa-2)x}{\\kappa-1}.\\end{aligned}",
+          "lean": "hforward uses WithLp.ofLp_injective, sub_mulVec/smul_mulVec/one_mulVec. hnz follows from hκ. The final inverse cancellation proves the reverse equality, with no totalized-zero shortcut."
+        },
+        {
+          "title": "Compare two actual hidden inputs",
+          "text": "Instantiate the producer for O₁ and O₂ at the same x. Equal actual κ replies give equal actual reference-2 replies by the reverse maps; the forward maps give the converse. This is a genuine same-point observational consumer, separate from Gaussian target or algorithm-law transport.",
+          "formula": "Q_\\kappa^{O_1}(x)=Q_\\kappa^{O_2}(x)\\quad\\Longleftrightarrow\\quad Q_2^{O_1}(x)=Q_2^{O_2}(x).",
+          "lean": "Tests.GaussianComplexityFixedSpectrumAffine calls the producer twice and applies congrArg to each known scalar/vector reply map."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Matrix.mem_orthogonalGroup_iff",
+        "Matrix.diagonal_apply",
+        "Matrix.mul_sub",
+        "Matrix.sub_mul",
+        "Matrix.mul_smul",
+        "Matrix.smul_mul",
+        "Matrix.sub_mulVec",
+        "Matrix.smul_mulVec",
+        "Matrix.one_mulVec",
+        "WithLp.ofLp_injective",
+        "smul_smul",
+        "inv_mul_cancel₀"
+      ],
+      "lean_statement": "Exactly the sealed source-domain, literal same-O cosine-grid, bidirectional actual precision-matvec reconstruction.",
+      "lean_proof": "The exact complete production theorem is extracted adjacent to this formula proof. Every omitted standard bridge is internal; no abstract affine identity or reply-correctness premise is supplied.",
+      "boundary": "Selected source S4.E11/Remark4.2 actual pointwise precision-matvec affine reconstruction in BOTH directions with the SAME hidden rotation, d>=2,kappa>=2, actual literal cosine-grid rotated matrices and actual Euclidean replies. A focused real consumer compares actual same-point replies for TWO actual hidden rotations. This does not establish Gaussian covariance/target-law/TV transports, operational adaptive/Borel transcript/seed/output simulation, deterministic/expected query or bit costs, finite-precision error adapters, the full fixed-spectrum spectral/PosDef/normalizer background, Krylov/moment estimates or either main lowerbound. Mainfixed delta/large-d,2<=kappa<=d^(1-delta),0<epsilon<=1/10 remains distinct from sign-main0<epsilon<=1/16. Source V/canonical integration/remote/purification/ExpositionSeal/wholeGoal separate.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S4.Thmtheorem2",
+          "edition": "arXiv2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.SS1 hard family; S4.E11 literal cosine grid; S4.Thmtheorem2 Remark4.2 same-rotation affine identity and exact matrix-vector reply conversion; S2 oracle meaning.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling, Section4.1 Equation11 and Remark4.2. ASTIS makes the scalar, diagonal, orthogonal, matvec and reciprocal bridges explicit.",
+          "scope": "Actual pointwise bidirectional precision replies with the same hidden rotation; full main lower bounds and all target/algorithm/cost adapters remain separate.",
+          "label": "Zhou–Suzuki, Section4.1 Eq11 and Remark4.2"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumAffine"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+      "title": "Actual first-order query reconstruction",
+      "reader_note": "The reconstructed observation is shown first; actual objects, assumptions, formula proof and exact Lean are folded below.",
+      "statement": "Exact forward and inverse block products reconstruct the actual first-order observation of the centered quadratic potential.",
+      "formula": "(f(x),\\nabla f(x))=\\bigl(\\tfrac12\\langle x,g(x)\\rangle,g(x)\\bigr).",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\). Set \\(k=\\lfloor d/n\\rfloor\\), \\(r=d\\bmod n\\), and fix arbitrary actual hidden blocks \\(O_1,\\ldots,O_k\\in O(n)\\); no probability law or common determinant sign is assumed.",
+        "Use the actual precision \\(A=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\), where \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and the actual centered potential \\(f(x)=\\frac12 x^\\top Ax\\), with zero additive constant.",
+        "Write \\(x=(x_1,\\ldots,x_k,z)\\) in contiguous coordinates. In Lean the zero-based embedding sends \\((i,j)\\) to \\(jn+i\\) and the residual coordinate \\(i\\) to \\(kn+i\\). The case \\(r=0\\) is included; it has no residual coordinates.",
+        "The primitive oracle returns exact real products \\(O_jv\\) or \\(O_j^\\top v\\), tagged false and true respectively. The inverse tag refers to the orthogonal block inverse, not the precision inverse. The output includes genuine Euclidean Fréchet differentiability \\(\\operatorname{HasGradientAt} f\\ g(x)\\ x\\); a totalized gradient fallback is not used to establish the claim.",
+        "The reconstructed block is \\(g_j(x)=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}\\bigl(Q_j^{\\mathrm f}(x_j)+Q_j^{\\mathrm i}(x_j)\\bigr)\\). Assemble \\(g(x)=(g_1(x),\\ldots,g_k(x),z)\\); the residual is copied unchanged."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(k,r,Q^{\\mathrm f},Q^{\\mathrm i}\\)",
+          "text": "Full block count, residual dimension and the exact forward/inverse orthogonal-block responses.",
+          "formula": "k=\\lfloor d/n\\rfloor,\\quad r=d\\bmod n,\\quad x=(x_1,\\ldots,x_k,z)."
+        },
+        {
+          "symbol": "\\(g_j,g\\)",
+          "text": "Each exact block response pair determines the reconstructed block; the residual remains the original queried residual.",
+          "formula": "g_j(x)=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}(O_jx_j+O_j^\\top x_j),\\qquad g(x)=(g_1(x),\\ldots,g_k(x),z)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual symmetric operator",
+          "text": "Use the same canonical actual block-family regularity theorem to obtain symmetry of A. Transfer it through the matrix-to-Euclidean continuous linear map H. The calculus uses only that symmetry; the source spectral domain remains unchanged.",
+          "formula": "Hx=Ax,\\qquad\\langle u,Hv\\rangle=\\langle Hu,v\\rangle.",
+          "lean": "hA consumes blockPrecision_regular. hself and hH transfer self-adjointness through Matrix.toEuclideanCLM."
+        },
+        {
+          "title": "Differentiate the actual quadratic",
+          "text": "Differentiate one half of the inner product of the identity map and H. Symmetry combines the two derivative terms into the inner product with Hx. The Riesz representation gives a genuine gradient, rather than an equality involving the nondifferentiable fallback.",
+          "formula": "Df(x)[v]=\\tfrac12\\bigl(\\langle v,Hx\\rangle+\\langle x,Hv\\rangle\\bigr)=\\langle Hx,v\\rangle,\\qquad\\nabla f(x)=Hx.",
+          "lean": "hf identifies the actual potential. hraw differentiates the inner product; hlin identifies its continuous linear derivative with toDual ℝ E (H y); hgrad concludes HasGradientAt."
+        },
+        {
+          "title": "Reconstruct each actual block action",
+          "text": "Expand the literal source matrix. Its action on the queried block is exactly the stated affine combination of the two actual primitive replies. This identity is proved internally for every block.",
+          "formula": "A_{O_j}x_j=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}(O_jx_j+O_j^\\top x_j)=g_j(x).",
+          "lean": "hsingle uses the actual singleBlockPrecision definition and matrix sub/smul/add action identities. No gradient, symmetry or block-action answer is a public premise."
+        },
+        {
+          "title": "Reassemble the actual global gradient",
+          "text": "Transport through the literal contiguous-coordinate equivalence, expand the block diagonal action and preserve the residual identity action. This includes the zero-dimensional residual without imposing a positive-remainder hypothesis.",
+          "formula": "gx=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)x=Hx.",
+          "lean": "hAdef identifies the canonical blockPrecision with its literal reindexing. hG uses submatrix_mulVec_equiv, fromBlocks_mulVec, finite block sums and hsingle; hg transports hgrad."
+        },
+        {
+          "title": "Recover the value and the observation",
+          "text": "The same actual quadratic has value one half of its inner product with the reconstructed vector. Combine that equality with the genuine gradient. The focused consumer compares two actual hidden tuples whose primitive replies agree at the same point, then deduces equality of both actual observations.",
+          "formula": "f(x)=\\tfrac12\\langle x,g(x)\\rangle,\\qquad(f(x),\\nabla f(x))=(\\tfrac12\\langle x,g(x)\\rangle,g(x)).",
+          "lean": "hval uses Matrix.inner_toEuclideanCLM; Prod.ext hval hg.gradient concludes. Tests.GaussianComplexityFirstOrderQuery uses the theorem twice and congruence of the actual affine reply combination."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.toEuclideanCLM",
+        "Matrix.inner_toEuclideanCLM",
+        "ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric",
+        "HasFDerivAt.inner",
+        "HasFDerivAt.const_mul",
+        "hasGradientAt_iff_hasFDerivAt",
+        "Matrix.submatrix_mulVec_equiv",
+        "Matrix.fromBlocks_mulVec"
+      ],
+      "lean_statement": "Exactly the preproof sealed source-domain pointwise reconstruction, including HasGradientAt as an output.",
+      "lean_proof": "The exact complete compiled production theorem is extracted adjacent to this formula proof. Canonical regularity supplies symmetry; every other bridge is proved inside the theorem.",
+      "boundary": "Selected pointwise Appendix B.1 Ex33–35 reconstruction, with a genuine two-hidden-input consumer: equality of all forward/inverse block replies at the same queried point implies equality of their actual (f(x), gradient f(x)) observations. Finite-horizon adaptive simulation, deterministic worst-case per-block2T/total2Tk caps, strict2T<n downstream transcript/output indistinguishability, probability/seed laws, sampling TV precision, expected-cost adaptations, both main lower bounds, remote publication and postmerge purification/Exposition Seal remain separate.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS1.SSS0.Px1.p1",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S2 centered first-order model; S3.E4-E5 actual block precision; A2.SS1.SSS0.Px1.p1 Oracle reduction primitive; A2.Ex33-Ex35; omitted zero-residual convention.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The selected pointwise oracle identities are Appendix B.1; ASTIS explicitly supplies the genuine quadratic derivative and contiguous-coordinate adapters.",
+          "scope": "Pointwise first-order observation reconstruction only; operational query budgets and information-law lower bounds are separate.",
+          "label": "Zhou–Suzuki, Appendix B.1 Oracle reduction"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFirstOrderQuery"
+      ]
+    }
+  ]
+}

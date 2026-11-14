@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+      "title": "Gaussian row marginals and the simultaneous cutoff event",
+      "reader_note": "Open the assumptions and source steps for the exact experiment and adjacent Lean.",
+      "statement": "Every coordinate row of the independent-column Gaussian experiment has law \\(N(0,I_r)\\). In this same experiment, all row squared norms are at most \\(2r+3\\log(1000d)\\) with probability at least \\(999/1000\\).",
+      "formula": "\\mu=\\gamma_d^{\\otimes r},\\qquad \\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i}),\\qquad(\\Phi_i)_\\#\\mu=\\gamma_r.",
+      "assumptions": [
+        "Let \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), and \\(r=q+1\\). Hence \\(d\\ge2\\) and \\(r\\ge1\\); \\(q=0\\) is included.",
+        "Write \\(\\gamma_n=N(0,I_n)\\) on real \\(n\\)-dimensional Euclidean space. The outcome space is \\(\\Omega=(\\mathbb R^d)^r\\), with the literal product probability measure \\(\\mu=\\gamma_d^{\\otimes r}\\). Its \\(r\\) column vectors are independent by this fixed construction.",
+        "The \\(i\\)-th row map is \\(\\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i})\\in\\mathbb R^r\\). Lean uses \\(a.val+1\\) and \\(i.val+1\\) for the source column and row indices, respectively; WithLp.toLp supplies the Euclidean row norm.",
+        "Put \\(R_i(\\omega)=\\|\\Phi_i(\\omega)\\|^2\\) and \\(L=2r+3\\log(1000d)\\). The good event is the simultaneous closed cutoff \\(\\{\\forall i,\\ R_i\\le L\\}\\); each bad event uses the strict inequality \\(L<R_i\\).",
+        "The public conclusion MeasurePreserving includes both measurability of each row map and its exact Gaussian pushforward law. These are proved outputs. Exponential integrability, the exact exponential moment, the tail estimates and event measurability are also derived internally.",
+        "The private consumer measures the good event under this same \\(\\mu\\), using the exact ENNReal threshold ofReal \\((999/1000)\\). No retained-law normalization, auxiliary law certificate, \\(\\tau\\)-smallness or condition-number premise is added. No Gaussian assertion is made about a norm on the function carrier \\(\\Omega\\)."
+      ],
+      "steps": [
+        {
+          "title": "Identify a coordinate of one Gaussian column",
+          "text": "Express the canonical d-dimensional Gaussian as the Euclidean image of the product of scalar standard Gaussians. A physical-coordinate evaluation is measurable and pushes this product onto one scalar standard Gaussian. Composition of measure maps gives the coordinate law under the actual column Gaussian.",
+          "formula": "(x\\mapsto x_i)_\\#\\gamma_d=N(0,1).",
+          "lean": "  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  intro i\n  have column_coordinates :\n      Measure.map (WithLp.toLp 2 : (Fin d → ℝ) → D)\n        (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) = stdGaussian D :=\n    map_pi_eq_stdGaussian\n  have coordinate_law :\n      MeasurePreserving (fun x : D => x i) (stdGaussian D) (gaussianReal 0 1) := by\n    have coordinate_measurable : Measurable (fun x : D => x i) := by\n      dsimp [D]\n      fun_prop\n    refine ⟨coordinate_measurable, ?_⟩\n    rw [← column_coordinates, Measure.map_map coordinate_measurable (by fun_prop)]\n    change Measure.map (Function.eval i)\n      (Measure.pi (fun _ : Fin d => gaussianReal 0 1)) = gaussianReal 0 1\n    exact (measurePreserving_eval (fun _ : Fin d => gaussianReal 0 1) i).map_eq\n"
+        },
+        {
+          "title": "Collect the coordinates across independent columns",
+          "text": "The finite product-map theorem collects the same physical coordinate across all r independent columns. Wrap the resulting coordinate tuple in Euclidean space. This proves both row measurability and the exact row Gaussian law, rather than assuming either. The public result asserts each marginal only.",
+          "formula": "\\mu=\\gamma_d^{\\otimes r},\\qquad \\Phi_i(\\omega)=(\\omega_{1,i},\\ldots,\\omega_{r,i}),\\qquad(\\Phi_i)_\\#\\mu=\\gamma_r.",
+          "lean": "  have collect_coordinates :\n      MeasurePreserving (fun ω : Ω => fun a : Fin (q + 1) => ω a i) μ\n        (Measure.pi (fun _ : Fin (q + 1) => gaussianReal 0 1)) :=\n    measurePreserving_pi (fun _ : Fin (q + 1) => stdGaussian D)\n      (fun _ : Fin (q + 1) => gaussianReal 0 1) (fun _ => coordinate_law)\n  have wrap_row :\n      MeasurePreserving (WithLp.toLp 2 : (Fin (q + 1) → ℝ) → E)\n        (Measure.pi (fun _ : Fin (q + 1) => gaussianReal 0 1)) (stdGaussian E) :=\n    ⟨by fun_prop, map_pi_eq_stdGaussian⟩\n  exact wrap_row.comp collect_coordinates\n"
+        },
+        {
+          "title": "Transport exponential integrability and its exact mean",
+          "text": "Use the existing canonical Gaussian exponential-moment theorem, including its genuine integrability conclusion. The row-law producer transports integrability to the actual outcome space. The general measurable-map integral theorem transports the exact mean; it requires no injectivity of the row projection. This fold includes the complete private statement and setup.",
+          "formula": "\\int_\\Omega e^{\\|\\Phi_i(\\omega)\\|^2/3}\\,d\\mu(\\omega)=3^{r/2}.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw\nimport AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianRadialExponential\nimport Mathlib.MeasureTheory.Integral.Lebesgue.Markov\n\nnoncomputable section\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw\nopen AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianRadialExponential\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceRowLaw\n\nprivate theorem actual_original_all_good_cutoff_probability\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun a : Fin (q + 1) => ω a i)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let good : Set Ω := {ω | ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L}\n  ENNReal.ofReal (999 / 1000 : ℝ) ≤ μ good := by\n  classical\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun a : Fin (q + 1) => ω a i)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let scale : ℝ := 1000 * (d : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log scale\n  let good : Set Ω := {ω | ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L}\n  let bad : Fin d → Set Ω := fun i => {ω | L < ‖row i ω‖ ^ 2}\n  let weight : Fin d → Ω → ℝ := fun i ω => Real.exp (‖row i ω‖ ^ 2 / 3)\n  change ENNReal.ofReal (999 / 1000 : ℝ) ≤ μ good\n  have d_pos : 0 < d := by omega\n  have d_real_pos : 0 < (d : ℝ) := by exact_mod_cast d_pos\n  have hd0 : (d : ℝ) ≠ 0 := ne_of_gt d_real_pos\n  have scale_pos : 0 < scale := by dsimp [scale]; positivity\n  have r_nonneg : 0 ≤ r := by dsimp [r]; positivity\n  have row_law := actual_source_row_marginal_law (d := d) (q := q) hq\n  change ∀ i : Fin d, MeasurePreserving (row i) μ (stdGaussian E) at row_law\n  obtain ⟨canonical_integrable, canonical_mean⟩ :=\n    integrable_exp_norm_sq_div_three_and_integral_stdGaussian (E := E)\n  rw [show Module.finrank ℝ E = q + 1 from finrank_euclideanSpace_fin] at canonical_mean\n  change (∫ x : E, Real.exp (‖x‖ ^ 2 / 3) ∂stdGaussian E) = (3 : ℝ) ^ (r / 2)\n    at canonical_mean\n\n  -- Transport both genuine integrability and the exact mean to each actual row.\n  have row_moment (i : Fin d) :\n      Integrable (weight i) μ ∧ (∫ ω, weight i ω ∂μ) = (3 : ℝ) ^ (r / 2) := by\n    have integrable_row : Integrable (weight i) μ :=\n      (row_law i).integrable_comp_of_integrable canonical_integrable\n    have hmeas : AEStronglyMeasurable (fun x : E => Real.exp (‖x‖ ^ 2 / 3))\n        (Measure.map (row i) μ) := by\n      rw [(row_law i).map_eq]\n      exact canonical_integrable.aestronglyMeasurable\n    have transport := integral_map (φ := row i) (μ := μ) (row_law i).aemeasurable hmeas\n    rw [(row_law i).map_eq, canonical_mean] at transport\n    exact ⟨integrable_row, transport.symm⟩\n"
+        },
+        {
+          "title": "Calibrate the cutoff",
+          "text": "The source exponential estimate is bounded by the reciprocal error scale. Split log3 into two elementary logarithms to prove log3<4/3, then use r>=0. With L=2r+3log(1000d), the exponential-moment-to-threshold ratio is at most1/(1000d).",
+          "formula": "\\frac{3^{r/2}}{e^{L/3}}=\\exp\\!\\left(\\frac r2\\log3-\\frac{2r}3-\\log(1000d)\\right)\\le\\frac1{1000d}.",
+          "lean": "  have log_three_split : Real.log 3 = 2 * Real.log (3 / 2) + Real.log (4 / 3) := by\n    calc\n      Real.log 3 = Real.log ((3 / 2) * (3 / 2) * (4 / 3)) := by congr 1; norm_num\n      _ = _ := by\n        rw [Real.log_mul (x := (3 / 2) * (3 / 2)) (y := 4 / 3) (by norm_num) (by norm_num),\n          Real.log_mul (x := 3 / 2) (y := 3 / 2) (by norm_num) (by norm_num)]\n        ring\n  have log_three_lt : Real.log 3 < 4 / 3 := by\n    rw [log_three_split]\n    linarith [Real.log_lt_sub_one_of_pos (x := 3 / 2) (by norm_num) (by norm_num),\n      Real.log_le_sub_one_of_pos (x := 4 / 3) (by norm_num)]\n  have log_moment_le : Real.log 3 * (r / 2) ≤ 2 * r / 3 := by\n    nlinarith [mul_nonneg r_nonneg (sub_nonneg.mpr log_three_lt.le)]\n  have moment_over_threshold : (3 : ℝ) ^ (r / 2) / Real.exp (L / 3) ≤ scale⁻¹ := by\n    rw [Real.rpow_def_of_pos (by norm_num : 0 < (3 : ℝ)), ← Real.exp_sub,\n      ← Real.exp_log scale_pos, ← Real.exp_neg]\n    apply Real.exp_le_exp.mpr\n    dsimp [L]\n    linarith\n"
+        },
+        {
+          "title": "Apply exponential Markov on the actual outcome space",
+          "text": "The strict bad-row event is contained in the weak exponential threshold event. Apply nonnegative Markov, then use the transported Bochner integrability and exact mean to evaluate the nonnegative integral. This proves the strict tail bound under the original column-product measure.",
+          "formula": "\\mu\\{L<R_i\\}\\le\\frac{\\int_\\Omega e^{R_i/3}\\,d\\mu}{e^{L/3}}\\le\\frac1{1000d}.",
+          "lean": "  -- Exponential Markov is applied on the original column outcome space.\n  have row_tail (i : Fin d) : μ (bad i) ≤ ENNReal.ofReal (scale⁻¹) := by\n    have weight_measurable : Measurable (fun ω => ENNReal.ofReal (weight i ω)) := by\n      have row_measurable := (row_law i).measurable\n      dsimp only [weight]\n      fun_prop\n    have weight_nonneg : 0 ≤ᵐ[μ] weight i :=\n      ae_of_all _ (fun _ => Real.exp_nonneg _)\n    calc\n      μ (bad i) ≤ μ {ω : Ω |\n          ENNReal.ofReal (Real.exp (L / 3)) ≤ ENNReal.ofReal (weight i ω)} := by\n        apply measure_mono\n        intro ω hω\n        change L < ‖row i ω‖ ^ 2 at hω\n        exact ENNReal.ofReal_le_ofReal (Real.exp_le_exp.mpr\n          (div_le_div_of_nonneg_right hω.le (by norm_num)))\n      _ ≤ (∫⁻ ω, ENNReal.ofReal (weight i ω) ∂μ) / ENNReal.ofReal (Real.exp (L / 3)) :=\n        meas_ge_le_lintegral_div weight_measurable.aemeasurable\n          (ne_of_gt (ENNReal.ofReal_pos.mpr (Real.exp_pos _))) ENNReal.ofReal_ne_top\n      _ = ENNReal.ofReal ((3 : ℝ) ^ (r / 2) / Real.exp (L / 3)) := by\n        rw [← ofReal_integral_eq_lintegral_ofReal (row_moment i).1 weight_nonneg,\n          (row_moment i).2, ENNReal.ofReal_div_of_pos (Real.exp_pos _)]\n      _ ≤ ENNReal.ofReal (scale⁻¹) := ENNReal.ofReal_le_ofReal moment_over_threshold\n"
+        },
+        {
+          "title": "Exclude every bad row simultaneously",
+          "text": "The complement of the closed good event is the finite union of strict bad-row events. Finite subadditivity gives total bad probability at most1/1000 without a joint-independence premise. Prove the good event measurable and subtract from the probability of the whole space to obtain the exact rational lower bound. The union-bound expansion is a source-supported derivation of the printed probability.",
+          "formula": "\\mu(\\mathrm{good}^{c})\\le\\sum_{i=1}^{d}\\mu\\{L<R_i\\}\\le\\frac1{1000},\\qquad\\mu(\\mathrm{good})\\ge\\frac{999}{1000}.",
+          "lean": "  -- Finite subadditivity needs no joint-row independence.\n  have good_complement : goodᶜ = ⋃ i : Fin d, bad i := by\n    ext ω\n    simp [good, bad, not_forall]\n  have bad_union_bound : μ goodᶜ ≤ ENNReal.ofReal (1 / 1000 : ℝ) := by\n    rw [good_complement]\n    calc\n      μ (⋃ i : Fin d, bad i) ≤ ∑ i : Fin d, μ (bad i) :=\n        measure_iUnion_fintype_le μ bad\n      _ ≤ ∑ i : Fin d, ENNReal.ofReal (scale⁻¹) :=\n        Finset.sum_le_sum (fun i _ => row_tail i)\n      _ = ENNReal.ofReal (∑ _i : Fin d, scale⁻¹) :=\n        (ENNReal.ofReal_sum_of_nonneg (fun _ _ => inv_nonneg.mpr scale_pos.le)).symm\n      _ = ENNReal.ofReal (1 / 1000 : ℝ) := by\n        congr 1\n        simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]\n        dsimp [scale]\n        field_simp\n  have good_measurable : MeasurableSet good := by\n    have each (i : Fin d) : MeasurableSet {ω : Ω | ‖row i ω‖ ^ 2 ≤ L} :=\n      measurableSet_le ((row_law i).measurable.norm.pow_const 2) measurable_const\n    convert MeasurableSet.iInter each using 1\n    ext ω\n    simp [good]\n  have good_measure : μ good = 1 - μ goodᶜ := by\n    simpa only [compl_compl, measure_univ] using\n      (measure_compl good_measurable.compl (measure_ne_top μ goodᶜ))\n  calc\n    ENNReal.ofReal (999 / 1000 : ℝ) = 1 - ENNReal.ofReal (1 / 1000 : ℝ) := by\n      rw [← ENNReal.ofReal_one, ← ENNReal.ofReal_sub 1 (by norm_num : (0 : ℝ) ≤ 1 / 1000)]\n      norm_num\n    _ ≤ 1 - μ goodᶜ := tsub_le_tsub_left bad_union_bound 1\n    _ = μ good := good_measure.symm\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceRowLaw\n"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.map_pi_eq_stdGaussian",
+        "MeasureTheory.Measure.map_map",
+        "MeasureTheory.measurePreserving_eval",
+        "MeasureTheory.measurePreserving_pi",
+        "MeasureTheory.MeasurePreserving.comp",
+        "MeasureTheory.MeasurePreserving.integrable_comp_of_integrable",
+        "MeasureTheory.integral_map",
+        "MeasureTheory.meas_ge_le_lintegral_div",
+        "MeasureTheory.ofReal_integral_eq_lintegral_ofReal",
+        "MeasureTheory.measure_iUnion_fintype_le",
+        "MeasurableSet.iInter",
+        "MeasureTheory.measure_compl",
+        "ENNReal.ofReal_sub"
+      ],
+      "dependency_notes": "The public row-law producer has no ASTIS theorem parent. The actual private cutoff consumer materially uses this producer and the existing canonical StdGaussianRadialExponential.integrable_exp_norm_sq_div_three_and_integral_stdGaussian node. The generic moment is reused, with no new public moment or tail wrapper.",
+      "lean_statement": "Each literal coordinate-row map pushes the fixed independent-column Gaussian product onto the row standard Gaussian and is measurable.",
+      "lean_proof": "Project Gaussian column coordinates, collect them under the finite product law, and wrap in Euclidean space. The private consumer transports the canonical exponential moment, applies Markov and finite subadditivity, then takes the measurable complement.",
+      "boundary": "The public theorem proves each marginal row law in the canonical independent-column realization; the complete private consumer proves the printed simultaneous cutoff probability in that same experiment. Marginals alone do not establish joint-row independence. Transfer from an arbitrary extended ambient experiment, full joint-row independence, original matrix-expectation adapters, centered variance, concentration, Fact C.6 and full Lemma 4.4 remain open. Both main lower bounds, exact oracle/TV/precision/worst-case cap/expected-cost adapters, serialized integration, full desktop/mobile source-index/graph delivery and purification remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p1",
+          "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Appendix C.2 p1 independent Gaussian columns and coordinate rows; p10 Ex104/Ex105 and the printed probability at least0.999; standing 2q+1<d",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv:2610.20492v1.",
+          "scope": "Each row marginal and the all-good cutoff in the canonical realization of the source independent-column experiment. Full joint-row independence is excluded.",
+          "label": "Appendix C.2 original row construction and cutoff event"
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumSourceRowLaw.lean",
+          "line": 14,
+          "label": "Complete private same-experiment cutoff proof",
+          "scope": "The exact simultaneous closed cutoff has probability at least999/1000 under the same column-product measure."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumSourceRowLaw"
+      ]
+    }
+  ]
+}

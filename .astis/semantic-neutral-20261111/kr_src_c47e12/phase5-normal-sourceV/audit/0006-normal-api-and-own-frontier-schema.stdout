@@ -1,0 +1,744 @@
+PROCESS_API_WINDOW_BEGIN tools/astis_advance.py 1 115
+1: #!/usr/bin/env python3
+2: """Substantive-advance coordination for the ASTIS Harness.
+3: 
+4: The legacy ASTIS harness remains available as durable typed memory. This module
+5: makes a mathematically substantive theorem-DAG delta the active unit of work. A
+6: generalist Worker owns that delta end to end; specialties are temporary modes
+7: rather than role boundaries.
+8: 
+9: The current Harness keeps the global coordinator thin:
+10: 
+11: * advances are partitioned into explicit frontier cells;
+12: * any generalist Worker may publish a cell-level synthesis discovery;
+13: * cross-domain proof mechanisms are retained as typed conceptual-mirror discoveries;
+14: * the coordinator capsule is synthesis-first and never embeds raw transcripts;
+15: * unchanged route/progress checkpoints trigger a deterministic no-progress
+16:   diagnosis instead of indefinite retries;
+17: * exploration stays parallel while shared repository stabilization is single
+18:   owner.
+19: 
+20: All durable I/O reuses ``tools.astis_harness``: canonical-path locks, fsync,
+21: atomic JSONL appends, and interrupted-tail recovery therefore stay compatible
+22: with the existing ASTIS runtime.
+23: """
+24: 
+25: from __future__ import annotations
+26: 
+27: import argparse
+28: import dataclasses
+29: import json
+30: from pathlib import Path
+31: from typing import Any, Iterable, Sequence
+32: 
+33: try:  # package import under unit tests
+34:     from tools import astis_harness as durable
+35: except ImportError:  # direct ``python3 tools/astis_advance.py ...``
+36:     import astis_harness as durable  # type: ignore
+37: 
+38: 
+39: ROOT = Path(__file__).resolve().parents[1]
+40: DEFAULT_ADVANCE_LEDGER = ROOT / "runs" / "substantive_advances.jsonl"
+41: DEFAULT_DISCOVERY_LEDGER = ROOT / "runs" / "substantive_discoveries.jsonl"
+42: ADVANCE_SCHEMA_VERSION = 4
+43: 
+44: 
+45: class HarnessError(RuntimeError):
+46:     """A deterministic ASTIS Harness contract was violated."""
+47: 
+48: 
+49: ADVANCE_STATES = (
+50:     "PROPOSED",
+51:     "CLAIMED",
+52:     "EXPLORING",
+53:     "PROVED_LOCAL",
+54:     "VERIFIED",
+55:     "STABILIZING",
+56:     "MERGED",
+57:     "BLOCKED",
+58:     "QUARANTINED",
+59: )
+60: 
+61: ACTIVE_ADVANCE_STATES = frozenset(
+62:     {"PROPOSED", "CLAIMED", "EXPLORING", "PROVED_LOCAL", "VERIFIED", "STABILIZING"}
+63: )
+64: TERMINAL_ADVANCE_STATES = frozenset({"MERGED", "QUARANTINED"})
+65: WORKER_LANE_STATES = frozenset({"CLAIMED", "EXPLORING", "PROVED_LOCAL"})
+66: WORKER_LANE_TARGETS = frozenset({"EXPLORING", "PROVED_LOCAL", "BLOCKED"})
+67: SUBSTANTIVE_RESULT_KINDS = frozenset(
+68:     {"theorem-edge", "reusable-interface", "integration-node"}
+69: )
+70: 
+71: ALLOWED_ADVANCE_TRANSITIONS: dict[str, frozenset[str]] = {
+72:     "PROPOSED": frozenset({"CLAIMED", "BLOCKED", "QUARANTINED"}),
+73:     "CLAIMED": frozenset({"EXPLORING", "BLOCKED", "QUARANTINED"}),
+74:     "EXPLORING": frozenset({"PROVED_LOCAL", "BLOCKED", "QUARANTINED"}),
+75:     "PROVED_LOCAL": frozenset({"VERIFIED", "EXPLORING", "BLOCKED", "QUARANTINED"}),
+76:     "VERIFIED": frozenset({"STABILIZING", "EXPLORING", "BLOCKED", "QUARANTINED"}),
+77:     "STABILIZING": frozenset({"MERGED", "VERIFIED", "BLOCKED", "QUARANTINED"}),
+78:     "BLOCKED": frozenset({"CLAIMED", "EXPLORING", "QUARANTINED"}),
+79:     "QUARANTINED": frozenset(),
+80:     "MERGED": frozenset(),
+81: }
+82: 
+83: DISCOVERY_KINDS = frozenset(
+84:     {
+85:         "lemma",
+86:         "interface",
+87:         "counterexample",
+88:         "source-gap",
+89:         "refactor",
+90:         "conjecture",
+91:         "process",
+92:         "synthesis",
+93:         "conceptual-mirror",
+94:     }
+95: )
+96: DISCOVERY_STATUSES = frozenset({"raw", "validated", "scheduled", "merged", "rejected"})
+97: ALLOWED_DISCOVERY_TRANSITIONS: dict[str, frozenset[str]] = {
+98:     "raw": frozenset({"validated", "rejected"}),
+99:     "validated": frozenset({"scheduled", "merged", "rejected"}),
+100:     "scheduled": frozenset({"merged", "rejected"}),
+101:     "merged": frozenset(),
+102:     "rejected": frozenset(),
+103: }
+104: DUPLICATE_DISCOVERY_STATUSES = frozenset({"raw", "validated", "scheduled", "merged"})
+105: 
+106: CONCEPTUAL_MIRROR_KIND = "conceptual-mirror"
+107: CONCEPTUAL_MIRROR_REQUIRED_METADATA = (
+108:     "bridge_id",
+109:     "family_id",
+110:     "domains",
+111:     "formula",
+112:     "mechanism",
+113:     "hypothesis_map",
+114:     "conclusion_map",
+115:     "failure_boundary",
+PROCESS_API_WINDOW_END
+PROCESS_API_WINDOW_BEGIN tools/astis_advance.py 325 397
+325:         self.validate()
+326:         return {
+327:             **dataclasses.asdict(self),
+328:             "schema_version": ADVANCE_SCHEMA_VERSION,
+329:             "event": "discovery",
+330:             "status": "raw",
+331:             "fingerprint": self.semantic_fingerprint(),
+332:         }
+333: 
+334: 
+335: def _recover_unlocked(path: Path) -> list[dict[str, Any]]:
+336:     records, _ = durable._recover_jsonl_unlocked(path)  # reuse the legacy durable primitive
+337:     return records
+338: 
+339: 
+340: def _append_unlocked(path: Path, record: dict[str, Any]) -> None:
+341:     durable._append_jsonl_unlocked(path, record)
+342: 
+343: 
+344: def _replay_advances(records: Iterable[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+345:     state: dict[str, dict[str, Any]] = {}
+346:     for record in records:
+347:         event = record.get("event")
+348:         advance_id = record.get("advance_id")
+349:         if not isinstance(advance_id, str) or not advance_id:
+350:             continue
+351:         if event == "proposal":
+352:             item = dict(record)
+353:             item.setdefault("frontier_cell", "global")
+354:             item.setdefault("target_declarations", [])
+355:             item.setdefault("checkpoint_count", 0)
+356:             item.setdefault("no_progress_streak", 0)
+357:             item.setdefault("needs_diagnosis", False)
+358:             state[advance_id] = item
+359:             continue
+360:         if advance_id not in state:
+361:             continue
+362:         current = state[advance_id]
+363:         if event == "transition":
+364:             to_state = record.get("to_state", current.get("state"))
+365:             current["state"] = to_state
+366:             current["last_actor"] = record.get("worker_id", current.get("last_actor", ""))
+367:             if to_state == "CLAIMED":
+368:                 current["owner_id"] = record.get("worker_id", "")
+369:                 current["no_progress_streak"] = 0
+370:                 current["needs_diagnosis"] = False
+371:             current["modes"] = list(record.get("modes") or current.get("modes") or [])
+372:             if record.get("evidence"):
+373:                 current["latest_evidence"] = record["evidence"]
+374:                 if to_state == 'PROVED_LOCAL' and record['evidence'].get('publication_declarations'):
+375:                     current['publication_declarations'] = record['evidence']['publication_declarations']
+376:             current["updated_at"] = record.get("created_at", current.get("updated_at"))
+377:         elif event == "checkpoint":
+378:             previous = current.get("latest_checkpoint") or {}
+379:             same_signature = (
+380:                 previous.get("route_fingerprint") == record.get("route_fingerprint")
+381:                 and previous.get("progress_signature") == record.get("progress_signature")
+382:             )
+383:             streak = int(current.get("no_progress_streak", 0)) + 1 if same_signature else 1
+384:             current["checkpoint_count"] = int(current.get("checkpoint_count", 0)) + 1
+385:             current["no_progress_streak"] = streak
+386:             current["needs_diagnosis"] = streak >= NO_PROGRESS_FREEZE_AT
+387:             current["latest_checkpoint"] = dict(record)
+388:             current["updated_at"] = record.get("created_at", current.get("updated_at"))
+389:     return state
+390: 
+391: 
+392: def current_advances(path: Path = DEFAULT_ADVANCE_LEDGER) -> dict[str, dict[str, Any]]:
+393:     """Recover an interrupted tail and replay current substantive-advance state."""
+394: 
+395:     return _replay_advances(durable.load_jsonl(path))
+396: 
+397: 
+PROCESS_API_WINDOW_END
+PROCESS_API_WINDOW_BEGIN tools/astis_advance.py 418 647
+418: def _validate_transition_evidence(
+419:     to_state: str, evidence: dict[str, Any], *, schema_version: int
+420: ) -> None:
+421:     if to_state == "PROVED_LOCAL":
+422:         required = ("theorem_delta", "lean_files", "focused_checks", "truth_boundary")
+423:         if schema_version >= 2:
+424:             required += ("result_kind", "lean_declarations")
+425:         if schema_version >= 3:
+426:             required += ("conceptual_mirror_audit",)
+427:         if schema_version >= 4:
+428:             required += ("publication_declarations",)
+429:         missing = [key for key in required if not _meaningful(evidence.get(key))]
+430:         if missing:
+431:             raise HarnessError("PROVED_LOCAL lacks evidence: " + ", ".join(missing))
+432:         if schema_version >= 2 and evidence.get("result_kind") not in SUBSTANTIVE_RESULT_KINDS:
+433:             raise HarnessError(
+434:                 "PROVED_LOCAL result_kind must be one of: "
+435:                 + ", ".join(sorted(SUBSTANTIVE_RESULT_KINDS))
+436:             )
+437:         if schema_version >= 3:
+438:             _validate_conceptual_mirror_audit(evidence.get("conceptual_mirror_audit"))
+439:         if schema_version >= 4 and set(evidence['publication_declarations']) != set(evidence['lean_declarations']):
+440:             raise HarnessError('publication_declarations must cover exactly the proved Lean declarations')
+441:     elif to_state == "VERIFIED":
+442:         required = ("gate",)
+443:         if schema_version >= 2:
+444:             required += (
+445:                 "verifier_id",
+446:                 "verified_commit",
+447:                 "source_audit",
+448:                 "fake_closure_scan",
+449:             )
+450:         missing = [key for key in required if not _meaningful(evidence.get(key))]
+451:         if missing:
+452:             raise HarnessError("VERIFIED lacks evidence: " + ", ".join(missing))
+453:     elif to_state == "STABILIZING":
+454:         required = ("canonical_branch", "integration_owner")
+455:         missing = [key for key in required if not _meaningful(evidence.get(key))]
+456:         if missing:
+457:             raise HarnessError("STABILIZING lacks evidence: " + ", ".join(missing))
+458:     elif to_state == "MERGED":
+459:         if evidence.get("pr") in (None, "") or not str(evidence.get("commit", "")).strip():
+460:             raise HarnessError("MERGED lacks evidence: pr, commit")
+461:     elif to_state == "BLOCKED":
+462:         if schema_version < 2:
+463:             if not evidence or not any(_meaningful(value) for value in evidence.values()):
+464:                 raise HarnessError("BLOCKED requires an exact blocker or reason")
+465:             return
+466:         required = ("blocker_class", "blocker", "strict_reduction")
+467:         missing = [key for key in required if not _meaningful(evidence.get(key))]
+468:         alternatives = (
+469:             "next_smaller_delta",
+470:             "retired_route",
+471:             "counterexample",
+472:             "minimal_reproducer",
+473:         )
+474:         if not any(_meaningful(evidence.get(key)) for key in alternatives):
+475:             missing.append("one of next_smaller_delta/retired_route/counterexample/minimal_reproducer")
+476:         if missing:
+477:             raise HarnessError("BLOCKED lacks substantive evidence: " + ", ".join(missing))
+478:     elif to_state == "QUARANTINED":
+479:         if not evidence or not any(_meaningful(value) for value in evidence.values()):
+480:             raise HarnessError("QUARANTINED requires an exact reason")
+481: 
+482: 
+483: def _assert_worker_lane_owner(
+484:     item: dict[str, Any], *, current: str, to_state: str, worker_id: str
+485: ) -> None:
+486:     owner_id = str(item.get("owner_id", ""))
+487:     if (
+488:         owner_id
+489:         and current in WORKER_LANE_STATES
+490:         and to_state in WORKER_LANE_TARGETS
+491:         and worker_id != owner_id
+492:     ):
+493:         raise HarnessError(
+494:             f"advance {item.get('advance_id')} is owned by {owner_id}; "
+495:             f"{worker_id} cannot mutate the worker lane"
+496:         )
+497: 
+498: 
+499: def _validate_conceptual_mirror_audit_links(
+500:     advance_id: str,
+501:     audit: dict[str, Any],
+502:     discovery_path: Path,
+503: ) -> None:
+504:     if audit.get("status") != "candidates-published":
+505:         return
+506:     state = current_discoveries(discovery_path)
+507:     for discovery_id in audit.get("discovery_ids", []):
+508:         item = state.get(discovery_id)
+509:         if item is None:
+510:             raise HarnessError(
+511:                 f"conceptual_mirror_audit references unknown discovery: {discovery_id}"
+512:             )
+513:         if item.get("advance_id") != advance_id:
+514:             raise HarnessError(
+515:                 f"conceptual_mirror_audit discovery {discovery_id} belongs to another advance"
+516:             )
+517:         if item.get("kind") != CONCEPTUAL_MIRROR_KIND:
+518:             raise HarnessError(
+519:                 f"conceptual_mirror_audit discovery {discovery_id} is not conceptual-mirror"
+520:             )
+521: 
+522: 
+523: def transition_advance(
+524:     advance_id: str,
+525:     to_state: str,
+526:     *,
+527:     worker_id: str,
+528:     modes: Sequence[str] = (),
+529:     evidence: dict[str, Any] | None = None,
+530:     path: Path = DEFAULT_ADVANCE_LEDGER,
+531:     discovery_path: Path = DEFAULT_DISCOVERY_LEDGER,
+532: ) -> None:
+533:     _require_text("advance_id", advance_id)
+534:     _require_text("worker_id", worker_id)
+535:     if to_state not in ADVANCE_STATES:
+536:         raise HarnessError(f"unsupported substantive-advance state: {to_state}")
+537:     evidence = dict(evidence or {})
+538:     path = path.resolve()
+539:     path.parent.mkdir(parents=True, exist_ok=True)
+540:     with durable.file_lock(path):
+541:         records = _recover_unlocked(path)
+542:         state = _replay_advances(records)
+543:         if advance_id not in state:
+544:             raise HarnessError(f"unknown substantive advance: {advance_id}")
+545:         item = state[advance_id]
+546:         current = str(item.get("state", ""))
+547:         if to_state not in ALLOWED_ADVANCE_TRANSITIONS.get(current, frozenset()):
+548:             raise HarnessError(f"illegal substantive-advance transition: {current} -> {to_state}")
+549:         schema_version = int(item.get("schema_version", 1))
+550:         _validate_transition_evidence(to_state, evidence, schema_version=schema_version)
+551:         if schema_version >= 4 and to_state in {'PROVED_LOCAL', 'VERIFIED', 'STABILIZING'}:
+552:             # Carry the exact target set through transitions; no prose "site OK" bypass.
+553:             declarations = evidence.get('publication_declarations') or item.get('publication_declarations')
+554:             if not declarations:
+555:                 raise HarnessError('publication_declarations required for reader/round-trip gate')
+556:             if to_state != 'PROVED_LOCAL' and set(declarations) != set(item.get('publication_declarations', [])):
+557:                 raise HarnessError('Cannot change the publication target set after PROVED_LOCAL')
+558:             try:
+559:                 from tools.astis_publication import check_advance
+560:             except ImportError:
+561:                 from astis_publication import check_advance
+562:             try:
+563:                 check_advance(list(declarations), reviewed=to_state != 'PROVED_LOCAL')
+564:             except ValueError as exc:
+565:                 raise HarnessError(str(exc)) from exc
+566:         if to_state == "PROVED_LOCAL" and schema_version >= 3:
+567:             _validate_conceptual_mirror_audit_links(
+568:                 advance_id,
+569:                 evidence["conceptual_mirror_audit"],
+570:                 discovery_path,
+571:             )
+572:         _assert_worker_lane_owner(item, current=current, to_state=to_state, worker_id=worker_id)
+573: 
+574:         if schema_version >= 2 and current == "BLOCKED" and to_state == "EXPLORING":
+575:             raise HarnessError(
+576:                 "a BLOCKED v2+ advance must be re-CLAIMED before EXPLORING"
+577:             )
+578: 
+579:         if schema_version >= 2 and current == "VERIFIED" and to_state == "EXPLORING":
+580:             owner_id = str(item.get("owner_id", ""))
+581:             if owner_id and worker_id != owner_id:
+582:                 raise HarnessError(
+583:                     "a VERIFIED advance may return to EXPLORING only through its owning Worker"
+584:                 )
+585: 
+586:         if to_state == "VERIFIED" and schema_version >= 2:
+587:             verifier_id = str(evidence.get("verifier_id", ""))
+588:             if verifier_id != worker_id:
+589:                 raise HarnessError("VERIFIED worker_id must equal evidence.verifier_id")
+590:             owner_id = str(item.get("owner_id", ""))
+591:             if owner_id and verifier_id == owner_id:
+592:                 raise HarnessError("VERIFIED must be published by an independent verifier")
+593: 
+594:         if schema_version >= 2 and current == "STABILIZING" and to_state == "MERGED":
+595:             integration_owner = str(
+596:                 item.get("latest_evidence", {}).get("integration_owner", "")
+597:             )
+598:             if integration_owner and worker_id != integration_owner:
+599:                 raise HarnessError(
+600:                     "MERGED must be published by the current stabilization owner"
+601:                 )
+602: 
+603:         if to_state == "STABILIZING":
+604:             stabilizing = [
+605:                 other
+606:                 for other_id, other in state.items()
+607:                 if other_id != advance_id and other.get("state") == "STABILIZING"
+608:             ]
+609:             if stabilizing:
+610:                 owner = stabilizing[0].get("latest_evidence", {}).get(
+611:                     "integration_owner", "unknown"
+612:                 )
+613:                 raise HarnessError(
+614:                     "single stabilization lane already occupied "
+615:                     f"by {stabilizing[0].get('advance_id')} ({owner})"
+616:                 )
+617:             integration_owner = str(evidence.get("integration_owner", ""))
+618:             if integration_owner != worker_id:
+619:                 raise HarnessError(
+620:                     "STABILIZING worker_id must equal the declared integration_owner"
+621:                 )
+622: 
+623:         _append_unlocked(
+624:             path,
+625:             {
+626:                 "schema_version": ADVANCE_SCHEMA_VERSION,
+627:                 "event": "transition",
+628:                 "advance_id": advance_id,
+629:                 "from_state": current,
+630:                 "to_state": to_state,
+631:                 "worker_id": worker_id,
+632:                 "modes": _as_list(modes),
+633:                 "evidence": evidence,
+634:                 "created_at": durable.utc_stamp(),
+635:             },
+636:         )
+637: 
+638: 
+639: def checkpoint_advance(
+640:     advance_id: str,
+641:     *,
+642:     worker_id: str,
+643:     route_fingerprint: str,
+644:     progress_signature: str,
+645:     mathematical_delta: str,
+646:     exact_residual: str,
+647:     context_characters: int = 0,
+PROCESS_API_WINDOW_END
+PROCESS_API_WINDOW_BEGIN tools/astis_frontier_cells.py 1 100
+1: #!/usr/bin/env python3
+2: """Validate and summarize collaborative ASTIS Frontier Cell records.
+3: 
+4: A Frontier Cell is the GitHub-visible unit of mathematical progress used by the
+5: SampleWiki, Riemannian Optimization, Optimisation, and shared-foundation lanes.
+6: The validator is intentionally stdlib-only so it can run in every ASTIS CI job.
+7: """
+8: 
+9: from __future__ import annotations
+10: 
+11: import argparse
+12: import json
+13: import sys
+14: from collections import Counter, defaultdict
+15: from pathlib import Path
+16: from typing import Any
+17: 
+18: 
+19: ROOT = Path(__file__).resolve().parents[1]
+20: DEFAULT_CELL_ROOT = ROOT / "research-wiki" / "frontier-cells"
+21: PROCESS_MEMORY = ROOT / "research-wiki" / "process-memory.json"
+22: 
+23: ROUTES = {"samplewiki-route", "riemannian-optimization", "optimisation", "statistical-optimal-transport", "higher-order-sampling", "discrete-sampling", "mcmc", "shared"}
+24: MODES = {"faithfulPaper", "exploratoryProof"}
+25: STATUSES = {
+26:     "claimed",
+27:     "proved_locally",
+28:     "independently_verified",
+29:     "stabilized",
+30:     "merged",
+31:     "blocked",
+32:     "quarantined",
+33: }
+34: CLASSIFICATIONS = {"reuse", "adapt", "missing", "out_of_scope"}
+35: DECISIONS = {
+36:     "reuse_existing",
+37:     "adapt_existing",
+38:     "new_route_local",
+39:     "new_canonical_shared",
+40:     "out_of_scope",
+41: }
+42: FAILURE_CLASSES = {
+43:     "REFUTED",
+44:     "SOURCE_INVALID",
+45:     "API_BLOCKED",
+46:     "ENV_BLOCKED",
+47:     "IMPLEMENTATION_FAILED",
+48:     "NONE",
+49: }
+50: SALVAGE_STATUSES = {"pending", "completed", "not-applicable"}
+51: PARALLEL_DECISIONS = {"serial", "parallel"}
+52: CROSS_ROUTE_STATUSES = {"pending", "accepted", "not-applicable"}
+53: PURIFICATION_STATUSES = {"pending", "purified", "not-applicable"}
+54: EXPOSITION_STATUSES = {"pending", "accepted", "not-applicable"}
+55: 
+56: 
+57: def cell_paths(root: Path = DEFAULT_CELL_ROOT) -> list[Path]:
+58:     if not root.exists():
+59:         return []
+60:     return sorted(
+61:         path
+62:         for path in root.rglob("*.json")
+63:         if not path.name.startswith("_") and path.name != "schema.json"
+64:     )
+65: 
+66: 
+67: def load_cells(root: Path = DEFAULT_CELL_ROOT) -> list[dict[str, Any]]:
+68:     cells: list[dict[str, Any]] = []
+69:     for path in cell_paths(root):
+70:         try:
+71:             raw = json.loads(path.read_text(encoding="utf-8"))
+72:         except (OSError, json.JSONDecodeError) as exc:
+73:             cells.append({"__path__": str(path), "__load_error__": str(exc)})
+74:             continue
+75:         if not isinstance(raw, dict):
+76:             cells.append({"__path__": str(path), "__load_error__": "top level must be an object"})
+77:             continue
+78:         raw["__path__"] = path.relative_to(ROOT).as_posix() if path.is_relative_to(ROOT) else str(path)
+79:         cells.append(raw)
+80:     return cells
+81: 
+82: 
+83: def _nonempty(value: Any) -> bool:
+84:     return isinstance(value, str) and bool(value.strip())
+85: 
+86: 
+87: def _list(value: Any) -> list[Any]:
+88:     return value if isinstance(value, list) else []
+89: 
+90: 
+91: def validate_cells(cells: list[dict[str, Any]]) -> list[str]:
+92:     errors: list[str] = []
+93:     seen: dict[str, str] = {}
+94:     process_memory_ids: set[str] = set()
+95:     try:
+96:         memory = json.loads(PROCESS_MEMORY.read_text(encoding="utf-8"))
+97:         process_memory_ids = {
+98:             str(entry.get("id", "")).strip()
+99:             for entry in memory.get("entries", [])
+100:             if isinstance(entry, dict) and str(entry.get("id", "")).strip()
+PROCESS_API_WINDOW_END
+OWN_FRONTIER_RAW_BEGIN
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-krylov-range",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Actual cosine-feature Krylov range with genuine Euclidean energy coordinates",
+  "source_anchor": "arXiv2610.20492v1 S4.SS1.p1; S4.SS2.SSS0.Px1.p2; A3.Thmtheorem5/A3.SS2.2 range component; A3.SS2.p19 exact Euclidean energy equalities",
+  "target_statement": "{d q : ℕ} (κ : ℝ) (hκ : 2 ≤ κ) (hq : 2 * q + 1 < d)\n    (x : EuclideanSpace ℝ (Fin d × Fin (q + 1))) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let g : Fin (q + 1) → Fin d → ℝ := fun a i => WithLp.ofLp x (i, a)\n  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let B : Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i a =>\n    (Real.sqrt (d : ℝ))⁻¹ * g a.1 i * t i a.2\n  let K : Submodule ℝ (Fin d → ℝ) :=\n    Submodule.span ℝ (Set.range (fun a : Fin (q + 1) × Fin (q + 1) =>\n      (Λ ^ a.2.val).mulVec (g a.1)))\n  Set.range (fun c : Fin (q + 1) × Fin (q + 1) → ℝ => B.mulVec c) =\n    (K : Set (Fin d → ℝ))\n",
+  "status": "proved_locally",
+  "owner_id": "huanjian_gc_20261110_fixed_spectrum_krylov_range",
+  "advance_id": "ASTIS-SA-20261110-GaussianComplexityFixedSpectrumKrylovRange",
+  "parents": [
+    "source:arXiv2610.20492v1 selected C5 range and C2 pointwise energy component; actual compiled parent set is not yet known"
+  ],
+  "consumers": [
+    "GaussianComplexity actual Krylov quadratic-coordinate consumer",
+    "GaussianComplexity Lemma4.4 uniform-space argument"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib: bounded Gaussian module/declaration/frontier name inventory found no existing Krylov-range target or planned exact names; current selected C5 component is not supplied by a known compiled range node.",
+      "Mathlib: literal Set.range/Submodule.span/Matrix.diagonal/mulVec/dotProduct/WithLp/PiLp/EuclideanSpace definitions and one metric characterization header audited. General new-target proof-API retrieval waits for independent admission; root generic prior/adjacent-API exposure is disclosed.",
+      "After actual prospective admission: Mathlib Polynomial.Sequence and Chebyshev degree/trigonometric identities, Matrix.ToLin range and diagonal powers; local Gaussian/TechnicalLemmas search found no existing actual range theorem."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib: bounded Gaussian module/declaration/frontier name inventory found no existing Krylov-range target or planned exact names; current selected C5 component is not supplied by a known compiled range node.",
+      "Mathlib: literal Set.range/Submodule.span/Matrix.diagonal/mulVec/dotProduct/WithLp/PiLp/EuclideanSpace definitions and one metric characterization header audited. General new-target proof-API retrieval waits for independent admission; root generic prior/adjacent-API exposure is disclosed.",
+      "After actual prospective admission: Mathlib Polynomial.Sequence and Chebyshev degree/trigonometric identities, Matrix.ToLin range and diagonal powers; local Gaussian/TechnicalLemmas search found no existing actual range theorem."
+    ],
+    "reused_declarations": [
+      "Polynomial.Sequence.span_degreeLT",
+      "Polynomial.Sequence.degree_eq",
+      "Polynomial.Sequence.ne_zero",
+      "Polynomial.degree_comp",
+      "Polynomial.degree_C_mul",
+      "Polynomial.degree_X_sub_C",
+      "Polynomial.Chebyshev.degree_T",
+      "Polynomial.Chebyshev.T_real_cos",
+      "Polynomial.eval_smul",
+      "Polynomial.eval_comp",
+      "Matrix.diagonal_pow",
+      "Matrix.mulVec_diagonal",
+      "Matrix.range_mulVecLin",
+      "Submodule.smul_mem_iff",
+      "Submodule.span_le",
+      "Submodule.subset_span",
+      "EuclideanSpace.inner_toLp_toLp",
+      "real_inner_self_eq_norm_sq",
+      "Matrix.dotProduct_transpose_mulVec",
+      "Matrix.mulVec_mulVec"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "_private.Tests.GaussianComplexityFixedSpectrumKrylovRange.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumKrylovRange.actual_krylov_quadratic_coordinates genuinely obtains one c and proves both exact Euclidean quadratic formulas."
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumKrylovRange.actual_krylov_quadratic_coordinates"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Prove the literal hard-family range equality, then genuinely transport actual Euclidean norm and signed energy for each source Krylov vector. A supplied span equality or a restatement wrapper is not progress."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Authored progressive six-step lesson with exact contiguous code and full private consumer. Independent static/rendered desktop/mobile/site acceptance remains pending; these flags do not certify live delivery."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range"
+    ],
+    "visual_review": "Planned target only, no compiled edge or new global graph/source-index/site update. Source DAG is not the compiler DAG."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Actual nonexistent tactic import, polynomial-evaluation scalar API, pointwise scalar/coercion, image witness beta-reduction and metadata wording/archive-path diagnoses are retained with all original failures and unchanged sealed statements. Both roots compile, all4 owned declarations are closed reachable theorems, and2 generated certificates grant no mathematical credit. There is no source-invalid or mathematical-refutation claim. Current fresh source/decoder/native/reader reviews and postmerge purification remain separate.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "Root alone proves mathematics. Independent raw source graph and distinct topology roles address separate epistemic checks, not competing Lean proofs.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No parallel mathematical implementation routes."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 fixed raw6bc5ddc1...",
+    "primary_anchor": "arXiv2610.20492v1 S4.SS1.p1; S4.SS2.SSS0.Px1.p2; A3.Thmtheorem5/A3.SS2.2 range component; A3.SS2.p19 exact Euclidean energy equalities",
+    "detail_status": "sufficient",
+    "gap": "No source gap or mathematical repair accepted. Source states a polynomial triangular-basis route; all background/normalization/power/metric steps still require independent expansion and actual proof.",
+    "fidelity_boundary": "Reserved planning fragment only: exact literal statements formed, not target proofs or normal SAU intake. Source d/q natural with2q+1<d includingq0, kappa>=2; arbitrary pointwise feature arrays. Actual unscaled g, d^-1/2 B and ordinary diagonal-matrix Krylov powers. Producer must prove actual image=span; private consumer must materially derive coefficient representation and actual Euclidean norm/weighted-inner identities. No supplied rank, invertibility, span, moment or Gram certificate. C6/concentration/absoluteC/full Lemma4.4, Haar/joint/adaptive/Borel coefficient selection, actual oracle/exact-matvec/precision/TV/dimension-condition-number/deterministic query-cap/explicit expected-cost adapters, both mains, sourceV/global/site/browser/publication/purification/ExpositionSeal/Goal remain separate. All12 prior original sourceV values, frontiers, queues and other ASTIS chat remain intact; original global lease not transferred."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_SEALED_TYPES_COMPILED;QUALIFIED_PROSPECTIVE_SOURCE_TOPOLOGY_ADMISSION_RETAINED;INDEPENDENT_POSTPROOF_REVIEW_PENDING",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-statement-seal.json",
+    "sha256": "f47e23a601d1a8e0ff4760224676313e0f1999877a97156841a65c01847e5d82",
+    "signature_sha256": "4d5056d57aa0536b95af7aa9f7c3b6860ab7c9652b0bb306b6bad42434235ab6"
+  },
+  "evidence": {
+    "focused_checks": [
+      ".astis/huanjian-resume-20261103/20261110T194412958713Z-krylov-range-producer-real-module-build.receipt.json",
+      ".astis/huanjian-resume-20261103/20261110T194618916593Z-krylov-range-producer-and-genuine-consumer-real-module-build.receipt.json",
+      ".astis/huanjian-resume-20261103/20261110T194651267045Z-krylov-range-exact-sealed-types-all-owned-closed-kernel-and-actual-parents.receipt.json"
+    ],
+    "independent_verification": "",
+    "source_review": "Accepted bounded source/whole-module/exposition review by original independent actor /root/krylov_fresh_source_c47e12 at exact mathematical candidate972d. Original mathematical freezes, process redaction/binding qualification and unchanged six-field semantic lineage retained; no normal VERIFIED yet.",
+    "execution_boundary": "Pointwise range component of Appendix C.2 Fact C.5, and a private same-witness Euclidean quadratic-coordinate application underlying the proof of Lemma4.4. Arbitrary deterministic starts are a source-proof-supported strengthening of the Gaussian-context assertion; no Gaussian law or coefficient measurability is asserted. The signed bilinear identity is proved directly, not inferred by reversing an absolute-value equality. The separate cosine-frame Gram/mean results are not formal parents of range. Fact C.6 concentration, a source-valid absolute constant, full uniform Lemma4.4, deferred Haar/joint/adaptive/private-seed/transcript/output-law constructions, exact matvec/finite precision/TV and dimension-condition-number adapters, deterministic worst-query caps and explicit expected-cost comparisons, both main lower bounds, public integration, desktop/mobile delivery and postmerge purification/Exposition Seal remain open.",
+    "definition_locator_overlay": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence/minimal-definition-context-exact-LF.json",
+    "prior_results_preserved": "All299 previous states,459 existing frontier files and128851 tracked regular files were guarded before and after this new-only fragment reservation; full private baseline is never exported.",
+    "preproof_source_admission": {
+      "path": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence/preproof-source-admission.json",
+      "bytes": 24884,
+      "sha256": "de404e2102d7cf74ef9462a3677bd81aa6e0398d529b9ee25f0059394743fe13"
+    },
+    "actual_compiled_first_public_ASTIS_parents": {
+      "_private.Tests.GaussianComplexityFixedSpectrumKrylovRange.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumKrylovRange.actual_krylov_quadratic_coordinates": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range"
+      ],
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range": []
+    },
+    "local_proof_capsule": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence/local-proof-capsule.json",
+    "publication_binding_sha256": "7b97440eda9692f238e20ad1f0e985b5c38b4fc4f358ccffb02535b92df14ea7",
+    "actual_compiled_ASTIS_parents": {
+      "_private.Tests.GaussianComplexityFixedSpectrumKrylovRange.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumKrylovRange.actual_krylov_quadratic_coordinates": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range"
+      ],
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range": []
+    },
+    "source_to_lean_map": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence/source-to-lean-map-v1.json",
+    "independent_source_review_overlay": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence/independent-source-c47e12/phase4/source-review-overlay.json",
+    "independent_native_static_findings": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence/independent-native-5f09a3-independent-verdict.json",
+    "reader_HOLD": [
+      "Individual six corresponding code folds lack copy/download/context controls.",
+      "Private Test numbered provenance page lacks copy/download controls; exact standalone full module/download checked only in isolated static scope.",
+      "No live browser/MathJax/clipboard/mobile/final shell/global site acceptance."
+    ]
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumKrylovRange.lean",
+    "Tests/GaussianComplexityFixedSpectrumKrylovRange.lean",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-krylov-range.json",
+    "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-statement-seal.json",
+    "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence",
+    "website/content/declaration_lessons/huanjian-fixed-spectrum-krylov-range.json",
+    "website/content/publications/huanjian-fixed-spectrum-krylov-range.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-fixed-spectrum-krylov-range.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "Registry.lean",
+    "research-wiki/semantic-roundtrip/registry.json",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json"
+  ],
+  "truth_boundary": "Prove the actual pointwise cosine-feature image=Krylov equality at source kappa>=2 and natural d,q with2q+1<d includingq0, materially consumed by actual Euclidean norm and signed weighted-inner coefficient identities for every actual Krylov vector. Unscaled source g; B alone has d^-1/2. No supplied polynomial/invertibility/normalization/rank/span/Gram/moment certificate. No concentration/absoluteC/C6/full Lemma4.4, Haar/joint/adaptive/measurable-choice/oracle/exact-matvec/precision/TV/dimension-condition-number/deterministic worst-query-cap/explicit expected-cost adapter, either full main bound, sourceV/global/site/browser/publication/purification/ExpositionSeal or Goal completion. All twelve prior original sourceV values and all other states/frontiers/queues/other ASTIS chat and current reader HOLDs are preserved; the original foreign global lease is not transferred.",
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "evidence": "research-wiki/paper-contributions/GaussianComplexity/fixed-spectrum-krylov-range-semantic-evidence/postproof-conceptual-mirror-audit.json"
+  }
+}
+
+OWN_FRONTIER_RAW_END
+NATIVE_OWNED_RECORD_KEYS ["type_raw", "type_pp", "std3_only", "name", "module", "levels", "kind", "is_prop", "has_value", "direct_value_parents", "direct_value_constants", "direct_type_constants", "closed_value", "closed_type", "axioms"]
+NATIVE_TYPE_COMPARISON_KEYS [["literal_expr_equal", "expected_type_raw", "expected_is_prop", "expected_closed", "expected", "defeq", "actual"], ["literal_expr_equal", "expected_type_raw", "expected_is_prop", "expected_closed", "expected", "defeq", "actual"]]
+NATIVE_COMPILE_RECEIPTS
+019-native-FixedSpectrumKrylovRange.json {"argv": ["/Users/zhouhuanjian/.elan/toolchains/leanprover--lean4---v4.33.0/bin/lean", "--root=/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "-o", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumKrylovRange.olean", "-i", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumKrylovRange.ilean", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate/AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumKrylovRange.lean"], "cwd": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "env_overrides": {"HOME": "/Users/zhouhuanjian", "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8", "LEAN_PATH": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/mathlib/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/plausible/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/importGraph/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/aesop/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/Qq/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/batteries/.lake/build/lib/lean"}, "start_utc": "2026-11-10T20:13:23.110911+00:00", "duration_seconds": 4.0226422500563785, "exit_code": 0, "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_file": "logs/019-native-FixedSpectrumKrylovRange.stdout", "stderr_file": "logs/019-native-FixedSpectrumKrylovRange.stderr"}
+020-native-GaussianComplexityFixedSpectrumKrylovRange.json {"argv": ["/Users/zhouhuanjian/.elan/toolchains/leanprover--lean4---v4.33.0/bin/lean", "--root=/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "-o", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/Tests/GaussianComplexityFixedSpectrumKrylovRange.olean", "-i", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/Tests/GaussianComplexityFixedSpectrumKrylovRange.ilean", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate/Tests/GaussianComplexityFixedSpectrumKrylovRange.lean"], "cwd": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "env_overrides": {"HOME": "/Users/zhouhuanjian", "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8", "LEAN_PATH": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/mathlib/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/plausible/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/importGraph/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/aesop/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/Qq/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/batteries/.lake/build/lib/lean"}, "start_utc": "2026-11-10T20:13:27.134052+00:00", "duration_seconds": 1.427928208024241, "exit_code": 0, "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_file": "logs/020-native-GaussianComplexityFixedSpectrumKrylovRange.stdout", "stderr_file": "logs/020-native-GaussianComplexityFixedSpectrumKrylovRange.stderr"}
+022-native-IndependentInventory.json {"argv": ["/Users/zhouhuanjian/.elan/toolchains/leanprover--lean4---v4.33.0/bin/lean", "--root=/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "-o", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/IndependentInventory.olean", "-i", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/IndependentInventory.ilean", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate/IndependentInventory.lean"], "cwd": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "env_overrides": {"HOME": "/Users/zhouhuanjian", "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8", "LEAN_PATH": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/mathlib/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/plausible/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/importGraph/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/aesop/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/Qq/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/batteries/.lake/build/lib/lean"}, "start_utc": "2026-11-10T20:14:43.962510+00:00", "duration_seconds": 3.157988084014505, "exit_code": 1, "stdout_sha256": "c715bc0f6d2fe4c3a51244433a2bcd20912c46c217eb4ded72d209fe97c8400a", "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_file": "logs/022-native-IndependentInventory.stdout", "stderr_file": "logs/022-native-IndependentInventory.stderr"}
+029-native-IndependentInventory.json {"argv": ["/Users/zhouhuanjian/.elan/toolchains/leanprover--lean4---v4.33.0/bin/lean", "--root=/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "-o", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/IndependentInventory.olean", "-i", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib/IndependentInventory.ilean", "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate/IndependentInventory.lean"], "cwd": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/candidate", "env_overrides": {"HOME": "/Users/zhouhuanjian", "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8", "LEAN_PATH": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110/independent-native-reader-5f09a3/phase1-972d8994/lib:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/mathlib/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/plausible/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/importGraph/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/aesop/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/Qq/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/batteries/.lake/build/lib/lean"}, "start_utc": "2026-11-10T20:15:14.099848+00:00", "duration_seconds": 19.74166175001301, "exit_code": 0, "stdout_sha256": "7e0b3057a6bc45cc43f6ace907d5b06322aba40c4d32ca3ec65bf8ea65aff4ef", "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_file": "logs/029-native-IndependentInventory.stdout", "stderr_file": "logs/029-native-IndependentInventory.stderr"}
+066-final-blob-GaussianComplexityFixedSpectrumKrylovRange.lean.json {"argv": ["git", "rev-parse", "972d8994a816bc63d2dd6fb2db1c2c638fa9a48f:Tests/GaussianComplexityFixedSpectrumKrylovRange.lean"], "cwd": "/Users/zhouhuanjian/ASTIS-GC", "env_overrides": {"GIT_OPTIONAL_LOCKS": "0", "other_variables": "inherited; not exposed"}, "start_utc": "2026-11-10T20:23:43.989957+00:00", "duration_seconds": 0.005139874992892146, "exit_code": 0, "stdout_sha256": "45994c9691b50006a5f708f33e4c1edff1c32052205fbc3b867a42c2d4e2bd54", "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_file": "logs/066-final-blob-GaussianComplexityFixedSpectrumKrylovRange.lean.stdout", "stderr_file": "logs/066-final-blob-GaussianComplexityFixedSpectrumKrylovRange.lean.stderr"}
+067-final-blob-FixedSpectrumKrylovRange.lean.json {"argv": ["git", "rev-parse", "972d8994a816bc63d2dd6fb2db1c2c638fa9a48f:AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumKrylovRange.lean"], "cwd": "/Users/zhouhuanjian/ASTIS-GC", "env_overrides": {"GIT_OPTIONAL_LOCKS": "0", "other_variables": "inherited; not exposed"}, "start_utc": "2026-11-10T20:23:44.000490+00:00", "duration_seconds": 0.0052690410520881414, "exit_code": 0, "stdout_sha256": "9bacd41ec4b19eba22fdcc40a36daae078a8b8da47a0926071f293a77d6d3fdd", "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_file": "logs/067-final-blob-FixedSpectrumKrylovRange.lean.stdout", "stderr_file": "logs/067-final-blob-FixedSpectrumKrylovRange.lean.stderr"}
+CONTROL_SCOPE_CATEGORY_COUNTS_ONLY {".astis/huanjian-gc-fixed-spectrum-grid-alias-integration-20261109": 78, ".astis/locks": 57, ".astis/semantic-neutral-20261110": 220, "research-wiki/frontier-cells": 460, "research-wiki/paper-contributions": 85, "runs/README.md": 1, "runs/substantive_advances.jsonl": 1, "runs/substantive_advances.jsonl.gz": 1, "runs/substantive_advances.jsonl.integration100.raw.gz": 1, "runs/substantive_advances.jsonl.integration101.raw.gz": 1, "runs/substantive_advances.jsonl.integration102.raw.gz": 1, "runs/substantive_advances.jsonl.integration103.raw.gz": 1, "runs/substantive_advances.jsonl.integration104.raw.gz": 1, "runs/substantive_advances.jsonl.integration96.raw.gz": 1, "runs/substantive_advances.jsonl.integration97.raw.gz": 1, "runs/substantive_advances.jsonl.integration98.raw.gz": 1, "runs/substantive_advances.jsonl.integration99.raw.gz": 1, "runs/substantive_advances.jsonl.science100.raw.gz": 1, "runs/substantive_advances.jsonl.science101.raw.gz": 1, "runs/substantive_advances.jsonl.science102.raw.gz": 1, "runs/substantive_advances.jsonl.science103.raw.gz": 1, "runs/substantive_advances.jsonl.science104.raw.gz": 1, "runs/substantive_advances.jsonl.science105.raw.gz": 1, "runs/substantive_advances.jsonl.science106.raw.gz": 1, "runs/substantive_advances.jsonl.science95.raw.gz": 1, "runs/substantive_advances.jsonl.science96.raw.gz": 1, "runs/substantive_advances.jsonl.science97.raw.gz": 1, "runs/substantive_advances.jsonl.science98.raw.gz": 1, "runs/substantive_advances.jsonl.science99.raw.gz": 1, "runs/substantive_advances.jsonl.verification105.raw.gz": 1, "runs/substantive_discoveries.jsonl": 1, "runs/trials.jsonl": 1, "runs/trials_summary.csv": 1, "website/content": 1}

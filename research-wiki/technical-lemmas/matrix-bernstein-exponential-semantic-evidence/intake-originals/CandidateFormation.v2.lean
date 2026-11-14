@@ -1,0 +1,49 @@
+import Mathlib
+set_option autoImplicit false
+open MeasureTheory ProbabilityTheory
+open scoped BigOperators Matrix.Norms.L2Operator
+noncomputable section
+universe u
+namespace UnclaimedBernsteinFormation
+
+def P {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]
+    (A : Matrix ι ι ℝ) (hA : A.IsHermitian)
+    (hA_le : (1 - A).PosSemidef) {s : ℝ} (hs : 0 < s) : Prop :=
+  ((1 : Matrix ι ι ℝ) + s • A + (Real.exp s - s - 1) • (A * A) -
+    NormedSpace.exp (s • A)).PosSemidef
+
+def T     {d q : ℕ} (hq : 2 * q + 1 < d) : Prop :=
+  let D := EuclideanSpace ℝ (Fin d)
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let Ω := Fin (q + 1) → D
+  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let row : Fin d → Ω → E := fun i ω =>
+    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)
+  let Y : Fin d → Ω →
+      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (d : ℝ)⁻¹ • Matrix.kronecker
+        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))
+        (Matrix.vecMulVec (t i) (t i))
+    else 0
+  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+    fun i => ∫ ω, Y i ω ∂μ
+  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+    fun i ω => Y i ω - mean i
+  let ρ : ℝ := 2 * r * (L + 1) / (d : ℝ)
+  let X : Fin d → Ω →
+      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+    fun i ω => ρ⁻¹ • Z i ω
+  ∀ s : ℝ, 0 < s → ∀ i : Fin d,
+    (NormedSpace.exp
+        ((Real.exp s - s - 1) • (∫ ω, X i ω * X i ω ∂μ)) -
+      ∫ ω, NormedSpace.exp (s • X i ω) ∂μ).PosSemidef
+
+#check P
+#check T
+end UnclaimedBernsteinFormation

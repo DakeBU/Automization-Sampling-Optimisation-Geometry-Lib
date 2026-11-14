@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "status": "EXACT_STATEMENT_ELABORATED_PENDING_INDEPENDENT_PREPROOF_REVIEW",
+  "statement_version": 1,
+  "advance_id": "ASTIS-SA-20261106-GaussianComplexityConditionalBlockLaw",
+  "baseline": {
+    "official_main": "d9bcd4231df69061c5221f8d557ee179a945c1eb",
+    "preservation_parent": "311de957818ea702210f14ac267708be5f767a75",
+    "reason": "Latest official main is ancestor; retain prior verified affinity packet, parked ledger event and all queues. No dependence on unmerged affinity theorem is needed."
+  },
+  "source": {
+    "edition": "arXiv:2610.20492v1",
+    "snapshot": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+    "sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "anchor": "Section3.1 S3.SS1.p1.1-p3.2, Eq4-Eq6; AppendixB.2.3 Ex70 product-density context",
+    "scope": "ASTIS completes the fixed-matrix conditional Gaussian product-law ingredient of source Eq6, not its actual prior average or Ex70 density."
+  },
+  "target": {
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean",
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product",
+    "exact_signature": "theorem actual_conditional_block_product {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) (blockPrecision κ O)⁻¹).map split =\n      (Measure.pi (fun j => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ (O j))⁻¹)).prod\n          (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))",
+    "signature_sha256": "f94cf28628d1238be30d1c382d4188320e9541b0bcccfb1a072a9b8ed34c2aa7"
+  },
+  "binder_audit": [
+    {
+      "binder": "d,n:Nat",
+      "class": "TYPING",
+      "meaning": "ambient and block dimensions"
+    },
+    {
+      "binder": "hn:3<=n",
+      "class": "SOURCE",
+      "meaning": "S3.1 block dimension inclusive3"
+    },
+    {
+      "binder": "hnd:n<=d",
+      "class": "SOURCE",
+      "meaning": "S3.1 full ambient/block range"
+    },
+    {
+      "binder": "kappa:Real",
+      "class": "TYPING",
+      "meaning": "condition parameter"
+    },
+    {
+      "binder": "hκ:4<=κ",
+      "class": "SOURCE",
+      "meaning": "S3.1 inclusive threshold4"
+    },
+    {
+      "binder": "O:Fin(d/n)->O(n)",
+      "class": "TYPING",
+      "meaning": "arbitrary fixed tuple in literal Eq5; no probabilistic prior or random signs yet"
+    }
+  ],
+  "excess_binders": [],
+  "definition_audit": [
+    {
+      "name": "singleBlockPrecision",
+      "classification": "literal",
+      "expansion": "((κ+1)/2)I-((κ-1)/4)(O+transpose O); reuse exact canonical Eq4 definition"
+    },
+    {
+      "name": "blockPrecision",
+      "classification": "literal",
+      "expansion": "Exact existing Eq5: reindex e e of fromBlocks(blockDiagonal j A_(O j),0,0,I_(d%n)); no modification or duplicate production definition"
+    },
+    {
+      "name": "e",
+      "classification": "literal",
+      "expansion": "Fully inlined equivalence, identical expression to private BlockFamily.blockCoordinates; blocks consecutive, i local coordinate, j block index. No private-name escape or new copied named definition."
+    },
+    {
+      "name": "split",
+      "classification": "literal",
+      "expansion": "Actual coordinate extraction into product of finite block vectors and residual vector. Measurability, invertibility and Gaussian map facts must be proved internally."
+    },
+    {
+      "name": "multivariateGaussian 0 A^-1",
+      "classification": "characterized",
+      "expansion": "Actual Mathlib covariance-square-root pushforward of stdGaussian; non-PSD covariances totalize to Dirac0, so all required actual positive definiteness and inverse identities must be derived internally."
+    },
+    {
+      "name": "Measure.pi/prod",
+      "classification": "literal",
+      "expansion": "Actual independent finite product measures. The conclusion is measure equality, not a scalar density/test/count surrogate."
+    },
+    {
+      "name": "residual stdGaussian",
+      "classification": "characterized",
+      "expansion": "Actual standard Gaussian equals multivariateGaussian0I. r=d%n=d-(d/n)*n; r=0 is the unique probability on the zero-dimensional space, with no positivity assumption or dropped factor hidden."
+    }
+  ],
+  "no_exported_proof_ingredients": [
+    "matrix inverse/block factorization",
+    "positive definiteness or Gaussian covariance validity",
+    "coordinate measurability or volume/law preservation",
+    "Gaussian independence or covariance identities",
+    "finite-product probability normalization",
+    "density identity, tensorization or Fubini"
+  ],
+  "actual_consumer_plan": "Focused n3,d7,kappa4 actual law test and block marginal pushforwards; exact conditional parent for forthcoming actual common-sign independent-prior averaged Eq6 law. No existing consumer compilation is claimed before proof.",
+  "truth_boundary": "Only the actual fixed-tuple Gaussian factorization. No full Eq6 prior mixture, actual product density Ex70, affinity Ex71, amplified TV Ex72, oracle/precision/query cap/expected-cost adapter, hidden-eigenbasis or main lower bound is concluded. No proof, VERIFIED, M/P or whole Goal completion.",
+  "process_memory_checked": [
+    "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES (roles kept distinct; no Fisher claim)",
+    "ASTIS-NK-GRADIENT-FLOW-ZERO-TIME (not applicable)",
+    "ASTIS-NK-GD-INVERSE-DOMAIN (not applicable)",
+    "Prior PR385 Bench wall-time ENV evidence does not retire this mathematical target"
+  ],
+  "preproof_elaboration": {
+    "kind": "definition_of_Prop_only_no_axiom_or_proof",
+    "probe_sha256": "c699c4a7b1ad3b907220e068105d834de3ac772eca9e81839ee09c949a648502",
+    "actual_exit_code": 0,
+    "raw_log_sha256": "a543b5d315f13e6bbc1b29caa08c203d345ebf5fc307a765ce472544bc46d3eb",
+    "receipt": ".astis/huanjian-resume-20261103/20261106T050643715093Z-block-law-statement-elaboration.receipt.json"
+  },
+  "proof_search_begun": false,
+  "recorded_utc": "2026-11-06T05:07:52.921139+00:00"
+}

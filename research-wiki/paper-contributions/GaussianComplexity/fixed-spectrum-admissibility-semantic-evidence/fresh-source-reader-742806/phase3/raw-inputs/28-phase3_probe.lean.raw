@@ -1,0 +1,27 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+import AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+open AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity
+
+#check @actual_precision_admissible
+#check @multivariateGaussian_eq_withDensity_of_posDef
+#print axioms actual_precision_admissible
+#print axioms multivariateGaussian_eq_withDensity_of_posDef
+#print axioms Real.instStarOrderedRing
+#print axioms Matrix.PosSemidef.diagonal
+#print axioms Matrix.PosSemidef.mul_mul_conjTranspose_same
+#print axioms Matrix.PosDef.one
+#print axioms Matrix.PosDef.posSemidef_add
+
+open Lean in
+run_cmd do
+  let env ← getEnv
+  for name in [
+      `AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible,
+      `AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef] do
+    let some info := env.find? name | throwError "Missing reviewed theorem"
+    let some proof := info.value? (allowOpaque := true) | throwError "Missing reviewed proof"
+    logInfo m!"REVIEWED_NAME {name}"
+    logInfo m!"DIRECT_PROOF_PARENTS {proof.getUsedConstants}"
+    let astis := proof.getUsedConstants.filter fun n => n.toString.startsWith "AutoSamplingTheory" || n.toString.startsWith "_private.AutoSamplingTheory"
+    logInfo m!"DIRECT_ASTIS_PROOF_PARENTS {astis}"

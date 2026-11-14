@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product",
+      "title": "The actual common-sign averaged Gaussian law (Eq6)",
+      "reader_note": "The averaged joint law is shown first; all objects, source assumptions, proof steps and exact Lean are folded below.",
+      "statement": "Under the common-sign independent block prior, the actual averaged Gaussian target factors into the product of the actual single-block mixtures and the residual standard Gaussian.",
+      "formula": "\\mathrm{split}_{\\#}\\bar\\pi_b=P_b^{\\otimes k}\\otimes\\mathcal N(0,I_r).",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\).",
+        "Fix one \\(b\\in\\{-1,+1\\}\\). For full real orthogonal Haar probability \\(\\mu_n\\), set \\(\\nu_b=2\\mu_n|_{\\{\\det O=b\\}}\\), and draw the blocks independently from this same fixed law. The signs are not drawn independently.",
+        "The literal precision matrices are \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\). The actual matrix prior is \\(\\mathcal D_b=(\\boldsymbol O\\mapsto A_{\\boldsymbol O})_{\\#}\\nu_b^{\\otimes k}\\).",
+        "The actual laws are \\(P_b=\\int\\mathcal N(0,A_O^{-1})\\,d\\nu_b(O)\\) and \\(\\bar\\pi_b=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_b(A)\\). These are bind-mixtures of the canonical Gaussian constructor. They are not defined to be the claimed product.",
+        "The matrix carrier uses its usual finite-dimensional Borel structure. The theorem proves that \\(\\mathcal D_b\\), \\(P_b\\) and \\(\\bar\\pi_b\\) are probabilities, and that \\(A\\succ0\\) for \\(\\mathcal D_b\\)-almost every \\(A\\). Positive definiteness, Gaussian-kernel measurability and mixture factorization are conclusions or internal producers, never caller hypotheses.",
+        "The split takes consecutive coordinates \\((x_j)_i=x_{jn+i}\\) and \\(z_t=x_{kn+t}\\) in zero-based indices. It is the same coordinate bijection used by the literal block precision. No isometry for the ordinary product norm is asserted. If \\(r=0\\), the residual is the unique probability point mass on the zero-dimensional space; its unit factor agrees with the source omission convention."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\nu_b,\\mathcal D_b,P_b,\\bar\\pi_b\\)",
+          "text": "All priors and target laws are the displayed actual restriction, pushforward and bind constructions. One fixed common sign is used across independently drawn blocks.",
+          "formula": "\\mathcal D_b=f_{\\#}\\nu_b^{\\otimes k},\\qquad P_b=\\nu_b\\mathbin{\\mathrm{bind}}(O\\mapsto\\mathcal N(0,A_O^{-1})),\\qquad\\bar\\pi_b=\\mathcal D_b\\mathbin{\\mathrm{bind}}(A\\mapsto\\mathcal N(0,A^{-1}))."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Construct the true common-sign prior and its positive support",
+          "text": "The existing component-probability theorem normalizes the twice-restricted Haar laws. Their finite product is a probability, and the continuous literal block-precision map gives the actual matrix prior. The lower quadratic bound makes every image matrix positive definite. Its compact image has full prior mass, proving the almost-everywhere domain conclusion.",
+          "formula": "\\nu_b(O(n))=1,\\quad\\mathcal D_b=f_{\\#}\\nu_b^{\\otimes k},\\quad I\\preceq f(\\boldsymbol O)\\preceq\\kappa I\\quad\\Longrightarrow\\quad\\mathcal D_b\\{A:A\\succ0\\}=1.",
+          "lean": "hν calls component_probabilities; hf unfolds the unchanged precision formulas. hpos uses blockPrecision_regular; hcompact/hrange/hDpos prove the actual pushforward support, and hD proves probability."
+        },
+        {
+          "title": "Produce measurability on the actual Gaussian domain",
+          "text": "Use the existing positive-definite precision-density theorem. The displayed density is jointly continuous as a real formula and defines a measurable withDensity family. On the actual positive-definite support it equals the canonical Gaussian. This proves almost-everywhere measurability under the matrix prior and pointwise family measurability along the block construction. The auxiliary density is not a new target definition, and no equality outside the positive-definite domain is used.",
+          "formula": "q(A,x)=\\frac{\\sqrt{\\det A}}{(2\\pi)^{d/2}}e^{-x^\\top Ax/2},\\qquad A\\succ0\\Longrightarrow\\mathcal N(0,A^{-1})=q(A,\\cdot)\\,dx.",
+          "lean": "q, δ, hq and hδ use measurable_withDensity. hγ and hγf call the same canonical multivariateGaussian_eq_withDensity_of_posDef on hDpos/hpos. hγn and hP reuse actual_mixture_laws. The constructor fallback is outside these proved source domains."
+        },
+        {
+          "title": "Reuse the fixed-tuple joint-law theorem",
+          "text": "Apply the one existing conditional block-product node at every tuple. The whole joint equality is retained. Its first projection also supplies measurability of the block-product kernel, so no product-kernel measurability assumption is added.",
+          "formula": "\\mathrm{split}_{\\#}\\mathcal N(0,A_{\\boldsymbol O}^{-1})=\\left(\\bigotimes_{j=1}^k\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r).",
+          "lean": "hc is an actual call to GaussianBlockLaw.actual_conditional_block_product. Tlin/hsplit give the exact measurable split; hfull, hπeq, hπ and hprod transport the actual kernels. This does not reproduce the conditional proof or create another canonical node."
+        },
+        {
+          "title": "Average independent blocks and keep the residual factor",
+          "text": "On every measurable block rectangle, the product-kernel value is the product of its single-block values. The nonnegative integral product identity for independent coordinate variables and the evaluation pushforwards reduce this to the product of the true mixture values. Rectangle uniqueness identifies the block measures. The binary-product rectangle calculation then carries the common residual Gaussian through the same average. No finite real integral or independence estimate is supplied as a premise.",
+          "formula": "\\int\\prod_{j=1}^k\\gamma_{O_j}(B_j)\\,d\\nu_b^{\\otimes k}=\\prod_{j=1}^k\\int\\gamma_O(B_j)\\,d\\nu_b(O)=\\prod_{j=1}^kP_b(B_j).",
+          "lean": "hblocks uses iIndepFun_pi, lintegral_prod_eq_prod_lintegral_of_indepFun, measurePreserving_eval, bind_apply and Measure.pi_eq. hjoint uses Measure.prod_eq and lintegral_mul_const. These are actual nonnegative finite-product integrations, including the zero-dimensional probability factor."
+        },
+        {
+          "title": "Transport the actual matrix-prior average and consume it",
+          "text": "The pushforward-bind identity rewrites the actual average over matrices as the average of the prescribed full Gaussian over independent block tuples. Push the average through the measurable split and apply the conditional theorem and the preceding product calculation. The actual mixture is a probability. The focused consumer pushes this same full matrix-prior average to any block and to the residual, obtaining their genuine laws for every allowed parameter and either common sign.",
+          "formula": "\\mathrm{split}_{\\#}\\!\\left(\\int\\pi_A\\,d\\mathcal D_b(A)\\right)=\\int\\mathrm{split}_{\\#}\\pi_{f(\\boldsymbol O)}\\,d\\nu_b^{\\otimes k}=P_b^{\\otimes k}\\otimes\\mathcal N(0,I_r).",
+          "lean": "hback is the real map-map/bind transport using hγ and hfM. hpush evaluates the real coordinate pushforward with hc, and htarget proves probability via isProbabilityMeasure_bind. Tests.GaussianComplexityAveragedBlockLaw derives the actual block-mixture and residual marginal equalities from this joint law."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantComponents.component_probabilities",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianMixtureLaws.actual_mixture_laws",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.measurable_withDensity",
+        "MeasureTheory.Measure.isProbabilityMeasure_map",
+        "MeasureTheory.Measure.measurable_map",
+        "MeasureTheory.Measure.bind_apply",
+        "AEMeasurable.map_map_of_aemeasurable",
+        "ProbabilityTheory.iIndepFun_pi",
+        "ProbabilityTheory.lintegral_prod_eq_prod_lintegral_of_indepFun",
+        "MeasureTheory.measurePreserving_eval",
+        "MeasureTheory.Measure.pi_eq",
+        "MeasureTheory.Measure.prod_eq",
+        "MeasureTheory.lintegral_mul_const",
+        "MeasureTheory.isProbabilityMeasure_bind"
+      ],
+      "lean_statement": "Exactly the preproof sealed source-domain signature with explicit Borel typing; producer facts are not caller hypotheses.",
+      "lean_proof": "The exact sole production theorem proof is extracted below; local have-regions and existing canonical parents receive no duplicate source credit.",
+      "boundary": "The actual prior-averaged Eq6 joint law, its probabilities and positive support only. Ex70 product density, Ex71 affinity tensorization, Ex72 amplified TV, oracle/precision/deterministic query-cap and expected-cost adapters, fixed-spectrum hidden-eigenbasis and both main lower bounds remain separate. Local compilation, independent source/semantic verification, root/site integration, remote merge/live publication, purification and whole-Goal completion are distinct phases.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Section2 S2.p2.1 and actual Gaussian target; Section3.1 Eq4-Eq6 and zero residual S3.SS1.p3.2; AppendixB.3 regularity. Ex70-72 are downstream context.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Eq6 prints the averaged product law; ASTIS supplies its omitted measurable-family, matrix-prior transport and independent-averaging details.",
+          "scope": "The actual common-sign prior-averaged law, with explicit coordinate pushforward, probabilities and positive support. No main lower-bound or density/amplification credit.",
+          "label": "Zhou–Suzuki, Section3.1 Eq6"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityAveragedBlockLaw"
+      ]
+    }
+  ]
+}

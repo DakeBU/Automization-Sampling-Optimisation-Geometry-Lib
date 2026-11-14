@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGaussianMoments.actual_diagonal_gaussian_quadratic_means",
+      "title": "Actual Gaussian quadratic means on the cosine spectrum",
+      "reader_note": "The two expectation identities appear first. Parameters, actual measure, formula proof and exact Lean are folded beside them.",
+      "statement": "Under the actual centered Gaussian with diagonal inverse-precision covariance, the squared norm and cosine quadratic form have the reciprocal-spectrum means below. Both integrands are integrable.",
+      "formula": "\\mathbb E\\|U\\|^2=\\sum_{i=1}^{d}\\lambda_i^{-1},\\qquad\\mathbb E[U^\\top D_nU]=\\sum_{i=1}^{d}\\frac{\\cos(n\\theta_i)}{\\lambda_i}.",
+      "assumptions": [
+        "Fix integers \\(d\\ge2\\) and \\(1\\le n<d\\), and a real parameter \\(\\kappa\\ge2\\). Lean represents the positive integer mode by a natural number with these exact bounds.",
+        "For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\). The Lean index is \\(i\\in\\mathrm{Fin}\\,d\\), so its angle is \\((i.\\mathrm{val}+1/2)\\pi/d\\).",
+        "Let \\(U\\sim N(0,\\Lambda^{-1})\\) in real Euclidean space and \\(D_n=\\operatorname{diag}(\\cos(n\\theta_i))\\). The measure is literally \\(\\mathrm{multivariateGaussian}\\,0\\,\\Lambda^{-1}\\); its matrix argument is covariance, while \\(\\Lambda\\) is precision.",
+        "The displayed quadratic form has coordinate presentation \\(Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2\\): multiplication by a diagonal matrix scales its ith coordinate, and the dot product then gives this sum. No arbitrary law, covariance witness or moment certificate is supplied."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\mu,\\ M,\\ \\mu_n\\)",
+          "text": "The fixed Gaussian measure and its two genuine integrals; neither integrand is defined to equal a deterministic sum.",
+          "formula": "\\mu=N(0,\\Lambda^{-1}),\\quad M=\\int\\|x\\|^2\\,d\\mu,\\quad\\mu_n=\\int Q(x)\\,d\\mu."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Establish the intended inverse-precision domain",
+          "text": "The cosine lower bound and κ≥2 give λ_i≥1. Thus Λ is positive definite. Multiplying the diagonal reciprocal matrix by Λ gives the identity, which proves the actual matrix inverse formula. This avoids relying on the totalized inverse outside its invertible domain; the covariance is positive definite as well.",
+          "formula": "\\lambda_i\\ge\\frac{\\kappa+1}{2}-\\frac{\\kappa-1}{2}=1,\\qquad\\Lambda^{-1}=\\operatorname{diag}(\\lambda_i^{-1})\\succ0.",
+          "lean": "heigenlower/heigenpos produce positivity from Real.neg_one_le_cos. hΛpos uses Matrix.PosDef.diagonal, and hΛpos.inv.posSemidef supplies the covariance API domain. hinv uses Matrix.inv_eq_left_inv and an actual diagonal multiplication identity, with heigenne discharging every cancellation."
+        },
+        {
+          "title": "Obtain actual Gaussian coordinate second moments",
+          "text": "Coordinate projections are continuous linear functionals of the fixed Gaussian measure, so each belongs to L². Its mean is zero by commuting the projection with the vector integral. Mathlib evaluates its variance as the diagonal covariance entry. Centering therefore identifies the actual second moment with λ_i⁻¹.",
+          "formula": "\\mathbb E U_i=0,\\qquad U_i\\in L^2,\\qquad\\mathbb E U_i^2=\\operatorname{Var}(U_i)=(\\Lambda^{-1})_{ii}=\\lambda_i^{-1}.",
+          "lean": "hcoordL2 calls IsGaussian.memLp_dual for EuclideanSpace.proj. hmean uses ContinuousLinearMap.integral_comp_comm and integral_id_multivariateGaussian. hmoment uses variance_eval_multivariateGaussian, variance_eq_integral, the zero mean and hinv. hcoordint is the produced integrability of each coordinate square."
+        },
+        {
+          "title": "Integrate the two finite coordinate sums",
+          "text": "The Euclidean norm squared is the sum of coordinate squares. Q is the literal finite diagonal quadratic sum defined above. Finite sums and constant multiples of integrable functions are integrable; finite integral linearity and the coordinate second moments give both means. No independence or fourth moments are needed here.",
+          "formula": "\\|x\\|^2=\\sum_i x_i^2,\\quad Q(x)=\\sum_i\\cos(n\\theta_i)x_i^2,\\quad\\int\\sum_i c_ix_i^2\\,d\\mu=\\sum_i c_i\\int x_i^2\\,d\\mu.",
+          "lean": "hnorm is EuclideanSpace.real_norm_sq_eq. hnormint and hQint use integrable_finsetSum and Integrable.const_mul, then integral_finsetSum and integral_const_mul justify the two actual Bochner integral equalities. The source-domain hd/hn/hnd remain in the exact sealed interface even though this analytic proof works for a larger range."
+        },
+        {
+          "title": "Pass the actual Gaussian mean to the cosine expansion",
+          "text": "For the private consumer, define r and the integer alias coefficient beside the series below. The new producer first supplies Q-integrability and the actual Gaussian expectation-to-grid identity. C7 supplies the normalized reciprocal spectrum and absolute convergence at each grid point. Since the cosine weight has absolute value at most one, the weighted series is summable and the finite grid sum can be exchanged with it.",
+          "formula": "\\begin{gathered}r=\\frac{\\sqrt\\kappa-1}{\\sqrt\\kappa+1},\\quad A_d(k)=\\begin{cases}(-1)^{k/(2d)},&2d\\mid k,\\\\0,&2d\\nmid k,\\end{cases}\\quad k\\in\\mathbb Z,\\\\\\mu_n=\\mathbb E Q(U)=\\frac1{\\sqrt\\kappa}\\left[\\sum_i\\cos(n\\theta_i)+2\\sum_{j\\ge1}(-r)^j\\sum_i\\cos(n\\theta_i)\\cos(j\\theta_i)\\right].\\end{gathered}",
+          "lean": "The private actual_gaussian_cosine_alias_series calls actual_diagonal_gaussian_quadratic_means in hactual; its integrability and expectation equality are used in the final result. Canonical actual_inverse_spectrum_cosine_expansion supplies heq/habs. hmajor/hsgnorm prove weighted absolute convergence and Summable.tsum_finsetSum is the scalar finite-grid exchange, separate from the Gaussian finite-integral linearity above."
+        },
+        {
+          "title": "Evaluate the two signed alias modes",
+          "text": "The range 1≤n<d makes the constant grid mode zero. Product-to-sum and the all-integer midpoint alias identity evaluate both inner sums, each contributing d times A_d. Every guarded alias has absolute value at most one, so the supported term is dominated by2r^j. C7 at angle zero supplies the geometric majorant summability. This estimate is actually used to produce supported-series summability. Nat j+1 is cast to Int before subtracting n.",
+          "formula": "\\begin{gathered}|A_d(k)|\\le1,\\qquad|(-r)^j[A_d(j-n)+A_d(j+n)]|\\le2r^j,\\\\\\mathbb E Q(U)=\\frac d{\\sqrt\\kappa}\\sum_{j\\ge1}(-r)^j[A_d(j-n)+A_d(j+n)],\\qquad\\sum_{j\\ge1}|(-r)^j[A_d(j-n)+A_d(j+n)]|<\\infty.\\end{gathered}",
+          "lean": "hcos calls canonical actual_midpoint_grid_cosine_alias at n and both signed shifts. hnnon/hzero discharge the low-mode guard; hprod is product-to-sum and hterm proves2G_j=dF_j. ha_bound proves the normalized signed alias norm bound, hFmajor proves the explicit2r^(j+1) majorant, hbase uses C7 habs0, and hFnorm/hF actually derive supported summability from that bound. hseries/hexchange finish the actual Gaussian expectation. Public ASTIS consumer parents remain exactly new means, C7 and GridAlias."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Matrix.PosDef.diagonal",
+        "Matrix.PosDef.inv",
+        "Matrix.inv_eq_left_inv",
+        "IsGaussian.memLp_dual",
+        "MeasureTheory.MemLp.integrable_sq",
+        "ContinuousLinearMap.integral_comp_comm",
+        "ProbabilityTheory.integral_id_multivariateGaussian",
+        "ProbabilityTheory.variance_eval_multivariateGaussian",
+        "ProbabilityTheory.variance_eq_integral",
+        "EuclideanSpace.real_norm_sq_eq",
+        "MeasureTheory.integrable_finsetSum",
+        "MeasureTheory.integral_finsetSum",
+        "MeasureTheory.integral_const_mul",
+        "Real.neg_one_le_cos"
+      ],
+      "lean_statement": "Exactly the sealed d>=2, κ>=2, Nat mode1<=n<d; literal midpoint spectrum, diagonal precision, actual multivariateGaussian covariance Λ inverse and coordinate Q. Both integrability facts and both expectation identities are conclusions.",
+      "lean_proof": "Positive diagonal and actual inverse are internal. Actual Gaussian L², centering and covariance produce coordinate moments; finite integral linearity gives both means. The private consumer materially joins this new node to canonical C7 and all-integer GridAlias.",
+      "boundary": "This packet proves the actual diagonal Gaussian expectation-to-grid identities and an actual private summable Gaussian cosine alias-series precursor. Closed C8 tail partitions/resummations, fourth moments/independence/variances, normalized bias, orthogonal target transport, Krylov and adaptive algorithm/output laws remain open. Exact oracle, TV precision, deterministic worst-case query caps, explicit expected-cost adapters and both full main lower bounds remain open. Independent source verification, shared integration, desktop/mobile/graph acceptance, remote publication and purification/Exposition Seal are separate stages.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Ex140",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "A3.SS3.p4.1/A3.Ex140; standing family S4.SS1.p1.1/S4.E11; actual law and integer range S4.Thmtheorem5.p1.1. Private Gaussian alias-series precursor A3.SS3.p4.2,p6.1/A3.Ex144.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Two actual Gaussian means reduced to reciprocal grid sums, with implicit integrability made explicit as outputs. The private consumer gives the Gaussian alias-supported series, not closed FactC8 or full Lemma4.5.",
+          "label": "Zhou–Suzuki Appendix C.3 actual Gaussian moments and alias-series use"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumGaussianMoments"
+      ]
+    }
+  ]
+}

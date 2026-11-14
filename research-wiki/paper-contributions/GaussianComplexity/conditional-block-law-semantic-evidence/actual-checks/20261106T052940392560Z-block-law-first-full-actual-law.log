@@ -1,0 +1,174 @@
+✖ [3118/3118] Building AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw (3.8s)
+trace: .> LEAN_PATH=/Users/zhouhuanjian/ASTIS-GC/.lake/packages/Cli/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/batteries/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/Qq/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/aesop/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/importGraph/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/plausible/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/packages/mathlib/.lake/build/lib/lean:/Users/zhouhuanjian/ASTIS-GC/.lake/build/lib/lean /Users/zhouhuanjian/.elan/toolchains/leanprover--lean4---v4.33.0/bin/lean /Users/zhouhuanjian/ASTIS-GC/AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean -o /Users/zhouhuanjian/ASTIS-GC/.lake/build/lib/lean/AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.olean -i /Users/zhouhuanjian/ASTIS-GC/.lake/build/lib/lean/AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.ilean -c /Users/zhouhuanjian/ASTIS-GC/.lake/build/ir/AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.c --setup /Users/zhouhuanjian/ASTIS-GC/.lake/build/ir/AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.setup.json --json
+error: AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean:168:67: unsolved goals
+d n : ℕ
+hn : 3 ≤ n
+hnd : n ≤ d
+κ : ℝ
+hκ : 4 ≤ κ
+O : Fin (d / n) → ↥(orthogonalGroup (Fin n) ℝ)
+E : Type := EuclideanSpace ℝ (Fin d)
+En : Type := EuclideanSpace ℝ (Fin n)
+Er : Type := EuclideanSpace ℝ (Fin (d % n))
+F : Type := (Fin (d / n) → En) × Er
+e : Fin n × Fin (d / n) ⊕ Fin (d % n) ≃ Fin d :=
+  ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+        finSumFinEquiv).trans
+    (finCongr ⋯)
+B : Matrix (Fin n × Fin (d / n) ⊕ Fin (d % n)) (Fin n × Fin (d / n) ⊕ Fin (d % n)) ℝ :=
+  fromBlocks (blockDiagonal fun j => singleBlockPrecision κ (O j)) 0 0 1
+C : Matrix (Fin n × Fin (d / n) ⊕ Fin (d % n)) (Fin n × Fin (d / n) ⊕ Fin (d % n)) ℝ :=
+  fromBlocks (blockDiagonal fun j => (singleBlockPrecision κ (O j))⁻¹) 0 0 1
+hp : ∀ (j : Fin (d / n)), (singleBlockPrecision κ (O j)).PosDef
+hBC : B * C = 1
+hAdef : blockPrecision κ O = (reindex e e) B
+hInv : (blockPrecision κ O)⁻¹ = (reindex e e) C
+hpd : (blockPrecision κ O).PosDef
+split : E → F :=
+  fun x => (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)))
+he_block : ∀ (i : Fin n) (j : Fin (d / n)), ↑(e (Sum.inl (i, j))) = ↑j * n + ↑i
+he_tail : ∀ (i : Fin (d % n)), ↑(e (Sum.inr i)) = d / n * n + ↑i
+Tlin : E →ₗ[ℝ] F := { toFun := split, map_add' := ⋯, map_smul' := ⋯ }
+T : E →L[ℝ] F := LinearMap.toContinuousLinearMap Tlin
+hT : ∀ (x : E), T x = split x
+hcontinuous : Continuous split
+μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 (blockPrecision κ O)⁻¹
+νj : Fin (d / n) → Measure (EuclideanSpace ℝ (Fin n)) :=
+  fun j => multivariateGaussian 0 (singleBlockPrecision κ (O j))⁻¹
+νr : Measure (EuclideanSpace ℝ (Fin (d % n))) := multivariateGaussian 0 1
+L : StrongDual ℝ F
+Lb : (Fin (d / n) → En) →L[ℝ] ℝ := L ∘SL ContinuousLinearMap.inl ℝ (Fin (d / n) → En) Er
+Lj : Fin (d / n) → En →L[ℝ] ℝ := fun j => Lb ∘SL ContinuousLinearMap.single ℝ (fun x => En) j
+Lr : Er →L[ℝ] ℝ := L ∘SL ContinuousLinearMap.inr ℝ (Fin (d / n) → En) Er
+vj : Fin (d / n) → En := fun j => (InnerProductSpace.toDual ℝ En).symm (Lj j)
+vr : Er := (InnerProductSpace.toDual ℝ Er).symm Lr
+w : Fin n × Fin (d / n) ⊕ Fin (d % n) → ℝ := (fun ij => (vj ij.2).ofLp ij.1) ⊕ᵥ fun i => vr.ofLp i
+v : E := WithLp.toLp 2 fun i => w (e.symm i)
+heval : ∀ (i : Fin n × Fin (d / n) ⊕ Fin (d % n)), v.ofLp (e i) = w i
+hinner : ∀ (x : E), ⟪v, x⟫ = ∑ j, ⟪vj j, (split x).1 j⟫ + ⟪vr, (split x).2⟫
+hvfunctional : L ∘SL T = (InnerProductSpace.toDual ℝ E) v
+hvec :
+  ∀ (z : Fin n × Fin (d / n) → ℝ) (i : Fin n) (j : Fin (d / n)),
+    ((blockDiagonal fun j => (singleBlockPrecision κ (O j))⁻¹) *ᵥ z) (i, j) =
+      ((singleBlockPrecision κ (O j))⁻¹ *ᵥ fun a => z (a, j)) i
+hchange :
+  ∀ (M : Matrix (Fin n × Fin (d / n) ⊕ Fin (d % n)) (Fin n × Fin (d / n) ⊕ Fin (d % n)) ℝ),
+    v.ofLp ⬝ᵥ (reindex e e) M *ᵥ v.ofLp = v.ofLp ∘ ⇑e ⬝ᵥ M *ᵥ v.ofLp ∘ ⇑e
+hy : v.ofLp ∘ ⇑e = w
+hquad :
+  v.ofLp ⬝ᵥ (blockPrecision κ O)⁻¹ *ᵥ v.ofLp =
+    ∑ j, (vj j).ofLp ⬝ᵥ (singleBlockPrecision κ (O j))⁻¹ *ᵥ (vj j).ofLp + vr.ofLp ⬝ᵥ vr.ofLp
+m : ℕ
+S : Matrix (Fin m) (Fin m) ℝ
+hS : S.PosSemidef
+K : EuclideanSpace ℝ (Fin m) →L[ℝ] ℝ
+⊢ Complex.exp
+      (-(↑(((InnerProductSpace.toDual ℝ (EuclideanSpace ℝ (Fin m))).symm K).ofLp ⬝ᵥ
+              S *ᵥ ((InnerProductSpace.toDual ℝ (EuclideanSpace ℝ (Fin m))).symm K).ofLp) /
+          2)) =
+    Complex.exp
+      (-↑(((InnerProductSpace.toDual ℝ (EuclideanSpace ℝ (Fin m))).symm K).ofLp ⬝ᵥ
+              S *ᵥ ((InnerProductSpace.toDual ℝ (EuclideanSpace ℝ (Fin m))).symm K).ofLp) /
+        2)
+info: AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean:190:2: Try this:
+  [apply] ring_nf
+  
+  The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
+    
+  Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
+error: AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean:35:60: unsolved goals
+d n : ℕ
+hn : 3 ≤ n
+hnd : n ≤ d
+κ : ℝ
+hκ : 4 ≤ κ
+O : Fin (d / n) → ↥(orthogonalGroup (Fin n) ℝ)
+E : Type := EuclideanSpace ℝ (Fin d)
+En : Type := EuclideanSpace ℝ (Fin n)
+Er : Type := EuclideanSpace ℝ (Fin (d % n))
+F : Type := (Fin (d / n) → En) × Er
+e : Fin n × Fin (d / n) ⊕ Fin (d % n) ≃ Fin d :=
+  ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+        finSumFinEquiv).trans
+    (finCongr ⋯)
+B : Matrix (Fin n × Fin (d / n) ⊕ Fin (d % n)) (Fin n × Fin (d / n) ⊕ Fin (d % n)) ℝ :=
+  fromBlocks (blockDiagonal fun j => singleBlockPrecision κ (O j)) 0 0 1
+C : Matrix (Fin n × Fin (d / n) ⊕ Fin (d % n)) (Fin n × Fin (d / n) ⊕ Fin (d % n)) ℝ :=
+  fromBlocks (blockDiagonal fun j => (singleBlockPrecision κ (O j))⁻¹) 0 0 1
+hp : ∀ (j : Fin (d / n)), (singleBlockPrecision κ (O j)).PosDef
+hBC : B * C = 1
+hAdef : blockPrecision κ O = (reindex e e) B
+hInv : (blockPrecision κ O)⁻¹ = (reindex e e) C
+hpd : (blockPrecision κ O).PosDef
+split : E → F :=
+  fun x => (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)))
+he_block : ∀ (i : Fin n) (j : Fin (d / n)), ↑(e (Sum.inl (i, j))) = ↑j * n + ↑i
+he_tail : ∀ (i : Fin (d % n)), ↑(e (Sum.inr i)) = d / n * n + ↑i
+Tlin : E →ₗ[ℝ] F := { toFun := split, map_add' := ⋯, map_smul' := ⋯ }
+T : E →L[ℝ] F := LinearMap.toContinuousLinearMap Tlin
+hT : ∀ (x : E), T x = split x
+hcontinuous : Continuous split
+μ : Measure (EuclideanSpace ℝ (Fin d)) := multivariateGaussian 0 (blockPrecision κ O)⁻¹
+νj : Fin (d / n) → Measure (EuclideanSpace ℝ (Fin n)) :=
+  fun j => multivariateGaussian 0 (singleBlockPrecision κ (O j))⁻¹
+νr : Measure (EuclideanSpace ℝ (Fin (d % n))) := multivariateGaussian 0 1
+L : StrongDual ℝ F
+Lb : (Fin (d / n) → En) →L[ℝ] ℝ := L ∘SL ContinuousLinearMap.inl ℝ (Fin (d / n) → En) Er
+Lj : Fin (d / n) → En →L[ℝ] ℝ := fun j => Lb ∘SL ContinuousLinearMap.single ℝ (fun x => En) j
+Lr : Er →L[ℝ] ℝ := L ∘SL ContinuousLinearMap.inr ℝ (Fin (d / n) → En) Er
+vj : Fin (d / n) → En := fun j => (InnerProductSpace.toDual ℝ En).symm (Lj j)
+vr : Er := (InnerProductSpace.toDual ℝ Er).symm Lr
+w : Fin n × Fin (d / n) ⊕ Fin (d % n) → ℝ := (fun ij => (vj ij.2).ofLp ij.1) ⊕ᵥ fun i => vr.ofLp i
+v : E := WithLp.toLp 2 fun i => w (e.symm i)
+heval : ∀ (i : Fin n × Fin (d / n) ⊕ Fin (d % n)), v.ofLp (e i) = w i
+hinner : ∀ (x : E), ⟪v, x⟫ = ∑ j, ⟪vj j, (split x).1 j⟫ + ⟪vr, (split x).2⟫
+hvfunctional : L ∘SL T = (InnerProductSpace.toDual ℝ E) v
+hvec :
+  ∀ (z : Fin n × Fin (d / n) → ℝ) (i : Fin n) (j : Fin (d / n)),
+    ((blockDiagonal fun j => (singleBlockPrecision κ (O j))⁻¹) *ᵥ z) (i, j) =
+      ((singleBlockPrecision κ (O j))⁻¹ *ᵥ fun a => z (a, j)) i
+hchange :
+  ∀ (M : Matrix (Fin n × Fin (d / n) ⊕ Fin (d % n)) (Fin n × Fin (d / n) ⊕ Fin (d % n)) ℝ),
+    v.ofLp ⬝ᵥ (reindex e e) M *ᵥ v.ofLp = v.ofLp ∘ ⇑e ⬝ᵥ M *ᵥ v.ofLp ∘ ⇑e
+hy : v.ofLp ∘ ⇑e = w
+hquad :
+  v.ofLp ⬝ᵥ (blockPrecision κ O)⁻¹ *ᵥ v.ofLp =
+    ∑ j, (vj j).ofLp ⬝ᵥ (singleBlockPrecision κ (O j))⁻¹ *ᵥ (vj j).ofLp + vr.ofLp ⬝ᵥ vr.ofLp
+hG :
+  ∀ {m : ℕ} (S : Matrix (Fin m) (Fin m) ℝ),
+    S.PosSemidef →
+      ∀ (K : EuclideanSpace ℝ (Fin m) →L[ℝ] ℝ),
+        charFunDual (multivariateGaussian 0 S) K =
+          Complex.exp
+            (-↑(((InnerProductSpace.toDual ℝ (EuclideanSpace ℝ (Fin m))).symm K).ofLp ⬝ᵥ
+                    S *ᵥ ((InnerProductSpace.toDual ℝ (EuclideanSpace ℝ (Fin m))).symm K).ofLp) /
+              2)
+hw : (InnerProductSpace.toDual ℝ E).symm (L ∘SL T) = v
+hb :
+  ∀ (j : Fin (d / n)),
+    charFunDual (νj j) (Lj j) = Complex.exp (-↑((vj j).ofLp ⬝ᵥ (singleBlockPrecision κ (O j))⁻¹ *ᵥ (vj j).ofLp) / 2)
+hr : charFunDual νr Lr = Complex.exp (-↑(vr.ofLp ⬝ᵥ vr.ofLp) / 2)
+⊢ (∑ i, ↑((vj i).ofLp ⬝ᵥ (singleBlockPrecision κ (O i))⁻¹ *ᵥ (vj i).ofLp)) * (-1 / 2) +
+      ↑(vr.ofLp ⬝ᵥ vr.ofLp) * (-1 / 2) =
+    ↑(vr.ofLp ⬝ᵥ vr.ofLp) * (-1 / 2) +
+      (∑ x, -↑((vj x).ofLp ⬝ᵥ (singleBlockPrecision κ (O x))⁻¹ *ᵥ (vj x).ofLp)) * (1 / 2)
+warning: AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean:160:20: This simp argument is unused:
+  Sum.elim_inr
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [dotProduct, Fintype.sum_prod_type, Function.comp_apply, w, Sum.elim_inl, hvec]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean:189:31: This simp argument is unused:
+  ← Finset.sum_neg_distrib
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [← Finset.sum_div]
+
+Note: Simp arguments with `←` have the additional effect of removing the other direction from the simp set, even if the simp argument itself is unused. If the hint above does not work, try replacing `←` with `-` to only get that effect and silence this warning.
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+error: Lean exited with code 1
+Some required targets logged failures:
+- AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw
+error: build failed

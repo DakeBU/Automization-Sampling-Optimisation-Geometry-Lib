@@ -1,0 +1,321 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SHARED-REAL-MATRIX-POSITIVE-INTEGRAL",
+  "route": "shared",
+  "mode": "faithfulPaper",
+  "title": "Shared Bochner expectation positivity for finite real matrices",
+  "source_anchor": "ASTIS-authored general background for arXiv2610.20492v1 C.2 p14 Ex115/118/120 PSD integration; pinned Mathlib Convex.integral_mem and full finite Matrix.PosSemidef definitions. Not a printed general paper theorem.",
+  "target_statement": "    {n Ω : Type*} [Fintype n] [DecidableEq n] [MeasurableSpace Ω]\n    {μ : Measure Ω} [IsProbabilityMeasure μ]\n    (f : Ω → Matrix n n ℝ) (hf : Integrable f μ)\n    (hpos : ∀ᵐ ω ∂μ, Matrix.PosSemidef (f ω)) :\n    Matrix.PosSemidef (∫ ω, f ω ∂μ)\n\nUnchanged actual source consumer\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    Matrix.PosSemidef\n      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -\n        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_20261112_real_matrix_positive_integral",
+  "advance_id": "ASTIS-SA-20261112-RealMatrixPositiveIntegral",
+  "parents": [],
+  "consumers": [
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments",
+    "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixVariance.actual_source_centered_variance_bounds"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS exact public theorem searches found no integral_posSemidef provider; existing R4/R5 historical private cone applications are not public providers.",
+      "Pinned Mathlib Analysis.Matrix.Order, Matrix.PosDef and CFC sources provide matrix positivity/order primitives; Convex.integral_mem is the existing canonical general integral provider. A public real-matrix PSD specialization with proved cone applicability is absent from the actual searched floor."
+    ],
+    "classification": "adapt",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef",
+    "canonical_shared_cell": "ASTIS-SHARED-REAL-MATRIX-POSITIVE-INTEGRAL"
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS exact public theorem searches found no integral_posSemidef provider; existing R4/R5 historical private cone applications are not public providers.",
+      "Pinned Mathlib Analysis.Matrix.Order, Matrix.PosDef and CFC sources provide matrix positivity/order primitives; Convex.integral_mem is the existing canonical general integral provider. A public real-matrix PSD specialization with proved cone applicability is absent from the actual searched floor."
+    ],
+    "reused_declarations": [
+      "Convex.integral_mem",
+      "Matrix.posSemidef_iff_dotProduct_mulVec",
+      "Matrix.PosSemidef.smul",
+      "Matrix.PosSemidef.add"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+    ],
+    "known_consumers": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixVariance.actual_source_centered_variance_bounds"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "One public canonical finite-real-matrix positivity integration interface supplies actual uncentered residual and actual centered/weighted-square expectations; old private application histories stay intact. No algorithmic implication or PBPS/SPHMC dependency is asserted."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Independent S/P source review and bounded production reader accepted:4 pages on desktop/mobile, exact folded Lean, MathJax, assumptions/steps/source/download/visual checked. Full public website/source-index/graph integration awaits original stabilization owner; purification remains pending."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+    ],
+    "visual_review": "Actual kernel-extracted S parents are empty; actual P has four canonical ASTIS parents including S. Source/Lean maps authored. Shared graph integration and visual acceptance await original stabilization owner release."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "The first implementation failed only because the standard Real StarOrderedRing instance import was absent. Adding its existing provider import compiled the unchanged statement and route. Original failed source/receipt retained.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One mathematical prover with independent raw-source and different-role topology reviewers.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "One source-facing implementation packet."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "Pinned arXiv2610.20492v1 and Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d",
+    "primary_anchor": "p14 omitted PSD expectation applications; Mathlib Analysis/Convex/Integral.lean",
+    "detail_status": "omitted",
+    "gap": "The paper does not state the arbitrary-function background theorem. This explicit authored expansion proves closed/convex full PSD cone applicability internally; the source consumer must establish integrability and AE positivity internally.",
+    "consulted": [
+      {
+        "source": "ASTIS-authored reusable expansion with pinned source application and canonical Mathlib integral provider",
+        "anchor": "Ex115/118/120 PSD expectations",
+        "hypothesis_adapter": "Arbitrary-f probability/integrability/AE-PSD are genuine generic background conditions. No such condition is added to the original literal Gaussian source statement."
+      }
+    ],
+    "fidelity_boundary": "Shared finite-real-matrix probability/integrability/AE-PSD background compiled and materially used in the actual original-experiment uncentered moment bound. Centered/weighted norm consumer remains unimplemented; final source/native acceptance, serialized integration, publication and purification remain open."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_TYPES_COMPILED;INDEPENDENT_SOURCE_ACCEPTED;FINAL_NATIVE_VERIFICATION_PENDING",
+    "file": "research-wiki/technical-lemmas/real-matrix-positive-integral-statement-seal.json",
+    "sha256": "a5179ed392ef8e55ab470a3a98ebd542e35301f51472e9cdd7bc168a88bafa26",
+    "signature_sha256": "283e07e3c85b9a5cce5c3c40f574f23f593dfcca5e35be4d3e2800f378208b19",
+    "actual_consumer_signature_sha256": "d5ac54443c79ea7b35b09ddcd6b5e3c40bef081bbe4f196cae5ab3ead35aa2ea"
+  },
+  "evidence": {
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261112T141642155267Z-real-matrix-positive-integral-literal-Prop-formation.receipt.json",
+      "sha256": "e1549d3a4b77259573680521d0f4c30b35e053e61b46e1e19f560aac3cee392b",
+      "log_sha256": "c7aa6e5bfc7d89db1691052da6457c9a43260f41e643f55d7c85ed5d182ed369"
+    },
+    "actual_generic_instances_in_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261112T141642155267Z-real-matrix-positive-integral-literal-Prop-formation.receipt.json",
+      "sha256": "e1549d3a4b77259573680521d0f4c30b35e053e61b46e1e19f560aac3cee392b",
+      "log_sha256": "c7aa6e5bfc7d89db1691052da6457c9a43260f41e643f55d7c85ed5d182ed369"
+    },
+    "formalizer_API_pristine": false,
+    "preproof_source_admission": {
+      "file": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/preproof-source-admission.json",
+      "sha256": "fec281b782194b1ca877d1ad1765ef0ffab96638b613221f3807193a60baed43"
+    },
+    "normal_API_calls": 3,
+    "actual_compilation": {
+      "path": ".astis/huanjian-resume-20261103/20261112T145113476724Z-real-matrix-positive-integral-producer-real-star-import-v2.receipt.json",
+      "sha256": "7aeadef9ae8b83369132a80a3c2d1823b49e59176db0aeae56e2d7b356b2dc12",
+      "log_sha256": "2aca254836d868a206f206eb540ff83c9972132bd47bf3916a6a8388234d96cb"
+    },
+    "actual_material_consumer_compilation": {
+      "path": ".astis/huanjian-resume-20261103/20261112T145435349586Z-real-matrix-positive-integral-actual-source-consumer-firstbuild.receipt.json",
+      "sha256": "1d0ed8a80c23e9e75450cf27c51eca765f07de288592a66a2c4cbedae94fe140",
+      "log_sha256": "1e6b4051db9688f0efcd3ac0c3e546a07bb7dd6c67aa16fe4220941c4e4170df"
+    },
+    "actual_focused_build": {
+      "path": ".astis/huanjian-resume-20261103/20261112T145727632793Z-real-matrix-positive-integral-focused-build.receipt.json",
+      "sha256": "429acd277e1791fa3d1f793d1b858dfcbd7f9e7ec11a657b875d4257a7bc4190",
+      "log_sha256": "6654978ffbb28d7bcfc7618ae591263b4d1b7682476d7d0907436c7e6eaca8c1"
+    },
+    "actual_kernel": {
+      "path": ".astis/huanjian-resume-20261103/20261112T145804292918Z-real-matrix-positive-integral-exact-literal-kernel-and-canonical-calls.receipt.json",
+      "sha256": "14cbd65687734f335e05b5ee80d47ae7a897a402933aadde7134d6cb00786f9d",
+      "log_sha256": "087d45e108fe6b0672c087a15ac3608fbff3d90f7a6a4b423d940574fa80eeb5"
+    },
+    "actual_public_ASTIS_parents": {
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef": [],
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+      ]
+    },
+    "independent_verification": "S original normal independent verification by /root/mv_fresh_source_6e28; actual mathematical commit9964c33c4599f85d27dc8687e8bd6fdb5c44ff49; original verification metadata HEAD5f69ac83737e497210d8d8ad9628c45d83089458. original full V payload: research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/normal-verification/mv_src_6e28/originals/normal-verification-v2/VERIFIED-evidence.full.json SHA256 e1f9b9ab79aa965c4234756f6016bab0584402a7f98731cbc667cb9b32ff435a; original independent decision: research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/normal-verification/mv_src_6e28/originals/normal-verification-v2/independent-decision.json SHA256 012e5318bc9ff0828f9b5d9c7e8f2534983adbb4e297cbebfb75c47054d8016f; original exact VERIFIED append: research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/normal-verification/mv_src_6e28/originals/normal-verification-v2/actual-VERIFIED-append.exact.jsonl SHA256 24cc7ea161d32a42a78e3b2e4d10a091faffe604bb1d1c419ee4b943d6d1ab78; original normal API receipt: research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/normal-verification/mv_src_6e28/originals/normal-verification-v2/normal-API-receipt.json SHA256 ce5184dd8489f10a9ba46ccbbee9f50d88262ab16c08dc0f9dd68e07f3f71065. Original normal API calls1/failures0, historical S V0->1. Complete original dict preserved unmodified in evidence.independent_verification_details. This is only a schema serialization correction, with no V replay or mathematical/source/status/owner change.",
+    "independent_verification_details": {
+      "verifier_id": "/root/mv_fresh_source_6e28",
+      "verified_commit": "9964c33c4599f85d27dc8687e8bd6fdb5c44ff49",
+      "verification_metadata_HEAD": "5f69ac83737e497210d8d8ad9628c45d83089458",
+      "normal_evidence": ".astis/semantic-neutral-20261112/mv_src_6e28/normal-verification-v2/VERIFIED-evidence.full.json",
+      "normal_evidence_sha256": "e1f9b9ab79aa965c4234756f6016bab0584402a7f98731cbc667cb9b32ff435a",
+      "append_sha256": "24cc7ea161d32a42a78e3b2e4d10a091faffe604bb1d1c419ee4b943d6d1ab78",
+      "decision": ".astis/semantic-neutral-20261112/mv_src_6e28/normal-verification-v2/independent-decision.json",
+      "decision_sha256": "012e5318bc9ff0828f9b5d9c7e8f2534983adbb4e297cbebfb75c47054d8016f",
+      "boundary": "S only local independent verification. P actual uncentered consumer; no T/fullR9/main/Goal or stabilization/publication/purification credit; owner retained."
+    },
+    "independent_source_review": {
+      "reviewer": "/root/mv_fresh_source_6e28",
+      "mathematical_candidate": "9964c33c4599f85d27dc8687e8bd6fdb5c44ff49",
+      "judgments": [
+        {
+          "audit_id": "ASTIS-RT-20261112-HuanjianRealMatrixPositiveIntegral",
+          "report_sha256": "607f16a85a561c33115e27455df0617022e8696c40a25569a77008c0b392f2a5",
+          "run_sha256": "33d30cf0a41a3246bfc864acbc6cde7537e2b7b7f5c734abb9eb7790b0a1ddc2",
+          "complete_original_overlay_sha256": "f8c75ec84e532ccebf2d4ca736d340f4e53c99452c334a96b8a0f5c5e1c86401",
+          "publication_binding_sha256": "b00fd0010a6e17a98b5aecb42259c6e6fee4949e873fc654f5d3c0a1b239489b",
+          "reviewer_packet_sha256": "5fa6bc71b0635cb54edb6a7ffac19435fe3ad5e875b65553dc2bd1614ad0e3a3",
+          "run_artifact": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/source-review/mv_src_6e28/originals/final-anti-anchored-phase/S/reviewer-run.json"
+        },
+        {
+          "audit_id": "ASTIS-RT-20261112-HuanjianGaussianSourceMatrixVarianceUncentered",
+          "report_sha256": "0e719c90065882ba2db7012bbfcf86cb4af3dafaf3c44173828d676bae061cfa",
+          "run_sha256": "d2918c6a4b25cc8641a30dfd149a1f156b449a594493791ca1fa84bfd4074705",
+          "complete_original_overlay_sha256": "49884675030b178d6c085df74a1b3be64297f8553c5ae40c41a623b7d16dc509",
+          "publication_binding_sha256": "b9cbe04292fb3b39c5f05f867fa2a28b9a4922423ca52ccc0d28e523d5f3b777",
+          "reviewer_packet_sha256": "acd49908a2a487fe6bbe0f26e3609bc0c3cb84b185cf0c681ee95d10385f91bd",
+          "run_artifact": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/source-review/mv_src_6e28/originals/final-anti-anchored-phase/P/v2/reviewer-run.json"
+        }
+      ],
+      "original_custody_manifest": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/source-review/mv_src_6e28/originals/final-anti-anchored-phase/portable-custody-manifest.json",
+      "original_custody_manifest_sha256": "01d51d9bc0ccab7ed6f82e50605882a10427179a7cce9a4ab07b30b41bd8f170",
+      "terminal_seal_sha256": "73e2e3b62c9ac912b983a903b124def94fda3c64b59c72b4d15778647c3550ea"
+    },
+    "focused_checks": [
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T145113476724Z-real-matrix-positive-integral-producer-real-star-import-v2.receipt.json",
+        "sha256": "7aeadef9ae8b83369132a80a3c2d1823b49e59176db0aeae56e2d7b356b2dc12",
+        "log_sha256": "2aca254836d868a206f206eb540ff83c9972132bd47bf3916a6a8388234d96cb"
+      },
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T145435349586Z-real-matrix-positive-integral-actual-source-consumer-firstbuild.receipt.json",
+        "sha256": "1d0ed8a80c23e9e75450cf27c51eca765f07de288592a66a2c4cbedae94fe140",
+        "log_sha256": "1e6b4051db9688f0efcd3ac0c3e546a07bb7dd6c67aa16fe4220941c4e4170df"
+      },
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T145727632793Z-real-matrix-positive-integral-focused-build.receipt.json",
+        "sha256": "429acd277e1791fa3d1f793d1b858dfcbd7f9e7ec11a657b875d4257a7bc4190",
+        "log_sha256": "6654978ffbb28d7bcfc7618ae591263b4d1b7682476d7d0907436c7e6eaca8c1"
+      },
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T145804292918Z-real-matrix-positive-integral-exact-literal-kernel-and-canonical-calls.receipt.json",
+        "sha256": "14cbd65687734f335e05b5ee80d47ae7a897a402933aadde7134d6cb00786f9d",
+        "log_sha256": "087d45e108fe6b0672c087a15ac3608fbff3d90f7a6a4b423d940574fa80eeb5"
+      }
+    ],
+    "actual_PROVED_LOCAL_append_sha256": "33090842789407870af22abf997ef521d6cf29ac38ce5cb87aaec46d5e9f7204",
+    "independent_native_reader": {
+      "verifier": "/root/psd_native_7b31",
+      "mathematical_candidate": "9964c33c4599f85d27dc8687e8bd6fdb5c44ff49",
+      "report": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/native-review/psd_native_7b31/originals/REPORT.md",
+      "report_sha256": "8e340cdb2750afe1bf99841f00716b5f2a1eabb947de8139a6c8e8306ee1a6ed",
+      "seal": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/native-review/psd_native_7b31/originals/seal.json",
+      "seal_sha256": "03dfe1607d2f63743999d17087070253fc05df0a5dafa48161d6974e812e8585",
+      "portable_originals_manifest": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/native-review/psd_native_7b31/originals/portable-originals-manifest.json",
+      "portable_manifest_sha256": "809cee7055abafd06d8d7c020c3e1eb18e5a5b85314823834a2728d653865c3e",
+      "original_file_count": 1548,
+      "bootstrap_archival_qualification": "QUALIFIED_BOOTSTRAP_TOOL_ONLY_DISCOVERY",
+      "native_closure": "9 modules and46 actual full types/bodies, closed/kernel checked, standard axioms only;4 new S/P declarations reachable;4 literal proof-value applications.",
+      "reader": "Production canonical shell and exact CSS import closure;4 pages at1440/390, actual Chrome/MathJax/exactfolds/source/download/visual passed.",
+      "boundary": "Bounded fixed-candidate native/reader only; no source verdict, normalV, fullR9/T, globalgraph/fullsite/integration/purification or Goal completion."
+    }
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "owned_files": [
+    "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveIntegral.lean",
+    "Tests/RealMatrixPositiveIntegral.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-REAL-MATRIX-POSITIVE-INTEGRAL.json",
+    "research-wiki/technical-lemmas/real-matrix-positive-integral-statement-seal.json",
+    "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-real-matrix-positive-integral.json",
+    "website/content/publications/huanjian-real-matrix-positive-integral.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-real-matrix-positive-integral.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json"
+  ],
+  "truth_boundary": "One generic real-matrix probability expectation positivity interface, materially consumed by the actual uncentered source moment bound. No centered/weighted proof credit in this immutable packet; subsequent R9 draft is outside this SAU. Independent native verification, original-owner serialized integration, root/site/graph/reader publication and purification remain separate.",
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "independent_reviewer": "/root/row_indep_source_graph_78c2",
+    "evidence": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/conceptual-mirror-originals/RealMatrixPositiveIntegral.audit.json",
+    "boundary": "Exact original bounded per-SAU conceptual judgment, not a compiler or new source acceptance; existing mirror identities/status preserved without revalidation."
+  },
+  "source_proof_coverage": {
+    "inventory_archive": "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/preproof-source-types-topology-local-build.original-files.tar.gz",
+    "reviewed_nodes": "Independent S source68atoms/50nodes/68edges and distinct topology challenge, then independent fresh raw/type/whole-module/two-anonymous-decoder anti-source review.",
+    "excluded_with_reason": "All68S atoms retain31NODE/37EXCLUDED. Generic authored background, upstream convex integral and actual primary-paper application remain separate. P follows its separately reviewed full R9 source graph; p15 is excluded.",
+    "source_gaps": "No genuine source gap claimed. Selected closed-convex applicability and actual uncentered residual are implemented; the direct Hermitian/quadratic alternative is unselected. Centered final module and wholeR9 are outside this packet.",
+    "alternative_routes": [
+      "closed-convex-set integral selected; direct Hermitian plus quadratic integration unselected"
+    ],
+    "exact_source_and_Lean_maps": [
+      "research-wiki/technical-lemmas/real-matrix-positive-integral-semantic-evidence/source-lean-map.draft.json",
+      "research-wiki/paper-contributions/GaussianComplexity/source-matrix-variance-semantic-evidence/source-lean-map.draft.json"
+    ]
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "Convex.integral_mem",
+      "Matrix.posSemidef_iff_dotProduct_mulVec",
+      "Matrix.PosSemidef.smul",
+      "Matrix.PosSemidef.add"
+    ],
+    "bookkeeping": [
+      "PSD cone closed as Hermitian equalizer and all continuous quadratic halfspaces",
+      "Full finite real PSD convexity and exact L2Operator Bochner applicability",
+      "Actual P independently discharges residual integrability and PSD, ordinary square/tensor and finite expectation/frame identities"
+    ],
+    "new_reusable": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+    ],
+    "new_topology": "One canonical shared PSD expectation specialization is materially applied to the actual original-experiment P residual; conceptual analogy is not a Lean implication."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "Independent native checked all46 declarations in9-module closure and complete types/bodies. All4 new S/P declarations are root-reachable;7 older imported GridAlias-generated declarations outside the root union remain historical substrate, not new unused proof. No global purification claim.",
+    "duplicate_semantics_audit": "One public shared PSD integral node; older R4/R5 private applications remain immutable history with later canonicalization debt, not new generic copies.",
+    "canonicalization": "Shared probability finite-real PSD interface outside paper-specific route; concrete source conditions stay in actual caller.",
+    "compressed_spine_delta": "Full PSD cone geometry -> canonical convex expectation -> actual PSD residual expectation -> exact deterministic source frame upper bound.",
+    "reader_default_view": "Compact generic statement,3formula folds; separately bound actual uncentered source statement,4formula folds. Planned centered conclusions not awarded."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "label": "0008-preservation-lock-and-validation-api",
+  "argv": [
+    "/opt/anaconda3/bin/python",
+    "-c",
+    "from pathlib import Path\nimport json,re,subprocess,os\nrepo=Path('/Users/zhouhuanjian/ASTIS-GC')\nfor name,patterns in [('tools/astis_harness.py',['def file_lock','def _append_jsonl_unlocked','def _recover_jsonl_unlocked']),('tools/astis_publication.py',['def check_advance']),('tools/astis_semantic_roundtrip_core.py',['def semantic_reviewer_packet'])]:\n lines=(repo/name).read_text().splitlines()\n for j,line in enumerate(lines):\n  if any(x in line for x in patterns):\n   end=min(len(lines),j+70)\n   print('PROCESS_DEFINITION',name,j+1);print('\\n'.join(f'{k+1}: {lines[k]}'for k in range(j,end)))\nenv=dict(os.environ);env['GIT_OPTIONAL_LOCKS']='0'\nfor args in [['git','rev-parse','HEAD'],['git','ls-files','--stage','-z'],['git','ls-files','--others','--exclude-standard','-z']]:\n r=subprocess.run(args,cwd=repo,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env);assert r.returncode==0\n if 'rev-parse'in args:print('ACTUAL_HEAD',r.stdout.decode().strip())\n else:\n  entries=[x for x in r.stdout.split(b'\\0')if x];print('GIT_GUARD_INVENTORY_COUNT',args[2],len(entries))\nW=repo/'.astis/huanjian-gc-fixed-spectrum-krylov-range-20261110'\nprivate=json.loads((W/'intake-baseline.private.json').read_text())\nprint('PRIVATE_CONTROL_LIST_GUARD_SUMMARY',json.dumps({'control_paths':len(private['control_paths']),'atlas_named_metadata_exclusion_count':sum('atlas'in x.lower()for x in private['control_paths']),'c8_named_metadata_exclusion_count':sum('c8'in x.lower()for x in private['control_paths'])}))\n"
+  ],
+  "cwd": "/Users/zhouhuanjian/ASTIS-GC",
+  "started_utc": "2026-11-10T21:00:23.567190+00:00",
+  "ended_utc": "2026-11-10T21:00:24.394728+00:00",
+  "elapsed_seconds": 0.8275094589916989,
+  "exit_code": 0,
+  "stdout": {
+    "path": "0008-preservation-lock-and-validation-api.stdout",
+    "bytes": 16593,
+    "sha256": "4e8e7001b06aefec1b55637d737a47fcabef20772de122973621f2203af4aad8"
+  },
+  "stderr": {
+    "path": "0008-preservation-lock-and-validation-api.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

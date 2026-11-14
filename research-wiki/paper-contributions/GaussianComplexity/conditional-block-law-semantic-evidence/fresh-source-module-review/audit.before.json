@@ -1,0 +1,198 @@
+{
+  "id": "ASTIS-RT-20261106-HuanjianConditionalBlockLaw",
+  "state": "blind-reconstructed",
+  "source": {
+    "source_id": "arxiv2610.20492v1-ConditionalBlockLaw",
+    "anchor": "Section3.1 S3.SS1.p1.1-p3.2, Eq4-Eq6; AppendixB.2.3 Ex70 product-density context; regularity source Lemma3.4 and AppendixB.3 Ex73/Eq26/Ex74",
+    "original_text": "For every fixed orthogonal tuple in the source block precision family, the actual centered Gaussian target becomes the independent product of its actual block Gaussians and the residual standard Gaussian under the literal contiguous coordinate split. This is the ASTIS-completed conditional ingredient of the printed prior-averaged Eq6. \\mathrm{split}_{\\#}\\mathcal N(0,A_{\\boldsymbol O}^{-1})=\\left(\\bigotimes_{j=1}^{k}\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r). \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). \\(\\boldsymbol O=(O_1,\\ldots,O_k)\\in O(n)^k\\) is any fixed tuple in the full real orthogonal group. The matrices may differ and their determinant signs may differ; no prior on the tuple is supplied. \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\) are the existing literal source precision matrices. Positive definiteness, valid inverse covariances and independence are internal proof outputs. Coordinates are consecutive blocks: in zero-based indices, block entry \\((j,i)\\) is ambient coordinate \\(jn+i\\), and residual entry \\(t\\) is \\(kn+t\\). The split is a continuous linear coordinate bijection; no isometry for the ordinary max-normed product is asserted. When \\(r=0\\), the residual standard Gaussian is the unique probability measure on the zero-dimensional space. It is a point mass, not zero measure or a discarded unproved case. \\mathrm{split}(x)=(x_1,\\ldots,x_k,z),\\quad (x_j)_i=x_{jn+i},\\quad z_t=x_{kn+t}.",
+    "text_sha256": "c140551df62e679b8fdf6a587c476d4b1690a0944e7a700b782786afde2d01ab",
+    "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/GaussianBlockLaw.lean",
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ),\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) ((Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O j : Matrix (Fin n) (Fin n) ℝ) + (O j : Matrix (Fin n) (Fin n) ℝ).transpose))))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))))⁻¹).map split =\n      (Measure.pi (fun j => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O j : Matrix (Fin n) (Fin n) ℝ) + (O j : Matrix (Fin n) (Fin n) ℝ).transpose))))⁻¹)).prod\n          (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))",
+    "statement_sha256": "1197897dee36069b8ebe3fd34402ddf6b8bacbb01311e2f97e0d6d6577372100",
+    "formalizer": "huanjian_gc_20261106_block_law",
+    "compiled": true,
+    "decoder_context": [
+      "EuclideanSpace real (Fin m) is real m-dimensional Euclidean space with its Borel structure; Fin m indexes coordinates from zero. WithLp.toLp 2 and WithLp.ofLp preserve coordinates. An ordinary finite function space and product carry their usual product Borel structures and default product norms.",
+      "Matrix.orthogonalGroup (Fin n) real is the full real orthogonal group with its usual matrix carrier, including both determinant signs.",
+      "Matrix.reindex e e M has entries M (e.symm i) (e.symm j). Matrix.blockDiagonal f uses index pairs (local coordinate, block index) and is zero between different blocks. Matrix.fromBlocks is the displayed two-by-two block assembly. finProdFinEquiv sends (a,b) to a times the cardinality of the second factor plus b; finSumFinEquiv concatenates its summands.",
+      "multivariateGaussian mean m covariance C is the pushforward of stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. Its stated covariance interpretation holds for positive semidefinite C; outside that domain the constructor defaults to a point mass. Matrix inverse is totalized at singular matrices.",
+      "stdGaussian is the standard Gaussian obtained by independent scalar standard normal coordinates in an orthonormal basis. On a zero-dimensional Euclidean space it is the probability point mass at the sole vector.",
+      "Measure.map is the measurable pushforward operation. Measure.pi is the actual finite independent product of the displayed component measures, and Measure.prod is the actual binary product. Natural division and remainder and real scalar arithmetic have their usual Lean meanings."
+    ]
+  },
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "repairs": [],
+  "source_review": {
+    "state": "pending"
+  },
+  "reconstruction": {
+    "text": "For every pair of natural numbers d and n with 3 ≤ n ≤ d, every real number κ with κ ≥ 4, and every family (O_j)_{j=0}^{q−1} of real n-by-n orthogonal matrices, where q = d div n and r = d mod n, define\n\nA_j = ((κ + 1)/2) I_n − ((κ − 1)/4)(O_j + O_jᵀ).\n\nThus qn + r = d and 0 ≤ r < n. Order the d coordinates as q successive blocks of length n followed by r remaining coordinates. More precisely, let e be the bijection from ((Fin n × Fin q) ⊕ Fin r) to Fin d given by e(inl(i,j)) = jn + i and e(inr(k)) = qn + k. Let B be the d-by-d real matrix obtained by reindexing along e the block matrix with A_j on the jth n-dimensional diagonal block, identity I_r on the remainder block, and zero entries between different blocks. In these ordered coordinates B = diag(A_0, …, A_{q−1}, I_r).\n\nLet S : R^d → ((Fin q → R^n) × R^r) be the coordinate splitting map\nS(x) = ((x^{(j)})_{j∈Fin q}, x^{rem}),\nwhere x^{(j)}_i = x_{jn+i} and x^{rem}_k = x_{qn+k}. Each R^m here is the real Euclidean space indexed by Fin m; the target has the ordinary finite-function and binary-product Borel structures.\n\nThe pushforward under S of the centered multivariate Gaussian constructed with covariance matrix B⁻¹ equals the finite independent product of the centered n-dimensional multivariate Gaussians constructed with covariance matrices A_j⁻¹, followed by an independent standard Gaussian on the r-dimensional remainder:\n\nS_* multivariateGaussian(0, B⁻¹)\n  = (⊗_{j∈Fin q} multivariateGaussian(0, A_j⁻¹)) ⊗ stdGaussian(R^r).\n\nThis is exact equality of measures on (Fin q → R^n) × R^r. Equivalently, if X has the measure on the left before splitting, its q block vectors have the displayed marginal Gaussian laws, the remainder vector is standard Gaussian, and all these block vectors and the remainder vector are mutually independent. Independence is asserted between these vectors; the coordinates inside an individual A_j⁻¹ block need not be independent.\n\nThe quantification is over every fixed orthogonal family, including matrices of either determinant sign; there is no averaging over orthogonal matrices. The only hypotheses supplied by the caller are 3 ≤ n, n ≤ d, and 4 ≤ κ, in addition to orthogonal-group membership. In particular, no positive-definiteness or invertibility hypothesis is separately required. Orthogonality and these scalar inequalities imply I_n ≤ A_j ≤ κ I_n in the quadratic-form order, so A_j and B are positive definite, and their inverse matrices are positive definite as well. Consequently the covariance terminology has its usual meaning for all parameters allowed here. Syntactically, however, the statement uses the approved totalized matrix inverse and Gaussian constructor: at singular matrices the inverse is totalized, and outside the positive-semidefinite domain the Gaussian constructor defaults to a point mass. Those conventions are part of the definitions, not additional caller hypotheses or an extension of this statement to parameters outside its stated range.\n\nThe endpoints n = 3, n = d, and κ = 4 are included whenever the other hypotheses hold. The hypotheses give q ≥ 1. The remainder r may equal zero; then R^0 consists of its sole zero vector, I_0 is the empty identity matrix, and stdGaussian(R^0) is the probability point mass there. The equality retains its binary remainder factor in this case. The coordinate splitting is understood as a measurable coordinate bijection; the statement does not require it to be an isometry for the default product norms.\n\nThere are no unspecified constants or asymptotic quantifiers. The block matrices depend only on κ and their respective O_j; q, r, e, S, and the assembled matrix B depend on the indicated d, n, κ, and orthogonal family through these explicit formulas. This reconstruction states the supplied proposition and its definition-level interpretation; it does not assert a proof of the proposition or correspondence to an unseen source.",
+    "text_sha256": "5ab7ec57e5d3169dd8efd5109f721aa0915fd22ea55f593881b28b1dd8d2de09",
+    "decoder": "/root/decode_593781",
+    "decoder_run_sha256": "eb014e08995fc036042c74160c8556311d6b17b48e1e9703d32a26793b0d087b",
+    "decoder_packet_sha256": "9faa4540847ee02538dabc767c0ac3ffdbfdbae8e3b0fe17ae0c0c4ba291f468",
+    "source_text_visible": false,
+    "lean_statement_sha256": "1197897dee36069b8ebe3fd34402ddf6b8bacbb01311e2f97e0d6d6577372100",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/paper-contributions/GaussianComplexity/conditional-block-law-semantic-evidence/anonymous-decoder-result.json",
+    "run_record_raw_file_sha256": "f648b98e3578318637ed6498b7a0f905e07ef943b8e9f3ce5f152a694c4fdac1",
+    "decoder_run_sha256_scope": "SHA256 of canonical JSON bytes of this run_record object; sorted keys, compact separators, ensure_ascii=false, UTF-8. This differs in scope from the raw serialized run_record.json file SHA256.",
+    "actual_filesystem_inputs": [
+      {
+        "path": "/private/tmp/reconstruct-593781/input.json",
+        "sha256": "f5a62b96538e4cd6a55b4c7ddd8db369a20749ad4f9aa90ce586014cf9dd3a3f"
+      }
+    ]
+  },
+  "publication_binding_sha256": "abc7158a0b068f10f16b9f7f09ae4e88647b78f5817b2b53424f0a874ebf1982",
+  "publication_context": {
+    "file": "d7b5845c3852c0f747df5db9b2524db84ac1e42a472171c7efb40b264f3eac35",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily\nimport Mathlib.Probability.Distributions.Gaussian.Multivariate\n\n/-!\n# The actual conditional block Gaussian law\n\nZhou--Suzuki, arXiv:2610.20492v1, Section 3.1 Eq4--Eq6 and the\nregularity producer in Appendix B.3. This supplies the implicit fixed-tuple\nGaussian product-law ingredient. The source prints the prior-averaged Eq6;\nits actual averaging, density, tensorization and amplification remain separate.\n-/\n\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped RealInnerProductSpace\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw\nset_option autoImplicit false\n\ntheorem actual_conditional_block_product {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) (blockPrecision κ O)⁻¹).map split =\n      (Measure.pi (fun j => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (singleBlockPrecision κ (O j))⁻¹)).prod\n          (stdGaussian (EuclideanSpace ℝ (Fin (d % n)))) := by\n  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin d)\n  let En := EuclideanSpace ℝ (Fin n)\n  let Er := EuclideanSpace ℝ (Fin (d % n))\n  let F := (Fin (d / n) → En) × Er\n  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n    ((Equiv.sumCongr\n      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n  let B := Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))\n    0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)\n  let C := Matrix.fromBlocks\n    (Matrix.blockDiagonal (fun j => (singleBlockPrecision κ (O j))⁻¹))\n    0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)\n  have hp (j : Fin (d / n)) : (singleBlockPrecision κ (O j)).PosDef := by\n    have hr := singleBlockPrecision_regular hn hκ (O j)\n    apply Matrix.posDef_iff_dotProduct_mulVec.mpr\n    refine ⟨hr.1, fun v hv => ?_⟩\n    have hdot : 0 < v ⬝ᵥ v := by\n      simpa only [star_trivial] using (dotProduct_star_self_pos_iff.mpr hv)\n    simpa only [star_trivial] using lt_of_lt_of_le hdot (hr.2 v).1\n  have hBC : B * C = 1 := by\n    dsimp only [B, C]\n    rw [Matrix.fromBlocks_multiply, ← Matrix.blockDiagonal_mul]\n    simp only [Matrix.mul_zero, Matrix.zero_mul, add_zero, zero_add, Matrix.mul_one]\n    have hmul : (fun j => singleBlockPrecision κ (O j) *\n        (singleBlockPrecision κ (O j))⁻¹) = 1 := by\n      funext j\n      exact Matrix.mul_nonsing_inv _ ((Matrix.isUnit_iff_isUnit_det _).mp (hp j).isUnit)\n    rw [hmul, Matrix.blockDiagonal_one]\n    exact Matrix.fromBlocks_one\n  have hAdef : blockPrecision κ O = Matrix.reindex e e B := rfl\n  have hInv : (blockPrecision κ O)⁻¹ = Matrix.reindex e e C := by\n    rw [hAdef, Matrix.inv_reindex, Matrix.inv_eq_right_inv hBC]\n  have hpd : (blockPrecision κ O).PosDef := by\n    have hr := blockPrecision_regular hn hnd hκ O\n    apply Matrix.posDef_iff_dotProduct_mulVec.mpr\n    refine ⟨hr.1, fun v hv => ?_⟩\n    have hdot : 0 < v ⬝ᵥ v := by\n      simpa only [star_trivial] using (dotProduct_star_self_pos_iff.mpr hv)\n    simpa only [star_trivial] using lt_of_lt_of_le hdot (hr.2 v).1\n  let split : E → F := fun x =>\n    (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n      WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n  let Tlin : E →ₗ[ℝ] F :=\n    { toFun := split\n      map_add' := by intro x y; ext i j <;> rfl\n      map_smul' := by intro a x; ext i j <;> rfl }\n  let T : E →L[ℝ] F := Tlin.toContinuousLinearMap\n  let μ := multivariateGaussian (0 : E) (blockPrecision κ O)⁻¹\n  let νj (j : Fin (d / n)) := multivariateGaussian (0 : En)\n    (singleBlockPrecision κ (O j))⁻¹\n  let νr := multivariateGaussian (0 : Er)\n    (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)\n  change μ.map split = (Measure.pi νj).prod (stdGaussian Er)\n  rw [← multivariateGaussian_zero_one (ι := Fin (d % n))]\n  change μ.map T = (Measure.pi νj).prod νr\n  apply Measure.ext_of_charFunDual\n  funext L\n  rw [charFunDual_map, charFunDual_prod, charFunDual_pi]\n  let Lb := L.comp (ContinuousLinearMap.inl ℝ (Fin (d / n) → En) Er)\n  let Lj (j : Fin (d / n)) :=\n    Lb.comp (ContinuousLinearMap.single ℝ (fun _ : Fin (d / n) => En) j)\n  let Lr := L.comp (ContinuousLinearMap.inr ℝ (Fin (d / n) → En) Er)\n  let vj (j : Fin (d / n)) : En := (InnerProductSpace.toDual ℝ En).symm (Lj j)\n  let vr : Er := (InnerProductSpace.toDual ℝ Er).symm Lr\n  let w : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) → ℝ :=\n    Sum.elim (fun ij => vj ij.2 ij.1) (fun i => vr i)\n  let v : E := WithLp.toLp 2 (fun i => w (e.symm i))\n  have heval (i) : v (e i) = w i := by simp [v]\n  have hinner (x : E) :\n      ⟪v, x⟫ = (∑ j, ⟪vj j, (split x).1 j⟫) + ⟪vr, (split x).2⟫ := by\n    change (∑ i : Fin d, x i * v i) =\n      (∑ j, ∑ i : Fin n, (split x).1 j i * vj j i) +\n        ∑ i : Fin (d % n), (split x).2 i * vr i\n    rw [← e.sum_comp (fun i => x i * v i)]\n    simp only [heval, Fintype.sum_sum_type, Fintype.sum_prod_type, w,\n      Sum.elim_inl, Sum.elim_inr]\n    dsimp only [split]\n    congr 1\n    exact Finset.sum_comm\n  have hvfunctional : L.comp T = InnerProductSpace.toDual ℝ E v := by\n    ext x\n    change L (split x) = ⟪v, x⟫\n    rw [hinner]\n    simp_rw [vj, vr, InnerProductSpace.toDual_symm_apply]\n    rw [show (∑ j, (Lj j) ((split x).1 j)) = Lb (split x).1 from\n      ContinuousLinearMap.sum_comp_single ℝ _ Lb (split x).1]\n    exact (L.comp_inl_add_comp_inr (split x)).symm\n  have hvec (z : Fin n × Fin (d / n) → ℝ) (i : Fin n) (j : Fin (d / n)) :\n      (Matrix.blockDiagonal (fun j => (singleBlockPrecision κ (O j))⁻¹) *ᵥ z) (i, j) =\n        ((singleBlockPrecision κ (O j))⁻¹ *ᵥ (fun a => z (a, j))) i := by\n    simp [Matrix.mulVec, dotProduct, Fintype.sum_prod_type, Matrix.blockDiagonal_apply,\n      ite_mul]\n  have hchange (M : Matrix ((Fin n × Fin (d / n)) ⊕ Fin (d % n))\n      ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ℝ) :\n      WithLp.ofLp v ⬝ᵥ (Matrix.reindex e e M *ᵥ WithLp.ofLp v) =\n        (WithLp.ofLp v ∘ e) ⬝ᵥ (M *ᵥ (WithLp.ofLp v ∘ e)) := by\n    change WithLp.ofLp v ⬝ᵥ (M.submatrix e.symm e.symm *ᵥ WithLp.ofLp v) = _\n    rw [Matrix.submatrix_mulVec_equiv]\n    exact dotProduct_comp_equiv_symm _ _ e\n  have hy : WithLp.ofLp v ∘ e = w := by\n    funext i\n    exact heval i\n  have hquad : WithLp.ofLp v ⬝ᵥ ((blockPrecision κ O)⁻¹ *ᵥ WithLp.ofLp v) =\n      (∑ j, WithLp.ofLp (vj j) ⬝ᵥ\n        ((singleBlockPrecision κ (O j))⁻¹ *ᵥ WithLp.ofLp (vj j))) +\n          WithLp.ofLp vr ⬝ᵥ WithLp.ofLp vr := by\n    rw [hInv, hchange, hy]\n    simp only [C, Matrix.fromBlocks_mulVec, Matrix.zero_mulVec, Matrix.one_mulVec,\n      add_zero, zero_add]\n    rw [Matrix.dotProduct_block]\n    congr 1\n    simp only [dotProduct, Fintype.sum_prod_type, Function.comp_apply, w,\n      Sum.elim_inl, hvec]\n    exact Finset.sum_comm\n  have hG {m : ℕ} (S : Matrix (Fin m) (Fin m) ℝ) (hS : S.PosSemidef)\n      (K : EuclideanSpace ℝ (Fin m) →L[ℝ] ℝ) :\n      charFunDual (multivariateGaussian (0 : EuclideanSpace ℝ (Fin m)) S) K =\n        Complex.exp (-((WithLp.ofLp ((InnerProductSpace.toDual ℝ\n          (EuclideanSpace ℝ (Fin m))).symm K) ⬝ᵥ (S *ᵥ\n          WithLp.ofLp ((InnerProductSpace.toDual ℝ\n            (EuclideanSpace ℝ (Fin m))).symm K)) : ℝ) : ℂ) / 2) := by\n    rw [← charFun_toDual_symm_eq_charFunDual, charFun_multivariateGaussian hS]\n    simp [neg_div]\n  have hw : (InnerProductSpace.toDual ℝ E).symm (L.comp T) = v := by\n    rw [hvfunctional]\n    exact (InnerProductSpace.toDual ℝ E).symm_apply_apply v\n  have hb (j : Fin (d / n)) : charFunDual (νj j) (Lj j) =\n      Complex.exp (-((WithLp.ofLp (vj j) ⬝ᵥ\n        ((singleBlockPrecision κ (O j))⁻¹ *ᵥ WithLp.ofLp (vj j)) : ℝ) : ℂ) / 2) :=\n    hG _ (hp j).inv.posSemidef (Lj j)\n  have hr : charFunDual νr Lr =\n      Complex.exp (-((WithLp.ofLp vr ⬝ᵥ WithLp.ofLp vr : ℝ) : ℂ) / 2) := by\n    simpa only [Matrix.one_mulVec] using\n      hG (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ) Matrix.PosSemidef.one Lr\n  change charFunDual μ (L.comp T) = (∏ j, charFunDual (νj j) (Lj j)) * charFunDual νr Lr\n  rw [hG _ hpd.inv.posSemidef (L.comp T), hw, hr]\n  simp_rw [hb]\n  rw [← Complex.exp_sum, ← Complex.exp_add]\n  congr 1\n  rw [hquad]\n  push_cast\n  simp only [← Finset.sum_div, Finset.sum_neg_distrib]\n  ring\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Section3.1 S3.SS1.p1.1-p3.2, Eq4-Eq6; AppendixB.2.3 Ex70 product-density context; regularity source Lemma3.4 and AppendixB.3 Ex73/Eq26/Ex74",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS supplies the fixed-matrix conditional Gaussian product ingredient omitted between the literal Eq5 family and printed prior-averaged Eq6; it is not advertised as a separately printed author theorem.",
+      "scope": "Fixed arbitrary tuple only. The common-sign independent prior average, actual density and amplification are separate obligations."
+    },
+    "statement": "For every fixed orthogonal tuple in the source block precision family, the actual centered Gaussian target becomes the independent product of its actual block Gaussians and the residual standard Gaussian under the literal contiguous coordinate split. This is the ASTIS-completed conditional ingredient of the printed prior-averaged Eq6. \\mathrm{split}_{\\#}\\mathcal N(0,A_{\\boldsymbol O}^{-1})=\\left(\\bigotimes_{j=1}^{k}\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r). \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). \\(\\boldsymbol O=(O_1,\\ldots,O_k)\\in O(n)^k\\) is any fixed tuple in the full real orthogonal group. The matrices may differ and their determinant signs may differ; no prior on the tuple is supplied. \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\) are the existing literal source precision matrices. Positive definiteness, valid inverse covariances and independence are internal proof outputs. Coordinates are consecutive blocks: in zero-based indices, block entry \\((j,i)\\) is ambient coordinate \\(jn+i\\), and residual entry \\(t\\) is \\(kn+t\\). The split is a continuous linear coordinate bijection; no isometry for the ordinary max-normed product is asserted. When \\(r=0\\), the residual standard Gaussian is the unique probability measure on the zero-dimensional space. It is a point mass, not zero measure or a discarded unproved case. \\mathrm{split}(x)=(x_1,\\ldots,x_k,z),\\quad (x_j)_i=x_{jn+i},\\quad z_t=x_{kn+t}.",
+    "formulae": [
+      {
+        "label": "Actual conditional Gaussian law",
+        "tex": "\\mathrm{split}_{\\#}\\mathcal N(0,A_{\\boldsymbol O}^{-1})=\\left(\\bigotimes_{j=1}^{k}\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r)."
+      }
+    ],
+    "assumptions": [
+      "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\).",
+      "\\(\\boldsymbol O=(O_1,\\ldots,O_k)\\in O(n)^k\\) is any fixed tuple in the full real orthogonal group. The matrices may differ and their determinant signs may differ; no prior on the tuple is supplied.",
+      "\\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\) are the existing literal source precision matrices. Positive definiteness, valid inverse covariances and independence are internal proof outputs.",
+      "Coordinates are consecutive blocks: in zero-based indices, block entry \\((j,i)\\) is ambient coordinate \\(jn+i\\), and residual entry \\(t\\) is \\(kn+t\\). The split is a continuous linear coordinate bijection; no isometry for the ordinary max-normed product is asserted.",
+      "When \\(r=0\\), the residual standard Gaussian is the unique probability measure on the zero-dimensional space. It is a point mass, not zero measure or a discarded unproved case."
+    ],
+    "obligations": [
+      {
+        "id": "actual-prior-averaged-eq6",
+        "label": "The complete printed Eq6 law after actual independent common-sign prior averaging remains a separate target."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product",
+      "title": "Conditional Gaussian blocks: a prerequisite for Eq6",
+      "reader_note": "The actual joint-law identity is shown first; complete objects, assumptions, proof and exact Lean are folded below.",
+      "statement": "For every fixed orthogonal tuple in the source block precision family, the actual centered Gaussian target becomes the independent product of its actual block Gaussians and the residual standard Gaussian under the literal contiguous coordinate split. This is the ASTIS-completed conditional ingredient of the printed prior-averaged Eq6.",
+      "formula": "\\mathrm{split}_{\\#}\\mathcal N(0,A_{\\boldsymbol O}^{-1})=\\left(\\bigotimes_{j=1}^{k}\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r).",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\).",
+        "\\(\\boldsymbol O=(O_1,\\ldots,O_k)\\in O(n)^k\\) is any fixed tuple in the full real orthogonal group. The matrices may differ and their determinant signs may differ; no prior on the tuple is supplied.",
+        "\\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\) are the existing literal source precision matrices. Positive definiteness, valid inverse covariances and independence are internal proof outputs.",
+        "Coordinates are consecutive blocks: in zero-based indices, block entry \\((j,i)\\) is ambient coordinate \\(jn+i\\), and residual entry \\(t\\) is \\(kn+t\\). The split is a continuous linear coordinate bijection; no isometry for the ordinary max-normed product is asserted.",
+        "When \\(r=0\\), the residual standard Gaussian is the unique probability measure on the zero-dimensional space. It is a point mass, not zero measure or a discarded unproved case."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(X,\\mathrm{split},k,r\\)",
+          "text": "The conclusion is equality of genuine Borel probability measures under an explicit coordinate pushforward. The finite product is an actual product of possibly different block laws. The source averages these conditional laws only in the later Eq6 step.",
+          "formula": "\\mathrm{split}(x)=(x_1,\\ldots,x_k,z),\\quad (x_j)_i=x_{jn+i},\\quad z_t=x_{kn+t}."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Produce admissible Gaussian covariances",
+          "text": "Apply the canonical single-block and ambient quadratic bounds. Their lower bounds imply strict positivity away from zero, hence invertibility and positive inverse covariance. This excludes the Gaussian constructor’s off-domain fallback internally.",
+          "formula": "I\\preceq A_{O_j}\\preceq\\kappa I,\\quad I\\preceq A_{\\boldsymbol O}\\preceq\\kappa I\\quad\\Longrightarrow\\quad A_{O_j},A_{\\boldsymbol O}\\succ0.",
+          "lean": "hp and hpd consume singleBlockPrecision_regular and blockPrecision_regular. Matrix.posDef_iff_dotProduct_mulVec, dotProduct_star_self_pos_iff and PosDef.inv supply the actual domain facts."
+        },
+        {
+          "title": "Invert the literal block precision",
+          "text": "Multiply the unreindexed block matrix by the block diagonal matrix of actual inverses. Each block product is the identity, including the residual identity. Uniqueness of the inverse and exact reindexing identify the full covariance; the desired law is not defined to be a product. Here [M]_e denotes simultaneous row and column reindexing into the ambient contiguous coordinates.",
+          "formula": "A_{\\boldsymbol O}^{-1}=\\left[\\operatorname{diag}(A_{O_1}^{-1},\\ldots,A_{O_k}^{-1},I_r)\\right]_{e},\\qquad BC=I.",
+          "lean": "hBC uses fromBlocks_multiply, blockDiagonal_mul and each genuine mul_nonsing_inv. hAdef is a definitional equality with the unchanged canonical precision; hInv uses inv_eq_right_inv and inv_reindex."
+        },
+        {
+          "title": "Pull back every product-space frequency",
+          "text": "The explicit split is linear and continuous. Decompose an arbitrary continuous linear functional on the ordinary product into block and residual parts. Riesz representation in each Euclidean factor assembles one ambient frequency. Thus the argument tests every dual frequency without treating the max-normed product as Hilbert.",
+          "formula": "L(\\mathrm{split}(x))=\\sum_j\\langle v_j,x_j\\rangle+\\langle v_r,z\\rangle=\\langle v,x\\rangle.",
+          "lean": "Tlin and T are the actual split. hinner and hvfunctional use the exact finite-coordinate equivalence, sum_comp_single, comp_inl_add_comp_inr and the real Euclidean Riesz map."
+        },
+        {
+          "title": "Factor the actual Gaussian characteristic function",
+          "text": "The covariance quadratic form splits into the sum of block inverse-covariance forms and the residual square norm. The canonical Gaussian characteristic formula becomes a product of the block characteristic functions. All covariance validity conditions come from the first step.",
+          "formula": "v^\\top A_{\\boldsymbol O}^{-1}v=\\sum_jv_j^\\top A_{O_j}^{-1}v_j+\\|v_r\\|^2,\\qquad e^{-v^\\top A_{\\boldsymbol O}^{-1}v/2}=\\prod_j e^{-v_j^\\top A_{O_j}^{-1}v_j/2}\\,e^{-\\|v_r\\|^2/2}.",
+          "lean": "hchange and hquad transport the exact block covariance. hG is a local restatement of Mathlib.charFun_multivariateGaussian through the Riesz map; hb and hr specialize it. No independent characteristic-function equality is assumed."
+        },
+        {
+          "title": "Identify measures and consume their true marginals",
+          "text": "Finite-product and binary-product characteristic functions give the same expression at every continuous dual functional. Uniqueness therefore gives the full measure equality. The focused consumer then pushes this same actual law to any block and to the residual, recovering their actual Gaussian laws. Separate checks establish the contiguous coordinates, inverse assembly and zero-dimensional probability point mass.",
+          "formula": "\\widehat{\\mathrm{split}_{\\#}\\pi_{A_{\\boldsymbol O}}}=\\widehat{\\left(\\bigotimes_j\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r)}\\quad\\Longrightarrow\\quad\\mathrm{split}_{\\#}\\pi_{A_{\\boldsymbol O}}=\\left(\\bigotimes_j\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r).",
+          "lean": "The proof uses charFunDual_map/prod/pi, Complex.exp_sum/add and Measure.ext_of_charFunDual. Tests.GaussianComplexityConditionalBlockLaw derives genuine block/residual marginal equalities with measurePreserving_eval and product projections; these are not a scalar substitute for the joint law."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.posDef_iff_dotProduct_mulVec",
+        "Matrix.inv_eq_right_inv",
+        "Matrix.inv_reindex",
+        "ProbabilityTheory.charFun_multivariateGaussian",
+        "MeasureTheory.charFunDual_map",
+        "MeasureTheory.charFunDual_prod",
+        "MeasureTheory.charFunDual_pi",
+        "MeasureTheory.Measure.ext_of_charFunDual"
+      ],
+      "lean_statement": "Exactly the sealed fixed-tuple source-domain signature; all mathematical proof ingredients are internal.",
+      "lean_proof": "The exact proof is extracted from the sole production theorem; private proof regions receive no extra source credit.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Section3.1 S3.SS1.p1.1-p3.2, Eq4-Eq6; AppendixB.2.3 Ex70 product-density context; regularity source Lemma3.4 and AppendixB.3 Ex73/Eq26/Ex74",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS supplies the fixed-matrix conditional Gaussian product ingredient omitted between the literal Eq5 family and printed prior-averaged Eq6; it is not advertised as a separately printed author theorem.",
+          "scope": "Fixed arbitrary tuple only. The common-sign independent prior average, actual density and amplification are separate obligations.",
+          "label": "Zhou–Suzuki, Eq5–Eq6 and Appendix B.3"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityConditionalBlockLaw"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product",
+      "role": "prerequisite",
+      "supports": [
+        "actual-prior-averaged-eq6"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Section3.1 fixes kappa>=4,3<=n<=d and defines Eq5 for every fixed tuple in O(n)^k.",
+        "lean": "Exactly these domain inequalities and one arbitrary fixed tuple; actual precision/covariance constructors."
+      },
+      {
+        "source": "Eq6 prints the prior-averaged law; it omits a standalone fixed-tuple factorization proof.",
+        "lean": "Prove only the fixed-tuple conditional producer; do not introduce a prior or advertise full Eq6."
+      },
+      {
+        "source": "Coordinates are consecutive blocks and the residual has dimension d-kn; omit its factor when kn=d.",
+        "lean": "The inlined equivalence is checked to give j*n+i and k*n+t. Use r=d%n and retain the unique zero-dimensional probability factor at r=0."
+      }
+    ]
+  }
+}

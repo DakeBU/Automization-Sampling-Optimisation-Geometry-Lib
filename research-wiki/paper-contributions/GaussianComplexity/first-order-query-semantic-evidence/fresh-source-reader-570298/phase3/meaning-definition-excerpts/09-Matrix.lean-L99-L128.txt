@@ -1,0 +1,30 @@
+of Euclidean space induced by the orthonormal basis `EuclideanSpace.basisFun`.
+
+This is a more-bundled version of `Matrix.toEuclideanLin`, for the special case of square matrices,
+followed by a more-bundled version of `LinearMap.toContinuousLinearMap`. -/
+def toEuclideanCLM :
+    Matrix n n 𝕜 ≃⋆ₐ[𝕜] (EuclideanSpace 𝕜 n →L[𝕜] EuclideanSpace 𝕜 n) :=
+  toMatrixOrthonormal (EuclideanSpace.basisFun n 𝕜) |>.symm.trans <|
+    { toContinuousLinearMap with
+      map_mul' := fun _ _ ↦ rfl
+      map_star' := adjoint_toContinuousLinearMap }
+
+lemma coe_toEuclideanCLM_eq_toEuclideanLin (A : Matrix n n 𝕜) :
+    (toEuclideanCLM (n := n) (𝕜 := 𝕜) A : _ →ₗ[𝕜] _) = toEuclideanLin A :=
+  rfl
+
+@[simp]
+lemma toEuclideanCLM_toLp (A : Matrix n n 𝕜) (x : n → 𝕜) :
+    toEuclideanCLM (n := n) (𝕜 := 𝕜) A (toLp _ x) = toLp _ (A *ᵥ x) := rfl
+
+@[simp]
+lemma ofLp_toEuclideanCLM (A : Matrix n n 𝕜) (x : EuclideanSpace 𝕜 n) :
+    ofLp (toEuclideanCLM (n := n) (𝕜 := 𝕜) A x) = A *ᵥ ofLp x := rfl
+
+open scoped RealInnerProductSpace in
+lemma inner_toEuclideanCLM (A : Matrix n n ℝ) (x y : EuclideanSpace ℝ n) :
+    ⟪x, toEuclideanCLM (𝕜 := ℝ) A y⟫ = x ⬝ᵥ A *ᵥ y := by
+  simp only [toEuclideanCLM, AddHom.toFun_eq_coe, LinearMap.coe_toAddHom, LinearEquiv.coe_coe,
+    LinearEquiv.invFun_eq_symm, LinearMap.coe_toContinuousLinearMap_symm, StarAlgEquiv.trans_apply,
+    LinearMap.toMatrixOrthonormal_symm_apply, LinearMap.toMatrix_symm, StarAlgEquiv.coe_mk,
+    StarRingEquiv.coe_mk, RingEquiv.coe_mk, Equiv.coe_fn_mk, LinearMap.coe_toContinuousLinearMap',

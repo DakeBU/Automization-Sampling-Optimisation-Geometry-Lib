@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible",
+      "title": "Actual cosine-grid precision admissibility",
+      "reader_note": "The matrix bounds are shown first; actual grid, hypotheses, formula proof and exact Lean are folded below.",
+      "statement": "Every actual cosine-grid precision lies between the identity and κ times the identity and is positive definite.",
+      "formula": "I_d\\preceq A\\preceq\\kappa I_d,\\qquad A\\succ0.",
+      "assumptions": [
+        "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix any actual \\(O\\in O(d)\\), including either determinant sign. The assertion holds pointwise; no Haar law or private-randomness premise is needed.",
+        "For source indices \\(i=1,\\ldots,d\\), let \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=O\\operatorname{diag}(\\lambda_i)O^\\top\\). Lean uses zero-based \\(i.\\mathrm{val}+1/2\\); the focused Test proves that index alignment.",
+        "Matrix order is quadratic-form order: \\(I_d\\preceq A\\) means \\(A-I_d\\) is positive semidefinite, and \\(A\\preceq\\kappa I_d\\) means \\(\\kappa I_d-A\\) is positive semidefinite. This does not require every entry to be nonnegative. The finite-support definition covers all real coordinate vectors.",
+        "Positive definiteness, symmetry, scalar interval bounds and both orthogonality identities are produced or obtained from the source orthogonal-group input; none is a new public hypothesis. The dimension premise is retained exactly even though the cosine envelope works for every angle.",
+        "The actual Gaussian consumer is \\(\\pi_A=N(0,A^{-1})\\) on Euclidean space with Lebesgue reference volume and real exponent \\(d/2\\), including odd dimensions. Its positive precision comes from this producer. Known-normalizer products independent of \\(O\\), full Appendix C.4 calculus/minimizer, moments/Krylov, adaptive/precision/cost/TV adapters and both complete main bounds remain separate."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A,\\lambda_i\\)",
+          "text": "Actual source precision and literal source diagonal values.",
+          "formula": "A=O\\operatorname{diag}(\\lambda_i)O^\\top,\\qquad\\lambda_i=\\frac{\\kappa+1}{2}+\\frac{\\kappa-1}{2}\\cos\\theta_i."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Bound each actual diagonal value",
+          "text": "Since κ≥2, its cosine coefficient is nonnegative. Multiply the standard bounds −1≤cos θᵢ≤1 by that coefficient to obtain the exact source interval, without a spectral-window premise.",
+          "formula": "\\begin{aligned}\\lambda_i-1&=\\tfrac{\\kappa-1}{2}(1+\\cos\\theta_i)\\ge0,\\\\\\kappa-\\lambda_i&=\\tfrac{\\kappa-1}{2}(1-\\cos\\theta_i)\\ge0.\\end{aligned}",
+          "lean": "hcoef is derived from hκ; hvalue consumes Real.neg_one_le_cos, Real.cos_le_one and exact real arithmetic."
+        },
+        {
+          "title": "Form the two positive diagonal differences",
+          "text": "Use the actual scalar differences as diagonal entries. Nonnegative diagonal entries make these two actual diagonal matrices positive semidefinite, including their symmetry.",
+          "formula": "D_-=\\operatorname{diag}(\\lambda_i-1)\\succeq0,\\qquad D_+=\\operatorname{diag}(\\kappa-\\lambda_i)\\succeq0.",
+          "lean": "hdiaglo/hdiaghi prove the actual matrix identities entrywise; hlow/hhigh call the canonical PosSemidef.diagonal fact on the proved scalar bounds."
+        },
+        {
+          "title": "Conjugate through the actual rotation",
+          "text": "Use OOᵀ=I from full real orthogonality. Distributing the actual products identifies the two differences with conjugates of the proved positive diagonal matrices. Positive semidefiniteness is preserved under this actual conjugation.",
+          "formula": "\\begin{aligned}A-I_d&=O D_-O^\\top\\succeq0,\\\\\\kappa I_d-A&=O D_+O^\\top\\succeq0.\\end{aligned}",
+          "lean": "hO, hstar and the distribution identities hloweq/hhigheq feed hAlo/hAhi via PosSemidef.mul_mul_conjTranspose_same."
+        },
+        {
+          "title": "Produce strict positivity",
+          "text": "Add the positive identity matrix to the first semidefinite difference. Every nonzero vector has strictly positive identity quadratic form, so the actual precision is positive definite. This is an output consequence.",
+          "formula": "x\\ne0\\ \\Longrightarrow\\ x^\\top A x=\\|x\\|_2^2+x^\\top(A-I_d)x>0.",
+          "lean": "hpos combines the canonical PosDef.one and PosDef.posSemidef_add with hAlo, then cancels the subtracted identity."
+        },
+        {
+          "title": "Consume the actual precision in its Gaussian density",
+          "text": "The focused Test applies the producer to this same literal A and passes its positive-definite output to the existing canonical positive-precision Gaussian density theorem. The actual inverse-covariance Gaussian equals the actual quadratic-potential density, with no supplied positivity or correct-density hypothesis.",
+          "formula": "\\pi_A(dx)=\\frac{\\sqrt{\\det A}}{(2\\pi)^{d/2}}\\exp\\!\\left(-\\tfrac12x^\\top A x\\right)\\,dx.",
+          "lean": "Tests.GaussianComplexityFixedSpectrumAdmissibility obtains hA from actual_precision_admissible and calls GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef A hA. This existing shared node is a consumer dependency, not a producer proof parent."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Real.instStarOrderedRing",
+        "Real.neg_one_le_cos",
+        "Real.cos_le_one",
+        "Matrix.mem_orthogonalGroup_iff",
+        "Matrix.PosSemidef.diagonal",
+        "Matrix.PosSemidef.mul_mul_conjTranspose_same",
+        "Matrix.PosDef.one",
+        "Matrix.PosDef.posSemidef_add",
+        "Matrix.mul_sub",
+        "Matrix.sub_mul",
+        "Matrix.mul_smul",
+        "Matrix.smul_mul"
+      ],
+      "lean_statement": "Exactly the sealed actual cosine-grid precision, source d>=2/kappa>=2/fullO, two Loewner differences and internally produced PosDef.",
+      "lean_proof": "The exact production theorem is extracted adjacent to these formula steps. Standard real positivity and orthogonal-conjugation facts are canonical dependencies; no supplied scalar envelope, symmetry, positivity or Gaussian-correctness premise is added.",
+      "boundary": "Only actual source S4.E11/Lemma4.6 precision admissibility and produced positivity, with its actual same-precision Gaussian law-density consumer compiled. No exact determinant/known-normalizer/spectral-multiplicity theorem, target moment/Krylov concentration, adaptive/private-seed/transcript/output law, Gaussian target/TV change-of-kappa, deterministic/expected/finiteprecision/bitcost adapter or either main lower bound is closed. Source V, local integration, remote/publicsite, purification/ExpositionSeal and wholeGoal separate. The actual Test law-density equality is now compiled from the new producer and the existing canonical GaussianPrecisionDensity leaf. It does not establish the basis-independent known-normalizer product or full C4.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S4.Thmtheorem6",
+          "edition": "arXiv2610.20492v1; fixed raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.E11 literal hard precision; S4.Thmtheorem6 Lemma4.6; AppendixC.4 A3.SS4 selected matrix admissibility and actual Gaussian target context.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling, Eq11/Lemma4.6. ASTIS exposes the scalar/diagonal/conjugation bridges and the strict positivity consequence.",
+          "scope": "Actual pointwise precision sandwich and produced PosDef; real Test consumes it in an actual Gaussian law-density equality. Full C4 and main lower bounds remain separate.",
+          "label": "Zhou–Suzuki, Eq11/Lemma4.6 and selected AppendixC.4"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumAdmissibility"
+      ]
+    }
+  ]
+}

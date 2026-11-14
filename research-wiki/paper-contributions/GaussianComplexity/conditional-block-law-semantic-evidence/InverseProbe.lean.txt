@@ -1,0 +1,51 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily
+import Mathlib.Probability.Distributions.Gaussian.Multivariate
+
+open Matrix MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+
+set_option autoImplicit false
+
+example {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d) {κ : ℝ} (hκ : 4 ≤ κ)
+    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    (blockPrecision κ O)⁻¹ = Matrix.reindex e e
+      (Matrix.fromBlocks
+        (Matrix.blockDiagonal (fun j => (singleBlockPrecision κ (O j))⁻¹))
+        0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)) := by
+  classical
+  dsimp only
+  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+    ((Equiv.sumCongr
+      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+  let B := Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))
+    0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)
+  let C := Matrix.fromBlocks
+    (Matrix.blockDiagonal (fun j => (singleBlockPrecision κ (O j))⁻¹))
+    0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)
+  have hp (j : Fin (d / n)) : (singleBlockPrecision κ (O j)).PosDef := by
+    have hr := singleBlockPrecision_regular hn hκ (O j)
+    apply Matrix.posDef_iff_dotProduct_mulVec.mpr
+    refine ⟨hr.1, fun v hv => ?_⟩
+    have hdot : 0 < v ⬝ᵥ v := by
+      simpa only [star_trivial] using (dotProduct_star_self_pos_iff.mpr hv)
+    simpa only [star_trivial] using lt_of_lt_of_le hdot (hr.2 v).1
+  have hBC : B * C = 1 := by
+    dsimp only [B, C]
+    rw [Matrix.fromBlocks_multiply, ← Matrix.blockDiagonal_mul]
+    simp only [Matrix.mul_zero, Matrix.zero_mul, add_zero, zero_add, Matrix.mul_one]
+    have hmul : (fun j => singleBlockPrecision κ (O j) *
+        (singleBlockPrecision κ (O j))⁻¹) = 1 := by
+      funext j
+      exact Matrix.mul_nonsing_inv _ ((Matrix.isUnit_iff_isUnit_det _).mp (hp j).isUnit)
+    rw [hmul, Matrix.blockDiagonal_one]
+    exact Matrix.fromBlocks_one
+  have hA : blockPrecision κ O = Matrix.reindex e e B := rfl
+  change (blockPrecision κ O)⁻¹ = Matrix.reindex e e C
+  rw [hA, Matrix.inv_reindex, Matrix.inv_eq_right_inv hBC]

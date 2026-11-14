@@ -1,0 +1,70 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean
+import Mathlib.Analysis.CStarAlgebra.Matrix
+
+noncomputable section
+open MeasureTheory ProbabilityTheory
+open scoped BigOperators Matrix.Norms.L2Operator
+set_option autoImplicit false
+
+def producerProp
+    {d q : ℕ} (hq : 2 * q + 1 < d) : Prop :=
+  let D := EuclideanSpace ℝ (Fin d)
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let Ω := Fin (q + 1) → D
+  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let row : Fin d → Ω → E := fun i ω =>
+    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)
+  let Y : Fin d → Ω →
+      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (d : ℝ)⁻¹ • Matrix.kronecker
+        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))
+        (Matrix.vecMulVec (t i) (t i))
+    else 0
+  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)
+  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧
+    Matrix.PosSemidef
+      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -
+        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)
+
+def consumerProp
+    {d q : ℕ} (hq : 2 * q + 1 < d) : Prop :=
+  let D := EuclideanSpace ℝ (Fin d)
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let Ω := Fin (q + 1) → D
+  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let row : Fin d → Ω → E := fun i ω =>
+    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)
+  let Y : Fin d → Ω →
+      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (d : ℝ)⁻¹ • Matrix.kronecker
+        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))
+        (Matrix.vecMulVec (t i) (t i))
+    else 0
+  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+    fun i => ∫ ω, Y i ω ∂μ
+  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=
+    fun i ω => Y i ω - mean i
+  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)
+  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)
+  (∀ i : Fin d, Integrable (fun ω => Z i ω * Z i ω) μ) ∧
+    (∀ i : Fin d, Integrable (fun ω => (w i • Z i ω) * (w i • Z i ω)) μ) ∧
+    ‖∑ i : Fin d, ∫ ω, Z i ω * Z i ω ∂μ‖ ≤ C ∧
+    ‖∑ i : Fin d, ∫ ω, (w i • Z i ω) * (w i • Z i ω) ∂μ‖ ≤ C
+
+#print producerProp
+#print consumerProp

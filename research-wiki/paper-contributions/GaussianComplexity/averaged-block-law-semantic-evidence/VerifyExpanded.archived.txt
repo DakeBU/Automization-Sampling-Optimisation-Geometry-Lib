@@ -1,0 +1,78 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw
+open Matrix MeasureTheory ProbabilityTheory
+open scoped ENNReal
+open AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw
+set_option autoImplicit false
+example : (∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let ν := (2 : ℝ≥0∞) • (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (fun O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • (((O j) : Matrix (Fin n) (Fin n) ℝ) + ((O j) : Matrix (Fin n) (Fin n) ℝ).transpose)))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+      (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹)
+    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧
+      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧
+      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod
+        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+) ↔ (∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let ν := (2 : ℝ≥0∞) • (orthogonalHaar n).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (blockPrecision κ)
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+      (singleBlockPrecision κ O)⁻¹)
+    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧
+      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧
+      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod
+        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+) := Iff.rfl
+example : (∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),
+    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    let ν := (2 : ℝ≥0∞) • (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).restrict
+      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}
+    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (fun O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • (((O j) : Matrix (Fin n) (Fin n) ℝ) + ((O j) : Matrix (Fin n) (Fin n) ℝ).transpose)))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))
+    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=
+      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹
+    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+      (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹)
+    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧
+      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧
+      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod
+        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+) := actual_averaged_block_product

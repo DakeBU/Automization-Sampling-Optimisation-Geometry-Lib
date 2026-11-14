@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumGeometry.actual_potential_geometry",
+      "title": "Actual fixed-spectrum potential geometry",
+      "reader_note": "The geometric conclusion is shown first; the full family, assumptions, formula proof and exact Lean are folded below.",
+      "statement": "The actual quadratic is globally C∞, 1-strongly convex and κ-smooth, with zero minimum uniquely at the origin.",
+      "formula": "D(\\nabla f_A)(x)=A.",
+      "assumptions": [
+        "Let \\(d\\in\\mathbb N\\) with \\(d\\ge2\\), let \\(\\kappa\\in\\mathbb R\\) with \\(\\kappa\\ge2\\), and fix any full real \\(O\\in O(d)\\), including either determinant sign.",
+        "For \\(i=1,\\ldots,d\\), set \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=O\\operatorname{diag}(\\lambda_i)O^\\top\\). The zero-based Lean coordinate \\(j\\) represents \\(i=j.\\mathrm{val}+1\\).",
+        "The potential is literally \\(f_A(x)=x^\\top Ax/2\\) on all Euclidean \\(\\mathbb R^d\\), with no additive shift. All spatial points and pairs are arbitrary.",
+        "The Hessian is the genuine real Fréchet derivative of the Euclidean gradient. Strong convexity uses the modulus \\(r^2/2\\); smoothness means \\(\\|\\nabla f_A(x)-\\nabla f_A(y)\\|\\le\\kappa\\|x-y\\|\\).",
+        "Symmetry, spectral bounds, differentiability, Hessian, convexity, norm bounds and minimizer properties are produced internally. They are not extra caller assumptions. Haar randomness, seeds and query budgets are outside this local statement."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(H,f_A\\)",
+          "text": "The exact precision action on the Euclidean carrier and the same centered source quadratic.",
+          "formula": "Hx=Ax,\\qquad f_A(x)=\\tfrac12\\langle x,Hx\\rangle."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Write the same quadratic and establish smoothness",
+          "text": "Represent the actual matrix action by its continuous linear map H. Its coordinates and Euclidean inner product give the same potential. The identity map, H, inner product and scalar multiplication are smooth of every finite order.",
+          "formula": "Hx=Ax,\\qquad f_A(x)=\\tfrac12\\langle x,Hx\\rangle\\in C^\\infty.",
+          "lean": "hf is the coordinate identity from Matrix.inner_toEuclideanCLM. hcinfty uses ContDiff.inner and ContDiff.mul on the actual f; infinity is ordinary C-infinity, distinct from analytic omega."
+        },
+        {
+          "title": "Differentiate the genuine gradient",
+          "text": "The existing exact first-order result constructs the actual gradient Ax at every point. Its equality with the fixed linear map H turns the derivative of the gradient into H itself.",
+          "formula": "\\nabla f_A(x)=Hx,\\qquad D(\\nabla f_A)(x)[v]=Hv.",
+          "lean": "hgrad invokes canonical actual_first_order_query, hg identifies the total gradient after genuine existence, and hhessian rewrites by that identity before applying H.hasFDerivAt."
+        },
+        {
+          "title": "Use the produced lower and upper quadratic bounds",
+          "text": "Apply the existing actual admissibility theorem to the literal source matrix. Positive semidefiniteness of A−I and κI−A gives both Euclidean quadratic inequalities. No matrix certificate is supplied by the caller.",
+          "formula": "\\|v\\|^2\\le\\langle v,Hv\\rangle\\le\\kappa\\|v\\|^2.",
+          "lean": "hA is the canonical actual_precision_admissible result. hquad converts its PSD outputs through the exact CLM action; hlower and hupper use inner_self_eq_norm_sq. The source strict grid prefix remains a separate source route; these closed bounds are already supplied by the canonical parent."
+        },
+        {
+          "title": "Obtain the source strong-convexity constant",
+          "text": "Linearity converts the lower quadratic bound into quantitative monotonicity of the genuine gradient. The existing canonical gradient criterion gives strong convexity with modulus one, including the required one-half normalization.",
+          "formula": "\\langle\\nabla f_A(y)-\\nabla f_A(x),y-x\\rangle\\ge\\|y-x\\|^2.",
+          "lean": "hstrong actually invokes StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound with produced hgrad and hlower. This is a sufficient implementation route; the author’s Hessian route remains distinct in the source graph. It adds no assumption or constant."
+        },
+        {
+          "title": "Control the Euclidean gradient norm",
+          "text": "For a self-adjoint operator, the absolute Rayleigh quotients determine the operator norm. The upper quadratic bound and nonnegativity bound that norm by κ. Apply it to x−y to obtain the source Lipschitz gradient inequality.",
+          "formula": "\\|H\\|\\le\\kappa,\\qquad\\|\\nabla f_A(x)-\\nabla f_A(y)\\|\\le\\kappa\\|x-y\\|.",
+          "lean": "hnorm uses ContinuousLinearMap.norm_eq_iSup_rayleighQuotient, handling the zero vector separately. hsmooth uses H.le_opNorm. This is the induced Euclidean operator norm, with no coordinate/Frobenius norm or dimension factor."
+        },
+        {
+          "title": "Identify the global minimizer",
+          "text": "The literal formula gives value zero at the origin. The lower quadratic bound makes the value strictly positive at every other point, so the origin is a global minimizer and every global minimizer equals it.",
+          "formula": "f_A(0)=0,\\qquad f_A(x)\\ge\\tfrac12\\|x\\|^2>0\\quad(x\\ne0).",
+          "lean": "hzero, hnonneg and hpositive prove actual values. isMinOn_iff turns the final biconditional into comparison with every global competitor; the reverse implication supplies existence at zero as well as uniqueness."
+        },
+        {
+          "title": "Consume regularity for the actual fixed-input oracle",
+          "text": "The private Test uses the new scalar smoothness and genuine gradient derivative to obtain continuity. It separately identifies that gradient with the same actual Ax reply, then proves the ordered value/reply pair Borel measurable for this fixed input.",
+          "formula": "x\\longmapsto\\bigl(f_A(x),Ax\\bigr)\\quad\\text{is Borel measurable}.",
+          "lean": "hscalar consumes the new producer C-infinity output; hgradient consumes its HasFDerivAt output. hquery uses canonical actual_first_order_query, and Continuous.borel_measurable finishes the actual pair. The compiled private proof has exactly new geometry and canonical first-order parents; it is not a public or Registry node. This source-model bridge does not establish joint-in-O or adaptive histories."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.StrongConvexGradientConverse.strongConvexOn_of_gradient_inner_lower_bound"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.inner_toEuclideanCLM",
+        "Matrix.PosSemidef.dotProduct_mulVec_nonneg",
+        "HasGradientAt.gradient",
+        "ContDiff.inner",
+        "ContDiff.mul",
+        "ContinuousLinearMap.hasFDerivAt",
+        "ContinuousLinearMap.norm_eq_iSup_rayleighQuotient",
+        "ContinuousLinearMap.le_opNorm",
+        "isMinOn_iff"
+      ],
+      "lean_statement": "The literal source family with exactly d>=2,kappa>=2/full real O; smoothness, genuine Hessian, strong convexity, gradient bound,zero value and unique global minimizer are all outputs.",
+      "lean_proof": "The adjacent exact source uses three canonical ASTIS parents and standard Euclidean calculus, PSD and Rayleigh facts. The private actual Borel consumer genuinely uses the new regularity result plus the canonical actual first-order identity; it adds no public node or operational theorem.",
+      "boundary": "Selected actual C4 geometric conclusions and a genuine fixed-input actual reply Borel consumer are established locally. The source strict angle/cosine prefix remains a separate source route; closed bounds are reused from canonical admissibility. Joint random-input/adaptive/seed/transcript/output-law semantics, TV and finite-precision adapters, deterministic worst-query caps and explicit expected-cost accounting, both full main lower bounds, remote acceptance and postmerge purification/Exposition Seal remain separate.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS4",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.SS1/E11 literal hard family; AppendixC.4 geometric properties; S2.E1 exact first-order and Borel-model context.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Actual literal potential C4 geometry. Fixed-input Borel reply is a separately proved source-model background bridge, not a numbered C4 assertion or a complete adaptive algorithm.",
+          "label": "Zhou–Suzuki Eq11, AppendixC.4 and Section2 model"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumGeometry"
+      ]
+    }
+  ]
+}

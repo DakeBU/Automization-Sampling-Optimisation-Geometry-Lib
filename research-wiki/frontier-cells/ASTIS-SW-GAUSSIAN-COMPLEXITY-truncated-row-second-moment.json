@@ -1,0 +1,239 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-truncated-row-second-moment",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Actual truncated Gaussian row second moment and single-summand mean",
+  "source_anchor": "arXiv2610.20492v1 C.2 Ex108 and p12.m5, with definitions in p1/p10 and the standing source range",
+  "target_statement": "{d q : ℕ} (hq : 2 * q + 1 < d) :\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let kept : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    Set.indicator {y : E | R y ≤ L} G\n  Integrable kept μ ∧\n    (∫ x, kept x ∂μ) = a • (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ)\n\nPrivate actual consumer\n{d q : ℕ} (hq : 2 * q + 1 < d) (i : Fin d) :\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  let θ : Fin d → ℝ := fun j => ((j.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun j k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ j)\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let Y : E → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    Set.indicator {y : E | R y ≤ L}\n      (fun x => (d : ℝ)⁻¹ • Matrix.kronecker (G x) (Matrix.vecMulVec (t i) (t i)))\n  Integrable Y μ ∧\n    (∫ x, Y x ∂μ) =\n      (a / (d : ℝ)) • Matrix.kronecker\n        (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (Matrix.vecMulVec (t i) (t i))\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_gc_20261111_truncated_row_moment",
+  "advance_id": "ASTIS-SA-20261111-GaussianComplexityTruncatedRowMoment",
+  "parents": [
+    "ASTIS-SHARED-std-gaussian-second-moment"
+  ],
+  "consumers": [
+    "The actual private E[Y_i] Kronecker summand mean in C.2 p12.m5."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib source-facing inventory. Read the source-facing GaussianComplexity cosine-frame and Krylov declarations for the exact deterministic row conventions and actual downstream consumers.",
+      "Reuse canonical stdGaussian, Euclidean norm and squared-norm moment nodes. This new source root is the unnormalized truncated matrix second moment.",
+      "Mathlib exact canonical definition audit. Audited actual Matrix vecMulVec/Kronecker/identity, canonical Gaussian, indicator, Bochner integral, and L2 operator norm definitions. Exact proof APIs remain for after accepted intake."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib source-facing inventory. Read the source-facing GaussianComplexity cosine-frame and Krylov declarations for the exact deterministic row conventions and actual downstream consumers.",
+      "Reuse canonical stdGaussian, Euclidean norm and squared-norm moment nodes. This new source root is the unnormalized truncated matrix second moment.",
+      "Mathlib exact canonical definition audit. Audited actual Matrix vecMulVec/Kronecker/identity, canonical Gaussian, indicator, Bochner integral, and L2 operator norm definitions. Exact proof APIs remain for after accepted intake."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+      "ProbabilityTheory.stdGaussian_map",
+      "LinearIsometryEquiv.piLpCongrRight",
+      "LinearIsometryEquiv.piLpCongrLeft",
+      "LinearIsometryEquiv.neg",
+      "MeasureTheory.integral_map",
+      "MeasureTheory.Integrable.mono'",
+      "MeasureTheory.Integrable.indicator",
+      "MeasureTheory.Integrable.of_eval",
+      "MeasureTheory.eval_integral",
+      "Matrix.ofLinearEquiv",
+      "LinearEquiv.toContinuousLinearEquiv",
+      "ContinuousLinearMap.integrable_comp",
+      "ContinuousLinearMap.integral_comp_comm",
+      "ContinuousLinearEquiv.integral_comp_comm",
+      "EuclideanSpace.real_norm_sq_eq",
+      "MeasureTheory.integral_finsetSum",
+      "Matrix.kroneckerBilinear"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "_private.Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment.actual_truncated_matrix_summand_mean"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment.actual_truncated_matrix_summand_mean"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Prove the actual unnormalized truncated matrix second moment and consume it in the source single-row Y mean."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Independent source and bounded production static review accepted the exact five folded Lean blocks, full formulas and private L19 citation. Real desktop/mobile, complete reader operations, canonical index/graph and public integration remain pending."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "candidate-published",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment"
+    ],
+    "visual_review": "Compiled parent audit and independently validated conceptual comparison recorded. Shared graph delivery awaits the stabilization owner."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Two initial producer checks reported PiLp coercion/argument and local-definition rewriting errors. Both source versions and actual failures are preserved. The third producer check and first full producer/consumer build passed. The source types are unchanged.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One Lean prover with independent source graph and different-role topology reviewers.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "One source-facing implementation packet."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 raw SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "C.2 Ex108 and p12.m5",
+    "detail_status": "omitted",
+    "gap": "The source invokes radial symmetry and writes the tensor expectation. Matrix integrability, symmetry consequences, scalar identification and deterministic Kronecker interchange need internal proofs.",
+    "consulted": [
+      {
+        "source": "Pinned canonical Gaussian, Matrix and Bochner definitions",
+        "anchor": "Current v2 exact definition context and actual sixteen-definition print",
+        "hypothesis_adapter": "Use the actual standard law and Euclidean L2 operator matrix norm. Derive all symmetry and integration facts inside the proof."
+      },
+      {
+        "source": "Pinned Mathlib Multivariate Gaussian, PiLp isometries, finite-dimensional modules and Bochner continuous-linear-map integration",
+        "anchor": "stdGaussian_map; piLpCongrRight/Left; Matrix.ofLinearEquiv; toContinuousLinearEquiv; integral_comp_comm; kroneckerBilinear",
+        "hypothesis_adapter": "Canonical standard-law invariance and retained norm integrability justify the entrywise symmetry proof. Finite-dimensional linear maps transport the matrix and deterministic Kronecker integrals."
+      }
+    ],
+    "fidelity_boundary": "Unnormalized truncated second moment and one deterministic-row mean. The prior scalar range/bias, full row-family probability transport, aggregate cosine-frame means, centered summand bounds, fourth moments, concentration, Lemma4.4, oracle/TV/cost adapters, both main bounds, integrated site and purification are separate."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_TYPES_COMPILED;QUALIFIED_PRESEAL_API_EXPOSURE;INDEPENDENT_SOURCE_NATIVE_STATIC_RECORDED",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-statement-seal-v2.json",
+    "sha256": "ee9d261db9301f0fa750102f8105c27fbbbcef9e8a19f900636b705f461b18dd",
+    "signature_sha256": "e231ce32f517936350efface8c277491562d1537dcc02441db6907410929ae05",
+    "private_consumer_signature_sha256": "0395f749c993cc8ebad7f71d3feb36a10c84543fb54fb35dabfe81a6ded54323"
+  },
+  "evidence": {
+    "actual_literal_formation": {
+      "path": ".astis/huanjian-resume-20261103/20261111T024902794299Z-radial-covariance-literal-Prop-L2-operator-formation.receipt.json",
+      "sha256": "74c8c2f788bb39ed9e21569c6244b9e283ee2e02483e243f3a5edc6559c97876",
+      "log_sha256": "438f8655c173099fb9980ad7d171d97e86b4e13bb2c75b401c34a09d8d1f707f"
+    },
+    "actual_definition_meaning": {
+      "path": ".astis/huanjian-resume-20261103/20261111T025203905861Z-radial-covariance-complete-definition-meaning.receipt.json",
+      "sha256": "759b0930d2304d4f30b40bd7193b6842a36babfaf5a53cbaa02f33d8075e4ba3",
+      "log_sha256": "f8da081a8f6886773ab72e7adf793fc042f9fa540467b57560db775c4b1bef10"
+    },
+    "preproof_source_admission": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/preproof-source-admission.json",
+      "sha256": "79634739aed574833d831d463805cdf4044ff4407337fb5917faf6a3e2a649e4"
+    },
+    "normal_API_calls": 3,
+    "preseal_exposure_correction": {
+      "path": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/preseal-exposure-correction.json",
+      "sha256": "1cc398074722d3e54ba5d86b64dfbc41088bb8bb7089b35c256df45b3a70936c"
+    },
+    "actual_compilation": {
+      "path": ".astis/huanjian-resume-20261103/20261111T032852209851Z-radial-row-second-moment-actual-producer-and-consumer-build.receipt.json",
+      "sha256": "dfb4a1143aaa6e818df99c7b83b5f7cd81ccc9174d85a8d0282945dce5470a04",
+      "log_sha256": "d81c8be083c9304bcf6a7071e237fde035716489343332c80742ffcac0eb787a"
+    },
+    "actual_kernel": {
+      "path": ".astis/huanjian-resume-20261103/20261111T033046618660Z-radial-row-second-moment-actual-kernel-types-axioms-and-parents.receipt.json",
+      "sha256": "3349ef9570a69295b663e87edac5b317bde28804287074c7e2d97d46bf763d0b",
+      "log_sha256": "f6c51ead060ce1d4af4b856d5b0859b0d8f2c9d8cebe9ad3471c6e8376245fd2"
+    },
+    "actual_public_ASTIS_parents": {
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+      ],
+      "_private.Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRowMoment.actual_truncated_matrix_summand_mean": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment"
+      ]
+    },
+    "preseal_exposure_independent_qualification": {
+      "path": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/preseal-exposure-independent-qualification.md",
+      "sha256": "33ce110e84a11087302c693b46b514fb2babbdc8f32ad9c2f941b8b9640bed5b"
+    },
+    "focused_checks": [
+      {
+        "path": ".astis/huanjian-resume-20261103/20261111T032852209851Z-radial-row-second-moment-actual-producer-and-consumer-build.receipt.json",
+        "sha256": "dfb4a1143aaa6e818df99c7b83b5f7cd81ccc9174d85a8d0282945dce5470a04",
+        "log_sha256": "d81c8be083c9304bcf6a7071e237fde035716489343332c80742ffcac0eb787a"
+      },
+      {
+        "path": ".astis/huanjian-resume-20261103/20261111T033046618660Z-radial-row-second-moment-actual-kernel-types-axioms-and-parents.receipt.json",
+        "sha256": "3349ef9570a69295b663e87edac5b317bde28804287074c7e2d97d46bf763d0b",
+        "log_sha256": "f6c51ead060ce1d4af4b856d5b0859b0d8f2c9d8cebe9ad3471c6e8376245fd2"
+      }
+    ],
+    "actual_PROVED_LOCAL_append_sha256": "a9f1da5135d71d5a3ca4182ce66f7c69f29608219707c4b7e63cb506dace0632",
+    "independent_verification": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/actual-VERIFIED-independent-decision.json",
+    "independent_source_audit": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/independent-source-review-original.json",
+    "independent_native_and_reader": "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/independent-native-and-static-review-original.json"
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumTruncatedRowMoment.lean",
+    "Tests/GaussianComplexityFixedSpectrumTruncatedRowMoment.lean",
+    "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-statement-seal-v2.json",
+    "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-statement-seal.json",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-truncated-row-second-moment.json",
+    "research-wiki/paper-contributions/GaussianComplexity/truncated-row-second-moment-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-gaussian-truncated-row-second-moment.json",
+    "website/content/publications/huanjian-gaussian-truncated-row-second-moment.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-gaussian-truncated-row-second-moment.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json"
+  ],
+  "truth_boundary": "Compiled the exact canonical standard-row unnormalized retained matrix second moment and its actual deterministic midpoint-cosine Y summand mean, with scalar and matrix integrability established inside the proofs and q=0 included. The matrix norm is the Euclidean operator norm. Original joint-row pushforward and integral transport, aggregate frame means, centered and fourth-moment bounds, concentration, full Lemma4.4, both main lower bounds, oracle/precision/cost adapters, independent final verification, integrated reader publication and purification remain separate.",
+  "conceptual_mirror_audit": {
+    "status": "candidates-published",
+    "discovery_ids": [
+      "ASTIS-DISC-20261111-GaussianRadialWeightedMatrixSymmetry"
+    ],
+    "scope": "Independently validated radial-weight symmetry comparison. Exact shared Gaussian-invariance declarations remain canonical. Ex113 and variance are source-only."
+  }
+}

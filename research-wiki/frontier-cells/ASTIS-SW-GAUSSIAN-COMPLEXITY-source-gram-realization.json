@@ -1,0 +1,867 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-gram-realization",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Actual centered source Gram realization with eventwise norm consumer",
+  "source_anchor": "arXiv2610.20492v1 C.2 p17 Ex125/126; original experiment, frame, inclusive cutoff and actual mean definitions. Source Bernstein/probabilities excluded.",
+  "target_statement": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) =\n      (B ω).transpose * B ω - a •\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)) ∧\n    ((∑ i : Fin d, w i • Z i ω) =\n      (B ω).transpose * Matrix.diagonal w * B ω)\n\nPrivate deterministic actual norm consumer\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧\n      (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω -\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)‖\n        ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_gc_20261113_source_gram_realization",
+  "advance_id": "ASTIS-SA-20261113-GaussianComplexitySourceGramRealization",
+  "parents": [
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-mean",
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-cosine-gram"
+  ],
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.actual_source_gram_deviation_bounds"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS canonical reuse: Actual target-name and canonical-parent rg scan before intake found no existing public actual centered Gram realization; prior private aggregate-mean consumer retained and not promoted into public API.",
+      "Reuse exact actual source matrix-mean and cosine-frame Gram declarations; literal angle transport is internal, not a new hypothesis or duplicate frame theorem.",
+      "Private norm consumer reuses canonical standard Gaussian norm-square moment and actual retained-radius domination; no supplied bias/range certificate.",
+      "Source-first exact22node/15edge/9gap graph and distinct raw-first challenge cover123source locators plus72node/use-site locators; probabilities remain excluded.",
+      "Mathlib actual bounded interface search: Matrix Kronecker, multiplication/diagonal/transpose, L2 norm and real sqrt source files. Exact diagonal_mul/mul_diagonal/transpose_mul interfaces found; no generic certificate or target proof supplied."
+    ],
+    "classification": "adapt",
+    "decision": "reuse_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS canonical reuse: Actual target-name and canonical-parent rg scan before intake found no existing public actual centered Gram realization; prior private aggregate-mean consumer retained and not promoted into public API.",
+      "Reuse exact actual source matrix-mean and cosine-frame Gram declarations; literal angle transport is internal, not a new hypothesis or duplicate frame theorem.",
+      "Private norm consumer reuses canonical standard Gaussian norm-square moment and actual retained-radius domination; no supplied bias/range certificate.",
+      "Source-first exact22node/15edge/9gap graph and distinct raw-first challenge cover123source locators plus72node/use-site locators; probabilities remain excluded.",
+      "Mathlib actual bounded interface search: Matrix Kronecker, multiplication/diagonal/transpose, L2 norm and real sqrt source files. Exact diagonal_mul/mul_diagonal/transpose_mul interfaces found; no generic certificate or target proof supplied."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+    ],
+    "planned_existing_P_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+    ],
+    "planned_private_T_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "_private.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.actual_source_gram_deviation_bounds"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.actual_source_gram_deviation_bounds"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "New actual rectangular Gaussian-feature B/Gram identities materially feed the literal source Gram-deviation norm bounds. Reuse exact mean/frame/moment nodes; no arbitrary B/mean/frame or probability certificates.",
+    "actual_private_consumer_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+    ]
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Actual original and C2 Chrome runs each completed4readercontexts/12source-download/2boundedgraph checks; all344fold/source lines exact and runtime/MathJax/HTTP/request errors0. Original mobile table unscrollable and source anchors overlap stickyheader: ORIGINAL FAIL. Isolated C2table+anchor CSS candidate actual checkerexit0, table100/MAX positive and anchors unobscured. Independent visual review discovered residual exported-source longline clipping/scroll uncertainty not measured by C2. C1 preserved untested. Separate C3candidate/reference measurement/final source-pre horizontal-reading acceptance PENDING. No claim of whole-reader acceptance; all candidate CSS globally UNAPPLIED, owner stillSTABILIZING on actual13:57Z fetch. No global integration/publication/purification claim."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations"
+    ],
+    "visual_review": "Actual real GraphBuilder/productionJS bounded16node16edge fixture checked at two viewports, statuses allpartial and0compiled badges. Graphcanvas/detail image acceptance and final C3review separate; no global graph/Registry/source-index integration."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "All actual proof/formation/metadata/custody/native-inventory/reader failures retained. Final P/T signatures, definitions and binders unchanged.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One ROOT mathworker; distinct source extraction and independent topology challenge only.",
+      "shared_verified_context_digest": "7b2f71cf9e89a41da4f66b2b3908222c875cd2fec2f8b2ca6533fe61b3bb3ce9"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No competing proof routes."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 rawSHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "C.2 p17 Ex125/126",
+    "detail_status": "omitted",
+    "gap": "Actual B tensor/Gram coordinate algebra, inverse-sqrt normalization, actual aggregate mean/frame transport and finite-matrix identity norm are internal obligations, not caller certificates. PrivateDelta generalization explicitly excludes stochastic probability claims.",
+    "consulted": [
+      {
+        "source": "Pinned raw source with independent raw-first SG and distinct TC",
+        "anchor": "Exactv3graph/v3coverage/v2ports and frozen challenge",
+        "hypothesis_adapter": "Solehq/q0, actualoriginalmu/rows/mean/a/B, inclusiveG and actualsame-outcome deviation antecedents preserved."
+      }
+    ],
+    "fidelity_boundary": "Only original-experiment eventwise actual Gram realization on the inclusive all-row good event: sumZi=B^TB-aI and sumwiZi=B^Tdiag(w)B. Private actual Ex126 norm consequence conditions on the same-outcome actual centered-sum deviation event at arbitrary realDelta, discharging a<=1 internally. No probability of that event, Bernstein tail, full FactC6/Lemma4.4/Krylov/mainlowerbound, oracle/TV/precision/cap/cost, publicprivateconsumer API or integration/purification credit."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_LITERAL_GRAM_TYPES;LOCAL_COMPILED;INDEPENDENT_SOURCE_NATIVE_ACCEPTED;FINAL_RUNTIME_READER_PENDING;INTEGRATION_HELD",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-statement-seal.json",
+    "sha256": "7b2f71cf9e89a41da4f66b2b3908222c875cd2fec2f8b2ca6533fe61b3bb3ce9",
+    "signature_sha256": "0c2de4cd20931d19055e83abbde9acb2b93d65c4cd252df0148377254982a580",
+    "private_consumer_signature_sha256": "5fd6eb29c42885dff8e5341b01cfbcd7d755cb2a5bd02d20c02bc383ec03b662"
+  },
+  "evidence": {
+    "preproof_source_admission": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/preproof-source-admission.json",
+      "sha256": "79a0f11bb7d5d923c79d2996721c029bcf93256b2781cb4b4b1a50c50e0d5120"
+    },
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261113T083451243190Z-unclaimed-source-gram-realization-v1-literal-Prop-formation.receipt.json",
+      "receipt_sha256": "c11d7a506af4230cf125830284783eb4413a0addef60bd84ba35928747bea966",
+      "actual_executed_HEAD": "828cf84610dd7bde53cc2cc5525f4f48fa06002d",
+      "exit_code": 0,
+      "log_sha256": "15b6d904cd1c3347b1ffa99146addac4314c044e08f0543b358d23ad802e543c",
+      "kind": "Proof-free literal P/T Prop formation only",
+      "theorem_proofs": 0,
+      "warnings": "hq unused in proposition formation, retained sole source premise. No theorem proof supplied.",
+      "new_SAU_frontier_ledger_calls": 0,
+      "unclaimed_seal_sha256": "7b2f71cf9e89a41da4f66b2b3908222c875cd2fec2f8b2ca6533fe61b3bb3ce9"
+    },
+    "actual_environment": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/actual-environment-before-intake.original.json",
+      "sha256": "6f1b15f28b3fbd2d04b82db25430cd12ca997cb7e22a38205471f8d5613090a5"
+    },
+    "normal_API_calls": 4,
+    "formalizer_API_pristine": false,
+    "local_math_candidate": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/local-math-candidate.json",
+      "sha256": "91497071358ec777364fc033b06e6443ab5c9dc8fc46a1eed2fef71f35793e23",
+      "independent_semantic": "accepted exact P and explicit private T generalization",
+      "independent_native": "PASS actual60ec complete closure"
+    },
+    "target_proof_calls_at_intake": 0,
+    "independent_source_review": {
+      "public_P_overlay": {
+        "path": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/P.audit-overlay.json",
+        "sha256": "e77a91e789b456009716adf100de99d2fd629ed1b856cd17ccc12e0433b7a77c"
+      },
+      "private_T_overlay": {
+        "path": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/T.audit-overlay.json",
+        "sha256": "e6b612d3c2771552770769fa4a39cb4e82f34ffbb45f799626e055d3669b8b15"
+      },
+      "private_T_decision": {
+        "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/private-consumer-source-reviewed.bounded.json",
+        "sha256": "77c64656df322bc64038f7ffd8268ae72f81b9bf189f1e71d876f784edb8ce64"
+      },
+      "complete_original_archive": {
+        "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/complete-source-originals.tar.gz",
+        "sha256": "622202fe34ed08bdb80dbd63603bcfc32c23963dd8fa4fd00a1b1f0856425e4b",
+        "files": 41
+      },
+      "review_run_sha256": "b110371ec6386b1bf8e28a836b34843ec7337d1c5e91b464cc45941274df0e32",
+      "scope": "Rawfirst+wholemodule+currentfresh7slots+source/code-span/exposition/conceptualreview; Texplicitprivateallreal-thresholdgeneralization informational only, no probability/publicAPI credit. No native/runtime/globalintegration inferred."
+    },
+    "focused_checks": [
+      {
+        "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/math-originals/actual-runs/20261113T122239973197Z-source-gram-realization-second-full-P-T-Lake-build-abstract-bias-algebra.receipt.json",
+        "sha256": "3cf17ec0c4789a1b957d27bee606ca57ac47a82721f2b867d4403b849965d45b",
+        "command": [
+          "lake",
+          "build",
+          "Tests.GaussianComplexityFixedSpectrumSourceGramRealization"
+        ],
+        "exit_code": 0,
+        "log_sha256": "0ebc1c2ceacc5cb79d53814b359a1a232ec07b3dc3b18e5ba7527ee265b602f3",
+        "executed_HEAD": "de206b055cb8589c4c760b62209741ac62ad243a"
+      },
+      {
+        "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/math-originals/actual-runs/20261113T122411551128Z-source-gram-realization-exact-proof-value-kernel-after-successful-full-build.receipt.json",
+        "sha256": "d9455e7c7289afa8f9c30f1c007b815dd4d29aaf6354acfa7a246b3941495a69",
+        "command": [
+          "lake",
+          "env",
+          "lean",
+          ".astis/huanjian-gc-source-gram-realization-20261113/FinalGramKernelProbe.lean"
+        ],
+        "exit_code": 0,
+        "log_sha256": "3ee686332025a1b9677e3117770161c5a6c87a123cad472f76737c6c389b387b",
+        "executed_HEAD": "de206b055cb8589c4c760b62209741ac62ad243a"
+      }
+    ],
+    "actual_PROVED_LOCAL_append_sha256": "f5fe8f25b024b1ea558edb2ab5161866a267eb3a5cc2e39417a8c9d6e0db5d98",
+    "independent_native_math": {
+      "path": ".astis/semantic-neutral-20261113/gram_native_6a27/native-math-verdict.json",
+      "sha256": "53a973c5bbaf0c822a257000879072b9841718bb2d85cbd2963af0f0efcc8efb",
+      "checked_commit": "60ec0e083261dfa71f009bdd5d8c9e63b1425bb7",
+      "actual_complete_type_value_checks": 41,
+      "complete_structured_ExprDAG_nodes": 52106,
+      "closure_modules": 8,
+      "task_module_emissions": 4,
+      "selected_native_original_archive": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/selected-native-originals.lossless.tar.gz",
+        "sha256": "53c96b82231e9576995755cc7cae794ae7b3ccbbb08193df78f470ae1fc2c8ea"
+      },
+      "selected_native_manifest": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/selected-native-originals.manifest.json",
+        "sha256": "0759289b3e2d75a3da17fe111bb7aa82413322c8a773200fb409c6870e7a49ae"
+      },
+      "boundary_qualification": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/native-boundary-qualification.json",
+        "sha256": "b25b6583b431eed58da73b89fafbb50423af227a2690b2961e08df9d188c47af"
+      },
+      "reader_acceptance": "separate; final C3 runtime review pending"
+    },
+    "actual_reader_evidence": {
+      "actual_candidate_commit": "d35db1ade1a63ea9b944c5f2983760ba6d50dfab",
+      "original": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/browser-original/report.json",
+        "sha256": "bdc83b4b747148e93e55e6ba747f1e8008f35f0084dc8a6cc3c7b1ae2a938167",
+        "checker_exit": 1,
+        "wrapper_exit": 1,
+        "status": "FAIL_MOBILE_TABLE_AND_SOURCE_ANCHOR_PLACEMENT",
+        "contexts": 4,
+        "source_and_download_checks": 12,
+        "graph_checks": 2
+      },
+      "combined_C2": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/browser-combined/report.json",
+        "sha256": "4c198d21f614b3d5dd91420a6bf0467c3805d1ed583a38c065af274c2070d051",
+        "checker_exit": 0,
+        "wrapper_exit": 0,
+        "status": "AUTOMATED_TABLE_ANCHOR_PASS;RESIDUAL_FULL_SOURCE_PRE_READING_UNVERIFIED",
+        "contexts": 4,
+        "source_and_download_checks": 12,
+        "graph_checks": 2,
+        "source_anchor_placements": 8,
+        "site_manifest_sha256": "95caac242f6d7f6884337815623ab203fabe117cd4f007116084b5743016cbf0",
+        "site_manifest_sha256_after": "95caac242f6d7f6884337815623ab203fabe117cd4f007116084b5743016cbf0",
+        "contract": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/browser-approval-contract-combined.json",
+          "sha256": "2505c171e1654cb11403dd0251828caf02b1526d30553329ef48b52c5d8e03f6"
+        },
+        "receipt": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/receipts/20261113T135310349821Z-ROOT-primary-new-gram-reader-combined-C2.json",
+          "sha256": "77414b62c4de013d02249d3dcc9448324975467a089282ac96d55667b2a1a8ae"
+        }
+      },
+      "independent_closed_review": {
+        "status": "FINAL_RUNTIME_READER_PENDING_C3",
+        "observation": "Native6a27 reported C2table/anchor checks and PNGs accepted within precise scope, and detected residual mobile exported-source plain-pre clipping; separate C3 required."
+      },
+      "production_CSS_changed": false,
+      "boundary": "Actual original and C2 Chrome runs each completed4readercontexts/12source-download/2boundedgraph checks; all344fold/source lines exact and runtime/MathJax/HTTP/request errors0. Original mobile table unscrollable and source anchors overlap stickyheader: ORIGINAL FAIL. Isolated C2table+anchor CSS candidate actual checkerexit0, table100/MAX positive and anchors unobscured. Independent visual review discovered residual exported-source longline clipping/scroll uncertainty not measured by C2. C1 preserved untested. Separate C3candidate/reference measurement/final source-pre horizontal-reading acceptance PENDING. No claim of whole-reader acceptance; all candidate CSS globally UNAPPLIED, owner stillSTABILIZING on actual13:57Z fetch. No global integration/publication/purification claim.",
+      "graph_boundary": "Actual real GraphBuilder/productionJS bounded16node16edge fixture checked at two viewports, statuses allpartial and0compiled badges. Graphcanvas/detail image acceptance and final C3review separate; no global graph/Registry/source-index integration."
+    },
+    "independent_verification": "Independent verifier gram_final_verifier_91dc at held f7a38f36 accepted local exact P/private T mathematics, source/native evidence and all four actual held CLI gates. Independent C3-v2 bounded reader closure accepted; original FAIL/C2 residual/failed C3 and all26 historical PL fields remain inline unchanged. Candidate CSS globally UNAPPLIED, original owner retained; integration/publication/purification/whole Goal HOLD. Details separately under independent_verification_details.",
+    "independent_verification_details": {
+      "result_kind": "theorem-edge",
+      "theorem_delta": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ ω : Ω, G ω →\n    ((∑ i : Fin d, Z i ω) =\n      (B ω).transpose * B ω - a •\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)) ∧\n    ((∑ i : Fin d, w i • Z i ω) =\n      (B ω).transpose * Matrix.diagonal w * B ω)\n",
+      "lean_files": [
+        "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+        "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean"
+      ],
+      "lean_declarations": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations"
+      ],
+      "publication_declarations": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations"
+      ],
+      "focused_checks": [
+        {
+          "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/math-originals/actual-runs/20261113T122239973197Z-source-gram-realization-second-full-P-T-Lake-build-abstract-bias-algebra.receipt.json",
+          "sha256": "3cf17ec0c4789a1b957d27bee606ca57ac47a82721f2b867d4403b849965d45b",
+          "command": [
+            "lake",
+            "build",
+            "Tests.GaussianComplexityFixedSpectrumSourceGramRealization"
+          ],
+          "exit_code": 0,
+          "log_sha256": "0ebc1c2ceacc5cb79d53814b359a1a232ec07b3dc3b18e5ba7527ee265b602f3",
+          "executed_HEAD": "de206b055cb8589c4c760b62209741ac62ad243a"
+        },
+        {
+          "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/math-originals/actual-runs/20261113T122411551128Z-source-gram-realization-exact-proof-value-kernel-after-successful-full-build.receipt.json",
+          "sha256": "d9455e7c7289afa8f9c30f1c007b815dd4d29aaf6354acfa7a246b3941495a69",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            ".astis/huanjian-gc-source-gram-realization-20261113/FinalGramKernelProbe.lean"
+          ],
+          "exit_code": 0,
+          "log_sha256": "3ee686332025a1b9677e3117770161c5a6c87a123cad472f76737c6c389b387b",
+          "executed_HEAD": "de206b055cb8589c4c760b62209741ac62ad243a"
+        }
+      ],
+      "truth_boundary": "Only original-experiment eventwise actual Gram realization on the inclusive all-row good event: sumZi=B^TB-aI and sumwiZi=B^Tdiag(w)B. Private actual Ex126 norm consequence conditions on the same-outcome actual centered-sum deviation event at arbitrary realDelta, discharging a<=1 internally. No probability of that event, Bernstein tail, full FactC6/Lemma4.4/Krylov/mainlowerbound, oracle/TV/precision/cap/cost, publicprivateconsumer API or integration/purification credit. Actual complete P/T proof bodies compiled and independently source/native reviewed. Original reader FAIL and isolated C2 automated checks are distinct; full-source horizontal reading/final reader C3 and serialized integration remain pending.",
+      "mathematical_candidate": "60ec0e083261dfa71f009bdd5d8c9e63b1425bb7",
+      "executed_build_qualification": "Runs executed at the intake HEAD with exact listed worktree source bytes; future immutable math carrier is not retroactively claimed to be an executed build HEAD.",
+      "source_review_metadata_commit": "86cda6f488a90963225b8c10dc66682eaffad102",
+      "reader_metadata_commit": "d35db1ade1a63ea9b944c5f2983760ba6d50dfab",
+      "publication_binding_sha256": "65c30c6418698d87435669de50b1d56de12aac5814baa77903556a5e5087c404",
+      "actual_compiled_parent_edges": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+      ],
+      "actual_material_consumer": {
+        "name": "_private.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceGramRealization.actual_source_gram_deviation_bounds",
+        "file": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+        "file_sha256": "ac57194ab0cff3708609549581146a1fca91ec31dea2d6fbce95260158e616e5",
+        "sealed_signature": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let a : ℝ := (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L}\n    (fun y : E => ‖y‖ ^ 2) x ∂stdGaussian E) / r\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let B : Ω → Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun ω i u =>\n    (Real.sqrt (d : ℝ))⁻¹ * (row i ω) u.1 * t i u.2\n  let G : Ω → Prop := fun ω => ∀ i : Fin d, ‖row i ω‖ ^ 2 ≤ L\n  ∀ Δ : ℝ, ∀ ω : Ω, G ω →\n    ((‖∑ i : Fin d, Z i ω‖ ≤ Δ) ∧\n      (‖∑ i : Fin d, w i • Z i ω‖ ≤ Δ)) →\n    ((‖(B ω).transpose * B ω -\n        (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ)‖\n        ≤ Δ + (1 - a)) ∧\n      (‖(B ω).transpose * Matrix.diagonal w * B ω‖ ≤ Δ))\n",
+        "direct_ASTIS_parents": [
+          "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceGramRealization.actual_source_centered_gram_realizations",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian"
+        ],
+        "both_P_outputs_materially_used": true,
+        "private_implementation_only": true,
+        "public_API_registry_credit": false,
+        "source_decision": {
+          "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/private-consumer-source-reviewed.bounded.json",
+          "sha256": "77c64656df322bc64038f7ffd8268ae72f81b9bf189f1e71d876f784edb8ce64"
+        },
+        "scope": "All-real-threshold deterministic generalization of printed numeric Ex126, conditional on original G and the actual same-outcome centered-sum bounds. Only a<=1 needed and proved internally; no probability claim."
+      },
+      "independent_source_review": {
+        "public_P_overlay": {
+          "path": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/P.audit-overlay.json",
+          "sha256": "e77a91e789b456009716adf100de99d2fd629ed1b856cd17ccc12e0433b7a77c"
+        },
+        "private_T_overlay": {
+          "path": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/T.audit-overlay.json",
+          "sha256": "e6b612d3c2771552770769fa4a39cb4e82f34ffbb45f799626e055d3669b8b15"
+        },
+        "private_T_decision": {
+          "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/private-consumer-source-reviewed.bounded.json",
+          "sha256": "77c64656df322bc64038f7ffd8268ae72f81b9bf189f1e71d876f784edb8ce64"
+        },
+        "complete_original_archive": {
+          "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/complete-source-originals.tar.gz",
+          "sha256": "622202fe34ed08bdb80dbd63603bcfc32c23963dd8fa4fd00a1b1f0856425e4b",
+          "files": 41
+        },
+        "review_run_sha256": "b110371ec6386b1bf8e28a836b34843ec7337d1c5e91b464cc45941274df0e32",
+        "scope": "Rawfirst+wholemodule+currentfresh7slots+source/code-span/exposition/conceptualreview; Texplicitprivateallreal-thresholdgeneralization informational only, no probability/publicAPI credit. No native/runtime/globalintegration inferred."
+      },
+      "independent_native_math": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/native-math-verdict.json",
+        "sha256": "53a973c5bbaf0c822a257000879072b9841718bb2d85cbd2963af0f0efcc8efb",
+        "checked_commit": "60ec0e083261dfa71f009bdd5d8c9e63b1425bb7",
+        "actual_complete_type_value_checks": 41,
+        "complete_structured_ExprDAG_nodes": 52106,
+        "closure_modules": 8,
+        "task_module_emissions": 4,
+        "selected_native_original_archive": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/selected-native-originals.lossless.tar.gz",
+          "sha256": "53c96b82231e9576995755cc7cae794ae7b3ccbbb08193df78f470ae1fc2c8ea"
+        },
+        "selected_native_manifest": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/selected-native-originals.manifest.json",
+          "sha256": "0759289b3e2d75a3da17fe111bb7aa82413322c8a773200fb409c6870e7a49ae"
+        },
+        "boundary_qualification": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/native-boundary-qualification.json",
+          "sha256": "b25b6583b431eed58da73b89fafbb50423af227a2690b2961e08df9d188c47af"
+        },
+        "reader_acceptance": "separate; final C3 runtime review pending"
+      },
+      "conceptual_mirror_audit": {
+        "status": "none-found",
+        "discovery_ids": [],
+        "authored_audit": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/conceptual-mirror-audit.authored-v1.json",
+        "independent_review": {
+          "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/review-run.json",
+          "sha256": "b110371ec6386b1bf8e28a836b34843ec7337d1c5e91b464cc45941274df0e32"
+        }
+      },
+      "owned_math": {
+        "full_universal_root_proof_values_at_literal_sealed_types": 2,
+        "raw_literal_Expr_equalities": [
+          false,
+          false
+        ],
+        "kernel_definitional_conversion": "passed",
+        "all_owned_type_value_rechecks": 4,
+        "handwritten": 2,
+        "generated": 2,
+        "all_owned_reachable": true,
+        "nonstandard_axioms": [],
+        "real_q0_applications": 2
+      },
+      "native_emission_count_qualification": "Native rechecked41 actual emitted declarations across8modules. The two target modules emit4=publicP, privateT, generatedP_proof_1_1 and privateT_abel_1_1. ROOTowned4=2handwritten+2generated. No helper is a separate public mathematical node.",
+      "kernel_type_check": "Actual full universal P/T proof values at literal sealed types, genuine q0 universal and q0d2 applications. ROOT rawExpr equality false but kernel conversion passed. Native complete lossless structured ExprDAG, real Euclidean L2 norm/CLM action and unchanged topology checked.",
+      "formalizer_API_pristine": false,
+      "proof_iteration": "First P function-head feature alias caused Matrix dot-notation inference errors; proof-body alias retyped as definitionally identical Matrix. Second P removed redundant solved-goal rfl and exposed outer weighted entry before diagonal reduction. Private T replaced implicit-transparency entry ext with abstract module bias algebra and used two-component add_le_add. Exact signatures/objects/binders unchanged; all failures preserved. Full successful P/T Lake build0 preceded strict complete proof-value kernel0. Pre-API intake label/context errors retained; no intake API was replayed. Native inventory/module-mode API failures and source-label snapshot custody qualification retained; no source/binder/definition change. Original reader failures retained; C1 untested; C2 separately frozen and actually run.",
+      "reader_boundary": "Actual original and C2 Chrome runs each completed4readercontexts/12source-download/2boundedgraph checks; all344fold/source lines exact and runtime/MathJax/HTTP/request errors0. Original mobile table unscrollable and source anchors overlap stickyheader: ORIGINAL FAIL. Isolated C2table+anchor CSS candidate actual checkerexit0, table100/MAX positive and anchors unobscured. Independent visual review discovered residual exported-source longline clipping/scroll uncertainty not measured by C2. C1 preserved untested. Separate C3candidate/reference measurement/final source-pre horizontal-reading acceptance PENDING. No claim of whole-reader acceptance; all candidate CSS globally UNAPPLIED, owner stillSTABILIZING on actual13:57Z fetch. No global integration/publication/purification claim.",
+      "actual_reader_evidence": {
+        "actual_candidate_commit": "d35db1ade1a63ea9b944c5f2983760ba6d50dfab",
+        "original": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/browser-original/report.json",
+          "sha256": "bdc83b4b747148e93e55e6ba747f1e8008f35f0084dc8a6cc3c7b1ae2a938167",
+          "checker_exit": 1,
+          "wrapper_exit": 1,
+          "status": "FAIL_MOBILE_TABLE_AND_SOURCE_ANCHOR_PLACEMENT",
+          "contexts": 4,
+          "source_and_download_checks": 12,
+          "graph_checks": 2
+        },
+        "combined_C2": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/browser-combined/report.json",
+          "sha256": "4c198d21f614b3d5dd91420a6bf0467c3805d1ed583a38c065af274c2070d051",
+          "checker_exit": 0,
+          "wrapper_exit": 0,
+          "status": "AUTOMATED_TABLE_ANCHOR_PASS;RESIDUAL_FULL_SOURCE_PRE_READING_UNVERIFIED",
+          "contexts": 4,
+          "source_and_download_checks": 12,
+          "graph_checks": 2,
+          "source_anchor_placements": 8,
+          "site_manifest_sha256": "95caac242f6d7f6884337815623ab203fabe117cd4f007116084b5743016cbf0",
+          "site_manifest_sha256_after": "95caac242f6d7f6884337815623ab203fabe117cd4f007116084b5743016cbf0",
+          "contract": {
+            "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/browser-approval-contract-combined.json",
+            "sha256": "2505c171e1654cb11403dd0251828caf02b1526d30553329ef48b52c5d8e03f6"
+          },
+          "receipt": {
+            "path": ".astis/semantic-neutral-20261113/gram_native_6a27/receipts/20261113T135310349821Z-ROOT-primary-new-gram-reader-combined-C2.json",
+            "sha256": "77414b62c4de013d02249d3dcc9448324975467a089282ac96d55667b2a1a8ae"
+          }
+        },
+        "independent_closed_review": {
+          "status": "FINAL_RUNTIME_READER_PENDING_C3",
+          "observation": "Native6a27 reported C2table/anchor checks and PNGs accepted within precise scope, and detected residual mobile exported-source plain-pre clipping; separate C3 required."
+        },
+        "production_CSS_changed": false,
+        "boundary": "Actual original and C2 Chrome runs each completed4readercontexts/12source-download/2boundedgraph checks; all344fold/source lines exact and runtime/MathJax/HTTP/request errors0. Original mobile table unscrollable and source anchors overlap stickyheader: ORIGINAL FAIL. Isolated C2table+anchor CSS candidate actual checkerexit0, table100/MAX positive and anchors unobscured. Independent visual review discovered residual exported-source longline clipping/scroll uncertainty not measured by C2. C1 preserved untested. Separate C3candidate/reference measurement/final source-pre horizontal-reading acceptance PENDING. No claim of whole-reader acceptance; all candidate CSS globally UNAPPLIED, owner stillSTABILIZING on actual13:57Z fetch. No global integration/publication/purification claim.",
+        "graph_boundary": "Actual real GraphBuilder/productionJS bounded16node16edge fixture checked at two viewports, statuses allpartial and0compiled badges. Graphcanvas/detail image acceptance and final C3review separate; no global graph/Registry/source-index integration."
+      },
+      "preservation_before_API": {
+        "foreign_full_states": 312,
+        "foreign_regular_frontier_files": 472,
+        "foreign_discovery_full_states": 43,
+        "all_existing_tracked_fingerprints": 136171,
+        "historical_and_control_artifact_fingerprints": 116040,
+        "control_count_qualification": "All captured files under historical runs and named control roots; not a literal queue count.",
+        "private_guards_exported": false,
+        "existing_index_preserved_except_exact_own_ledger_append": true,
+        "new_owned_files_not_miscounted_as_old_foreign_paths": true
+      },
+      "integration_notes": "Original shared stabilization owner remains reserved. No shared CSS/root imports/Registry/global graph/source-index/production site or clean-port changed. No Bernstein event probability, full FactC6/Lemma4.4/main lowerbound or oracle/TV/precision/query-cap/cost/purification credit.",
+      "verifier_id": "gram_final_verifier_91dc",
+      "verified_commit": "f7a38f36c080883d6c936ae90157a40548797e1b",
+      "gate": {
+        "status": "PASS_LOCAL_MATHEMATICS_SOURCE_NATIVE_BOUNDED_READER_AND_FOUR_HELD_CLI_GATES",
+        "native_mathematical_candidate": "60ec0e083261dfa71f009bdd5d8c9e63b1425bb7",
+        "actual_executed_ROOT_build_HEAD_qualification": "Runs executed at the intake HEAD with exact listed worktree source bytes; future immutable math carrier is not retroactively claimed to be an executed build HEAD.",
+        "all_eight_live_Lean_module_bytes_identical_to_native_and_held_commits": [
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceRowLaw.lean",
+            "sha256": "c370caf377c5d56c97bdb1012d407049e63b04998011df327de79c46fb2b1201",
+            "identical_to_native_and_held_commits": true
+          },
+          {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/StdGaussianMoment.lean",
+            "sha256": "f87a1c18284dbe58658c3c312f1015fa2eec0b203d5a1187618e5f43ea2a6e00",
+            "identical_to_native_and_held_commits": true
+          },
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumTruncatedRowMoment.lean",
+            "sha256": "1a97dd98ecc4e3965db20a91c1d22ca8520406ea22cbbfbd631579522d071310",
+            "identical_to_native_and_held_commits": true
+          },
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixMean.lean",
+            "sha256": "0ca68e9b4c8a229f5344f854f76775a582d2cf5347862711935cd67f215457df",
+            "identical_to_native_and_held_commits": true
+          },
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumGridAlias.lean",
+            "sha256": "c98c899bd8b596388ae433e9241a7827e01d29c3ffcc945719238fa2e96f7d60",
+            "identical_to_native_and_held_commits": true
+          },
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumCosineGram.lean",
+            "sha256": "88f29461fcac1825675e417a1bc3f3952404f1cd08183d6e484162aefe9f5d54",
+            "identical_to_native_and_held_commits": true
+          },
+          {
+            "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+            "sha256": "b68d9d7d6e385355391a8bf93653e9bbee1843be897f63563e0aa8af0e91d537",
+            "identical_to_native_and_held_commits": true
+          },
+          {
+            "path": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+            "sha256": "ac57194ab0cff3708609549581146a1fca91ec31dea2d6fbce95260158e616e5",
+            "identical_to_native_and_held_commits": true
+          }
+        ],
+        "held_commit_claimed_rebuilt": false,
+        "complete_native_type_value_rechecks": 41,
+        "complete_ExprDAG_nodes": 52106,
+        "actual_four_held_CLI_gate_originals": [
+          {
+            "command": [
+              "python3",
+              "tools/astis_publication.py",
+              "check",
+              "--base",
+              "7b0ef4eeab3257d04616e1b6dbbed08d01f03361"
+            ],
+            "exit": 0,
+            "receipt": ".astis/semantic-neutral-20261113/gram_native_6a27/receipts/20261113T141101824698Z-final-held-metadata-1.json",
+            "receipt_sha256": "2e9c7b692e7b06815c91429031d74454e923e46a6cb1828f00fba5e67a66d371",
+            "stdout_sha256": "2103f74f71a63330b277625b3bb7af37de610cbfbab59369368a70e63b68bb1d",
+            "stderr_empty": true,
+            "actual_held_HEAD": "f7a38f36c080883d6c936ae90157a40548797e1b"
+          },
+          {
+            "command": [
+              "python3",
+              "tools/astis_semantic_roundtrip.py",
+              "check"
+            ],
+            "exit": 0,
+            "receipt": ".astis/semantic-neutral-20261113/gram_native_6a27/receipts/20261113T141104999643Z-final-held-metadata-2.json",
+            "receipt_sha256": "c374807208ffd81bdc58c7ac3aeb95c1fd825452839ecd7434aeea829bd92a40",
+            "stdout_sha256": "4d4d48ff02186a6fc746145ec60ee276c34ef8fa6c50357a7f097490b87b7fb1",
+            "stderr_empty": true,
+            "actual_held_HEAD": "f7a38f36c080883d6c936ae90157a40548797e1b"
+          },
+          {
+            "command": [
+              "python3",
+              "tools/astis_contributor_contract.py",
+              "check",
+              "--base",
+              "7b0ef4eeab3257d04616e1b6dbbed08d01f03361"
+            ],
+            "exit": 0,
+            "receipt": ".astis/semantic-neutral-20261113/gram_native_6a27/receipts/20261113T141105272222Z-final-held-metadata-3.json",
+            "receipt_sha256": "0d64411faef82880b8971dc2c2facc902fc37169fe0b8d8626e683a236e63591",
+            "stdout_sha256": "746e63a08021792b145cf1583bfdd2f4d67f3e2538df7f3304b89dcd4eb3521c",
+            "stderr_empty": true,
+            "actual_held_HEAD": "f7a38f36c080883d6c936ae90157a40548797e1b"
+          },
+          {
+            "command": [
+              "python3",
+              "tools/astis_frontier_cells.py",
+              "check"
+            ],
+            "exit": 0,
+            "receipt": ".astis/semantic-neutral-20261113/gram_native_6a27/receipts/20261113T141108145148Z-final-held-metadata-4.json",
+            "receipt_sha256": "e91110ed2a49bdc20ab98be2842b9a5750bc647c7505825a951cfcb0904e8573",
+            "stdout_sha256": "35b62a878a58a2d5b062885c40676c09079f06f789b54c2a2550c5e04effc449",
+            "stderr_empty": true,
+            "actual_held_HEAD": "f7a38f36c080883d6c936ae90157a40548797e1b"
+          }
+        ],
+        "held_gate_summary": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/final-metadata-result.json",
+          "sha256": "b80430e119de180612b878b64881dab8ac8b103b124380ae5c546a3b8a2eca4d"
+        },
+        "verification_method": "Read unchanged original source/native/reader evidence and actual gate raw streams; no source review, Lean build, browser or four CLI gate replay. Normal API retains its mandatory real publication admission.",
+        "scope": "Local acceptance only. Root build/shared graph/site/global integration and purification remain separate."
+      },
+      "source_audit": {
+        "status": "ACCEPTED_EXISTING_INDEPENDENT_SOURCE_REVIEW_REUSED",
+        "reviewer": "gram_src_e182",
+        "public_audit_id": "ASTIS-RT-20261113-HuanjianGaussianSourceGramRealization",
+        "public_binding_sha256": "65c30c6418698d87435669de50b1d56de12aac5814baa77903556a5e5087c404",
+        "private_T_binding_sha256": "e8d5ad9ff1297f051c7449ffd71f7cf9131fbf4de7400e3ebf91e5d805d56b4f",
+        "independent_exact_selected_original_archive_members_checked": 41,
+        "independent_current_P_T_inputs_seven_slots_blind_decoder_and_packet_run_provenance_checked": true,
+        "source_conclusion": "Public exact eventwise Ex125 equivalent after elaboration; private T openly authored all-real-threshold deterministic Ex126 generalization only. No probability or public T API credit.",
+        "a_bound_qualification": "Only needed a<=1 derived internally; no proof credit for lower half0<=a."
+      },
+      "semantic_roundtrip_audit": "ASTIS-RT-20261113-HuanjianGaussianSourceGramRealization accepted/equivalent-after-elaboration; separate private T accepted with explicit threshold generalization. Seven slots and independent decoder/source-review provenance preserved.",
+      "fake_closure_scan": {
+        "status": "PASS_UNCHANGED_EIGHT_MODULE_NATIVE_AND_COMPLETE_EXPRESSION_EVIDENCE",
+        "source_scan": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/fake-closure-source-scan.json",
+          "sha256": "a4a21a52bb5997dbdd4df54e59bc38a39d17c79e0b9c5e9e09ac985f8beef038"
+        },
+        "complete_declaration_type_value_rows": 41,
+        "complete_ExprDAG_nodes": 52106,
+        "closed_and_kernel_checked": true,
+        "standard_axioms": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ],
+        "nonstandard_axioms": [],
+        "actual_complete_owned_emissions": 4,
+        "two_handwritten_plus_two_generated": true,
+        "all_owned_reachable_and_canonical_parent_P_to_T_constants_checked": true,
+        "universal_literal_seals_genuine_q0_universal_and_q0d2_proof_checks": true,
+        "real_Euclidean_L2_operator_norm_CLM_action_and_topology_checked": true,
+        "independent_expression_crosscheck": {
+          "path": ".astis/semantic-neutral-20261113/gram_final_verifier_91dc/expression-evidence-crosscheck.bounded.json",
+          "sha256": "cdef5671bd7a86650e231dd8a778e3ebac9409fc4a9cdce04ffe81e910839b56"
+        }
+      },
+      "final_current_reader_update": {
+        "status": "ACCEPTED_EXACT_OWNED_BOUNDED_C3_V2_READER_FIXTURE",
+        "reader_candidate": "d35db1ade1a63ea9b944c5f2983760ba6d50dfab",
+        "actual_native_candidate": "60ec0e083261dfa71f009bdd5d8c9e63b1425bb7",
+        "actual_report_sha256": "4017177295aaab462cae4fccd5eca048a785d4020cf7c0875db93e50da9b1c38",
+        "actual_checker_exit": 0,
+        "independent_native_visual_reviewer": "gram_native_6a27",
+        "four_reader_contexts": 4,
+        "byte_exact_full_code_lines": [
+          208,
+          136
+        ],
+        "source_download_checks": 12,
+        "bounded_production_graph_checks": 2,
+        "eight_P13_T14_anchors_clear_header": true,
+        "mobile_table_scroll100_MAX": [
+          100,
+          324
+        ],
+        "actual_source_pre_scroll_scope": [
+          {
+            "source": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+            "viewport": 1440,
+            "scroll100": 0,
+            "scrollMAX": 0,
+            "right_glyph": 1308,
+            "glyph_top": 412.5625,
+            "header_bottom": 0,
+            "visible_below_header_and_within_viewport": true
+          },
+          {
+            "source": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+            "viewport": 1440,
+            "scroll100": 100,
+            "scrollMAX": 276,
+            "right_glyph": 1320,
+            "glyph_top": 450.421875,
+            "header_bottom": 0,
+            "visible_below_header_and_within_viewport": true
+          },
+          {
+            "source": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+            "viewport": 390,
+            "scroll100": 100,
+            "scrollMAX": 554,
+            "right_glyph": 374,
+            "glyph_top": 412.890625,
+            "header_bottom": 60.421875,
+            "visible_below_header_and_within_viewport": true
+          },
+          {
+            "source": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+            "viewport": 390,
+            "scroll100": 100,
+            "scrollMAX": 842,
+            "right_glyph": 374,
+            "glyph_top": 412.75,
+            "header_bottom": 60.421875,
+            "visible_below_header_and_within_viewport": true
+          }
+        ],
+        "source_glyph_geometry_qualification": "Mobile longest-line right ends around y413 are below and clear of sticky header bottom60.42, within844px viewport.",
+        "actual_candidate_and_C2_reference_manifests_unchanged_before_after": true,
+        "candidate_site_manifest_sha256": "a12af8c19a0f1323343e9cbd578d28e68ab1c745386b20db44aaf7398fa35985",
+        "original_FAIL_C1_untested_C2_bounded_residual_failed_C3_v1_preserved": true,
+        "failed_C3_v1_diagnosis": "Checker relied on immediate geometry after smooth viewport scrolling; actual horizontal movement passed. V2 uses explicit instantaneous measured viewport positioning at the exact same frozen C3 site and retains strict right-glyph/header/viewport assertions.",
+        "historical_original_PL_pending_strings": "All26 original fields remain inline unchanged; this separate current closure adds later evidence without rewriting those historical statements.",
+        "candidate_CSS_globally_applied": false,
+        "shared_production_CSS_unchanged": true,
+        "global_production_delivery_integration_publication_purification_whole_Goal": "HOLD",
+        "exact_native_reader_closure": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/final-native-reader-closure.json",
+          "sha256": "1459c72b4ab63e012ef06ebbfec773ed6e1301344dbb0b086838a1e31f60629e"
+        },
+        "exact_independent_reader_judgment": {
+          "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/C3-bounded-acceptance.json",
+          "sha256": "4ace0a1bf4af5e0652aea3d1e325b7f14c29d190ef89dbbbbf7682f3b5812226"
+        },
+        "frozen_wording_qualification": {
+          "path": ".astis/semantic-neutral-20261113/gram_final_verifier_91dc/peer-wording-qualification.json",
+          "sha256": "7cc7d62dea834aac4b231dbaa9f20b53df7f7a32f23bb55b1422782e27d24c31"
+        }
+      },
+      "final_native_reader_package": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/selected-native-reader-originals.lossless.tar.gz",
+        "sha256": "758996d2b885c394edc8acc6cb45300cfacc35deea362f784343fb6225bf02d0",
+        "bytes": 12617237,
+        "regular_members": 365,
+        "exact_nested_native_archive_occurrences": 1,
+        "all_selected_and_nested_original_payloads_byte_checked": true,
+        "recursive_private_map_scan": "PASS",
+        "whole_neutral_directory_exported": false,
+        "archive_manifest_sha256": "9e891739cbe2247b579225e6e4dbc8c7c5c70e05fdca8de5fc14dfc63038d0d4",
+        "archive_closure_sha256": "404cb895810f0d94bfc250efc31ac3693b3525d2439518281633f13c0f1b3b7b"
+      },
+      "original_PL_carry": {
+        "field_count": 26,
+        "all_original_fields_inline_unchanged": true,
+        "original_payload_sha256": "5fba206470cdcaefe0ea8533b735d3754088cfe9e81694516feef801f5806a14",
+        "original_exact_append_sha256": "f5fe8f25b024b1ea558edb2ab5161866a267eb3a5cc2e39417a8c9d6e0db5d98",
+        "historical_pending_failure_boundary_strings_preserved": true
+      },
+      "verification_scope": {
+        "local_mathematics_source_native_and_owned_bounded_reader": "VERIFIED",
+        "retained_owner": "huanjian_gc_20261113_source_gram_realization",
+        "stabilization_owner_transfer": false,
+        "sole_hq_q0_original_product_mu_actual_mean_B_inclusive_G_preserved": true,
+        "public_P_exact_centered_and_weighted_Gram_identities": true,
+        "private_T_actual_same_outcome_eventwise_all_real_Delta_norm_implication": true,
+        "probability_Bernstein_full_C6_Lemma4_4_Krylov_main_lower_bound_oracle_TV_caps_cost_claim": false,
+        "shared_CSS_imports_Registry_global_indices_site_main_integration_changed": false,
+        "integration_publication_purification_whole_Goal": "HOLD"
+      },
+      "preservation_verification_plan": {
+        "historical": "All312 foreign advance full states/472 frontier files/43 discoveries and136171 tracked/116040 control fingerprints plus foreign index entries checked locally before and after.",
+        "fresh": "Exact held whole index/current tracked/control/frontier files/full states and ledger prefix; only own C plus exactly one expected normal V append may change.",
+        "full_private_maps_indexes_and_control_snapshots_exported": false
+      }
+    },
+    "final_current_reader_update": {
+      "status": "ACCEPTED_EXACT_OWNED_BOUNDED_C3_V2_READER_FIXTURE",
+      "reader_candidate": "d35db1ade1a63ea9b944c5f2983760ba6d50dfab",
+      "actual_native_candidate": "60ec0e083261dfa71f009bdd5d8c9e63b1425bb7",
+      "actual_report_sha256": "4017177295aaab462cae4fccd5eca048a785d4020cf7c0875db93e50da9b1c38",
+      "actual_checker_exit": 0,
+      "independent_native_visual_reviewer": "gram_native_6a27",
+      "four_reader_contexts": 4,
+      "byte_exact_full_code_lines": [
+        208,
+        136
+      ],
+      "source_download_checks": 12,
+      "bounded_production_graph_checks": 2,
+      "eight_P13_T14_anchors_clear_header": true,
+      "mobile_table_scroll100_MAX": [
+        100,
+        324
+      ],
+      "actual_source_pre_scroll_scope": [
+        {
+          "source": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+          "viewport": 1440,
+          "scroll100": 0,
+          "scrollMAX": 0,
+          "right_glyph": 1308,
+          "glyph_top": 412.5625,
+          "header_bottom": 0,
+          "visible_below_header_and_within_viewport": true
+        },
+        {
+          "source": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+          "viewport": 1440,
+          "scroll100": 100,
+          "scrollMAX": 276,
+          "right_glyph": 1320,
+          "glyph_top": 450.421875,
+          "header_bottom": 0,
+          "visible_below_header_and_within_viewport": true
+        },
+        {
+          "source": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+          "viewport": 390,
+          "scroll100": 100,
+          "scrollMAX": 554,
+          "right_glyph": 374,
+          "glyph_top": 412.890625,
+          "header_bottom": 60.421875,
+          "visible_below_header_and_within_viewport": true
+        },
+        {
+          "source": "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+          "viewport": 390,
+          "scroll100": 100,
+          "scrollMAX": 842,
+          "right_glyph": 374,
+          "glyph_top": 412.75,
+          "header_bottom": 60.421875,
+          "visible_below_header_and_within_viewport": true
+        }
+      ],
+      "source_glyph_geometry_qualification": "Mobile longest-line right ends around y413 are below and clear of sticky header bottom60.42, within844px viewport.",
+      "actual_candidate_and_C2_reference_manifests_unchanged_before_after": true,
+      "candidate_site_manifest_sha256": "a12af8c19a0f1323343e9cbd578d28e68ab1c745386b20db44aaf7398fa35985",
+      "original_FAIL_C1_untested_C2_bounded_residual_failed_C3_v1_preserved": true,
+      "failed_C3_v1_diagnosis": "Checker relied on immediate geometry after smooth viewport scrolling; actual horizontal movement passed. V2 uses explicit instantaneous measured viewport positioning at the exact same frozen C3 site and retains strict right-glyph/header/viewport assertions.",
+      "historical_original_PL_pending_strings": "All26 original fields remain inline unchanged; this separate current closure adds later evidence without rewriting those historical statements.",
+      "candidate_CSS_globally_applied": false,
+      "shared_production_CSS_unchanged": true,
+      "global_production_delivery_integration_publication_purification_whole_Goal": "HOLD",
+      "exact_native_reader_closure": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/final-native-reader-closure.json",
+        "sha256": "1459c72b4ab63e012ef06ebbfec773ed6e1301344dbb0b086838a1e31f60629e"
+      },
+      "exact_independent_reader_judgment": {
+        "path": ".astis/semantic-neutral-20261113/gram_native_6a27/reader/C3-bounded-acceptance.json",
+        "sha256": "4ace0a1bf4af5e0652aea3d1e325b7f14c29d190ef89dbbbbf7682f3b5812226"
+      },
+      "frozen_wording_qualification": {
+        "path": ".astis/semantic-neutral-20261113/gram_final_verifier_91dc/peer-wording-qualification.json",
+        "sha256": "7cc7d62dea834aac4b231dbaa9f20b53df7f7a32f23bb55b1422782e27d24c31"
+      }
+    }
+  },
+  "blocked": {},
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceGramRealization.lean",
+    "Tests/GaussianComplexityFixedSpectrumSourceGramRealization.lean",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-source-gram-realization.json",
+    "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-statement-seal.json",
+    "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-gaussian-source-gram-realization.json",
+    "website/content/publications/huanjian-gaussian-source-gram-realization.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-gaussian-source-gram-realization.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json",
+    "website/static/proof-readers.css",
+    "website/static/source-lineage.css"
+  ],
+  "truth_boundary": "Only original-experiment eventwise actual Gram realization on the inclusive all-row good event: sumZi=B^TB-aI and sumwiZi=B^Tdiag(w)B. Private actual Ex126 norm consequence conditions on the same-outcome actual centered-sum deviation event at arbitrary realDelta, discharging a<=1 internally. No probability of that event, Bernstein tail, full FactC6/Lemma4.4/Krylov/mainlowerbound, oracle/TV/precision/cap/cost, publicprivateconsumer API or integration/purification credit. Actual complete P/T proof bodies compiled and independently source/native reviewed. Original reader FAIL and isolated C2 automated checks are distinct; full-source horizontal reading/final reader C3 and serialized integration remain pending.",
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "authored_audit": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/conceptual-mirror-audit.authored-v1.json",
+    "independent_review": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-gram-realization-semantic-evidence/source-review/gram_src_e182/review-run.json",
+      "sha256": "b110371ec6386b1bf8e28a836b34843ec7337d1c5e91b464cc45941274df0e32"
+    }
+  }
+}

@@ -1,0 +1,289 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-ca97435e41c12049",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "huanjian_gc_20261107_first_order_query",
+    "blind_decoder": "/root/decode_730418",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "arxiv2610.20492v1-ActualFirstOrderQuery",
+    "anchor": "S2 centered first-order model; S3.E4-E5 actual block precision; A2.SS1.SSS0.Px1.p1 Oracle reduction primitive; A2.Ex33-Ex35; omitted zero-residual convention.",
+    "original_text": "Exact forward and inverse block products reconstruct the actual first-order observation of the centered quadratic potential. (f(x),\\nabla f(x))=\\bigl(\\tfrac12\\langle x,g(x)\\rangle,g(x)\\bigr). \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\). Set \\(k=\\lfloor d/n\\rfloor\\), \\(r=d\\bmod n\\), and fix arbitrary actual hidden blocks \\(O_1,\\ldots,O_k\\in O(n)\\); no probability law or common determinant sign is assumed. Use the actual precision \\(A=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\), where \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and the actual centered potential \\(f(x)=\\frac12 x^\\top Ax\\), with zero additive constant. Write \\(x=(x_1,\\ldots,x_k,z)\\) in contiguous coordinates. In Lean the zero-based embedding sends \\((i,j)\\) to \\(jn+i\\) and the residual coordinate \\(i\\) to \\(kn+i\\). The case \\(r=0\\) is included; it has no residual coordinates. The primitive oracle returns exact real products \\(O_jv\\) or \\(O_j^\\top v\\), tagged false and true respectively. The inverse tag refers to the orthogonal block inverse, not the precision inverse. The output includes genuine Euclidean Fréchet differentiability \\(\\operatorname{HasGradientAt} f\\ g(x)\\ x\\); a totalized gradient fallback is not used to establish the claim. The reconstructed block is \\(g_j(x)=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}\\bigl(Q_j^{\\mathrm f}(x_j)+Q_j^{\\mathrm i}(x_j)\\bigr)\\). Assemble \\(g(x)=(g_1(x),\\ldots,g_k(x),z)\\); the residual is copied unchanged.",
+    "text_sha256": "dc6f83464020afd0e273ded836bd82e4f1bbd26f01163dbc9c5b3683531ad4be"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FirstOrderQuery.lean",
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ),\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let B : Fin (d / n) → Matrix (Fin n) (Fin n) ℝ := fun j =>\n      ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -\n        ((κ - 1) / 4) • ((Os j : Matrix (Fin n) (Fin n) ℝ) +\n          (Os j : Matrix (Fin n) (Fin n) ℝ).transpose)\n    let A := Matrix.reindex e e\n      (Matrix.fromBlocks (Matrix.blockDiagonal B) 0 0\n        (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : Fin (d / n) → EuclideanSpace ℝ (Fin n) → Bool →\n        EuclideanSpace ℝ (Fin n) := fun j v inverse =>\n      WithLp.toLp 2 (if inverse then\n        (Os j : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp v\n      else (Os j : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp v)\n    let xb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n    let gb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n        (query j (xb x j) false + query j (xb x j) true)\n    let g : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n      WithLp.toLp 2 (fun a => Sum.elim\n        (fun ij => gb x ij.2 ij.1)\n        (fun i => x (e (Sum.inr i))) (e.symm a))\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (g x) x ∧\n      (f x, gradient f x) = (inner ℝ x (g x) / 2, g x)\n",
+    "statement_sha256": "af48377ac71a73e610c2c66f7de328d228bc21aff0a6ef9a8c727c67ad5a6953",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every pair of natural numbers d,n with 3 <= n <= d, every real number kappa >= 4, and every family (O_j) indexed by j = 0,...,q-1 of real orthogonal n-by-n matrices, where q = floor(d/n) and r = d mod n, the following holds. Put alpha = (kappa+1)/2 and beta = (kappa-1)/4. Identify the d coordinates with q full blocks of n coordinates followed by r remaining coordinates: the local coordinate i of block j has global coordinate j*n+i, and remaining coordinate i has global coordinate q*n+i. Define B_j = alpha I_n - beta (O_j + O_j^T), let A be the d-by-d matrix with these q diagonal blocks and the identity I_r on the remaining coordinates, with all intervening blocks zero, and define f(x) = (x^T A x)/2 on real Euclidean d-space. For v in real Euclidean n-space define Q(j,v,false) = O_j v and Q(j,v,true) = O_j^T v. For x in real Euclidean d-space, let x_j be its vector of coordinates in full block j and define g_j(x) = alpha x_j - beta (Q(j,x_j,false) + Q(j,x_j,true)). Define g(x) by placing g_j(x) in full block j and copying x on the r remaining coordinates. Then, for every x in real Euclidean d-space, f has a Frechet derivative at x represented by g(x), namely h maps to the Euclidean inner product of g(x) with h, and the simultaneous equality (f(x), gradient f(x)) = ((inner product of x with g(x))/2, g(x)) holds. In particular, the derivative and gradient assertions are conclusions for every x. The orthogonal matrices may have either determinant sign; the assertion is universal over these families.",
+    "text_sha256": "c29fc88a82b6f5ff4c8637511b87bf3a7d0c1da9c4a998a9f67e512cffd178c9",
+    "decoder": "/root/decode_730418",
+    "decoder_packet_sha256": "4a63586ed610738defcc10b2c2cf8fe91ebe6da40aed6fd5f9a00a9efcce0322",
+    "decoder_run_sha256": "f5d6ab4d01ad7768373705f10020aa387679ce7cce0b5bea442f59eef2c64397",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "e8418238a48de3365b59035dc005bce611ec93a257f47229c54a6b847a1452aa",
+  "candidate_publication_context": {
+    "file": "6311ee7bafc04e6cd84925fbfd48533f44a4b8d4a963a5c2211f363e5c99b3b0",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily\nimport Mathlib.Analysis.Calculus.Gradient.Basic\nimport Mathlib.Analysis.InnerProductSpace.PiL2\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.Analysis.InnerProductSpace.Calculus\nimport Mathlib.Analysis.InnerProductSpace.Adjoint\nopen Matrix InnerProductSpace\nopen scoped BigOperators\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\n/-!\n# Actual one-query first-order reconstruction\n\nZhou--Suzuki arXiv:2610.20492v1, Appendix B.1 Oracle reduction,\nEx33--Ex35. The unknown precision is the canonical actual block family.\nThe primitive oracle below returns exact forward or transpose products of\nits hidden orthogonal blocks. Their stated affine combination reconstructs\nthe genuine Euclidean Frechet gradient and the actual potential value.\nHasGradientAt is an output; totalized gradient fallback is never a premise.\nThe contiguous coordinates include the omitted zero-dimensional residual.\nFinite-horizon operational2T caps, adaptive posterior/transcript/output laws,\nTV-precision and expected-cost adapters and both main lower bounds are separate.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery\nset_option autoImplicit false\ntheorem actual_first_order_query {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let A := blockPrecision κ Os\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : Fin (d / n) → EuclideanSpace ℝ (Fin n) → Bool →\n        EuclideanSpace ℝ (Fin n) := fun j v inverse =>\n      WithLp.toLp 2 (if inverse then\n        (Os j : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp v\n      else (Os j : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp v)\n    let xb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n    let gb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n        (query j (xb x j) false + query j (xb x j) true)\n    let g : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n      WithLp.toLp 2 (fun a => Sum.elim\n        (fun ij => gb x ij.2 ij.1)\n        (fun i => x (e (Sum.inr i))) (e.symm a))\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (g x) x ∧\n      (f x, gradient f x) = (inner ℝ x (g x) / 2, g x) := by\n  classical\n  dsimp only\n  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n    ((Equiv.sumCongr\n      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n  let A := blockPrecision κ Os\n  let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n  let query : Fin (d / n) → EuclideanSpace ℝ (Fin n) → Bool →\n      EuclideanSpace ℝ (Fin n) := fun j v inverse =>\n    WithLp.toLp 2 (if inverse then\n      (Os j : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp v\n    else (Os j : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp v)\n  let xb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n      EuclideanSpace ℝ (Fin n) := fun x j =>\n    WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n  let gb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n      EuclideanSpace ℝ (Fin n) := fun x j =>\n    ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n      (query j (xb x j) false + query j (xb x j) true)\n  let g : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n    WithLp.toLp 2 (fun a => Sum.elim\n      (fun ij => gb x ij.2 ij.1)\n      (fun i => x (e (Sum.inr i))) (e.symm a))\n  let E := EuclideanSpace ℝ (Fin d)\n  let H : E →L[ℝ] E := Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A\n  -- The same canonical actual-family regularity node supplies symmetry.\n  have hA : A.IsHermitian := (blockPrecision_regular hn hnd hκ Os).1\n  have hself : IsSelfAdjoint A := hA\n  have hH : H.IsSymmetric :=\n    ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric.mp\n      (hself.map (Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d)))\n  have hf : f = fun y : E => (1 / 2 : ℝ) * inner ℝ y (H y) := by\n    funext y\n    dsimp only [f]\n    rw [show inner ℝ y (H y) = (WithLp.ofLp y) ⬝ᵥ (A *ᵥ WithLp.ofLp y) from\n      Matrix.inner_toEuclideanCLM A y y]\n    ring\n  -- Differentiate the actual quadratic; no default gradient value is used.\n  have hgrad (y : E) : HasGradientAt f (H y) y := by\n    have hraw := ((hasFDerivAt_id y).inner ℝ H.hasFDerivAt).const_mul (1 / 2 : ℝ)\n    have hlin : (1 / 2 : ℝ) •\n        ((fderivInnerCLM ℝ (y, H y)).comp ((ContinuousLinearMap.id ℝ E).prod H)) =\n        toDual ℝ E (H y) := by\n      ext v\n      change (1 / 2 : ℝ) * (inner ℝ y (H v) + inner ℝ v (H y)) = inner ℝ (H y) v\n      rw [← hH.apply_clm y v, (real_inner_comm v (H y)).symm]\n      ring\n    apply hasGradientAt_iff_hasFDerivAt.mpr\n    rw [hf, ← hlin]\n    exact hraw\n  let C : Matrix ((Fin n × Fin (d / n)) ⊕ Fin (d % n))\n      ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ℝ :=\n    Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (Os j)))\n      0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)\n  have hAdef : A = Matrix.reindex e e C := rfl\n  intro x\n  -- Ex33 is an internal actual block-action bridge, not an assumed answer.\n  have hsingle (j : Fin (d / n)) : WithLp.ofLp (gb x j) =\n      singleBlockPrecision κ (Os j) *ᵥ WithLp.ofLp (xb x j) := by\n    simp [gb, query, singleBlockPrecision, Matrix.sub_mulVec, Matrix.smul_mulVec,\n      Matrix.add_mulVec, Matrix.one_mulVec]\n  -- Recombine those block actions through the literal source coordinates.\n  have hG : g x = H x := by\n    ext a\n    change Sum.elim (fun ij => gb x ij.2 ij.1)\n      (fun i => x (e (Sum.inr i))) (e.symm a) = (A *ᵥ WithLp.ofLp x) a\n    rw [hAdef]\n    change _ = (C.submatrix e.symm e.symm *ᵥ WithLp.ofLp x) a\n    rw [Matrix.submatrix_mulVec_equiv]\n    change _ = (C *ᵥ (WithLp.ofLp x ∘ e)) (e.symm a)\n    generalize hz : e.symm a = z\n    rcases z with ij | i\n    · rcases ij with ⟨i, j⟩\n      dsimp only [C]\n      rw [Matrix.fromBlocks_mulVec]\n      simp only [Sum.elim_inl, Matrix.zero_mulVec, add_zero]\n      change (gb x j) i = (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (Os j)) *ᵥ\n        (fun ij => x (e (Sum.inl ij)))) (i, j)\n      rw [show (gb x j) i = (singleBlockPrecision κ (Os j) *ᵥ\n        (fun a => x (e (Sum.inl (a, j))))) i from congrFun (hsingle j) i]\n      simp [Matrix.mulVec, dotProduct, Fintype.sum_prod_type, Matrix.blockDiagonal_apply,\n        ite_mul]\n    · dsimp only [C]\n      rw [Matrix.fromBlocks_mulVec]\n      simp only [Sum.elim_inr, Matrix.zero_mulVec, Matrix.one_mulVec,\n        zero_add, Function.comp_apply]\n  have hg : HasGradientAt f (g x) x := hG.symm ▸ hgrad x\n  refine ⟨hg, ?_⟩\n  have hval : f x = inner ℝ x (g x) / 2 := by\n    rw [hG]\n    exact congrArg (fun t : ℝ => t / 2) (Matrix.inner_toEuclideanCLM A x x).symm\n  exact Prod.ext hval hg.gradient\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.SS1.SSS0.Px1.p1",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S2 centered first-order model; S3.E4-E5 actual block precision; A2.SS1.SSS0.Px1.p1 Oracle reduction primitive; A2.Ex33-Ex35; omitted zero-residual convention.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The selected pointwise oracle identities are Appendix B.1; ASTIS explicitly supplies the genuine quadratic derivative and contiguous-coordinate adapters.",
+      "scope": "Pointwise first-order observation reconstruction only; operational query budgets and information-law lower bounds are separate."
+    },
+    "statement": "Exact forward and inverse block products reconstruct the actual first-order observation of the centered quadratic potential. (f(x),\\nabla f(x))=\\bigl(\\tfrac12\\langle x,g(x)\\rangle,g(x)\\bigr). \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\). Set \\(k=\\lfloor d/n\\rfloor\\), \\(r=d\\bmod n\\), and fix arbitrary actual hidden blocks \\(O_1,\\ldots,O_k\\in O(n)\\); no probability law or common determinant sign is assumed. Use the actual precision \\(A=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\), where \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and the actual centered potential \\(f(x)=\\frac12 x^\\top Ax\\), with zero additive constant. Write \\(x=(x_1,\\ldots,x_k,z)\\) in contiguous coordinates. In Lean the zero-based embedding sends \\((i,j)\\) to \\(jn+i\\) and the residual coordinate \\(i\\) to \\(kn+i\\). The case \\(r=0\\) is included; it has no residual coordinates. The primitive oracle returns exact real products \\(O_jv\\) or \\(O_j^\\top v\\), tagged false and true respectively. The inverse tag refers to the orthogonal block inverse, not the precision inverse. The output includes genuine Euclidean Fréchet differentiability \\(\\operatorname{HasGradientAt} f\\ g(x)\\ x\\); a totalized gradient fallback is not used to establish the claim. The reconstructed block is \\(g_j(x)=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}\\bigl(Q_j^{\\mathrm f}(x_j)+Q_j^{\\mathrm i}(x_j)\\bigr)\\). Assemble \\(g(x)=(g_1(x),\\ldots,g_k(x),z)\\); the residual is copied unchanged.",
+    "formulae": [
+      {
+        "label": "Actual first-order observation",
+        "tex": "(f(x),\\nabla f(x))=\\bigl(\\tfrac12\\langle x,g(x)\\rangle,g(x)\\bigr)."
+      }
+    ],
+    "assumptions": [
+      "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\). Set \\(k=\\lfloor d/n\\rfloor\\), \\(r=d\\bmod n\\), and fix arbitrary actual hidden blocks \\(O_1,\\ldots,O_k\\in O(n)\\); no probability law or common determinant sign is assumed.",
+      "Use the actual precision \\(A=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\), where \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and the actual centered potential \\(f(x)=\\frac12 x^\\top Ax\\), with zero additive constant.",
+      "Write \\(x=(x_1,\\ldots,x_k,z)\\) in contiguous coordinates. In Lean the zero-based embedding sends \\((i,j)\\) to \\(jn+i\\) and the residual coordinate \\(i\\) to \\(kn+i\\). The case \\(r=0\\) is included; it has no residual coordinates.",
+      "The primitive oracle returns exact real products \\(O_jv\\) or \\(O_j^\\top v\\), tagged false and true respectively. The inverse tag refers to the orthogonal block inverse, not the precision inverse. The output includes genuine Euclidean Fréchet differentiability \\(\\operatorname{HasGradientAt} f\\ g(x)\\ x\\); a totalized gradient fallback is not used to establish the claim.",
+      "The reconstructed block is \\(g_j(x)=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}\\bigl(Q_j^{\\mathrm f}(x_j)+Q_j^{\\mathrm i}(x_j)\\bigr)\\). Assemble \\(g(x)=(g_1(x),\\ldots,g_k(x),z)\\); the residual is copied unchanged."
+    ],
+    "obligations": [
+      {
+        "id": "actual-one-query-oracle-reconstruction",
+        "label": "The actual block primitive responses give the genuine gradient and potential of the actual canonical precision."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+      "title": "Actual first-order query reconstruction",
+      "reader_note": "The reconstructed observation is shown first; actual objects, assumptions, formula proof and exact Lean are folded below.",
+      "statement": "Exact forward and inverse block products reconstruct the actual first-order observation of the centered quadratic potential.",
+      "formula": "(f(x),\\nabla f(x))=\\bigl(\\tfrac12\\langle x,g(x)\\rangle,g(x)\\bigr).",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\). Set \\(k=\\lfloor d/n\\rfloor\\), \\(r=d\\bmod n\\), and fix arbitrary actual hidden blocks \\(O_1,\\ldots,O_k\\in O(n)\\); no probability law or common determinant sign is assumed.",
+        "Use the actual precision \\(A=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\), where \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), and the actual centered potential \\(f(x)=\\frac12 x^\\top Ax\\), with zero additive constant.",
+        "Write \\(x=(x_1,\\ldots,x_k,z)\\) in contiguous coordinates. In Lean the zero-based embedding sends \\((i,j)\\) to \\(jn+i\\) and the residual coordinate \\(i\\) to \\(kn+i\\). The case \\(r=0\\) is included; it has no residual coordinates.",
+        "The primitive oracle returns exact real products \\(O_jv\\) or \\(O_j^\\top v\\), tagged false and true respectively. The inverse tag refers to the orthogonal block inverse, not the precision inverse. The output includes genuine Euclidean Fréchet differentiability \\(\\operatorname{HasGradientAt} f\\ g(x)\\ x\\); a totalized gradient fallback is not used to establish the claim.",
+        "The reconstructed block is \\(g_j(x)=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}\\bigl(Q_j^{\\mathrm f}(x_j)+Q_j^{\\mathrm i}(x_j)\\bigr)\\). Assemble \\(g(x)=(g_1(x),\\ldots,g_k(x),z)\\); the residual is copied unchanged."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(k,r,Q^{\\mathrm f},Q^{\\mathrm i}\\)",
+          "text": "Full block count, residual dimension and the exact forward/inverse orthogonal-block responses.",
+          "formula": "k=\\lfloor d/n\\rfloor,\\quad r=d\\bmod n,\\quad x=(x_1,\\ldots,x_k,z)."
+        },
+        {
+          "symbol": "\\(g_j,g\\)",
+          "text": "Each exact block response pair determines the reconstructed block; the residual remains the original queried residual.",
+          "formula": "g_j(x)=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}(O_jx_j+O_j^\\top x_j),\\qquad g(x)=(g_1(x),\\ldots,g_k(x),z)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual symmetric operator",
+          "text": "Use the same canonical actual block-family regularity theorem to obtain symmetry of A. Transfer it through the matrix-to-Euclidean continuous linear map H. The calculus uses only that symmetry; the source spectral domain remains unchanged.",
+          "formula": "Hx=Ax,\\qquad\\langle u,Hv\\rangle=\\langle Hu,v\\rangle.",
+          "lean": "hA consumes blockPrecision_regular. hself and hH transfer self-adjointness through Matrix.toEuclideanCLM."
+        },
+        {
+          "title": "Differentiate the actual quadratic",
+          "text": "Differentiate one half of the inner product of the identity map and H. Symmetry combines the two derivative terms into the inner product with Hx. The Riesz representation gives a genuine gradient, rather than an equality involving the nondifferentiable fallback.",
+          "formula": "Df(x)[v]=\\tfrac12\\bigl(\\langle v,Hx\\rangle+\\langle x,Hv\\rangle\\bigr)=\\langle Hx,v\\rangle,\\qquad\\nabla f(x)=Hx.",
+          "lean": "hf identifies the actual potential. hraw differentiates the inner product; hlin identifies its continuous linear derivative with toDual ℝ E (H y); hgrad concludes HasGradientAt."
+        },
+        {
+          "title": "Reconstruct each actual block action",
+          "text": "Expand the literal source matrix. Its action on the queried block is exactly the stated affine combination of the two actual primitive replies. This identity is proved internally for every block.",
+          "formula": "A_{O_j}x_j=\\frac{\\kappa+1}{2}x_j-\\frac{\\kappa-1}{4}(O_jx_j+O_j^\\top x_j)=g_j(x).",
+          "lean": "hsingle uses the actual singleBlockPrecision definition and matrix sub/smul/add action identities. No gradient, symmetry or block-action answer is a public premise."
+        },
+        {
+          "title": "Reassemble the actual global gradient",
+          "text": "Transport through the literal contiguous-coordinate equivalence, expand the block diagonal action and preserve the residual identity action. This includes the zero-dimensional residual without imposing a positive-remainder hypothesis.",
+          "formula": "gx=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)x=Hx.",
+          "lean": "hAdef identifies the canonical blockPrecision with its literal reindexing. hG uses submatrix_mulVec_equiv, fromBlocks_mulVec, finite block sums and hsingle; hg transports hgrad."
+        },
+        {
+          "title": "Recover the value and the observation",
+          "text": "The same actual quadratic has value one half of its inner product with the reconstructed vector. Combine that equality with the genuine gradient. The focused consumer compares two actual hidden tuples whose primitive replies agree at the same point, then deduces equality of both actual observations.",
+          "formula": "f(x)=\\tfrac12\\langle x,g(x)\\rangle,\\qquad(f(x),\\nabla f(x))=(\\tfrac12\\langle x,g(x)\\rangle,g(x)).",
+          "lean": "hval uses Matrix.inner_toEuclideanCLM; Prod.ext hval hg.gradient concludes. Tests.GaussianComplexityFirstOrderQuery uses the theorem twice and congruence of the actual affine reply combination."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.toEuclideanCLM",
+        "Matrix.inner_toEuclideanCLM",
+        "ContinuousLinearMap.isSelfAdjoint_iff_isSymmetric",
+        "HasFDerivAt.inner",
+        "HasFDerivAt.const_mul",
+        "hasGradientAt_iff_hasFDerivAt",
+        "Matrix.submatrix_mulVec_equiv",
+        "Matrix.fromBlocks_mulVec"
+      ],
+      "lean_statement": "Exactly the preproof sealed source-domain pointwise reconstruction, including HasGradientAt as an output.",
+      "lean_proof": "The exact complete compiled production theorem is extracted adjacent to this formula proof. Canonical regularity supplies symmetry; every other bridge is proved inside the theorem.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS1.SSS0.Px1.p1",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S2 centered first-order model; S3.E4-E5 actual block precision; A2.SS1.SSS0.Px1.p1 Oracle reduction primitive; A2.Ex33-Ex35; omitted zero-residual convention.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The selected pointwise oracle identities are Appendix B.1; ASTIS explicitly supplies the genuine quadratic derivative and contiguous-coordinate adapters.",
+          "scope": "Pointwise first-order observation reconstruction only; operational query budgets and information-law lower bounds are separate.",
+          "label": "Zhou–Suzuki, Appendix B.1 Oracle reduction"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFirstOrderQuery"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+      "role": "proof-edge",
+      "supports": [
+        "actual-one-query-oracle-reconstruction"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Standing source block-family domain 3<=n<=d, kappa>=4, arbitrary actual orthogonal blocks.",
+        "lean": "Exactly the same domain and canonical blockPrecision; exact literal primitive responses and all x."
+      },
+      {
+        "source": "The source writes gradient f=Ax and reconstructs the value from this gradient.",
+        "lean": "HasGradientAt is proved internally before using the totalized gradient; actual contiguous coordinates and zero residual are retained."
+      },
+      {
+        "source": "A2.Ex33-Ex35 pointwise identities feed the later adaptive query reduction.",
+        "lean": "This declaration exports the pointwise actual observation only; the focused two-input reply-agreement consumer uses that observation directly."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "1a1b7d8c5ce75da07ba11554e311dafcbff27eb84792fa4b66560efbec1696ea"
+}

@@ -1,0 +1,44 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw
+open Matrix MeasureTheory ProbabilityTheory
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily
+open AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw
+set_option autoImplicit false
+
+def anonymousProposition {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ)
+    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : Prop :=
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) ((Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O j : Matrix (Fin n) (Fin n) ℝ) + (O j : Matrix (Fin n) (Fin n) ℝ).transpose))))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))))⁻¹).map split =
+      (Measure.pi (fun j => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+        (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O j : Matrix (Fin n) (Fin n) ℝ) + (O j : Matrix (Fin n) (Fin n) ℝ).transpose))))⁻¹)).prod
+          (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))
+
+example {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ)
+    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : anonymousProposition hn hnd hκ O ↔
+    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=
+      ((Equiv.sumCongr
+        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)
+        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans
+        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))
+    let split : EuclideanSpace ℝ (Fin d) →
+        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),
+        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))
+    (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) (blockPrecision κ O)⁻¹).map split =
+      (Measure.pi (fun j => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))
+        (singleBlockPrecision κ (O j))⁻¹)).prod
+          (stdGaussian (EuclideanSpace ℝ (Fin (d % n)))) := Iff.rfl
+
+example {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)
+    {κ : ℝ} (hκ : 4 ≤ κ)
+    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : anonymousProposition hn hnd hκ O :=
+  actual_conditional_block_product hn hnd hκ O

@@ -1,0 +1,27 @@
+{
+  "schema": "original-phase3-final-execution-receipt-v1",
+  "wrapper_argv": [
+    "/Users/zhouhuanjian/ASTIS-GC/.astis/semantic-neutral-20261111/kr_src_c47e12/phase3/freeze_phase3.py"
+  ],
+  "wrapper_file_sha256": "b3deb87f7a2fcd81cf067b44bda5e707ee1441c3b00f0570e119644c1efc58a7",
+  "child_argv": [
+    "/opt/anaconda3/bin/python",
+    "-c",
+    "from pathlib import Path\nimport json,hashlib,stat,datetime\nroot=Path(\"/Users/zhouhuanjian/ASTIS-GC/.astis/semantic-neutral-20261111/kr_src_c47e12\");p=root/'phase3'\nh=lambda b:hashlib.sha256(b).hexdigest()\nearlier=[]\nfor name,sha in [('phase1','a167e2a7d8d37008db6c3ba80e23598c86479896be084604ce46bdb9b16b3741'),('phase2','9c019cdbac59fdc3675474f0434573cb812e44350f63af017153fa2487dbddd2')]:\n ep=root/name;mp=ep/'hash-manifest.json';assert h(mp.read_bytes())==sha\n m=json.loads(mp.read_text())\n for r in m['files']:\n  path=ep/r['path'];b=path.read_bytes()\n  assert len(b)==r['bytes'] and h(b)==r['sha256'] and stat.S_IMODE(path.stat().st_mode)==0o444,r['path']\n assert {str(x.relative_to(ep))for x in ep.rglob('*')if x.is_file()}=={r['path']for r in m['files']}|{'hash-manifest.json'}\n assert stat.S_IMODE(mp.stat().st_mode)==0o444\n assert all(stat.S_IMODE(x.stat().st_mode)==0o555 for x in [ep]+[x for x in ep.rglob('*')if x.is_dir()])\n earlier.append({'phase':name,'manifest_sha256':sha,'files':len(m['files'])+1,'exact_file_set_bytes_and_modes_unchanged':True})\n(p/'earlier-phases-unchanged-at-archive-freeze.json').write_text(json.dumps({'time_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':earlier},indent=2)+'\\n')\nfp=p/'mathematical-freeze.json'\nassert h(fp.read_bytes())=='1739d07708cc6e6d21ccdabf99fe08e9144c2104ed7db31d3936ee38a2001f7b'\nf=json.loads(fp.read_text())\nfor r in f['core_artifacts']:\n b=(p/r['path']).read_bytes();assert len(b)==r['bytes'] and h(b)==r['sha256'],r['path']\nfor name,r in json.loads((p/'input-manifest.json').read_text()).items():\n b=(p/'inputs'/name).read_bytes();assert len(b)==r['bytes'] and h(b)==r['sha256'],name\nreceipts=0\nfor rp in sorted((p/'audit').glob('*.receipt.json')):\n r=json.loads(rp.read_text())\n for k in ['stdout','stderr']:\n  b=(rp.parent/r[k]['path']).read_bytes();assert len(b)==r[k]['bytes'] and h(b)==r[k]['sha256']\n receipts+=1\nprint(json.dumps({'pre_archive_validation':'PASS','earlier_phase_files_unchanged':111,'phase3_math_freeze_and_inputs_unchanged':True,'raw_command_receipts_valid':receipts,'mapping_native_schema_or_other_review_results_seen':False,'source_verifier_transition':False},indent=2))\n"
+  ],
+  "cwd": "/Users/zhouhuanjian/ASTIS-GC",
+  "started_utc": "2026-11-10T20:16:45.099774+00:00",
+  "ended_utc": "2026-11-10T20:16:45.134028+00:00",
+  "elapsed_seconds": 0.0341815419960767,
+  "exit_code": 0,
+  "stdout_raw_base64": "ewogICJwcmVfYXJjaGl2ZV92YWxpZGF0aW9uIjogIlBBU1MiLAogICJlYXJsaWVyX3BoYXNlX2ZpbGVzX3VuY2hhbmdlZCI6IDExMSwKICAicGhhc2UzX21hdGhfZnJlZXplX2FuZF9pbnB1dHNfdW5jaGFuZ2VkIjogdHJ1ZSwKICAicmF3X2NvbW1hbmRfcmVjZWlwdHNfdmFsaWQiOiA5LAogICJtYXBwaW5nX25hdGl2ZV9zY2hlbWFfb3Jfb3RoZXJfcmV2aWV3X3Jlc3VsdHNfc2VlbiI6IGZhbHNlLAogICJzb3VyY2VfdmVyaWZpZXJfdHJhbnNpdGlvbiI6IGZhbHNlCn0K",
+  "stderr_raw_base64": "",
+  "stdout_sha256": "10020b2ddf43d747e6951c27c6c3a1453004df1e1a4290ef998067a37c5a5d6d",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "note": "Exact byte streams without normalization. Receipt is included in the subsequently written detached complete hash manifest. Final hash-report output appears in the original tool transcript.",
+  "mathematical_freeze_sha256": "1739d07708cc6e6d21ccdabf99fe08e9144c2104ed7db31d3936ee38a2001f7b",
+  "process_only_commit_id_seen_after_judgment_authorship_before_math_freeze": "972d8994a816bc63d2dd6fb2db1c2c638fa9a48f",
+  "commit_independently_verified": false,
+  "mapping_native_schema_or_other_review_results_seen": false,
+  "source_verifier_transition": false
+}

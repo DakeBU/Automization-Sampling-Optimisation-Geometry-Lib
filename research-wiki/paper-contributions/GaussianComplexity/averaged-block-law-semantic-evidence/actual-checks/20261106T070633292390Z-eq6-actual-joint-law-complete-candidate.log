@@ -1,0 +1,79 @@
+.astis/huanjian-gc-averaged-block-law-20261106/ProofProbe.lean:38:2: warning: Try this: 
+  letI̵
+
+The goal is a proposition, so `let` is preferred over `letI`.
+The difference between `let` and `letI` is that `letI` inlines the value.
+But this is not relevant for proofs because of proof irrelevance.
+
+Note: This linter can be disabled with `set_option linter.style.haveILetI false`
+.astis/huanjian-gc-averaged-block-law-20261106/ProofProbe.lean:168:8: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  ∫⁻ (a : Fin (d / n) → ↥G), ((fun μ => μ s) ∘ fun O => Measure.pi fun j => γn (O j)) a * ?m.1917 ∂?m.1916
+in the target expression
+  ∫⁻ (a : Fin (d / n) → ↥G), (Measure.pi fun j => γn (a j)) s * νr t ∂ρ = (Measure.pi fun x => P) s * νr t
+
+d n : ℕ
+hn : 3 ≤ n
+hnd : n ≤ d
+κ : ℝ
+hκ : 4 ≤ κ
+b : ℝ
+hb : b = 1 ∨ b = -1
+this✝³ : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel (Matrix (Fin d) (Fin d) ℝ)
+this✝² : BorelSpace (Matrix (Fin d) (Fin d) ℝ) := { measurable_eq := rfl }
+e : Fin n × Fin (d / n) ⊕ Fin (d % n) ≃ Fin d :=
+  ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+        finSumFinEquiv).trans
+    (finCongr ⋯)
+split : EuclideanSpace ℝ (Fin d) → (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=
+  fun x => (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)))
+G : Submonoid (Matrix (Fin n) (Fin n) ℝ) := orthogonalGroup (Fin n) ℝ
+E : Type := EuclideanSpace ℝ (Fin d)
+En : Type := EuclideanSpace ℝ (Fin n)
+Er : Type := EuclideanSpace ℝ (Fin (d % n))
+ν : Measure ↥(orthogonalGroup (Fin n) ℝ) := 2 • (orthogonalHaar n).restrict {O | (↑O).det = b}
+f : (Fin (d / n) → ↥G) → Matrix (Fin d) (Fin d) ℝ := blockPrecision κ
+ρ : Measure (Fin (d / n) → ↥(orthogonalGroup (Fin n) ℝ)) := Measure.pi fun x => ν
+D : Measure (Matrix (Fin d) (Fin d) ℝ) := Measure.map f ρ
+γ : Matrix (Fin d) (Fin d) ℝ → Measure E := fun A => multivariateGaussian 0 A⁻¹
+νr : Measure Er := stdGaussian Er
+γn : ↥G → Measure (EuclideanSpace ℝ (Fin n)) := fun O => multivariateGaussian 0 (singleBlockPrecision κ O)⁻¹
+hpriors :
+  have μ := orthogonalHaar n;
+  have Cpos := {O | (↑O).det = 1};
+  have Cneg := {O | (↑O).det = -1};
+  μ Cpos = 2⁻¹ ∧ μ Cneg = 2⁻¹ ∧ IsProbabilityMeasure (2 • μ.restrict Cpos) ∧ IsProbabilityMeasure (2 • μ.restrict Cneg)
+hν : IsProbabilityMeasure ν
+this✝¹ : IsProbabilityMeasure ν := hν
+hf : Continuous f
+hfM : Measurable f
+hD : IsProbabilityMeasure D
+hpos : ∀ (O : Fin (d / n) → ↥G), (f O).PosDef
+hcompact : IsCompact (Set.range f)
+hrange : ∀ᵐ (A : Matrix (Fin d) (Fin d) ℝ) ∂D, A ∈ Set.range f
+hDpos : ∀ᵐ (A : Matrix (Fin d) (Fin d) ℝ) ∂D, A.PosDef
+q : Matrix (Fin d) (Fin d) ℝ → E → ℝ :=
+  fun A x => √A.det / (2 * Real.pi) ^ (↑d / 2) * Real.exp (-(x.ofLp ⬝ᵥ A *ᵥ x.ofLp) / 2)
+δ : Matrix (Fin d) (Fin d) ℝ → Measure E := fun A => ℙ.withDensity fun x => ENNReal.ofReal (q A x)
+hq : Continuous (Function.uncurry q)
+hδ : Measurable δ
+hγ : AEMeasurable γ D
+hP : IsProbabilityMeasure (γn ∘ₘ ν)
+P : Measure (EuclideanSpace ℝ (Fin n)) := γn ∘ₘ ν
+this✝ : IsProbabilityMeasure P := hP
+this : IsProbabilityMeasure D := hD
+hγn : Measurable γn
+hγf : Measurable fun O => γ (f O)
+F : Type := (Fin (d / n) → En) × Er
+Tlin : E →ₗ[ℝ] F := { toFun := split, map_add' := ⋯, map_smul' := ⋯ }
+hsplit : Measurable split
+hc : ∀ (O : Fin (d / n) → ↥G), Measure.map split (γ (f O)) = (Measure.pi fun j => γn (O j)).prod νr
+hfull : Measurable fun O => Measure.map split (γ (f O))
+hπeq : ∀ (O : Fin (d / n) → ↥G), Measure.map Prod.fst (Measure.map split (γ (f O))) = Measure.pi fun j => γn (O j)
+hπ : Measurable fun O => Measure.pi fun j => γn (O j)
+hprod : Measurable fun O => (Measure.pi fun j => γn (O j)).prod νr
+hblocks : (fun O => Measure.pi fun j => γn (O j)) ∘ₘ ρ = Measure.pi fun x => P
+s : Set (Fin (d / n) → EuclideanSpace ℝ (Fin n))
+t : Set Er
+hs : MeasurableSet s
+ht : MeasurableSet t
+⊢ ∫⁻ (a : Fin (d / n) → ↥G), (Measure.pi fun j => γn (a j)) s * νr t ∂ρ = (Measure.pi fun x => P) s * νr t

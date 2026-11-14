@@ -1,0 +1,310 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-weighted-cosine-frame",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Weighted cosine coefficient and summed uncentered marginal second moments",
+  "source_anchor": "arXiv2610.20492v1 C.2 EGx11, with Ex113, Ex114, p14.3, literal p1/p10 definitions and standing source range",
+  "target_statement": "{d q : ℕ} (hq : 2 * q + 1 < d) :\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let S : Fin d → ℝ := fun i => ∑ k : Fin (q + 1), (t i k) ^ 2\n  let feature : Fin d → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun i => Matrix.vecMulVec (t i) (t i)\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let B : N := ((r + 2) / (d : ℝ) ^ 2) •\n    ∑ i : Fin d, S i • Matrix.kronecker (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (feature i)\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  Matrix.PosSemidef (C • (1 : N) - B)\n\nPrivate actual consumer\n{d q : ℕ} (hq : 2 * q + 1 < d) :\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let G : E → Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ :=\n    fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)\n  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let Y : Fin d → E → N := fun i =>\n    Set.indicator {x : E | R x ≤ L}\n      (fun x => (d : ℝ)⁻¹ • Matrix.kronecker (G x) (Matrix.vecMulVec (t i) (t i)))\n  let secondSum : N := ∑ i : Fin d, (∫ x, Y i x * Y i x ∂μ)\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun x => Y i x * Y i x) μ) ∧\n    Matrix.PosSemidef (C • (1 : N) - secondSum)\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_gc_20261112_weighted_cosine_frame",
+  "advance_id": "ASTIS-SA-20261112-GaussianComplexityWeightedCosineFrame",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix"
+  ],
+  "consumers": [
+    "The actual private uncentered marginal second-moment sum bound in C.2 EGx11."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib canonical reuse. The existing FixedSpectrumCosineGram.actual_cosine_frame_gram signature supplies both exact Gram and uniform feature-norm conclusions. Reuse this canonical node.",
+      "The compiled FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix supplies the actual canonical radial fourth matrix moment with integrability.",
+      "Mathlib definition audit. The exact finite sum, Kronecker, matrix product, PSD and Bochner definitions were audited before new-target proof retrieval. Prior canonical signature exposure is disclosed."
+    ],
+    "classification": "adapt",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib canonical reuse. The existing FixedSpectrumCosineGram.actual_cosine_frame_gram signature supplies both exact Gram and uniform feature-norm conclusions. Reuse this canonical node.",
+      "The compiled FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix supplies the actual canonical radial fourth matrix moment with integrability.",
+      "Mathlib definition audit. The exact finite sum, Kronecker, matrix product, PSD and Bochner definitions were audited before new-target proof retrieval. Prior canonical signature exposure is disclosed."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix",
+      "Matrix.posSemidef_vecMulVec_self_star",
+      "Matrix.PosSemidef.kronecker",
+      "Matrix.PosSemidef.smul",
+      "Matrix.posSemidef_sum",
+      "Matrix.kroneckerBilinear",
+      "Matrix.one_kronecker_one",
+      "Matrix.sum_apply",
+      "Matrix.vecMulVec_mul_vecMulVec",
+      "Matrix.mul_kronecker_mul",
+      "EuclideanSpace.real_norm_sq_eq",
+      "ContinuousLinearMap.integrable_comp",
+      "ContinuousLinearMap.integral_comp_comm",
+      "MeasureTheory.Integrable.indicator",
+      "MeasureTheory.integrable_finsetSum",
+      "MeasureTheory.integral_finsetSum",
+      "MeasureTheory.integral_sub",
+      "Matrix.posSemidef_iff_dotProduct_mulVec",
+      "Convex.integral_mem"
+    ],
+    "planned_existing_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "_private.Tests.GaussianComplexityFixedSpectrumWeightedFrameBound.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumWeightedFrameBound.actual_uncentered_second_moment_sum_bound"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumWeightedFrameBound.actual_uncentered_second_moment_sum_bound"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Reuse the canonical cosine frame Gram and norm bound, derive its weighted PSD coefficient comparison, and consume this with the canonical radial fourth matrix moment in the actual marginal second-moment sum bound."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Independent source content and six exact closed production static folds accepted, including private L14/181-line module. Actual desktop/mobile/MathJax, full source-index/graph/copy/download/public delivery and purification remain HOLD."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound"
+    ],
+    "visual_review": "Compiled canonical parent extraction and exact source map are available. Shared graph integration and actual graph visual acceptance remain pending original owner release."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Corrected recorded API and custody-harness issues; exact source types preserved and both actual declarations compiled.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One mathematical prover with independent raw-source and different-role topology reviewers.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "One source-facing implementation packet."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 raw SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "C.2 EGx11 weighted coefficient comparison and uncentered marginal second-moment sum",
+    "detail_status": "omitted",
+    "gap": "Weighted outer-product Loewner comparison, identity tensor and scalar transport, squared-summand integrability, indicator removal and finite sum of marginal expectations require internal proofs from canonical existing parents.",
+    "consulted": [
+      {
+        "source": "Pinned actual source and canonical Mathlib definitions",
+        "anchor": "Exact literal Gaussian, matrix multiplication, PSD and integral definition context",
+        "hypothesis_adapter": "Use the actual standard row law and canonical cosine-frame/radial-fourth parents. Derive weighted PSD comparison and aggregate moment transport internally. Retain q=0."
+      }
+    ],
+    "fidelity_boundary": "Deterministic weighted coefficient and uncentered canonical marginal second-moment sum. Original-family row-law/expectation adapters, centering, variance norm, Bernstein, FactC.6, full Lemma4.4, both main bounds, oracle/TV/cost and integrated reader/public/purification remain open."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_TYPES_COMPILED;INDEPENDENT_SOURCE_AND_FRESH_NATIVE_COMPLETE;API_NONPRISTINE_DISCLOSED",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-statement-seal.json",
+    "sha256": "fca4e21eaa1e3107b6cfcf99c2a08c6dc7884c5a62f1dd4f626fbf3042cc4998",
+    "signature_sha256": "09b9e54aa3875cb1cd250d3677428731908d721641fd72f497fd0c78213e6eba",
+    "private_consumer_signature_sha256": "a07a263a1eec102b677399445ac90656e0cc97a75a73825e6bd048b640d5477c"
+  },
+  "evidence": {
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261111T175138488235Z-weighted-cosine-frame-closed-literal-Prop-formation-v2.receipt.json",
+      "sha256": "8310f9ffce3e1ddb9227986fbba2d31129f5066429c09cb734f5d7fa5512b222",
+      "log_sha256": "5563f79817d0bb0a68cbf4af0691a9b1b0d19665085bfaea8d7d2ba2a49a9f08"
+    },
+    "actual_definition_meaning": {
+      "receipt": ".astis/huanjian-resume-20261103/20261112T023026918505Z-weighted-cosine-frame-complete-definition-meaning-v2.receipt.json",
+      "sha256": "b84703eaa538b445a463c972ac977565b523ba003e912694dafb087823dd8b4d",
+      "log_sha256": "43eb4d3745b1f768ba4dfc4f0f37cabc6237299a759fbb1f7bdbbfb5d5867d92"
+    },
+    "new_target_proof_attempts": 0,
+    "formalizer_API_pristine": false,
+    "preproof_source_admission": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/preproof-source-admission.json",
+      "sha256": "cec06edf121bc71b3595a64ac3b3c4065dca4ab3f918413b058d5c25398b502e"
+    },
+    "normal_API_calls": 3,
+    "actual_compilation": {
+      "path": ".astis/huanjian-resume-20261103/20261112T042028260302Z-weighted-cosine-frame-final-clean-build.receipt.json",
+      "sha256": "7a3af0e71a5cebee8ee452875026921aacf97df092f0dd9d166df570ea1198b5",
+      "log_sha256": "72555ce20cceb72f1601fd50dd7a8850c2bd4e76a1f87a77482e0bd63b8ce971"
+    },
+    "actual_kernel": {
+      "path": ".astis/huanjian-resume-20261103/20261112T042047188336Z-weighted-cosine-frame-exact-literal-kernel-and-parents.receipt.json",
+      "sha256": "dce4225d474a5e9ffeba60b7a28f2f60f2a579bd028b11e1cee8d3d7eeed34e7",
+      "log_sha256": "de3fc33eff7d28f66d5826b413c0901f8e29691b78e9da274ca466b43dca909c"
+    },
+    "actual_public_ASTIS_parents": {
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+      ],
+      "_private.Tests.GaussianComplexityFixedSpectrumWeightedFrameBound.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumWeightedFrameBound.actual_uncentered_second_moment_sum_bound": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix"
+      ]
+    },
+    "independent_verification": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/actual-VERIFIED-independent-decision.json",
+    "independent_source_review": {
+      "report": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/source-review/wf_src_91c4/phase4-original-mathematical-report.json",
+      "report_sha256": "aac4b0ea709e36a49c3bdcbb309658646c6ab633657ad0782af727cb7f5ed8dd",
+      "overlay_sha256": "30a8cb826408950b61084e7582b1fab6b6bb9905835655942a3a6673a1ecb90a",
+      "custody_manifest": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/independent-source-review-portable-custody.original.json",
+      "reviewed_publication_binding_sha256": "dafe229bd9184d3640797f51b3dfd581c8408ede198d973d58ba3cd8af7becdd"
+    },
+    "focused_checks": [
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T042028260302Z-weighted-cosine-frame-final-clean-build.receipt.json",
+        "sha256": "7a3af0e71a5cebee8ee452875026921aacf97df092f0dd9d166df570ea1198b5",
+        "log_sha256": "72555ce20cceb72f1601fd50dd7a8850c2bd4e76a1f87a77482e0bd63b8ce971"
+      },
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T042047188336Z-weighted-cosine-frame-exact-literal-kernel-and-parents.receipt.json",
+        "sha256": "dce4225d474a5e9ffeba60b7a28f2f60f2a579bd028b11e1cee8d3d7eeed34e7",
+        "log_sha256": "de3fc33eff7d28f66d5826b413c0901f8e29691b78e9da274ca466b43dca909c"
+      }
+    ],
+    "actual_PROVED_LOCAL_append_sha256": "0a6dc377671410a9265b81d4a09ddfe4b7988952bdf4552dffea2497d9ec8966",
+    "independent_native_review": {
+      "report": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/native-review/wf_native_64a2/report.json",
+      "report_sha256": "9018762f0d07e4f5f3369e85f5b51d5d896cb652f8c445ece0e214e5c1eb3ac0",
+      "compiled_candidate": "401a3e1faa08fe2173d52017672831d2edbad38f",
+      "later_metadata_byte_comparison_head": "c2612017fdee89bfb33d94a8a46037313d504a77",
+      "original_portable_manifest": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/native-review/wf_native_64a2/portable-manifest.json",
+      "original_raw_execution_archive": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/native-review/wf_native_64a2/portable-evidence.tar.gz",
+      "normal_VERIFIED_transition_performed": false
+    },
+    "PLOCAL_reader_status_qualification": {
+      "original_payload_sha256": "7197dccba70a57ac69b2b0002ff43b989bcd237e1701a86f3b283003a6ca30cd",
+      "field": "reader_boundary",
+      "qualification": "The original payload conservatively retained the pre-review pending-source sentence. Independent source acceptance was already attached at48023c9 before PLOCAL. Original event and complete payload remain byte-exact. This metadata gives current source/native/static state."
+    }
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumWeightedFrameBound.lean",
+    "Tests/GaussianComplexityFixedSpectrumWeightedFrameBound.lean",
+    "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-statement-seal.json",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-weighted-cosine-frame.json",
+    "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-gaussian-weighted-cosine-frame.json",
+    "website/content/publications/huanjian-gaussian-weighted-cosine-frame.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-gaussian-weighted-cosine-frame.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json"
+  ],
+  "truth_boundary": "Deterministic weighted coefficient and uncentered canonical marginal second-moment sum. Original-family row-law/expectation adapters, centering, variance norm, Bernstein, FactC.6, full Lemma4.4, both main bounds, oracle/TV/cost and integrated reader/public/purification remain open.",
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "scope": "NEW mirrors only, bounded deterministic cosine coefficient and canonical marginal uncentered second-moment sum",
+    "evidence": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/conceptual-mirror-originals/audit.json",
+    "independent_reviewer": "/root/weighted_frame_topology_8ea0",
+    "existing_validated_mirrors": [
+      {
+        "discovery_id": "ASTIS-DISC-20261111-GaussianRadialWeightedMatrixSymmetry",
+        "bridge_id": "transport:gaussian-radial-weighted-matrix-symmetry",
+        "discovery_state_changed": false,
+        "revalidated": false,
+        "identity_unchanged": true
+      },
+      {
+        "discovery_id": "ASTIS-DISC-20261109-GaussianComplexityPoissonCosineMirror",
+        "bridge_id": "transport:poisson-boundary-to-cosine-spectrum",
+        "discovery_state_changed": false,
+        "revalidated": false,
+        "identity_unchanged": true
+      },
+      {
+        "discovery_id": "ASTIS-DISC-20261109-MidpointLobattoCosineCancellation",
+        "bridge_id": "transport:midpoint-to-lobatto-cosine-cancellation",
+        "discovery_state_changed": false,
+        "revalidated": false,
+        "identity_unchanged": true
+      }
+    ]
+  },
+  "source_proof_coverage": {
+    "inventory_archive": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/preproof-source-types-topology-local-build.original-files.tar.gz",
+    "inventory_member": ".astis/semantic-neutral-20261111/wf_sg_2cb7/component_coverage.json",
+    "reviewed_nodes": "Independent raw, type-only and distinct topology freezes, followed by fresh whole-module and anti-anchored source review.",
+    "excluded_with_reason": "The archived34-component inventory and typed coverage preserve all bounded support/downstream exclusions.",
+    "source_gaps": "Original experiment row-map/marginal-law/expectation transport remains open. Bounded canonical moment/square/PSD/integral proof ports are compiled and independently source-reviewed.",
+    "alternative_routes": [],
+    "exact_source_and_Lean_map": "research-wiki/paper-contributions/GaussianComplexity/weighted-cosine-frame-semantic-evidence/source-lean-map.draft.json"
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix",
+      "Matrix.PosSemidef.kronecker",
+      "Convex.integral_mem"
+    ],
+    "bookkeeping": [
+      "Finite matrix entry sums",
+      "Literal identity-tensor/scalar normalization",
+      "Rank-one square and closed indicator algebra",
+      "Finite-sum Bochner transport"
+    ],
+    "new_reusable": [],
+    "new_topology": "A deterministic nonnegative weighted-frame residual producer is actually consumed with the existing fourth matrix moment in the canonical uncentered second-moment sum."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "All five new declarations reachable and standard axioms only. Native six-module closure has all six authored roots reachable; seven old compiler-generated GridAlias simp auxiliaries lie outside the consumer closure. Post-merge purification remains pending, and no old declaration was deleted.",
+    "duplicate_semantics_audit": "Reuse canonical Gram/norm and radial-fourth declarations. No new public individual-bound copy.",
+    "canonicalization": "Route-local coefficient producer. Downstream public variance/concentration assembly still needs canonicalizing the audited private marginal aggregate with its original-family adapter; preserve one semantic node and avoid duplicate/wrapper credit.",
+    "compressed_spine_delta": "Frame norm+Gram to weighted PSD comparison, then canonical fourth moment to marginal sum.",
+    "reader_default_view": "Compact coefficient conclusion with six source-ordered folded formula/Lean steps."
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-truncated-radial-moment",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Actual Gaussian row truncated first moment and scalar bias",
+  "source_anchor": "arXiv2610.20492v1 Appendix C.2 A3.SS2.p11 and p12 scalar component; p1 and p10 actual row law and threshold",
+  "target_statement": "{d q : ℕ} (hq : 2 * q + 1 < d) :\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * ((q + 1 : ℕ) : ℝ) + 3 * Real.log (1000 * (d : ℝ))\n  let badMoment : E → ℝ := Set.indicator {x : E | L < R x} R\n  let tail : ℝ → ℝ := fun s => (μ {x : E | L + s < R x}).toReal\n  Integrable badMoment μ ∧ IntegrableOn tail (Set.Ioi (0 : ℝ)) (volume : Measure ℝ) ∧\n    (∫ x, badMoment x ∂μ) = L * tail 0 + (∫ s in Set.Ioi (0 : ℝ), tail s ∂volume) ∧\n    (∫ x, badMoment x ∂μ) ≤ (L + 3) / (1000 * (d : ℝ))\n\nPrivate actual consumer:\n{d q : ℕ} (hq : 2 * q + 1 < d) :\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let μ : Measure E := stdGaussian E\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let R : E → ℝ := fun x => ‖x‖ ^ 2\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ := (∫ x, Set.indicator {y : E | R y ≤ L} R x ∂μ) / r\n  0 ≤ a ∧ a ≤ 1 ∧\n    1 - a = (∫ x, Set.indicator {y : E | L < R y} R x ∂μ) / r ∧\n    1 - a ≤ (L + 3) / (1000 * r * (d : ℝ))\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_gc_20261110_truncated_radial_moment",
+  "advance_id": "ASTIS-SA-20261110-GaussianComplexityTruncatedRadialMoment",
+  "parents": [
+    "ASTIS-SHARED-std-gaussian-radial-exponential",
+    "ASTIS-SHARED-std-gaussian-second-moment"
+  ],
+  "consumers": [
+    "Actual scalar a and bias 1−a in Appendix C.2 p12, in the private consumer."
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib known local proof inventory and prior packet: actual quadratic exponential moment and exact Gaussian norm-square mean are separate existing ingredients. The new target is the literal source tail first moment plus its scalar-bias consumer.",
+      "Mathlib exact definition audit of the standard Gaussian, Euclidean norm, indicators, integrability, measure restriction, real volume and ENNReal conversion. Layer-cake and other target proof APIs are reserved for after the independent topology review.",
+      "Actual scoped search found the canonical Mathlib real layer-cake and improper exponential integral APIs and the two existing exact Gaussian moment ingredients."
+    ],
+    "classification": "missing",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRadialMoment.actual_standard_row_tail_first_moment",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib known local proof inventory and prior packet: actual quadratic exponential moment and exact Gaussian norm-square mean are separate existing ingredients. The new target is the literal source tail first moment plus its scalar-bias consumer.",
+      "Mathlib exact definition audit of the standard Gaussian, Euclidean norm, indicators, integrability, measure restriction, real volume and ENNReal conversion. Layer-cake and other target proof APIs are reserved for after the independent topology review.",
+      "Actual scoped search found the canonical Mathlib real layer-cake and improper exponential integral APIs and the two existing exact Gaussian moment ingredients."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianRadialExponential.integrable_exp_norm_sq_div_three_and_integral_stdGaussian",
+      "MeasureTheory.Integrable.indicator",
+      "MeasureTheory.Integrable.mono_nonneg",
+      "MeasureTheory.Integrable.integral_eq_integral_meas_lt",
+      "MeasureTheory.integral_indicator",
+      "MeasureTheory.setIntegral_const",
+      "MeasureTheory.setIntegral_congr_fun",
+      "MeasureTheory.meas_ge_le_lintegral_div",
+      "MeasureTheory.ofReal_integral_eq_lintegral_ofReal",
+      "ENNReal.toReal_le_toReal",
+      "Antitone.measurable",
+      "integrableOn_exp_mul_Ioi",
+      "integral_exp_mul_Ioi",
+      "Real.rpow_def_of_pos",
+      "Real.log_mul",
+      "finrank_euclideanSpace_fin"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "_private.Tests.GaussianComplexityFixedSpectrumTruncatedRadialMoment.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRadialMoment.actual_truncated_radial_bias"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRadialMoment.actual_truncated_radial_bias"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Prove the exact source tail integral and bound, then derive the bias for the actual truncated expectation."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "The exact revised bounded production render passes native-independent static review and real Chrome MathJax, fold and private L18 navigation checks at widths 1440 and 390. Per-step copy/download, private-source operations, complete integrated source index/graph and live public reader acceptance remain pending."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "candidate-published",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRadialMoment.actual_standard_row_tail_first_moment"
+    ],
+    "visual_review": "Actual kernel parent audit recorded. The layer-cake comparison is a separate conceptual discovery."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "The initial producer check failed on the shifted tail and positivity proof. A later check compiled the producer and reported an unknown division rewrite in the private consumer. The original failures and source versions are preserved in the local-build archive. The sealed types are unchanged.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRadialMoment.actual_standard_row_tail_first_moment"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One Lean proof worker; independent source and topology judgments.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "One implementation route."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 raw SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "A3.SS2.p11 exact tail identity and bound; A3.SS2.p12 scalar bias",
+    "detail_status": "omitted",
+    "gap": "The source states the tail integral identity without deriving the nonnegative layer-cake step. This finite-measure argument must be proved internally.",
+    "consulted": [
+      {
+        "source": "Pinned Mathlib actual MeasureTheory.IntegrableOn and real Bochner integral definitions",
+        "anchor": "Actual canonical definition context in the statement seal",
+        "hypothesis_adapter": "Separate the standard Gaussian probability expectation from canonical real volume on the positive ray."
+      },
+      {
+        "source": "Pinned Mathlib Layercake and ImproperIntegrals",
+        "anchor": "MeasureTheory.Integrable.integral_eq_integral_meas_lt; integral_exp_mul_Ioi",
+        "hypothesis_adapter": "Use the nonnegative positive excess. Canonical Gaussian radius integrability supplies the real layer-cake premise. The exponential envelope is integrable on the positive ray."
+      }
+    ],
+    "fidelity_boundary": "Exact finite one-row truncated radial first moment, its source tail-integral equality and bound, and actual scalar bias with the same literal standard Gaussian row, threshold and range. The source q=0 case is included. The shifted tail, positive denominators, finite measure casts, layer cake and exact norm mean are internal proof ingredients. Joint row law, covariance symmetry, matrix sums and concentration, full C.6 and Lemma 4.4, the main bounds and public delivery remain separate. The original global owner retains its stabilization lane."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_TYPES_COMPILED;INDEPENDENT_SOURCE_AND_NATIVE_CHECKS_RECORDED",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-statement-seal.json",
+    "sha256": "387aa7a644c79f304dc86667b2b70b87a911011ebf61a6efdc3202e550f17fc8",
+    "signature_sha256": "f4a31dd5801f83ccc2f6c88a4cd38a5392ed2d2f0c03b00afbf47c35029da6d7",
+    "private_consumer_signature_sha256": "bdee81d17f529d8d510b0cd0a95e531889fa33d63f7d75ba3a29c1464834e87c"
+  },
+  "evidence": {
+    "actual_literal_formation": {
+      "receipt": {
+        "path": ".astis/huanjian-resume-20261103/20261110T233058303365Z-truncated-radial-moment-explicit-volume-Prop-formation-only.receipt.json",
+        "sha256": "9690fcbf0924b8698d9623f077f142881143b2403b83fbad2a02d22628b828b8"
+      },
+      "log": {
+        "path": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-resume-20261103/20261110T233058303365Z-truncated-radial-moment-explicit-volume-Prop-formation-only.log",
+        "sha256": "425f704709694a00c5d338e42b481d6f430e30023e8658fc98e4b1763655aeca"
+      }
+    },
+    "normal_API_and_target_proof_calls": 0,
+    "preproof_source_admission": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence/preproof-source-admission.json",
+      "sha256": "604a2a8a9b7d821dce4a65405745906c55c4340b9c17036b5fc8f145da8ad164"
+    },
+    "actual_compilation": {
+      "path": ".astis/huanjian-resume-20261103/20261111T002338419250Z-truncated-radial-moment-actual-producer-and-bias-build.receipt.json",
+      "sha256": "4089954a3f809caf8cf7dba4ab48febefc7f10175bc92a8f96d2c32d93ae85ca",
+      "log_sha256": "1b1d9a70563ab7ab2323bd49ba6ce7f17996bf6b44907919e2e0afa8f349edbf"
+    },
+    "actual_kernel": {
+      "path": ".astis/huanjian-resume-20261103/20261111T002452885385Z-truncated-radial-moment-actual-kernel-types-and-parents.receipt.json",
+      "sha256": "2fdec6b9dff9199560264afc39d3559e6f7ca50d2cd0f9300195c60cae7a0fc0",
+      "log_sha256": "d24db18c0458117ac3e0caf6e08319388aa231cded978386af3ee94069887c48"
+    },
+    "actual_public_ASTIS_parents": {
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRadialMoment.actual_standard_row_tail_first_moment": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianRadialExponential.integrable_exp_norm_sq_div_three_and_integral_stdGaussian"
+      ],
+      "_private.Tests.GaussianComplexityFixedSpectrumTruncatedRadialMoment.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumTruncatedRadialMoment.actual_truncated_radial_bias": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.StdGaussianMoment.integrable_norm_sq_and_integral_stdGaussian",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRadialMoment.actual_standard_row_tail_first_moment"
+      ]
+    },
+    "conceptual_mirror_validation": {
+      "actual_actor": "/root/truncated_radial_topology_93de",
+      "verdict_path": ".astis/semantic-neutral-20261110/rm_tc_93de/conceptual-review/verdict.md",
+      "verdict_sha256": "5340918b01600a041df613dffa46ac2d23bbce0ccecff707dbc5bede63071aec",
+      "actual_validation_append_sha256": "888f84f470834c1798a20649f05f4b47fce67f8fbfaf1eb3d36d08ad0ffc90ee",
+      "scope": "Conceptual review of three level-set arguments. The Gaussian boundary contribution is bounded above by L/(1000d)."
+    },
+    "focused_checks": [
+      {
+        "path": ".astis/huanjian-resume-20261103/20261111T002338419250Z-truncated-radial-moment-actual-producer-and-bias-build.receipt.json",
+        "sha256": "4089954a3f809caf8cf7dba4ab48febefc7f10175bc92a8f96d2c32d93ae85ca",
+        "log_sha256": "1b1d9a70563ab7ab2323bd49ba6ce7f17996bf6b44907919e2e0afa8f349edbf"
+      },
+      {
+        "path": ".astis/huanjian-resume-20261103/20261111T002452885385Z-truncated-radial-moment-actual-kernel-types-and-parents.receipt.json",
+        "sha256": "2fdec6b9dff9199560264afc39d3559e6f7ca50d2cd0f9300195c60cae7a0fc0",
+        "log_sha256": "d24db18c0458117ac3e0caf6e08319388aa231cded978386af3ee94069887c48"
+      }
+    ],
+    "actual_PROVED_LOCAL_append_sha256": "86a734a85a51b563b8ed62d533931eeb5009aedcef0594380fce1cb004af81d7",
+    "independent_verification": ".astis/semantic-neutral-20261110/rm_src_7e52/phase5/verification-report.json",
+    "independent_source_audit": "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence/independent-source-review-original.json",
+    "independent_native_and_reader": "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence/actual-independent-review-attachment.json",
+    "source_lean_map": "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence/source-lean-map.exposition-v2.json",
+    "actual_bounded_browser": "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence/actual-bounded-browser-custody.json",
+    "independent_bounded_browser_review": "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence/independent-browser-evidence-addendum.md"
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumTruncatedRadialMoment.lean",
+    "Tests/GaussianComplexityFixedSpectrumTruncatedRadialMoment.lean",
+    "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-statement-seal.json",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-truncated-radial-moment.json",
+    "research-wiki/paper-contributions/GaussianComplexity/truncated-radial-moment-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-gaussian-truncated-radial-moment.json",
+    "website/content/publications/huanjian-gaussian-truncated-radial-moment.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-gaussian-truncated-radial-moment.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json"
+  ],
+  "truth_boundary": "Compiled the source standard-Gaussian single-row strict-tail first moment at r=q+1 and L=2r+3 log(1000d), with its exact layer integral and (L+3)/(1000d) bound. The actual private consumer obtains the scalar range, complementary first-moment identity and (L+3)/(1000rd) bias bound. q=0 is included. Row-family transport, truncated matrix covariance, concentration, full Lemma 4.4, both main lower bounds, oracle and cost adapters, source verification, public integration and purification remain separate.",
+  "conceptual_mirror_audit": {
+    "status": "candidates-published",
+    "discovery_ids": [
+      "ASTIS-DISC-20261111-GaussianRowKernelDoobLayerCake"
+    ],
+    "scope": "Shared superlevel integration mechanism with separate hypotheses, constants and failure boundaries."
+  }
+}

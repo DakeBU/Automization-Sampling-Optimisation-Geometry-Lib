@@ -1,0 +1,245 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-first-order-query",
+  "route": "samplewiki-route",
+  "title": "Actual single first-order query reconstruction",
+  "mode": "faithfulPaper",
+  "source_anchor": "arXiv:2610.20492v1 S2;S3.E4-E5;A2.SS1.SSS0.Px1.p1 selected pointwise oracle formulas",
+  "target_statement": "theorem actual_first_order_query {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (Os : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) :\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let A := blockPrecision κ Os\n    let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n    let query : Fin (d / n) → EuclideanSpace ℝ (Fin n) → Bool →\n        EuclideanSpace ℝ (Fin n) := fun j v inverse =>\n      WithLp.toLp 2 (if inverse then\n        (Os j : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp v\n      else (Os j : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp v)\n    let xb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n    let gb : EuclideanSpace ℝ (Fin d) → Fin (d / n) →\n        EuclideanSpace ℝ (Fin n) := fun x j =>\n      ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n        (query j (xb x j) false + query j (xb x j) true)\n    let g : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n      WithLp.toLp 2 (fun a => Sum.elim\n        (fun ij => gb x ij.2 ij.1)\n        (fun i => x (e (Sum.inr i))) (e.symm a))\n    ∀ x : EuclideanSpace ℝ (Fin d),\n      HasGradientAt f (g x) x ∧\n      (f x, gradient f x) = (inner ℝ x (g x) / 2, g x)\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_gc_20261107_first_order_query",
+  "advance_id": "ASTIS-SA-20261107-GaussianComplexityFirstOrderQuery",
+  "parents": [
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-block-precision"
+  ],
+  "consumers": [
+    "For two actual source tuples Os1/Os2, at the same arbitrary actual query x, equality of all their forward and inverse primitive block responses implies equality of their actual first-order observations (f_A(x),gradient f_A(x)).",
+    "Planned genuine finite-horizon first-order/primitive oracle simulation and B1 indistinguishability adapter"
+  ],
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "NONE",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Three compiler/API presentation failures and one metadata guard failure were corrected without changing source/target/consumer, widening caps or discarding validated math. All raw logs and probe inputs retained.",
+      "promoted_fragments": [
+        "Canonical production theorem includes actual symmetry, genuine Frechet derivative, block action, global/residual assembly and exact observation; actual two-hidden-tuple consumer compiled."
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "Root sole math worker. Distinct raw-source graph, topology/meaning challenge and later fresh source review address separate uncertainties; no parallel proof construction.",
+      "shared_verified_context_digest": "9198f9cdd0d30f238cccfd9c1ad1a20240c14766f317756ce376ad6521061c2e"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No parallel proof constructions."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": true,
+      "boundary_preserved": true
+    }
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Existing GaussianComplexity declaration/gradient/oracle inventory: actual single/block precision regularity and unique-minimizer interfaces exist; no actual first-order reconstruction or primitive-query declaration found. SphericalPoisson gradient targets a different function, not this source potential.",
+      "Canonical blockPrecision/singleBlockPrecision and private contiguous blockCoordinates exact definition bodies audited.",
+      "Upstream Gradient.Basic HasGradientAt/gradient definitions and PiL2 carrier semantics audited; derivative proof API/shared-floor retrieval deferred until distinct source-topology admission.",
+      "Samplinglib/Mathlib calculus and exact finite-dimensional matrix operations are the relevant floor. Other optimization/sampling routes cannot be used through merely analogous mechanisms."
+    ],
+    "classification": "adapt",
+    "decision": "adapt_existing",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+    "canonical_shared_cell": "",
+    "note": "Actual potential/gradient and exact source query reconstruction, not a wrapper or count. Search calculus floor after admission; any missing generic reusable leaf must follow shared routing and actual consumer rules."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Existing GaussianComplexity declaration/gradient/oracle inventory: actual single/block precision regularity and unique-minimizer interfaces exist; no actual first-order reconstruction or primitive-query declaration found. SphericalPoisson gradient targets a different function, not this source potential.",
+      "Canonical blockPrecision/singleBlockPrecision and private contiguous blockCoordinates exact definition bodies audited.",
+      "Upstream Gradient.Basic HasGradientAt/gradient definitions and PiL2 carrier semantics audited; derivative proof API/shared-floor retrieval deferred until distinct source-topology admission.",
+      "Samplinglib/Mathlib calculus and exact finite-dimensional matrix operations are the relevant floor. Other optimization/sampling routes cannot be used through merely analogous mechanisms."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "Actual two-tuple first-order observational equivalence when the actual primitive answers coincide"
+    ],
+    "planned_consumers": [
+      "Deterministic finite-horizon primitive-query simulation and exact per-block worst-case cap",
+      "Source determinant-sign algorithm/transcript/output-law reduction with separate posterior, TV-precision and expected-cost adapters"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Actual source quadratic Frechet gradient and full value/gradient observation are tied to the literal primitive responses in contiguous coordinates, including omitted residual. Earlier matrix inequalities alone do not assert this actual oracle."
+  },
+  "graph_contribution": {
+    "lean_view": "integration-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "stabilized",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query"
+    ],
+    "visual_review": "Actual52 core site/graph and Chrome156.0.8078.80 at1440/390 locally accepted. Target and3samecanonicalparents after6actualneighborclicks; source/audit/reference overlays remain dashed/nonformal, moduleownership/imports distinct. Independently validated algebraic mirror retained with exacthypotheses/conclusion/failure/source/emptyformalrefs; exacttypedrows inspected. ExplicitFit is overview; focuseddeep-links andselectednativeclicks independently accepted. No certifiedfunctor or theoremtransport."
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv:2610.20492v1",
+    "primary_anchor": "A2.SS1.SSS0.Px1.p1",
+    "detail_status": "omitted",
+    "gap": "Source states block/gradient/value reconstruction but omits exact Frechet derivative, source block-coordinate matvec and residual bookkeeping. Must derive derivative existence and actual gradient internally, not use total gradient fallback or add producer premises. T→2T operational cap and full adaptive indistinguishability remain outside this selected packet.",
+    "consulted": [
+      {
+        "source": "Canonical source family definitions and compiled matrix regularity",
+        "anchor": "singleBlockPrecision;blockPrecision;blockPrecision_regular;private blockCoordinates",
+        "hypothesis_adapter": "Exactly3<=n<=d,kappa>=4 and arbitrary actual tuple Os; derivative/symmetry/query identities are internal obligations. No probability, budget, gradient or response-equality convenience premise is added."
+      }
+    ],
+    "fidelity_boundary": "Selected actual pointwise Ex33–35 first-order reconstruction and its actual two-hidden-input consumer are compiled, independently source-reviewed/VERIFIED and locally integrated at immutable core52eafff8c77f7b8bc073a0d92e3e21d4a946b300. Real official root gate/site/graph/Chrome1440/390, all26 current original images independently viewed and10 current originals separately viewed by root, source/Lean/index/download/immutable localGit bytes and typed conceptual fields are locally accepted. Exactly one normal independent parking releases the sole STAB lease to existing VERIFIED, retaining proofowner/originalsourceverifier and all foreign queues. Source V checked214b had a blind audit; accepted9010 bytes first occur in756ae1a and remain unchanged. Remote publication/currentremoteCI/merge/livepublic, postmerge purification/Exposition Seal, operational adaptive2Tperblock/2Tk-total cap and strict2T<n information laws, probability/seed/TVprecision/expected-cost adapters, fixed-spectrum route and both complete main lower bounds/wholeGoal remain open."
+  },
+  "statement_seal": {
+    "path": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-statement-seal.json",
+    "sha256": "c0d31c75fdd451bf71178e8b597a94537443c985f2f9bb3b05bddeb1cd04b225",
+    "signature_sha256": "9198f9cdd0d30f238cccfd9c1ad1a20240c14766f317756ce376ad6521061c2e",
+    "status": "ELABORATED_DISTINCT_PREPROOF_ACCEPTED"
+  },
+  "evidence": {
+    "execution_boundary": "Selected actual pointwise Ex33–35 first-order reconstruction and its actual two-hidden-input consumer are compiled, independently source-reviewed/VERIFIED and locally integrated at immutable core52eafff8c77f7b8bc073a0d92e3e21d4a946b300. Real official root gate/site/graph/Chrome1440/390, all26 current original images independently viewed and10 current originals separately viewed by root, source/Lean/index/download/immutable localGit bytes and typed conceptual fields are locally accepted. Exactly one normal independent parking releases the sole STAB lease to existing VERIFIED, retaining proofowner/originalsourceverifier and all foreign queues. Source V checked214b had a blind audit; accepted9010 bytes first occur in756ae1a and remain unchanged. Remote publication/currentremoteCI/merge/livepublic, postmerge purification/Exposition Seal, operational adaptive2Tperblock/2Tk-total cap and strict2T<n information laws, probability/seed/TVprecision/expected-cost adapters, fixed-spectrum route and both complete main lower bounds/wholeGoal remain open.",
+    "focused_checks": [
+      "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/actual-checks/20261107T080222993597Z-first-order-query-real-consumer-congruence.receipt.json",
+      "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/actual-checks/20261107T082359532543Z-first-order-query-anonymous-expansion-real-compile.receipt.json"
+    ],
+    "process_memory_selection": "Evidence-routed memory protocol read; no existing specialized measure-tilt process item is applied to this pure exact-calculus/oracle identity as mathematical authority.",
+    "preproof_admission": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/preproof-admission.json",
+    "conceptual_candidate_proposal": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/conceptual-oracle-factorization/proposal-v2.json",
+    "local_proof_capsule": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/local-proof-capsule.json",
+    "source_phase_history": [
+      {
+        "status": "proved_locally",
+        "source_detail_audit": {
+          "primary_edition": "arXiv:2610.20492v1",
+          "primary_anchor": "A2.SS1.SSS0.Px1.p1",
+          "detail_status": "omitted",
+          "gap": "Source states block/gradient/value reconstruction but omits exact Frechet derivative, source block-coordinate matvec and residual bookkeeping. Must derive derivative existence and actual gradient internally, not use total gradient fallback or add producer premises. T→2T operational cap and full adaptive indistinguishability remain outside this selected packet.",
+          "consulted": [
+            {
+              "source": "Canonical source family definitions and compiled matrix regularity",
+              "anchor": "singleBlockPrecision;blockPrecision;blockPrecision_regular;private blockCoordinates",
+              "hypothesis_adapter": "Exactly3<=n<=d,kappa>=4 and arbitrary actual tuple Os; derivative/symmetry/query identities are internal obligations. No probability, budget, gradient or response-equality convenience premise is added."
+            }
+          ],
+          "fidelity_boundary": "Selected pointwise reconstruction compiled locally without extra public premises; independent decoding/source/whole-module/reader review pending. All adaptive cap/posterior/output/TV/expected-cost/main results separate and open. Previous source graph/topology evidence immutable."
+        },
+        "source_proof_coverage": {
+          "inventory": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/source-only-review/phase2-exact-seal-graph-20261107/raw-coverage.json",
+          "reviewed_nodes": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/source-only-review/phase2-exact-seal-graph-20261107/source-proof-graph.json",
+          "root_closure": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/source-only-review/phase2-exact-seal-graph-20261107/root-closure.json",
+          "independent_topology_review": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/topology-review/source-topology-challenge-v1.json",
+          "source_gaps": "Internal calculus/matvec/coordinate bridges implemented in the actual target, with source B.3 semantic regularity retained as the same canonical parent ancestry. Exact G_* implementation/semantic map and limits in local-proof-capsule.json; independent source fidelity pending.",
+          "downstream_scope": "Adaptive budget/posterior/transcript/seed/TV/expected-cost/main-bound claims explicitly open/excluded. Rawsource unit counts are coverage metadata only."
+        },
+        "graph_contribution": {
+          "lean_view": "integration-node",
+          "overview_view": "no-change-with-reason",
+          "functor_view": "candidate-published",
+          "edge_semantics": "formal-solid; overlays-dashed",
+          "color_semantics": "evidence-status; library-scope",
+          "focus_targets": [
+            "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query"
+          ],
+          "visual_review": "Pending actual mathematical candidate/source V and later canonical integration."
+        }
+      }
+    ],
+    "independent_verification": "Independent /root/reader_570298 reviewed exact immutable214b target/Test, actual canonical ASTIS ancestry, all meaning definitions, raw-source-first seven slots, blind reconstruction, authored formula proof and stock static reader. Fresh focused production/Test/critical-expansion checks and real reviewed publication/semantic gates pass. Complete sanitized ancestor scan is clean; printed target/regularity axioms are only propext/Classical.choice/Quot.sound. Full packet and publication bindings are exact. The checked214b tree contains the blind audit; this accepted audit is a later working-tree metadata update, not claimed present in214b. Browser/canonical root integration and all downstream adaptive/cap/law/lower-bound claims remain separate. Unique normal API append SHA256 507cf60761709d526753b3f1cf29b9bde5f02adbe8384b49226aa263e0e4e6de; actual API/preservation receipt research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/fresh-source-reader-570298/phase3/verified-transition-receipt.json; accepted current audit SHA256 9010f395c2d2857849c83558ab3ef1ec77157262a95d9e1caf24cc5f3ff1309a. This cell only projects that existing independent event; root issues no new source verdict.",
+    "existing_source_V": {
+      "verifier": "/root/reader_570298",
+      "checked_commit": "214b6214c5b08bd52b6faa59a3ccd6ca35998420",
+      "mathematical_source_candidate": "515f9401d4c324680bb2a1c010274cafa47efc02",
+      "canonical_packet_sha256": "1a1b7d8c5ce75da07ba11554e311dafcbff27eb84792fa4b66560efbec1696ea",
+      "accepted_audit_raw_sha256": "9010f395c2d2857849c83558ab3ef1ec77157262a95d9e1caf24cc5f3ff1309a",
+      "normal_append_sha256": "507cf60761709d526753b3f1cf29b9bde5f02adbe8384b49226aa263e0e4e6de",
+      "normal_api_receipt": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/fresh-source-reader-570298/phase3/normal-verifier-api.receipt.json",
+      "verification_and_preservation_receipt": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/fresh-source-reader-570298/phase3/verified-transition-receipt.json",
+      "review_run": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/fresh-source-reader-570298/phase3/review-run.json",
+      "review_run_sha256": "4b4f6c5b2f25ad4aadea803a9ba0712f1382ff4ddeb2c70e55706963d47a5edc",
+      "accepted_audit_not_present_in_checked214b": true,
+      "projection_source_verdict_created": false
+    },
+    "publication_binding_sha256": "e8418238a48de3365b59035dc005bce611ec93a257f47229c54a6b847a1452aa",
+    "before_final_local_acceptance_wording": {
+      "execution_boundary": "Selected actual pointwise Ex33–35 reconstruction and actual two-input consumer have existing independent source/whole-module/static-reader VERIFIED acceptance. Checked214b contains a blind audit; later accepted9010 bytes and genuine source V event are distinct. Canonical root/Registry/site/graph/actual desktop-mobile acceptance, remote publication and postmerge purification remain pending. Operational adaptive2T/2Tk caps and strict2T<n transcript/output laws, probability/seed/TV-precision/expected-cost adapters and both main lower bounds remain open.",
+      "fidelity_boundary": "Selected actual pointwise Ex33–35 reconstruction and actual two-input consumer have existing independent source/whole-module/static-reader VERIFIED acceptance. Checked214b contains a blind audit; later accepted9010 bytes and genuine source V event are distinct. Canonical root/Registry/site/graph/actual desktop-mobile acceptance, remote publication and postmerge purification remain pending. Operational adaptive2T/2Tk caps and strict2T<n transcript/output laws, probability/seed/TV-precision/expected-cost adapters and both main lower bounds remain open.",
+      "graph_visual_review": "Pending actual canonical root/site graph and installed-Chrome desktop/mobile original image acceptance; independent source V covers static reader only."
+    },
+    "current_local_integration": {
+      "core_commit": "52eafff8c77f7b8bc073a0d92e3e21d4a946b300",
+      "source_digest": "c78689b7880a3dda469c0f040588102b2486c47dcbf5fe5589956e586a2afff9",
+      "independent_acceptance": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-integration-20261107/independent-integration-reader-review/actual-local-integration-acceptance.json",
+      "acceptance_raw_sha256": "8e10da656444415e488ec04bf1fa78e6a2ce59d395cf84b548ceb23b5a1ea740",
+      "full_browser_current_originals": 22,
+      "focused_supplement_originals": 4,
+      "all26_independently_viewed": true,
+      "primary_current_original_views": 10,
+      "primary_separate_diagnostic_views": 2,
+      "lease_released": true,
+      "normal_release_receipt": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-integration-20261107/independent-integration-reader-review/local-integration-parking.normal-api.receipt.json",
+      "normal_release_receipt_sha256": "90c036ee1038417e5506bd39d4dba8b52f3cfebf61349d7ca4061f410ddbcbb8",
+      "normal_release_append_sha256": "5b29225911d004900bc8caa936e42a44053583e41c04e69f26c08eb7af24e9b7",
+      "new_source_verdict_created": false,
+      "remote_or_purification_accepted": false
+    },
+    "root_build": "Real official website/scripts/lean_gate.py at52:73.0431s/9648jobs; actualcert27e153... sourceDigestc78689... . Job/inventory counts are administrative, not mathematical novelty.",
+    "graph_regeneration": "Actual52 sitebuild57.3269s/sitecheck95.5564s/affectedgraphcheck6.6844s pass. Three checker/presentation failures and diagnostic-only run preserved; finalChrome12.5898s22originals plus focused5.5451s4originals pass. No website/source/graph edit was used to bypass a failed check.",
+    "resume_checkpoint": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-integration-20261107/resume-checkpoint.json"
+  },
+  "conceptual_mirror_audit": {
+    "status": "candidates-published",
+    "discovery_ids": [
+      "ASTIS-DISC-20261107-GaussianQuadraticOracleFactorization-v2"
+    ],
+    "reason": "Exact v2 source-level algebraic mirror independently validated by /root/foq_oracle_mirror_review at review-v2.json abf18f47...; raw v1/rejected scope-superseded history preserved. Only typed conceptual bridge; no Lean implication, law/precision/cap adapter or functor certificate."
+  },
+  "purification": {
+    "status": "pending",
+    "reader_default_view": "One actual first-order observation reconstruction formula; source assumptions, actual primitive tags, derivation and exact Lean folded after proof."
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "source_proof_coverage": {
+    "inventory": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/source-only-review/phase2-exact-seal-graph-20261107/raw-coverage.json",
+    "reviewed_nodes": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/source-only-review/phase2-exact-seal-graph-20261107/source-proof-graph.json",
+    "root_closure": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/source-only-review/phase2-exact-seal-graph-20261107/root-closure.json",
+    "independent_topology_review": "research-wiki/paper-contributions/GaussianComplexity/first-order-query-semantic-evidence/topology-review/source-topology-challenge-v1.json",
+    "source_gaps": "Existing independent source review accepts the actual internal calculus/matvec/coordinate/residual proof bridges and same canonical B.3 regularity ancestry. Frozen source graph topology and source-only pending-era fields are retained as history, not mass-mutated into proof status. See exact independent review-run/review-result and checked actual modules.",
+    "downstream_scope": "Adaptive budget/posterior/transcript/seed/TV/expected-cost/main-bound claims explicitly open/excluded. Rawsource unit counts are coverage metadata only."
+  }
+}

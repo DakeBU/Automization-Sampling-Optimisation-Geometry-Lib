@@ -1,0 +1,150 @@
+{
+  "publication_binding_sha256": "9104d934f897b788965a51b8681eb96cf568a43d3a7b7dc5ed743ffe0469533d",
+  "publication_context": {
+    "file": "e8dc0243da541be81bbf9b878c037bc4ec61caaf9d43c9a3b9c11b33ffef294c",
+    "current_lean_module": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity\nimport AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity\nimport Mathlib.MeasureTheory.Integral.Pi\nopen Matrix MeasureTheory ProbabilityTheory\nopen scoped ENNReal BigOperators\nopen AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar\nopen AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily\n/-!\n# Actual Gaussian-mixture Hellinger-affinity tensorization\n\nZhou--Suzuki, arXiv:2610.20492v1, Appendix B.2.3 Ex71. The two laws\nare the actual matrix-prior Gaussian binds. Their canonical ambient-volume\nRadon--Nikodym derivatives agree a.e. with the actual Ex70 product densities;\nthe real conversion therefore represents finite densities, independently of\nnull-set choices. Normalized product densities give genuine L1 affinity.\nThe volume-preserving contiguous split, finite-product Fubini and common\nresidual normalization yield the exact power of the actual block affinity.\nThe argument includes the zero-dimensional omitted-residual convention.\nAmplified TV Ex72 and the oracle/query lower bounds remain separate.\n-/\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization\nset_option autoImplicit false\ntheorem actual_affinity_tensorization {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) :\n    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n    let μ := orthogonalHaar n\n    let νpos := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n    let νneg := (2 : ℝ≥0∞) • μ.restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n    let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (blockPrecision κ)\n    let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (blockPrecision κ)\n    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    let Mpos := Dpos.bind γ\n    let Mneg := Dneg.bind γ\n    let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n      fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n        (2 * Real.pi) ^ ((n : ℝ) / 2) *\n        Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n          (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n    let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n    let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n    let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)\n    let F : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n      Real.sqrt (((Mpos.rnDeriv volume) x).toReal * ((Mneg.rnDeriv volume) x).toReal)\n    Mpos ≪ volume ∧ Mneg ≪ volume ∧ Integrable F volume ∧\n      (∫ x, F x) = a ^ (d / n) := by\n  classical\n  dsimp only\n  let : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n  let μ := orthogonalHaar n\n  let νpos := (2 : ℝ≥0∞) • μ.restrict\n    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = 1}\n  let νneg := (2 : ℝ≥0∞) • μ.restrict\n    {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = -1}\n  let Dpos := (Measure.pi (fun _ : Fin (d / n) => νpos)).map (blockPrecision κ)\n  let Dneg := (Measure.pi (fun _ : Fin (d / n) => νneg)).map (blockPrecision κ)\n  let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n    fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n  let Mpos := Dpos.bind γ\n  let Mneg := Dneg.bind γ\n  let p : Matrix.orthogonalGroup (Fin n) ℝ → EuclideanSpace ℝ (Fin n) → ℝ :=\n    fun O x => Real.sqrt (singleBlockPrecision κ O).det /\n      (2 * Real.pi) ^ ((n : ℝ) / 2) *\n      Real.exp (-((WithLp.ofLp x) ⬝ᵥ\n        (singleBlockPrecision κ O *ᵥ WithLp.ofLp x)) / 2)\n  let qpos : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νpos\n  let qneg : EuclideanSpace ℝ (Fin n) → ℝ := fun x => ∫ O, p O x ∂νneg\n  let a : ℝ := ∫ x, Real.sqrt (qpos x * qneg x)\n  let F : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n    Real.sqrt (((Mpos.rnDeriv volume) x).toReal * ((Mneg.rnDeriv volume) x).toReal)\n  let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n    ((Equiv.sumCongr\n      ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n      (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n      (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n  let X := (Fin (d / n) → EuclideanSpace ℝ (Fin n)) ×\n    EuclideanSpace ℝ (Fin (d % n))\n  let split : EuclideanSpace ℝ (Fin d) → X :=\n    fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n      WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n  let φ : EuclideanSpace ℝ (Fin (d % n)) → ℝ :=\n    fun z => (2 * Real.pi) ^ (-((d % n : ℕ) : ℝ) / 2) * Real.exp (-‖z‖ ^ 2 / 2)\n  let Qpos : X → ℝ := fun y => (∏ j, qpos (y.1 j)) * φ y.2\n  let Qneg : X → ℝ := fun y => (∏ j, qneg (y.1 j)) * φ y.2\n  let G : X → ℝ := fun y => Real.sqrt (Qpos y * Qneg y)\n  let r : EuclideanSpace ℝ (Fin n) → ℝ := fun x => Real.sqrt (qpos x * qneg x)\n  -- Both actual laws and the coordinate-volume identity use the same Ex70 node.\n  have hp := ProductDensity.actual_product_density hn hnd hκ (b := 1) (Or.inl rfl)\n  have hn' := ProductDensity.actual_product_density hn hnd hκ (b := -1) (Or.inr rfl)\n  have hvol : MeasurePreserving split volume volume := hp.1\n  have hP0 : ∀ y, 0 ≤ Qpos y := hp.2.1\n  have hN0 : ∀ y, 0 ≤ Qneg y := hn'.2.1\n  have hPm : Measurable Qpos := hp.2.2.1\n  have hNm : Measurable Qneg := hn'.2.2.1\n  have hPi : Integrable Qpos volume := hp.2.2.2.1\n  have hNi : Integrable Qneg volume := hn'.2.2.2.1\n  have hP1 : (∫ y, Qpos y) = 1 := hp.2.2.2.2.1\n  have hN1 : (∫ y, Qneg y) = 1 := hn'.2.2.2.2.1\n  have hPD : Mpos = volume.withDensity (fun x => ENNReal.ofReal (Qpos (split x))) :=\n    hp.2.2.2.2.2.2.1\n  have hND : Mneg = volume.withDensity (fun x => ENNReal.ofReal (Qneg (split x))) :=\n    hn'.2.2.2.2.2.2.1\n  have hPmA : Measurable (fun x => ENNReal.ofReal (Qpos (split x))) :=\n    ENNReal.measurable_ofReal.comp (hPm.comp hvol.measurable)\n  have hNmA : Measurable (fun x => ENNReal.ofReal (Qneg (split x))) :=\n    ENNReal.measurable_ofReal.comp (hNm.comp hvol.measurable)\n  have hPRN : Mpos.rnDeriv volume =ᵐ[volume]\n      (fun x => ENNReal.ofReal (Qpos (split x))) := by\n    rw [hPD]\n    exact Measure.rnDeriv_withDensity volume hPmA\n  have hNRN : Mneg.rnDeriv volume =ᵐ[volume]\n      (fun x => ENNReal.ofReal (Qneg (split x))) := by\n    rw [hND]\n    exact Measure.rnDeriv_withDensity volume hNmA\n  -- In particular these actual derivatives are finite a.e.; toReal uses no fallback.\n  have hFG : F =ᵐ[volume] G ∘ split := by\n    filter_upwards [hPRN, hNRN] with x hpx hnx\n    dsimp only [F, Function.comp_def, G]\n    rw [hpx, hnx, ENNReal.toReal_ofReal (hP0 _), ENNReal.toReal_ofReal (hN0 _)]\n  have hGi : Integrable G volume :=\n    (AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity\n      volume hP0 hN0 hPm hNm hPi hNi hP1 hN1).1\n  have hGm : Measurable G := (hPm.mul hNm).sqrt\n  have htrans : (∫ x, G (split x)) = ∫ y, G y := by\n    have h := integral_map_of_stronglyMeasurable (μ := volume)\n      hvol.measurable hGm.stronglyMeasurable\n    rw [hvol.map_eq] at h\n    exact h.symm\n  have hm := MixtureDensities.actual_mixture_densities hn hκ\n  rcases hm with ⟨hq0, _, _, _, _, hqp1, _, _, _⟩\n  have hqpos0 : ∀ x, 0 ≤ qpos x := fun x => (hq0 x).1\n  have hqneg0 : ∀ x, 0 ≤ qneg x := fun x => (hq0 x).2\n  have hqpos1 : (∫ x, qpos x) = 1 := hqp1\n  have hφ0 (z : EuclideanSpace ℝ (Fin (d % n))) : 0 ≤ φ z := by\n    dsimp [φ]\n    positivity\n  -- Unit mass of the common residual follows from the actual normalized Ex70\n  -- density and unit mass of each block, including the zero-dimensional case.\n  have hblocks1 : (∫ y : Fin (d / n) → EuclideanSpace ℝ (Fin n),\n      ∏ j, qpos (y j)) = 1 := by\n    rw [integral_fintype_prod_volume_eq_pow, hqpos1, one_pow]\n  have hφ1 : (∫ z, φ z) = 1 := by\n    have h : (∫ y : X, Qpos y) =\n        (∫ y : Fin (d / n) → EuclideanSpace ℝ (Fin n), ∏ j, qpos (y j)) *\n          (∫ z, φ z) := by\n      simpa only [Qpos, X, Measure.volume_eq_prod] using\n        (integral_prod_mul (μ := volume) (ν := volume)\n          (fun y : Fin (d / n) → EuclideanSpace ℝ (Fin n) => ∏ j, qpos (y j)) φ)\n    rw [hP1, hblocks1, one_mul] at h\n    exact h.symm\n  have hfactor (y : X) : G y = (∏ j, r (y.1 j)) * φ y.2 := by\n    have heq : Qpos y * Qneg y =\n        (∏ j, qpos (y.1 j) * qneg (y.1 j)) * (φ y.2) ^ 2 := by\n      dsimp [Qpos, Qneg]\n      rw [Finset.prod_mul_distrib]\n      ring\n    dsimp only [G]\n    rw [heq, Real.sqrt_mul (Finset.prod_nonneg (fun j _ =>\n      mul_nonneg (hqpos0 _) (hqneg0 _))), Real.sqrt_sq (hφ0 _),\n      Real.sqrt_prod _ (fun j _ => mul_nonneg (hqpos0 _) (hqneg0 _))]\n  refine ⟨?_, ?_, ?_, ?_⟩\n  · change Mpos ≪ volume\n    rw [hPD]\n    exact withDensity_absolutelyContinuous _ _\n  · change Mneg ≪ volume\n    rw [hND]\n    exact withDensity_absolutelyContinuous _ _\n  · exact (hvol.integrable_comp_of_integrable hGi).congr hFG.symm\n  · calc\n      (∫ x, F x) = ∫ x, G (split x) := integral_congr_ae hFG\n      _ = ∫ y, G y := htrans\n      _ = ∫ y : X, (∏ j, r (y.1 j)) * φ y.2 :=\n        integral_congr_ae (Filter.Eventually.of_forall hfactor)\n      _ = (∫ y : Fin (d / n) → EuclideanSpace ℝ (Fin n), ∏ j, r (y j)) *\n          (∫ z, φ z) := by\n        simpa only [X, Measure.volume_eq_prod] using\n          (integral_prod_mul (μ := volume) (ν := volume)\n            (fun y : Fin (d / n) → EuclideanSpace ℝ (Fin n) => ∏ j, r (y j)) φ)\n      _ = a ^ (d / n) := by\n        rw [hφ1, mul_one, integral_fintype_prod_volume_eq_pow]\n        simp only [Fintype.card_fin]\n        rfl\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A2.Ex71",
+      "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "S2 standing model; S3.E4-E6; A2.SS2.p2.1 densities; A2.Ex68, Ex70, Ex71 and A2.SS2.SSS3.p3.3 zero-residual convention. Ex72 is the downstream consumer.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Ex71 applies Tonelli to the actual averaged target densities; ASTIS supplies the actual RN-representative and coordinate-volume adapters.",
+      "scope": "Actual ambient-law affinity equals the exact block affinity power, with genuine L1 and both absolute-continuity conclusions. Ex72 TV and main oracle lower bounds are separate."
+    },
+    "statement": "The Hellinger affinity of the actual averaged Gaussian targets is the k-th power of their actual single-block affinity. \\int_{\\mathbb R^d}\\sqrt{\\frac{d\\bar\\pi_+}{dx}\\frac{d\\bar\\pi_-}{dx}}\\,dx=\\left(\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\right)^k=a^k. \\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\); set \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Both endpoint inequalities are inclusive. For normalized full orthogonal Haar probability \\(\\mu_n\\), let \\(\\nu_\\pm=2\\mu_n|_{\\{\\det O=\\pm1\\}}\\). Define \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mathcal D_\\pm=(\\boldsymbol O\\mapsto\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r))_\\#\\nu_\\pm^{\\otimes k}\\), and the actual averaged targets \\(\\bar\\pi_\\pm=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_\\pm(A)\\). Each product uses one common sign. Use the actual block density representatives \\(p_\\pm(x)=\\int \\sqrt{\\det A_O}(2\\pi)^{-n/2}e^{-x^\\top A_Ox/2}\\,d\\nu_\\pm(O)\\), and \\(a=\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\). Actual Gaussian validity, Haar-average inner L1, nonnegativity, measurability and normalization are supplied internally by canonical producers. All base measures are canonical Euclidean Lebesgue volume. Put \\(R_\\pm=d\\bar\\pi_\\pm/dx\\). The exact Lean integrand is \\(F(x)=\\sqrt{\\operatorname{toReal}(R_+(x))\\operatorname{toReal}(R_-(x))}\\). RN derivatives are a.e. representatives. Actual Ex70 densities prove their finite a.e. identification, so neither the RN nonexistence default nor the totalized \\(\\operatorname{toReal}(\\infty)=0\\) changes the asserted integral. The literal contiguous split sends ambient volume to the product block/residual volumes. For \\(r>0\\), the common residual factor is \\(\\varphi_r(z)=(2\\pi)^{-r/2}e^{-\\lVert z\\rVert^2/2}\\). For \\(r=0\\), its sole vector has unit volume and \\(\\varphi_0=1\\), realizing the source omitted-factor convention. No positive-remainder premise, supplied density identity or supplied affinity-integrability premise is added.",
+    "formulae": [
+      {
+        "label": "Actual ambient-law Hellinger affinity",
+        "tex": "\\int_{\\mathbb R^d}\\sqrt{\\frac{d\\bar\\pi_+}{dx}\\frac{d\\bar\\pi_-}{dx}}\\,dx=\\left(\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\right)^k=a^k."
+      }
+    ],
+    "assumptions": [
+      "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\); set \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Both endpoint inequalities are inclusive.",
+      "For normalized full orthogonal Haar probability \\(\\mu_n\\), let \\(\\nu_\\pm=2\\mu_n|_{\\{\\det O=\\pm1\\}}\\). Define \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mathcal D_\\pm=(\\boldsymbol O\\mapsto\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r))_\\#\\nu_\\pm^{\\otimes k}\\), and the actual averaged targets \\(\\bar\\pi_\\pm=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_\\pm(A)\\). Each product uses one common sign.",
+      "Use the actual block density representatives \\(p_\\pm(x)=\\int \\sqrt{\\det A_O}(2\\pi)^{-n/2}e^{-x^\\top A_Ox/2}\\,d\\nu_\\pm(O)\\), and \\(a=\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\). Actual Gaussian validity, Haar-average inner L1, nonnegativity, measurability and normalization are supplied internally by canonical producers.",
+      "All base measures are canonical Euclidean Lebesgue volume. Put \\(R_\\pm=d\\bar\\pi_\\pm/dx\\). The exact Lean integrand is \\(F(x)=\\sqrt{\\operatorname{toReal}(R_+(x))\\operatorname{toReal}(R_-(x))}\\). RN derivatives are a.e. representatives. Actual Ex70 densities prove their finite a.e. identification, so neither the RN nonexistence default nor the totalized \\(\\operatorname{toReal}(\\infty)=0\\) changes the asserted integral.",
+      "The literal contiguous split sends ambient volume to the product block/residual volumes. For \\(r>0\\), the common residual factor is \\(\\varphi_r(z)=(2\\pi)^{-r/2}e^{-\\lVert z\\rVert^2/2}\\). For \\(r=0\\), its sole vector has unit volume and \\(\\varphi_0=1\\), realizing the source omitted-factor convention. No positive-remainder premise, supplied density identity or supplied affinity-integrability premise is added."
+    ],
+    "obligations": [
+      {
+        "id": "actual-affinity-tensorization-ex71",
+        "label": "Actual Gaussian-mixture RN-affinity is genuinely integrable and equals the exact block affinity power."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization.actual_affinity_tensorization",
+      "title": "Actual Gaussian affinity tensorization (Ex71)",
+      "reader_note": "The main formula is shown first; objects, source assumptions, proof steps and exact Lean are folded below.",
+      "statement": "The Hellinger affinity of the actual averaged Gaussian targets is the k-th power of their actual single-block affinity.",
+      "formula": "\\int_{\\mathbb R^d}\\sqrt{\\frac{d\\bar\\pi_+}{dx}\\frac{d\\bar\\pi_-}{dx}}\\,dx=\\left(\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\right)^k=a^k.",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\); set \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Both endpoint inequalities are inclusive.",
+        "For normalized full orthogonal Haar probability \\(\\mu_n\\), let \\(\\nu_\\pm=2\\mu_n|_{\\{\\det O=\\pm1\\}}\\). Define \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mathcal D_\\pm=(\\boldsymbol O\\mapsto\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r))_\\#\\nu_\\pm^{\\otimes k}\\), and the actual averaged targets \\(\\bar\\pi_\\pm=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_\\pm(A)\\). Each product uses one common sign.",
+        "Use the actual block density representatives \\(p_\\pm(x)=\\int \\sqrt{\\det A_O}(2\\pi)^{-n/2}e^{-x^\\top A_Ox/2}\\,d\\nu_\\pm(O)\\), and \\(a=\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\). Actual Gaussian validity, Haar-average inner L1, nonnegativity, measurability and normalization are supplied internally by canonical producers.",
+        "All base measures are canonical Euclidean Lebesgue volume. Put \\(R_\\pm=d\\bar\\pi_\\pm/dx\\). The exact Lean integrand is \\(F(x)=\\sqrt{\\operatorname{toReal}(R_+(x))\\operatorname{toReal}(R_-(x))}\\). RN derivatives are a.e. representatives. Actual Ex70 densities prove their finite a.e. identification, so neither the RN nonexistence default nor the totalized \\(\\operatorname{toReal}(\\infty)=0\\) changes the asserted integral.",
+        "The literal contiguous split sends ambient volume to the product block/residual volumes. For \\(r>0\\), the common residual factor is \\(\\varphi_r(z)=(2\\pi)^{-r/2}e^{-\\lVert z\\rVert^2/2}\\). For \\(r=0\\), its sole vector has unit volume and \\(\\varphi_0=1\\), realizing the source omitted-factor convention. No positive-remainder premise, supplied density identity or supplied affinity-integrability premise is added."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\bar\\pi_\\pm,p_\\pm,R_\\pm,k,r\\)",
+          "text": "The two laws are actual precision-prior Gaussian mixtures; block densities are their genuine Haar averages. Ambient RN derivatives are identified a.e. before real conversion.",
+          "formula": "k=\\lfloor d/n\\rfloor,\\quad r=d-kn,\\quad R_\\pm=d\\bar\\pi_\\pm/dx."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the actual Ex70 densities for both signs",
+          "text": "Apply the same canonical actual product-density theorem twice, for the positive and negative Haar components. It identifies each true matrix-prior Gaussian bind with its ambient density and supplies the common volume-preserving split. All density conditions come from these actual laws.",
+          "formula": "Q_\\pm(x_1,\\ldots,x_k,z)=\\prod_{j=1}^k p_\\pm(x_j)\\varphi_r(z),\\quad\\bar\\pi_\\pm=(Q_\\pm\\circ\\mathrm{split})\\,dx,\\quad\\mathrm{split}_\\#dx=d(x_1,\\ldots,x_k,z).",
+          "lean": "hp/hn' call ProductDensity.actual_product_density. hvol, hP0/hN0, hPm/hNm, hPi/hNi, hP1/hN1 and hPD/hND project the actual volume, L1, unit mass and ambient density certificates."
+        },
+        {
+          "title": "Identify the intrinsic RN representatives",
+          "text": "The actual density equalities imply absolute continuity. RN uniqueness for a measurable density over sigma-finite Euclidean volume gives a.e. equality with ofReal of that finite nonnegative density. Converting to real therefore gives exactly the actual density a.e.; null-set choices cannot change the affinity integral.",
+          "formula": "R_\\pm=Q_\\pm\\circ\\mathrm{split}\\quad dx\\text{-a.e.},\\qquad F=\\sqrt{Q_+Q_-}\\circ\\mathrm{split}\\quad dx\\text{-a.e.}",
+          "lean": "hPRN/hNRN use Measure.rnDeriv_withDensity on hPD/hND. hFG uses those a.e. identities and ENNReal.toReal_ofReal; the absolute-continuity outputs use withDensity_absolutelyContinuous."
+        },
+        {
+          "title": "Establish genuine L1 before transporting the integral",
+          "text": "The normalized-density comparison theorem yields integrability of the square-root product of the actual split densities. Pull it back through the actual volume-preserving split and apply the a.e. RN identity. The change of variables follows from the measurable pushforward identity.",
+          "formula": "G=\\sqrt{Q_+Q_-}\\in L^1,\\qquad F\\in L^1(dx),\\qquad\\int F\\,dx=\\int G\\,d(x_1,\\ldots,x_k,z).",
+          "lean": "hGi calls the one shared DensityAffinity.normalized_density_tv_affinity with all hypotheses discharged from Ex70; hvol.integrable_comp_of_integrable and hFG give ambient L1. htrans applies integral_map_of_stronglyMeasurable and the actual hvol.map_eq."
+        },
+        {
+          "title": "Separate the common residual and the block factors",
+          "text": "Nonnegativity of the actual block densities allows square roots to distribute over their finite product. The residual density is common to both signs and nonnegative, so the square root of its square is itself. This algebra also holds in the zero-dimensional unit-factor case.",
+          "formula": "\\sqrt{Q_+Q_-}=\\left(\\prod_{j=1}^k\\sqrt{p_+(x_j)p_-(x_j)}\\right)\\varphi_r(z).",
+          "lean": "MixtureDensities.actual_mixture_densities supplies hqpos0/hqneg0. hφ0 is direct positivity of the literal residual formula. hfactor uses Finset.prod_mul_distrib, Real.sqrt_mul, Real.sqrt_sq and Real.sqrt_prod."
+        },
+        {
+          "title": "Integrate the independent factors",
+          "text": "Finite-product Fubini gives unit mass for the positive block-density product. Together with the already proved unit mass of the actual Ex70 split density, binary Fubini yields integral one for the common residual factor, including dimension zero. Applying the same product rules to the affinity factors leaves one copy of the block integral per block. The focused consumer combines this equality with the previously proved Eq25 estimate to bound the actual ambient-law affinity.",
+          "formula": "1=\\left(\\prod_{j=1}^k\\int p_+\\right)\\int\\varphi_r=\\int\\varphi_r,\\qquad\\int G=\\left(\\prod_{j=1}^k\\int\\sqrt{p_+p_-}\\right)\\int\\varphi_r=a^k.",
+          "lean": "hblocks1 and hφ1 use integral_fintype_prod_volume_eq_pow, actual block unit mass, actual hP1 and integral_prod_mul with the canonical product-volume equality. The final calc uses hFG/htrans/hfactor and the same finite-product integral theorem. Tests.GaussianComplexityAffinityTensorization is a true-law RN-integral decay consumer; Eq25 is not an ancestor of the tensorization proof."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity.actual_product_density",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.rnDeriv_withDensity",
+        "MeasureTheory.withDensity_absolutelyContinuous",
+        "MeasureTheory.MeasurePreserving.integrable_comp_of_integrable",
+        "MeasureTheory.integral_map_of_stronglyMeasurable",
+        "MeasureTheory.integral_prod_mul",
+        "MeasureTheory.integral_fintype_prod_volume_eq_pow",
+        "MeasureTheory.Measure.volume_eq_prod",
+        "Real.sqrt_prod",
+        "Real.sqrt_mul",
+        "Real.sqrt_sq",
+        "ENNReal.toReal_ofReal"
+      ],
+      "lean_statement": "Exactly the preproof sealed statement. Both AC facts and genuine affinity L1 are outputs; source-domain bounds are the only logical premises.",
+      "lean_proof": "The exact complete production theorem is extracted beside the proof; local providers have no separate source credit.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.Ex71",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S2 standing model; S3.E4-E6; A2.SS2.p2.1 densities; A2.Ex68, Ex70, Ex71 and A2.SS2.SSS3.p3.3 zero-residual convention. Ex72 is the downstream consumer.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Ex71 applies Tonelli to the actual averaged target densities; ASTIS supplies the actual RN-representative and coordinate-volume adapters.",
+          "scope": "Actual ambient-law affinity equals the exact block affinity power, with genuine L1 and both absolute-continuity conclusions. Ex72 TV and main oracle lower bounds are separate.",
+          "label": "Zhou–Suzuki, Appendix B.2.3 Ex71"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityAffinityTensorization"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization.actual_affinity_tensorization",
+      "role": "proof-edge",
+      "supports": [
+        "actual-affinity-tensorization-ex71"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Standing d,n,kappa domain, with n>=3,n<=d,kappa>=4; exact k=floor(d/n).",
+        "lean": "Exactly those source-domain bounds, natural d/n and both actual common-sign priors."
+      },
+      {
+        "source": "The source writes actual averaged-target Lebesgue densities in Ex71.",
+        "lean": "Use intrinsic RN derivatives of the actual Gaussian binds, identified a.e. with canonical actual Ex70 product-density representatives. Both AC and L1 are conclusions."
+      },
+      {
+        "source": "Tonelli and common residual Gaussian normalization yield a^k; if kn=d the factor is omitted.",
+        "lean": "Apply the existing actual coordinate-volume and density producer, finite-product Fubini and residual mass one, including the unit E0 case."
+      }
+    ]
+  }
+}

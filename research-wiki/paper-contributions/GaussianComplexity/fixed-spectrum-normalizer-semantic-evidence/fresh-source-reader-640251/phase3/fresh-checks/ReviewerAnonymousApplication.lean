@@ -1,0 +1,20 @@
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer
+
+open Matrix MeasureTheory ProbabilityTheory
+open scoped BigOperators
+
+example : ∀ {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)
+    (O : Matrix.orthogonalGroup (Fin d) ℝ),
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let diagonalValue : Fin d → ℝ := fun i =>
+    (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+  let A : Matrix (Fin d) (Fin d) ℝ :=
+    (O : Matrix (Fin d) (Fin d) ℝ) * Matrix.diagonal diagonalValue *
+      (O : Matrix (Fin d) (Fin d) ℝ).transpose
+  let weight : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+    Real.exp (- (∑ i : Fin d, x.ofLp i * (A.mulVec x.ofLp) i) / 2)
+  Integrable weight (volume : Measure (EuclideanSpace ℝ (Fin d))) ∧
+    (∫ x : EuclideanSpace ℝ (Fin d), weight x ∂volume) =
+      (2 * Real.pi) ^ ((d : ℝ) / 2) / Real.sqrt (∏ i : Fin d, diagonalValue i) := by
+  intro d hd κ hκ O
+  exact AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer.actual_normalizing_integral hd hκ O

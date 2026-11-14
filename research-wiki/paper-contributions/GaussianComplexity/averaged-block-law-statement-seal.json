@@ -1,0 +1,140 @@
+{
+  "seal_id": "GC-actual-prior-averaged-Eq6-v1",
+  "recorded_utc": "2026-11-06T06:44:08.915768+00:00",
+  "state": "STATEMENT_SEALED_ELABORATED_PREPROOF_INDEPENDENT_ADMISSION_PENDING",
+  "source": {
+    "title": "On Complexity of Gaussian Sampling",
+    "authors": "Huanjian Zhou and Taiji Suzuki",
+    "version": "arXiv:2610.20492v1",
+    "raw_html": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+    "raw_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "anchors": [
+      "S2.p2.1",
+      "S2.SS0.SSS0.Px1.p1.2",
+      "S3.SS1.p1.1",
+      "S3.E4",
+      "S3.E5",
+      "S3.SS1.p2.1",
+      "S3.SS1.p3.1",
+      "S3.E6",
+      "S3.SS1.p3.2",
+      "A2.Ex70",
+      "A2.Ex71",
+      "A2.Ex72"
+    ]
+  },
+  "lean_signature": "theorem actual_averaged_block_product {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1) :\n    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    let ν := (2 : ℝ≥0∞) • (orthogonalHaar n).restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}\n    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (blockPrecision κ)\n    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n      (singleBlockPrecision κ O)⁻¹)\n    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧\n      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧\n      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod\n        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))\n",
+  "signature_sha256": "a65b7651c1610b4d4ee24c6d21e77e16a3c6663e0c994d36ffbdb9515cdc33ca",
+  "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AveragedBlockLaw.actual_averaged_block_product",
+  "actual_elaboration_receipt": "research-wiki/paper-contributions/GaussianComplexity/averaged-block-law-semantic-evidence/actual-checks/20261106T064311278142Z-averaged-block-law-final-statement-elaboration.receipt.json",
+  "actual_elaboration_raw_log_sha256": "16b187f2e0c8aa7070811d11ecebdbdba97350716369ba7454b9513293b993e2",
+  "public_binder_audit": [
+    {
+      "binder": "d n : Nat",
+      "classification": "TYPING",
+      "reason": "Ambient and block finite Euclidean dimensions; no query-budget relation imposed on this source Eq6."
+    },
+    {
+      "binder": "hn : 3 <= n",
+      "classification": "SOURCE",
+      "reason": "Section3.1 standing block range."
+    },
+    {
+      "binder": "hnd : n <= d",
+      "classification": "SOURCE",
+      "reason": "Section3.1 standing block range."
+    },
+    {
+      "binder": "kappa : Real",
+      "classification": "TYPING",
+      "reason": "Source condition-number scalar."
+    },
+    {
+      "binder": "hκ : 4 <= kappa",
+      "classification": "SOURCE",
+      "reason": "Section3.1 standing kappa range."
+    },
+    {
+      "binder": "b : Real",
+      "classification": "TYPING",
+      "reason": "Numerical source common determinant sign, not a random per-block sign."
+    },
+    {
+      "binder": "hb : b = 1 or b = -1",
+      "classification": "SOURCE",
+      "reason": "Source b in {-1,+1}, same b in every product-prior coordinate."
+    }
+  ],
+  "EXCESS": [],
+  "typing_let_audit": {
+    "matrix_Borel_sigma_algebra": "Explicit letI MeasurableSpace Matrix := borel _. This fixes the source finite-dimensional Borel sigma-algebra; it is a definition, not a measurability premise. Earlier signature-only probe failed because Matrix has no inferred MeasurableSpace; no proof/source route failed.",
+    "e_split": "Exact contiguous reindexing identical to existing source precision. (i,j)->j*n+i, residual t->(d/n)*n+t; split into ordinary product/Pi space, no isometry asserted.",
+    "residual_dimension": "d%n = d-(d/n)*n. When zero, residual stdGaussian is the unique probability point mass, not zero measure."
+  },
+  "definition_kind_audit": [
+    {
+      "object": "orthogonalHaar",
+      "kind": "characterized",
+      "meaning": "Existing actual normalized Haar constructor, with separately already audited public existence/uniqueness/spec. No new characterized object introduced."
+    },
+    {
+      "object": "singleBlockPrecision,blockPrecision,e,split",
+      "kind": "literal",
+      "meaning": "Exact Eq4 and contiguous Eq5 block family and same split. Entire formulas pinned below."
+    },
+    {
+      "object": "nu",
+      "kind": "literal",
+      "meaning": "2 times actual fullHaar restricted to det=b. Half-mass/probability must be derived internally using n>=3; no prior-normalization binder."
+    },
+    {
+      "object": "D",
+      "kind": "literal",
+      "meaning": "Actual pushforward of independent identical nu block prior through blockPrecision. It is not defined by its Gaussian target or desired product law."
+    },
+    {
+      "object": "gamma and P",
+      "kind": "literal",
+      "meaning": "Canonical Mathlib actual Gaussian constructor with inverse precision; P is true bind-mixture. Mathlib has Dirac fallback for non-PSD input; the theorem explicitly proves D-almost-everywhere positive definiteness and all source block inputs must be positive internally. No off-source fallback is an interpretation of a source admissible input and no source repair is inferred."
+    },
+    {
+      "object": "averaged full target",
+      "kind": "literal",
+      "meaning": "D.bind gamma, then actual coordinate map. Both prior and target probability are conclusions. Equality is a joint-law result, not separate unproved marginal/independence assertions."
+    }
+  ],
+  "exact_definition_context": [
+    {
+      "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/DeterminantFamily.lean",
+      "file_sha256": "10ea9afafdee6f10a92e95d8e1570f56f7037c9362c06037c2c6523c58b78dd4",
+      "exact_definition_bodies": "noncomputable def singleBlockPrecision {n : ℕ} (κ : ℝ)\n    (O : Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin n) (Fin n) ℝ :=\n  ((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) -\n    ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) +\n      (O : Matrix (Fin n) (Fin n) ℝ).transpose)\n\n"
+    },
+    {
+      "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/BlockFamily.lean",
+      "file_sha256": "79661674e9b934d948242c80b1f1a0bb7b71c1b87c5293dc8468a3457ae7d2df",
+      "exact_definition_bodies": "private def blockCoordinates (d n : ℕ) :\n    ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n  ((Equiv.sumCongr\n    ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n    (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n    (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n\n/-- Literal equation (5), with contiguous size-n blocks and the residual identity. -/\nnoncomputable def blockPrecision {d n : ℕ} (κ : ℝ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ) : Matrix (Fin d) (Fin d) ℝ :=\n  Matrix.reindex (blockCoordinates d n) (blockCoordinates d n)\n    (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => singleBlockPrecision κ (O j)))\n      0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))\n\n"
+    },
+    {
+      "file": "AutoSamplingTheory/TechnicalLemmas/Probability/OrthogonalHaar.lean",
+      "file_sha256": "30f47e1221e1c4686b0f2129eb87554b8972ee6540d0a1da41f91c2e0539a1de",
+      "exact_definition_bodies": "noncomputable def orthogonalHaar (n : ℕ) :\n    Measure (Matrix.orthogonalGroup (Fin n) ℝ) :=\n  Measure.haarMeasure (⊤ : PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))\n\n"
+    },
+    {
+      "file": ".lake/packages/mathlib/Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+      "file_sha256": "1fec35cf781da1009c37db80a96b05d70f2296ca7768e19bfc0b6314c9b43d49",
+      "exact_definition_bodies": "noncomputable\ndef multivariateGaussian (μ : EuclideanSpace ℝ ι) (S : Matrix ι ι ℝ) :\n    Measure (EuclideanSpace ℝ ι) :=\n  (stdGaussian (EuclideanSpace ℝ ι)).map (fun x ↦ μ + toEuclideanCLM (𝕜 := ℝ) (CFC.sqrt S) x)\n\n"
+    }
+  ],
+  "producer_facts_not_public_inputs": [
+    "Haar component half-mass and normalization",
+    "block/full matrix positive definiteness and invertibility",
+    "coordinate and precision maps measurable",
+    "Gaussian-family measurable or D-almost-everywhere measurable",
+    "matrix-prior pushforward and Gaussian bind transport",
+    "finite-product averaging and independence",
+    "zero-dimensional residual normalization"
+  ],
+  "intended_real_consumer": "Tests: actual averaged block and residual Gaussian-mixture marginal pushforwards for every source parameter and common sign; usable producer for Ex70 real density and Ex71 tensorization. No density/TV/main result supplied as hypothesis.",
+  "truth_boundary": "Sealed target only, proof not attempted. Full Eq6 probability/joint identity is the bounded target; Ex70/71/72, oracle/precision/deterministic-cap/expected-cost/hidden-eigenbasis and both main lower bounds, remote integration/publication/purification/wholeGoal remain separate.",
+  "definition_semantics_boundary": "No bundled project-owned Prop/typeclass hides proof obligations. Standard mathematical carriers/measure/probability structures are expanded by exact let formulas and target conjunction; no if/default ASTIS definition is introduced."
+}

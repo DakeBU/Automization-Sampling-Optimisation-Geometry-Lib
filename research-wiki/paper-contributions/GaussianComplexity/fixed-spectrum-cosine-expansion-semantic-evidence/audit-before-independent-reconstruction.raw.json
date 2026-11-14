@@ -1,0 +1,190 @@
+{
+  "id": "ASTIS-RT-20261109-HuanjianFixedSpectrumCosineExpansion",
+  "state": "draft",
+  "source": {
+    "source_id": "arxiv2610.20492v1-FactC7",
+    "url": "https://arxiv.org/html/2610.20492v1#A3.Thmtheorem7",
+    "anchor": "Fact C.7/A3.Ex133-137, full proof A3.SS3.2; standing kappa S4.SS1.p1.m4 and literal rho S4.Thmtheorem5; private C8 finite-grid use A3.SS3.p4.2.",
+    "original_text": "The reciprocal cosine spectrum has an absolutely and uniformly convergent cosine expansion. \\lambda(\\theta)^{-1}=\\frac1{\\sqrt\\kappa}\\left(1+2\\sum_{j\\ge1}(-r)^j\\cos(j\\theta)\\right). Fix \\(\\kappa\\in\\mathbb R\\) with \\(\\kappa\\ge2\\), and set \\(r=(\\sqrt\\kappa-1)/(\\sqrt\\kappa+1)\\). The square root is the nonnegative real square root. For every real angle \\(\\theta\\), define \\(\\lambda(\\theta)=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta/2\\). The displayed equality is therefore exactly the source left side \\(2/(\\kappa+1+(\\kappa-1)\\cos\\theta)\\). The source series starts at \\(j=1\\). Lean uses \\(j\\in\\mathbb N\\) and mode \\(j+1\\) in both the power and cosine. Its partial sum indexed by \\(N\\) has exactly the first \\(N\\) positive modes. Absolute convergence is pointwise for each real angle. Uniform convergence is on all \\(\\mathbb R\\) in the angle for this fixed \\(\\kappa\\): one threshold works for every angle. No uniformity over unbounded \\(\\kappa\\) is asserted. The bounds \\(0<r<1\\), nonzero denominators, summability and uniform convergence are proved internally. No dimension, Gaussian law, matrix input, radius certificate or convergence premise is supplied by the caller.",
+    "text_sha256": "1720c5e6a9313a19a054dc0fa84f5bc8f915b2098e12b500decf7655c425619a",
+    "source_snapshot_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion.actual_inverse_spectrum_cosine_expansion",
+    "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumCosineExpansion.lean",
+    "statement": "∀ {κ : ℝ} (hκ : 2 ≤ κ),\n  let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)\n  (∀ θ : ℝ,\n    2 / (κ + 1 + (κ - 1) * Real.cos θ) =\n      (1 / Real.sqrt κ) *\n        (1 + 2 * ∑' j : ℕ, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ))) ∧\n  (∀ θ : ℝ,\n    Summable (fun j : ℕ => ‖(-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ)‖)) ∧\n  TendstoUniformly\n    (fun N : ℕ => fun θ : ℝ =>\n      ∑ j ∈ Finset.range N, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ))\n    (fun θ : ℝ => ∑' j : ℕ, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ))\n    atTop\n",
+    "statement_sha256": "9062ec2499c5f7aadde0992c1ea89dfa028999ea632d0c6bdee52e102d334075",
+    "formalizer": "huanjian_gc_20261109_fixed_spectrum_cosine_expansion",
+    "compiled": true,
+    "decoder_context": [
+      "Real.sqrt is the nonnegative real square root. All real divisions, norms, powers and cosines have their standard meanings.",
+      "The infinite sum over natural j uses exactly the displayed j+1 mode. Finset.range N consists of zero through N minus one, so its partial sum contains the first N positive modes.",
+      "Summable of the real norm means absolute convergence of the scalar series. The infinite sum is totalized by convention outside summability, but summability is a conclusion of this proposition, not a caller premise.",
+      "TendstoUniformly F f atTop over the real angle means: for every real epsilon>0 there exists a natural N0 such that every N>=N0 and every real angle have absolute F(N,angle)-f(angle)<epsilon. The real parameter is outside this uniformity statement."
+    ]
+  },
+  "reconstruction": {},
+  "semantic_slots": {},
+  "deltas": [],
+  "verdict": "pending",
+  "source_review": {
+    "state": "pending"
+  },
+  "repairs": [],
+  "publication_binding_sha256": "8ddbbdb086becb57b2b8212154d9f607b121f7955cfcce132927210eaa04b95c",
+  "publication_context": {
+    "file": "659d6baf40abad2c48e7fced98c6c46a07624817cf14ef2de5a8146e82522de7",
+    "current_lean_module": "import Mathlib.Analysis.Complex.Trigonometric\nimport Mathlib.Analysis.Complex.Basic\nimport Mathlib.Analysis.SpecificLimits.Normed\nimport Mathlib.Analysis.Normed.Group.FunctionSeries\nimport Mathlib.Tactic.FieldSimp\nimport Mathlib.Tactic.Linarith\nimport Mathlib.Tactic.NormNum\nimport Mathlib.Tactic.Ring\n\nopen scoped BigOperators\nopen Filter\n\nnamespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion\n\nprivate theorem radius_bounds {κ : ℝ} (hκ : 2 ≤ κ) :\n    1 < Real.sqrt κ ∧\n    0 < (Real.sqrt κ - 1) / (Real.sqrt κ + 1) ∧\n    (Real.sqrt κ - 1) / (Real.sqrt κ + 1) < 1 := by\n  have hsq : (Real.sqrt κ) ^ 2 = κ := Real.sq_sqrt (by linarith)\n  have hs : 1 < Real.sqrt κ := by nlinarith [Real.sqrt_nonneg κ]\n  have hp : 0 < Real.sqrt κ + 1 := by linarith\n  exact ⟨hs, div_pos (by linarith) hp, (div_lt_one hp).2 (by linarith)⟩\n\nprivate theorem cosine_series_value {r : ℝ} (hr0 : 0 ≤ r) (hr1 : r < 1) (θ : ℝ) :\n    1 + 2 * (∑' j : ℕ, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ)) =\n      (1 - r ^ 2) / (1 + 2 * r * Real.cos θ + r ^ 2) := by\n  let z : ℂ := (-r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)\n  have hz : ‖z‖ < 1 := by\n    simpa [z, norm_mul, Real.norm_eq_abs, abs_of_nonneg hr0] using hr1\n  have hterm (j : ℕ) : (z ^ j).re = (-r) ^ j * Real.cos ((j : ℝ) * θ) := by\n    dsimp [z]\n    have hp : (-r : ℂ) ^ j = (((-r) ^ j : ℝ) : ℂ) := by push_cast; rfl\n    have he : Complex.exp ((θ : ℂ) * Complex.I) ^ j =\n        Complex.exp ((((j : ℝ) * θ : ℝ) : ℂ) * Complex.I) := by\n      rw [← Complex.exp_nat_mul]\n      congr 1\n      push_cast\n      ring\n    rw [mul_pow, hp, he]\n    simp only [Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im, zero_mul,\n      sub_zero, Complex.exp_ofReal_mul_I_re]\n  have hreal : HasSum (fun j : ℕ => (-r) ^ j * Real.cos ((j : ℝ) * θ))\n      ((1 - z)⁻¹).re := by\n    simpa only [hterm] using Complex.hasSum_re (hasSum_geometric_of_norm_lt_one hz)\n  have hre : z.re = -r * Real.cos θ := by simp [z, Complex.mul_re]\n  have him : z.im = -r * Real.sin θ := by simp [z, Complex.mul_im]\n  have hnorm : Complex.normSq (1 - z) = 1 + 2 * r * Real.cos θ + r ^ 2 := by\n    rw [Complex.normSq_apply]\n    simp only [Complex.sub_re, Complex.one_re, Complex.sub_im, Complex.one_im, hre, him]\n    have ht := congrArg (fun x : ℝ => r ^ 2 * x) (Real.sin_sq_add_cos_sq θ)\n    nlinarith\n  have hD : 0 < 1 + 2 * r * Real.cos θ + r ^ 2 := by\n    have hm : 0 ≤ r * (1 + Real.cos θ) :=\n      mul_nonneg hr0 (by linarith [Real.neg_one_le_cos θ])\n    have hp : 0 < (1 - r) ^ 2 := sq_pos_of_pos (by linarith)\n    nlinarith\n  have hinv : ((1 - z)⁻¹).re =\n      (1 + r * Real.cos θ) / (1 + 2 * r * Real.cos θ + r ^ 2) := by\n    rw [Complex.inv_re, hnorm]\n    simp [hre]\n  have hsplit :\n      1 + (∑' j : ℕ, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ)) =\n        (1 + r * Real.cos θ) / (1 + 2 * r * Real.cos θ + r ^ 2) := by\n    rw [← hinv, ← hreal.tsum_eq]\n    simpa using hreal.summable.tsum_eq_zero_add.symm\n  apply (eq_div_iff (ne_of_gt hD)).2\n  have hmul := (eq_div_iff (ne_of_gt hD)).1 hsplit\n  calc\n    _ = 2 * ((1 + (∑' j : ℕ, (-r) ^ (j + 1) *\n        Real.cos (((j + 1 : ℕ) : ℝ) * θ))) *\n        (1 + 2 * r * Real.cos θ + r ^ 2)) -\n        (1 + 2 * r * Real.cos θ + r ^ 2) := by ring\n    _ = 1 - r ^ 2 := by rw [hmul]; ring\n\ntheorem actual_inverse_spectrum_cosine_expansion {κ : ℝ} (hκ : 2 ≤ κ) :\n  let r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1)\n  (∀ θ : ℝ,\n    2 / (κ + 1 + (κ - 1) * Real.cos θ) =\n      (1 / Real.sqrt κ) *\n        (1 + 2 * ∑' j : ℕ, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ))) ∧\n  (∀ θ : ℝ,\n    Summable (fun j : ℕ => ‖(-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ)‖)) ∧\n  TendstoUniformly\n    (fun N : ℕ => fun θ : ℝ =>\n      ∑ j ∈ Finset.range N, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ))\n    (fun θ : ℝ => ∑' j : ℕ, (-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ))\n    atTop := by\n  dsimp only\n  set r : ℝ := (Real.sqrt κ - 1) / (Real.sqrt κ + 1) with hrdef\n  obtain ⟨hs1, hr0, hr1⟩ := radius_bounds hκ\n  change 0 < r at hr0\n  change r < 1 at hr1\n  have hgeom : Summable (fun j : ℕ => r ^ (j + 1)) :=\n    (summable_nat_add_iff 1).2 (summable_geometric_of_lt_one hr0.le hr1)\n  have hmajor (j : ℕ) (θ : ℝ) :\n      ‖(-r) ^ (j + 1) * Real.cos (((j + 1 : ℕ) : ℝ) * θ)‖ ≤ r ^ (j + 1) := by\n    have hc : |Real.cos (((j + 1 : ℕ) : ℝ) * θ)| ≤ 1 :=\n      abs_le.mpr ⟨Real.neg_one_le_cos _, Real.cos_le_one _⟩\n    simpa [norm_mul, norm_pow, Real.norm_eq_abs, abs_of_nonneg hr0.le] using\n      mul_le_mul_of_nonneg_left hc (pow_nonneg hr0.le (j + 1))\n  refine ⟨?_, ?_, tendstoUniformly_tsum_nat hgeom hmajor⟩\n  · intro θ\n    rw [cosine_series_value hr0.le hr1 θ]\n    let s : ℝ := Real.sqrt κ\n    have hs0 : s ≠ 0 := by dsimp [s]; linarith\n    have hsden : s + 1 ≠ 0 := by dsimp [s]; linarith\n    have hs2 : s ^ 2 = κ := Real.sq_sqrt (by linarith)\n    have hrdef' : r = (s - 1) / (s + 1) := hrdef\n    have hspec : 0 < κ + 1 + (κ - 1) * Real.cos θ := by\n      have hm : 0 ≤ (κ - 1) * (1 + Real.cos θ) :=\n        mul_nonneg (by linarith) (by linarith [Real.neg_one_le_cos θ])\n      linarith\n    have hparam : 1 + 2 * r * Real.cos θ + r ^ 2 =\n        (1 - r) ^ 2 * (κ + 1 + (κ - 1) * Real.cos θ) / 2 := by\n      rw [hrdef', ← hs2]\n      field_simp [hsden]\n      ring\n    have hnorm : 1 - r ^ 2 = s * (1 - r) ^ 2 := by\n      rw [hrdef']\n      field_simp [hsden]\n      ring\n    have h1r : 1 - r ≠ 0 := by linarith\n    change 2 / (κ + 1 + (κ - 1) * Real.cos θ) =\n      (1 / s) * ((1 - r ^ 2) / (1 + 2 * r * Real.cos θ + r ^ 2))\n    rw [hnorm, hparam]\n    field_simp [hs0, hsden, ne_of_gt hspec, h1r]\n  · intro θ\n    exact hgeom.of_norm_bounded (fun j => by simpa only [norm_norm] using hmajor j θ)\n\nend AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#A3.Thmtheorem7",
+      "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Fact C.7/A3.Ex133-137, full proof A3.SS3.2; standing kappa S4.SS1.p1.m4 and literal rho S4.Thmtheorem5; private C8 finite-grid use A3.SS3.p4.2.",
+      "wording_status": "faithful paraphrase",
+      "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+      "scope": "Full scalar FactC7. Private deterministic grid exchange is a separately checked source-proof intermediate, not the Gaussian expectation or full C8 statement."
+    },
+    "statement": "The reciprocal cosine spectrum has an absolutely and uniformly convergent cosine expansion. \\lambda(\\theta)^{-1}=\\frac1{\\sqrt\\kappa}\\left(1+2\\sum_{j\\ge1}(-r)^j\\cos(j\\theta)\\right). Fix \\(\\kappa\\in\\mathbb R\\) with \\(\\kappa\\ge2\\), and set \\(r=(\\sqrt\\kappa-1)/(\\sqrt\\kappa+1)\\). The square root is the nonnegative real square root. For every real angle \\(\\theta\\), define \\(\\lambda(\\theta)=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta/2\\). The displayed equality is therefore exactly the source left side \\(2/(\\kappa+1+(\\kappa-1)\\cos\\theta)\\). The source series starts at \\(j=1\\). Lean uses \\(j\\in\\mathbb N\\) and mode \\(j+1\\) in both the power and cosine. Its partial sum indexed by \\(N\\) has exactly the first \\(N\\) positive modes. Absolute convergence is pointwise for each real angle. Uniform convergence is on all \\(\\mathbb R\\) in the angle for this fixed \\(\\kappa\\): one threshold works for every angle. No uniformity over unbounded \\(\\kappa\\) is asserted. The bounds \\(0<r<1\\), nonzero denominators, summability and uniform convergence are proved internally. No dimension, Gaussian law, matrix input, radius certificate or convergence premise is supplied by the caller.",
+    "formulae": [
+      {
+        "label": "Inverse-spectrum cosine expansion",
+        "tex": "\\lambda(\\theta)^{-1}=\\frac1{\\sqrt\\kappa}\\left(1+2\\sum_{j\\ge1}(-r)^j\\cos(j\\theta)\\right)."
+      }
+    ],
+    "assumptions": [
+      "Fix \\(\\kappa\\in\\mathbb R\\) with \\(\\kappa\\ge2\\), and set \\(r=(\\sqrt\\kappa-1)/(\\sqrt\\kappa+1)\\). The square root is the nonnegative real square root.",
+      "For every real angle \\(\\theta\\), define \\(\\lambda(\\theta)=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta/2\\). The displayed equality is therefore exactly the source left side \\(2/(\\kappa+1+(\\kappa-1)\\cos\\theta)\\).",
+      "The source series starts at \\(j=1\\). Lean uses \\(j\\in\\mathbb N\\) and mode \\(j+1\\) in both the power and cosine. Its partial sum indexed by \\(N\\) has exactly the first \\(N\\) positive modes.",
+      "Absolute convergence is pointwise for each real angle. Uniform convergence is on all \\(\\mathbb R\\) in the angle for this fixed \\(\\kappa\\): one threshold works for every angle. No uniformity over unbounded \\(\\kappa\\) is asserted.",
+      "The bounds \\(0<r<1\\), nonzero denominators, summability and uniform convergence are proved internally. No dimension, Gaussian law, matrix input, radius certificate or convergence premise is supplied by the caller."
+    ],
+    "obligations": [
+      {
+        "id": "pointwise-inverse-expansion",
+        "label": "Exact normalized expansion for every real angle."
+      },
+      {
+        "id": "absolute-convergence",
+        "label": "Absolute convergence at every real angle."
+      },
+      {
+        "id": "uniform-convergence",
+        "label": "Uniform positive-mode partial sums on the full real angle domain at fixed kappa."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion.actual_inverse_spectrum_cosine_expansion",
+      "title": "Cosine expansion of the inverse spectrum",
+      "reader_note": "The expansion is shown first; the exact parameter, convergence scope, formula proof and Lean are folded below.",
+      "statement": "The reciprocal cosine spectrum has an absolutely and uniformly convergent cosine expansion.",
+      "formula": "\\lambda(\\theta)^{-1}=\\frac1{\\sqrt\\kappa}\\left(1+2\\sum_{j\\ge1}(-r)^j\\cos(j\\theta)\\right).",
+      "assumptions": [
+        "Fix \\(\\kappa\\in\\mathbb R\\) with \\(\\kappa\\ge2\\), and set \\(r=(\\sqrt\\kappa-1)/(\\sqrt\\kappa+1)\\). The square root is the nonnegative real square root.",
+        "For every real angle \\(\\theta\\), define \\(\\lambda(\\theta)=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta/2\\). The displayed equality is therefore exactly the source left side \\(2/(\\kappa+1+(\\kappa-1)\\cos\\theta)\\).",
+        "The source series starts at \\(j=1\\). Lean uses \\(j\\in\\mathbb N\\) and mode \\(j+1\\) in both the power and cosine. Its partial sum indexed by \\(N\\) has exactly the first \\(N\\) positive modes.",
+        "Absolute convergence is pointwise for each real angle. Uniform convergence is on all \\(\\mathbb R\\) in the angle for this fixed \\(\\kappa\\): one threshold works for every angle. No uniformity over unbounded \\(\\kappa\\) is asserted.",
+        "The bounds \\(0<r<1\\), nonzero denominators, summability and uniform convergence are proved internally. No dimension, Gaussian law, matrix input, radius certificate or convergence premise is supplied by the caller."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(S_N(\\theta)\\)",
+          "text": "The first N positive cosine modes; kappa stays fixed.",
+          "formula": "S_N(\\theta)=\\sum_{j=1}^{N}(-r)^j\\cos(j\\theta)."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Produce the geometric radius",
+          "text": "The source condition gives a square root strictly greater than one. Its literal fractional transform lies strictly between zero and one, so the complex geometric ratios have norm below one.",
+          "formula": "s=\\sqrt\\kappa>1,\\qquad r=\\frac{s-1}{s+1}\\in(0,1).",
+          "lean": "The private radius_bounds proof uses Real.sq_sqrt and Real.sqrt_nonneg, then positive-denominator division. These are internal outputs, not public hypotheses."
+        },
+        {
+          "title": "Take the real part of a convergent geometric series",
+          "text": "Set z=−r exp(iθ). The complex phase has modulus one. Sum the geometric series and take its real part; De Moivre identifies each real term with the cosine mode. This packages the source pair of conjugate geometric sums by real-part linearity.",
+          "formula": "z=-re^{i\\theta},\\quad |z|=r<1,\\qquad\\sum_{j\\ge0}(-r)^j\\cos(j\\theta)=\\operatorname{Re}(1-z)^{-1}.",
+          "lean": "cosine_series_value invokes hasSum_geometric_of_norm_lt_one and Complex.hasSum_re. hterm checks the casts and exp_nat_mul identity explicitly; hreal carries an actual HasSum certificate."
+        },
+        {
+          "title": "Compute the real rational expression",
+          "text": "The squared norm of 1−z is the positive denominator D. The real part of its inverse is (1+r cosθ)/D. Separate the zero mode, then double the positive modes and subtract the zero term.",
+          "formula": "D=1+2r\\cos\\theta+r^2>0,\\qquad1+2\\sum_{j\\ge1}(-r)^j\\cos(j\\theta)=\\frac{1-r^2}{D}.",
+          "lean": "hre, him and hnorm use the trigonometric unit-circle identity; hD is produced from r<1 and cosθ≥−1. Complex.inv_re and hreal.summable.tsum_eq_zero_add give hsplit; the final calculation proves the displayed rational identity."
+        },
+        {
+          "title": "Restore the exact source normalization",
+          "text": "Substitute the literal radius and s²=κ. Two algebraic identities cancel the positive factors and yield the reciprocal source eigenvalue, with the exact factor two and square-root scale.",
+          "formula": "1-r^2=s(1-r)^2,\\quad D=\\frac{(1-r)^2}{2}\\bigl(\\kappa+1+(\\kappa-1)\\cos\\theta\\bigr).",
+          "lean": "hparam and hnorm in the public producer prove these identities by field algebra; hspec and h1r supply nonzero denominators internally. The sealed pointwise conclusion follows from cosine_series_value."
+        },
+        {
+          "title": "Prove absolute and uniform convergence",
+          "text": "Every absolute mode is bounded by the same positive geometric mode. The geometric majorant is summable. It proves absolute summability at each angle and, through the uniform majorant test, convergence of the partial sums uniformly over every real angle.",
+          "formula": "\\left|(-r)^{j+1}\\cos((j+1)\\theta)\\right|\\le r^{j+1},\\qquad\\sum_{j\\ge0}r^{j+1}<\\infty.",
+          "lean": "hgeom proves the shifted geometric sum is summable. hmajor uses the real cosine bound. Summable.of_norm_bounded yields the absolute output, and tendstoUniformly_tsum_nat yields exactly the sealed all-real-angle uniform output."
+        },
+        {
+          "title": "Consume the expansion on the actual finite grid",
+          "text": "For d≥2 and the literal hard grid, the private Test takes cosine weights at any natural frequency n. It consumes the new pointwise expansion and absolute summability, proves weighted summability, normalizes each reciprocal eigenvalue and genuinely exchanges the finite grid sum with the infinite series. This is a private generalized intermediate, before Gaussian expectation identification or alias cancellation.",
+          "formula": "\\sum_i\\frac{\\cos(n\\theta_i)}{\\lambda_i}=\\frac1{\\sqrt\\kappa}\\left[\\sum_i\\cos(n\\theta_i)+2\\sum_{j\\ge1}(-r)^j\\sum_i\\cos(n\\theta_i)\\cos(j\\theta_i)\\right].",
+          "lean": "actual_inverse_grid_cosine_series obtains heq and habs from the new canonical producer. hs, hsg and hlin use absolute summability; heigen proves literal reciprocal normalization; Summable.tsum_finsetSum is the actual exchange. The compiled private proof has exactly one public ASTIS parent, this producer; it is not a Registry node or a C8 Gaussian moment theorem."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "hasSum_geometric_of_norm_lt_one",
+        "Complex.hasSum_re",
+        "Complex.exp_nat_mul",
+        "Complex.inv_re",
+        "Complex.normSq_apply",
+        "Real.sin_sq_add_cos_sq",
+        "Summable.tsum_eq_zero_add",
+        "summable_geometric_of_lt_one",
+        "Summable.of_norm_bounded",
+        "tendstoUniformly_tsum_nat"
+      ],
+      "lean_statement": "Exactly real kappa>=2 and literal r; the identity for every real angle, absolute summability and all-real-angle uniform convergence are all conclusions.",
+      "lean_proof": "Complex geometric summation and real-part algebra produce the exact normalized identity. A common geometric majorant proves both convergence conclusions. The private actual finite-grid consumer separately uses the new producer and its absolute summability.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Thmtheorem7",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Fact C.7/A3.Ex133-137, full proof A3.SS3.2; standing kappa S4.SS1.p1.m4 and literal rho S4.Thmtheorem5; private C8 finite-grid use A3.SS3.p4.2.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling.",
+          "scope": "Full scalar FactC7. Private deterministic grid exchange is a separately checked source-proof intermediate, not the Gaussian expectation or full C8 statement.",
+          "label": "Zhou–Suzuki Fact C.7 and C.8 finite-grid use"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumCosineExpansion"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion.actual_inverse_spectrum_cosine_expansion",
+      "role": "proof-edge",
+      "supports": [
+        "pointwise-inverse-expansion",
+        "absolute-convergence",
+        "uniform-convergence"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Standing real kappa>=2 and literal rho; every real theta.",
+        "lean": "Exactly real kappa>=2; literal r in the statement; all-real-angle equality and convergence outputs. No dimension or matrix binder."
+      },
+      {
+        "source": "Positive-index series converges absolutely and uniformly in theta.",
+        "lean": "Nat index j+1, Summable of the real term norm for every theta, and TendstoUniformly of the first N positive modes on all real theta, for each fixed kappa."
+      },
+      {
+        "source": "C8 p4.2 consumes C7 for the finite grid exchange; later closed moments require1<=n<d.",
+        "lean": "A private actual cosine-weighted finite-grid interchange is proved for all natural n. Gaussian expectation identification and later alias-class cancellation remain separate."
+      }
+    ]
+  }
+}

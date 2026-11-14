@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.ZeroQuerySeparation.actual_zero_query_gaussian_event_gap",
+      "title": "A coordinate event separates the two Gaussian targets",
+      "reader_note": "Conditions, six formula steps and exact Lean open beside the concise claim. The complete private common-law application is folded at step6.",
+      "statement": "The first-coordinate interval has probability larger by more than one eighth under the precision diag(kappa,1,...,1) target than under the identity-precision target.",
+      "formula": "\\pi_1(B)-\\pi_0(B)>\\frac18,\\qquad B=\\{x:|x_0|\\le\\tfrac12\\},\\quad\\pi_j=N(0,A_j^{-1}).",
+      "assumptions": [
+        "\\(d\\in\\mathbb N,\\ d\\ge1\\) and \\(\\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), including both endpoints. No upper bound on \\(\\kappa\\) or extra block-dimension restriction is imposed.",
+        "\\(A_0=I_d\\) and \\(A_1=\\operatorname{diag}(\\kappa,1,\\ldots,1)\\) are precisions; their actual matrix inverses are the covariance parameters. Positivity and the inverse entries are derived inside the proof.",
+        "\\(x_0\\) is the first Euclidean coordinate, indexed by0 in Lean and1 in the paper. The event uses the closed interval endpoint \\(1/2\\)."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(A_0,A_1,\\pi_0,\\pi_1\\)",
+          "text": "Actual precisions and the Gaussian probability measures with inverse covariance matrices.",
+          "formula": "A_0=I_d,\\quad A_1=\\operatorname{diag}(\\kappa,1,\\ldots,1),\\quad\\pi_j=N(0,A_j^{-1})."
+        },
+        {
+          "symbol": "\\(\\gamma,\\rho,\\Delta\\)",
+          "text": "The standard one-dimensional Gaussian; in the private application rho is any common probability law and Delta is the exact measurable-event-supremum TV.",
+          "formula": "\\gamma=N(0,1),\\qquad\\Delta(P,Q)=\\sup_{C\\text{ measurable}}|P(C)-Q(C)|."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Identify the actual first-coordinate laws",
+          "text": "The diagonal precision has positive entries. A concrete left inverse gives its inverse covariance. Canonical coordinate pushforward for the actual multivariate Gaussian yields the two one-dimensional Gaussian laws and their exact event masses.",
+          "formula": "(x\\mapsto x_0)_\\#\\pi_0=N(0,1),\\qquad(x\\mapsto x_0)_\\#\\pi_1=N(0,\\kappa^{-1}).",
+          "lean": "  have hκpos : 0 < κ := by linarith\n  have heigenvaluepos (i : Fin d) : 0 < eigenvalue i := by\n    dsimp [eigenvalue]\n    split_ifs <;> linarith\n  have hApos : A₁.PosDef := Matrix.PosDef.diagonal heigenvaluepos\n  have hinv : A₁⁻¹ = Matrix.diagonal (fun i => (eigenvalue i)⁻¹) := by\n    apply Matrix.inv_eq_left_inv\n    change Matrix.diagonal (fun i => (eigenvalue i)⁻¹) * Matrix.diagonal eigenvalue = 1\n    ext i j\n    by_cases hij : i = j\n    · subst j\n      simp [ne_of_gt (heigenvaluepos i)]\n    · simp [hij]\n  have hp₀ : MeasurePreserving e ν₀ γ := by\n    simpa [e, ν₀, γ] using\n      (measurePreserving_eval_multivariateGaussian (μ := (0 : E))\n        (S := (1 : Matrix (Fin d) (Fin d) ℝ)⁻¹)\n        (by simpa using (Matrix.PosSemidef.one : (1 : Matrix (Fin d) (Fin d) ℝ).PosSemidef))\n        (i := i₀))\n  have hp₁ : MeasurePreserving e ν₁ (gaussianReal 0 v) := by\n    simpa [e, ν₁, v, hinv, eigenvalue, i₀] using\n      (measurePreserving_eval_multivariateGaussian (μ := (0 : E))\n        hApos.inv.posSemidef (i := i₀))\n  have hB : {x : E | |WithLp.ofLp x (⟨0, hd⟩ : Fin d)| ≤ (1 : ℝ) / 2} =\n      e ⁻¹' s := by\n    ext x\n    change |x i₀| ≤ (1 : ℝ) / 2 ↔\n      -((1 : ℝ) / 2) ≤ x i₀ ∧ x i₀ ≤ (1 : ℝ) / 2\n    exact abs_le\n  have hm₀ : ν₀.real (e ⁻¹' s) = γ.real s :=\n    hp₀.measureReal_preimage measurableSet_Icc.nullMeasurableSet\n  have hm₁ : ν₁.real (e ⁻¹' s) = (gaussianReal 0 v).real s :=\n    hp₁.measureReal_preimage measurableSet_Icc.nullMeasurableSet\n"
+        },
+        {
+          "title": "Compare to a fixed standard-Gaussian interval",
+          "text": "Let c be the positive square root of the inverse precision. Since kappa is at least4, c is at most one half. Multiplication by c transports a standard Gaussian to the target coordinate law, and every point in [-1,1] lands in the event interval.",
+          "formula": "c=\\sqrt{\\kappa^{-1}}\\le\\tfrac12,\\quad(c\\,\\cdot)_\\#\\gamma=N(0,\\kappa^{-1}),\\quad\\pi_1(B)\\ge\\gamma([-1,1]),\\quad\\pi_0(B)=\\gamma([-\\tfrac12,\\tfrac12]).",
+          "lean": "  have hinvpos : 0 < κ⁻¹ := inv_pos.mpr hκpos\n  let c : ℝ := Real.sqrt (κ⁻¹)\n  have hc0 : 0 ≤ c := Real.sqrt_nonneg _\n  have hcsq : c ^ 2 = κ⁻¹ := Real.sq_sqrt hinvpos.le\n  have hinvsmall : κ⁻¹ ≤ 1 / 4 := by\n    have hmul : κ * κ⁻¹ = 1 := mul_inv_cancel₀ (ne_of_gt hκpos)\n    nlinarith [mul_nonneg (sub_nonneg.mpr hκ) hinvpos.le]\n  have hcsmall : c ≤ 1 / 2 := by nlinarith\n  have hscale : γ.map (fun x => c * x) = gaussianReal 0 v := by\n    dsimp only [γ]\n    rw [gaussianReal_map_const_mul]\n    simp only [mul_zero, mul_one]\n    congr 1\n    apply NNReal.eq\n    simpa only [v, NNReal.coe_mk, Real.coe_toNNReal _ hinvpos.le] using hcsq\n  have hsubset : t ⊆ (fun x : ℝ => c * x) ⁻¹' s := by\n    intro x hx\n    change -1 ≤ x ∧ x ≤ 1 at hx\n    change -(1 / 2 : ℝ) ≤ c * x ∧ c * x ≤ 1 / 2\n    constructor\n    · nlinarith [mul_nonneg hc0 (by linarith : 0 ≤ x + 1)]\n    · nlinarith [mul_nonneg hc0 (by linarith : 0 ≤ 1 - x)]\n  have hmass : γ.real t ≤ (gaussianReal 0 v).real s := by\n    rw [← hscale, map_measureReal_apply (by fun_prop) measurableSet_Icc]\n    exact measureReal_mono hsubset\n"
+        },
+        {
+          "title": "Keep the exact added band",
+          "text": "The larger interval contains the smaller closed interval. Their set difference is measurable, has finite Lebesgue measure, and has volume exactly1. Keeping this difference directly preserves the closed endpoints without an informal cancellation.",
+          "formula": "D=[-1,1]\\setminus[-\\tfrac12,\\tfrac12],\\qquad\\operatorname{vol}(D)=2-1=1.",
+          "lean": "  have hst : s ⊆ t := by\n    intro x hx\n    change -(1 / 2 : ℝ) ≤ x ∧ x ≤ 1 / 2 at hx\n    exact ⟨by linarith, by linarith⟩\n  have hDmeas : MeasurableSet D := measurableSet_Icc.diff measurableSet_Icc\n  have htfinite : volume t ≠ ⊤ := by\n    simp [t, Real.volume_Icc]\n  have hDfinite : volume D ≠ ⊤ :=\n    measure_ne_top_of_subset (sdiff_subset : D ⊆ t) htfinite\n  have hDvol : volume.real D = 1 := by\n    dsimp only [D]\n    rw [measureReal_sdiff hst measurableSet_Icc htfinite]\n    norm_num [s, t, Real.volume_real_Icc]\n"
+        },
+        {
+          "title": "Integrate a concrete density lower bound",
+          "text": "On this band the squared coordinate is at most1, so the standard Gaussian density is at least its value at1. Canonical bounds exp(1)<3 and pi<4 give a strict one-eighth lower bound for that value. Integrating over the band and using the actual Gaussian density formula completes the signed event gap.",
+          "formula": "\\phi(x)=\\frac{e^{-x^2/2}}{\\sqrt{2\\pi}},\\quad a=\\phi(1)=\\frac1{\\sqrt{2\\pi}e^{1/2}}>\\frac18,\\qquad\\pi_1(B)-\\pi_0(B)\\ge\\gamma(D)=\\int_D\\phi(x)\\,dx\\ge a\\operatorname{vol}(D)=a.",
+          "lean": "  let a : ℝ := (Real.sqrt (2 * Real.pi) * Real.exp (1 / 2))⁻¹\n  have hsqrtpos : 0 < Real.sqrt (2 * Real.pi) := Real.sqrt_pos.mpr (by positivity)\n  have hsqrtsq : Real.sqrt (2 * Real.pi) ^ 2 = 2 * Real.pi :=\n    Real.sq_sqrt (by positivity)\n  have hsqrtlt : Real.sqrt (2 * Real.pi) < 4 := by nlinarith [Real.pi_lt_four]\n  have hepos : 0 < Real.exp (1 / 2 : ℝ) := Real.exp_pos _\n  have hesq : Real.exp (1 / 2 : ℝ) ^ 2 = Real.exp 1 := by\n    rw [pow_two, ← Real.exp_add]\n    norm_num\n  have helt : Real.exp (1 / 2 : ℝ) < 2 := by nlinarith [Real.exp_one_lt_three]\n  have hprodpos : 0 < Real.sqrt (2 * Real.pi) * Real.exp (1 / 2) :=\n    mul_pos hsqrtpos hepos\n  have hprodlt : Real.sqrt (2 * Real.pi) * Real.exp (1 / 2) < 8 := by\n    calc\n      _ < 4 * Real.exp (1 / 2) := mul_lt_mul_of_pos_right hsqrtlt hepos\n      _ < 4 * 2 := mul_lt_mul_of_pos_left helt (by norm_num)\n      _ = 8 := by norm_num\n  have hnum : (1 : ℝ) / 8 < a := by\n    have h : (1 : ℝ) / 8 < 1 / (Real.sqrt (2 * Real.pi) * Real.exp (1 / 2)) :=\n      (lt_div_iff₀ hprodpos).mpr (by nlinarith)\n    simpa only [a, one_div] using h\n  have haform : a = (Real.sqrt (2 * Real.pi))⁻¹ * Real.exp (-(1 / 2 : ℝ)) := by\n    simp only [a, mul_inv, Real.exp_neg]\n  have hpdf (x : ℝ) (hx : x ∈ D) : a ≤ gaussianPDFReal 0 1 x := by\n    have hxt : -1 ≤ x ∧ x ≤ 1 := hx.1\n    have hxsq : x ^ 2 ≤ 1 := by\n      nlinarith [mul_nonneg (by linarith : 0 ≤ 1 - x) (by linarith : 0 ≤ 1 + x)]\n    rw [haform]\n    simp only [gaussianPDFReal, NNReal.coe_one, mul_one, sub_zero]\n    apply mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr (by nlinarith))\n    exact inv_nonneg.mpr (Real.sqrt_nonneg _)\n  have hint : a ≤ ∫ x in D, gaussianPDFReal 0 1 x := by\n    have h := setIntegral_mono_on (integrableOn_const hDfinite)\n      (integrable_gaussianPDFReal 0 1).restrict hDmeas hpdf\n    simpa only [setIntegral_const, hDvol, smul_eq_mul, one_mul] using h\n  have hγD : a ≤ γ.real D := by\n    have hnonneg : 0 ≤ ∫ x in D, gaussianPDFReal 0 1 x :=\n      integral_nonneg (gaussianPDFReal_nonneg 0 1)\n    dsimp only [γ, Measure.real]\n    rw [gaussianReal_apply_eq_integral 0 (by norm_num : (1 : ℝ≥0) ≠ 0) D,\n      ENNReal.toReal_ofReal hnonneg]\n    exact hint\n  have hdiff : γ.real D = γ.real t - γ.real s :=\n    measureReal_sdiff hst measurableSet_Icc\n  change (1 : ℝ) / 8 < ν₁.real {x : E | |WithLp.ofLp x (⟨0, hd⟩ : Fin d)| ≤ (1 : ℝ) / 2} -\n    ν₀.real {x : E | |WithLp.ofLp x (⟨0, hd⟩ : Fin d)| ≤ (1 : ℝ) / 2}\n  rw [hB, hm₀, hm₁]\n  linarith\n"
+        },
+        {
+          "title": "Use the gap against a common probability law",
+          "text": "The private application actually invokes the new Gaussian gap. It proves the coordinate event is Borel and bounds every probability-mass difference by1. The real supremum over measurable events is therefore bounded, and each event difference is at most this exact TV quantity.",
+          "formula": "\\Delta(\\rho,\\pi_j)=\\sup_{C\\text{ measurable}}|\\rho(C)-\\pi_j(C)|,\\qquad|\\rho(B)-\\pi_j(B)|\\le\\Delta(\\rho,\\pi_j).",
+          "lean": "  have hgap : (1 : ℝ) / 8 < ν₁.real B - ν₀.real B :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.ZeroQuerySeparation.actual_zero_query_gaussian_event_gap hd hκ\n  have hB : MeasurableSet B := by\n    change MeasurableSet {x : EuclideanSpace ℝ (Fin d) |\n      |x (⟨0, hd⟩ : Fin d)| ≤ (1 : ℝ) / 2}\n    exact measurableSet_le (by fun_prop) measurable_const\n  have hbounded (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :\n      BddAbove {z : ℝ | ∃ C : Set E, MeasurableSet C ∧ z = |μ.real C - ν.real C|} := by\n    refine ⟨1, ?_⟩\n    rintro z ⟨C, _, rfl⟩\n    have hμ0 : 0 ≤ μ.real C := measureReal_nonneg\n    have hν0 : 0 ≤ ν.real C := measureReal_nonneg\n    have hμ1 : μ.real C ≤ 1 := measureReal_le_one\n    have hν1 : ν.real C ≤ 1 := measureReal_le_one\n    exact abs_le.mpr ⟨by linarith, by linarith⟩\n  have hsup₀ : |(ρ : Measure E).real B - ν₀.real B| ≤ Δ (ρ : Measure E) ν₀ :=\n    le_csSup (hbounded _ _) ⟨B, hB, rfl⟩\n  have hsup₁ : |(ρ : Measure E).real B - ν₁.real B| ≤ Δ (ρ : Measure E) ν₁ :=\n    le_csSup (hbounded _ _) ⟨B, hB, rfl⟩\n"
+        },
+        {
+          "title": "Retain the exact accuracy endpoint",
+          "text": "If both TV quantities were at most1/16, the same event would have target probability difference at most1/8, contradicting the proved strict gap. The complete private Test is folded here. This common-law component precedes a formal Borel zero-query algorithm and output-law adapter.",
+          "formula": "\\neg\\!\\left(\\Delta(\\rho,\\pi_0)\\le\\tfrac1{16}\\;\\land\\;\\Delta(\\rho,\\pi_1)\\le\\tfrac1{16}\\right).",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.ZeroQuerySeparation\nimport Mathlib.MeasureTheory.Measure.ProbabilityMeasure\n\nopen Matrix MeasureTheory ProbabilityTheory Set\nset_option autoImplicit false\n\n/-!\nActual arbitrary-common-output probability-law consumer of the Gaussian event\ngap. The real event-supremum TV is bounded internally from probability masses;\nthe new producer is genuinely used in the endpoint contradiction. An actual\nBorel zero-query algorithm/seed/deterministic-cap adapter remains separate.\n-/\nnamespace AutoSamplingTheory.Tests.GaussianComplexityZeroQuerySeparation\n\nprivate theorem no_common_zero_query_output {d : ℕ} (hd : 1 ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) (ρ : ProbabilityMeasure (EuclideanSpace ℝ (Fin d))) :\n  let A₁ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => if i.val = 0 then κ else 1)\n  let ν₀ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d))\n      (1 : Matrix (Fin d) (Fin d) ℝ)⁻¹\n  let ν₁ : Measure (EuclideanSpace ℝ (Fin d)) :=\n    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A₁⁻¹\n  let Δ : Measure (EuclideanSpace ℝ (Fin d)) →\n      Measure (EuclideanSpace ℝ (Fin d)) → ℝ := fun μ ν =>\n    sSup {z : ℝ | ∃ B : Set (EuclideanSpace ℝ (Fin d)),\n      MeasurableSet B ∧ z = |μ.real B - ν.real B|}\n  ¬ (Δ (ρ : Measure (EuclideanSpace ℝ (Fin d))) ν₀ ≤ (1 : ℝ) / 16 ∧\n    Δ (ρ : Measure (EuclideanSpace ℝ (Fin d))) ν₁ ≤ (1 : ℝ) / 16)\n:= by\n  classical\n  dsimp only\n  let E := EuclideanSpace ℝ (Fin d)\n  let A₁ : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => if i.val = 0 then κ else 1)\n  let ν₀ : Measure E := multivariateGaussian (0 : E) (1 : Matrix (Fin d) (Fin d) ℝ)⁻¹\n  let ν₁ : Measure E := multivariateGaussian (0 : E) A₁⁻¹\n  let B : Set E := {x | |WithLp.ofLp x (⟨0, hd⟩ : Fin d)| ≤ (1 : ℝ) / 2}\n  let Δ : Measure E → Measure E → ℝ := fun μ ν =>\n    sSup {z : ℝ | ∃ C : Set E, MeasurableSet C ∧ z = |μ.real C - ν.real C|}\n  have hgap : (1 : ℝ) / 8 < ν₁.real B - ν₀.real B :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.ZeroQuerySeparation.actual_zero_query_gaussian_event_gap hd hκ\n  have hB : MeasurableSet B := by\n    change MeasurableSet {x : EuclideanSpace ℝ (Fin d) |\n      |x (⟨0, hd⟩ : Fin d)| ≤ (1 : ℝ) / 2}\n    exact measurableSet_le (by fun_prop) measurable_const\n  have hbounded (μ ν : Measure E) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :\n      BddAbove {z : ℝ | ∃ C : Set E, MeasurableSet C ∧ z = |μ.real C - ν.real C|} := by\n    refine ⟨1, ?_⟩\n    rintro z ⟨C, _, rfl⟩\n    have hμ0 : 0 ≤ μ.real C := measureReal_nonneg\n    have hν0 : 0 ≤ ν.real C := measureReal_nonneg\n    have hμ1 : μ.real C ≤ 1 := measureReal_le_one\n    have hν1 : ν.real C ≤ 1 := measureReal_le_one\n    exact abs_le.mpr ⟨by linarith, by linarith⟩\n  have hsup₀ : |(ρ : Measure E).real B - ν₀.real B| ≤ Δ (ρ : Measure E) ν₀ :=\n    le_csSup (hbounded _ _) ⟨B, hB, rfl⟩\n  have hsup₁ : |(ρ : Measure E).real B - ν₁.real B| ≤ Δ (ρ : Measure E) ν₁ :=\n    le_csSup (hbounded _ _) ⟨B, hB, rfl⟩\n  change ¬ (Δ (ρ : Measure E) ν₀ ≤ (1 : ℝ) / 16 ∧\n    Δ (ρ : Measure E) ν₁ ≤ (1 : ℝ) / 16)\n  intro h\n  have h₀ := (abs_le.mp (hsup₀.trans h.1)).2\n  have h₁ := (abs_le.mp (hsup₁.trans h.2)).1\n  linarith\n\nend AutoSamplingTheory.Tests.GaussianComplexityZeroQuerySeparation\n"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Matrix.PosDef.diagonal",
+        "Matrix.inv_eq_left_inv",
+        "ProbabilityTheory.measurePreserving_eval_multivariateGaussian",
+        "MeasureTheory.MeasurePreserving.measureReal_preimage",
+        "ProbabilityTheory.gaussianReal_map_const_mul",
+        "MeasureTheory.map_measureReal_apply",
+        "MeasureTheory.measureReal_mono",
+        "MeasureTheory.measureReal_sdiff",
+        "ProbabilityTheory.gaussianReal_apply_eq_integral",
+        "ProbabilityTheory.gaussianPDFReal",
+        "ProbabilityTheory.integrable_gaussianPDFReal",
+        "MeasureTheory.setIntegral_mono_on",
+        "MeasureTheory.setIntegral_const",
+        "Real.exp_one_lt_three",
+        "Real.pi_lt_four",
+        "MeasureTheory.measureReal_le_one",
+        "le_csSup",
+        "abs_le"
+      ],
+      "dependency_notes": "The public producer has no public ASTIS parent: it adapts canonical Mathlib Gaussian/measure/integral facts to the exact two precisions. Its private application has precisely this producer as its first public ASTIS parent. Neither generic proof ingredients nor a compiler-generated simp conversion receive duplicate source-Anchor credit.",
+      "lean_statement": "The two precisions, actual matrix inverse covariances, event and strict one-eighth comparison are literal. Dimension1 and kappa4 remain in range; no probability/density/law/marginal/event/positivity bound is supplied by the caller.",
+      "lean_proof": "Canonical actual Gaussian coordinate laws and scaling reduce to a standard-Gaussian band of volume1. A pointwise density lower bound and exact numeric inequalities give the signed gap. The private application derives Borelness and probability/supremum bounds and actually consumes that gap.",
+      "boundary": "This is the actual two-Gaussian event gap and its private arbitrary-common-probability-law TV obstruction. The Borel seed/stopping/output model, actual zero-query common-law and precision-class adapters, T>=1/Q_G and complete main lower bounds remain separate. These two inputs have different spectra, so this argument does not establish a disclosed-spectrum or fixed-eigenbasis result. No adaptive/Haar law, positive query-cap or expected-cost comparison, finite-precision oracle, shared integration, rendered desktop/mobile delivery, publication, purification/Exposition Seal or whole-Goal completion is claimed.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S3.SS3.SSS0.Px1",
+          "edition": "arXiv2610.20492v1; pinned raw SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S2 targets/randomized algorithms/TV; Section3.3 zero-query case S3.SS3.SSS0.Px1.p1.1 and S3.Ex3",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+          "scope": "Extracted signed Gaussian event-gap auxiliary and genuine PRIVATE arbitrary-common-probability-law TV obstruction. Not the zero-query algorithm model, T>=1/Q_G or complete Theorem3.1.",
+          "label": "Section3.3 zero-query event-separation component"
+        },
+        {
+          "path": "Tests/GaussianComplexityZeroQuerySeparation.lean",
+          "line": 15,
+          "label": "Complete actual common-probability-law TV application",
+          "scope": "Private non-Anchor context; an actual algorithm/seed/cap/output-law adapter is separate."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityZeroQuerySeparation"
+      ]
+    }
+  ]
+}

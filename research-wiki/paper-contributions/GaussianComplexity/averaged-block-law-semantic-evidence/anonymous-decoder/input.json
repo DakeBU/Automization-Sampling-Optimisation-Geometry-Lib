@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-e2639fc30c7c7745",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ) {b : ℝ} (hb : b = 1 ∨ b = -1),\n    letI : MeasurableSpace (Matrix (Fin d) (Fin d) ℝ) := borel _\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    let ν := (2 : ℝ≥0∞) • (Measure.haarMeasure (⊤ : TopologicalSpace.PositiveCompacts (Matrix.orthogonalGroup (Fin n) ℝ))).restrict\n      {O : Matrix.orthogonalGroup (Fin n) ℝ | (O : Matrix (Fin n) (Fin n) ℝ).det = b}\n    let D := (Measure.pi (fun _ : Fin (d / n) => ν)).map (fun O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ => Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • (((O j) : Matrix (Fin n) (Fin n) ℝ) + ((O j) : Matrix (Fin n) (Fin n) ℝ).transpose)))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ)))\n    let γ : Matrix (Fin d) (Fin d) ℝ → Measure (EuclideanSpace ℝ (Fin d)) :=\n      fun A => multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) A⁻¹\n    let P := ν.bind (fun O => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n      (((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O : Matrix (Fin n) (Fin n) ℝ) + (O : Matrix (Fin n) (Fin n) ℝ).transpose))⁻¹)\n    IsProbabilityMeasure D ∧ (∀ᵐ A ∂D, A.PosDef) ∧\n      IsProbabilityMeasure P ∧ IsProbabilityMeasure (D.bind γ) ∧\n      (D.bind γ).map split = (Measure.pi (fun _ : Fin (d / n) => P)).prod\n        (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))\n",
+    "statement_sha256": "e2639fc30c7c7745b8aba3231a8c78ba1d5f83e9f7620353920c5786137aa997",
+    "compiled": true,
+    "approved_definition_context": [
+      "EuclideanSpace real (Fin m) is real m-dimensional Euclidean space with its usual Borel structure; Fin m indexes coordinates from zero. WithLp.toLp 2 and WithLp.ofLp preserve the entries. Ordinary finite function spaces and products carry product Borel structures and their usual default product norms.",
+      "Matrix.orthogonalGroup (Fin n) real is the full real orthogonal matrix group, with its usual topology and Borel structure, including either determinant sign. Matrix.PosDef means a real symmetric positive-definite matrix.",
+      "Measure.haarMeasure K is the canonical Haar measure normalized on the positive compact set K. TopologicalSpace.PositiveCompacts top is the entire compact group, so this constructor is its normalized Haar probability. Measure.restrict restricts a measure to a set; real nonnegative-infinite scalar multiplication has its usual meaning.",
+      "Matrix.reindex e e M has entries M (e.symm i) (e.symm j). Matrix.blockDiagonal f uses pairs (local coordinate, block index) and is zero between different blocks. Matrix.fromBlocks is the displayed two-by-two block assembly. finProdFinEquiv sends (a,b) to a times the cardinality of the second factor plus b; finSumFinEquiv concatenates its summands.",
+      "multivariateGaussian mean m covariance C is the pushforward of stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. The covariance interpretation holds when C is positive semidefinite; otherwise this total constructor defaults to a point mass. Matrix inverse is totalized at singular matrices.",
+      "stdGaussian is the standard Gaussian obtained by independent scalar standard normal coordinates in an orthonormal basis. On a zero-dimensional Euclidean space it is the probability point mass at its sole vector.",
+      "Measure.map is measurable pushforward; Measure.bind integrates the displayed measure-valued family. Measure.pi and Measure.prod are actual finite independent and binary products. IsProbabilityMeasure means total mass one, and the almost-everywhere quantifier is with respect to its displayed measure. Natural division and remainder and real scalar arithmetic have their ordinary Lean meanings."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "e01dbe7269c55923a5c761215b522eb663236fccc3d573c5832999c8d92a8ffb"
+}

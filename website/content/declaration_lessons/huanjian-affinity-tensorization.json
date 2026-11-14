@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.AffinityTensorization.actual_affinity_tensorization",
+      "title": "Actual Gaussian affinity tensorization (Ex71)",
+      "reader_note": "The main formula is shown first; objects, source assumptions, proof steps and exact Lean are folded below.",
+      "statement": "The Hellinger affinity of the actual averaged Gaussian targets is the k-th power of their actual single-block affinity.",
+      "formula": "\\int_{\\mathbb R^d}\\sqrt{\\frac{d\\bar\\pi_+}{dx}\\frac{d\\bar\\pi_-}{dx}}\\,dx=\\left(\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\right)^k=a^k.",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\ge4\\); set \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\). Both endpoint inequalities are inclusive.",
+        "For normalized full orthogonal Haar probability \\(\\mu_n\\), let \\(\\nu_\\pm=2\\mu_n|_{\\{\\det O=\\pm1\\}}\\). Define \\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\), \\(\\mathcal D_\\pm=(\\boldsymbol O\\mapsto\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r))_\\#\\nu_\\pm^{\\otimes k}\\), and the actual averaged targets \\(\\bar\\pi_\\pm=\\int\\mathcal N(0,A^{-1})\\,d\\mathcal D_\\pm(A)\\). Each product uses one common sign.",
+        "Use the actual block density representatives \\(p_\\pm(x)=\\int \\sqrt{\\det A_O}(2\\pi)^{-n/2}e^{-x^\\top A_Ox/2}\\,d\\nu_\\pm(O)\\), and \\(a=\\int_{\\mathbb R^n}\\sqrt{p_+(x)p_-(x)}\\,dx\\). Actual Gaussian validity, Haar-average inner L1, nonnegativity, measurability and normalization are supplied internally by canonical producers.",
+        "All base measures are canonical Euclidean Lebesgue volume. Put \\(R_\\pm=d\\bar\\pi_\\pm/dx\\). The exact Lean integrand is \\(F(x)=\\sqrt{\\operatorname{toReal}(R_+(x))\\operatorname{toReal}(R_-(x))}\\). RN derivatives are a.e. representatives. Actual Ex70 densities prove their finite a.e. identification, so neither the RN nonexistence default nor the totalized \\(\\operatorname{toReal}(\\infty)=0\\) changes the asserted integral.",
+        "The literal contiguous split sends ambient volume to the product block/residual volumes. For \\(r>0\\), the common residual factor is \\(\\varphi_r(z)=(2\\pi)^{-r/2}e^{-\\lVert z\\rVert^2/2}\\). For \\(r=0\\), its sole vector has unit volume and \\(\\varphi_0=1\\), realizing the source omitted-factor convention. No positive-remainder premise, supplied density identity or supplied affinity-integrability premise is added."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(\\bar\\pi_\\pm,p_\\pm,R_\\pm,k,r\\)",
+          "text": "The two laws are actual precision-prior Gaussian mixtures; block densities are their genuine Haar averages. Ambient RN derivatives are identified a.e. before real conversion.",
+          "formula": "k=\\lfloor d/n\\rfloor,\\quad r=d-kn,\\quad R_\\pm=d\\bar\\pi_\\pm/dx."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the actual Ex70 densities for both signs",
+          "text": "Apply the same canonical actual product-density theorem twice, for the positive and negative Haar components. It identifies each true matrix-prior Gaussian bind with its ambient density and supplies the common volume-preserving split. All density conditions come from these actual laws.",
+          "formula": "Q_\\pm(x_1,\\ldots,x_k,z)=\\prod_{j=1}^k p_\\pm(x_j)\\varphi_r(z),\\quad\\bar\\pi_\\pm=(Q_\\pm\\circ\\mathrm{split})\\,dx,\\quad\\mathrm{split}_\\#dx=d(x_1,\\ldots,x_k,z).",
+          "lean": "hp/hn' call ProductDensity.actual_product_density. hvol, hP0/hN0, hPm/hNm, hPi/hNi, hP1/hN1 and hPD/hND project the actual volume, L1, unit mass and ambient density certificates."
+        },
+        {
+          "title": "Identify the intrinsic RN representatives",
+          "text": "The actual density equalities imply absolute continuity. RN uniqueness for a measurable density over sigma-finite Euclidean volume gives a.e. equality with ofReal of that finite nonnegative density. Converting to real therefore gives exactly the actual density a.e.; null-set choices cannot change the affinity integral.",
+          "formula": "R_\\pm=Q_\\pm\\circ\\mathrm{split}\\quad dx\\text{-a.e.},\\qquad F=\\sqrt{Q_+Q_-}\\circ\\mathrm{split}\\quad dx\\text{-a.e.}",
+          "lean": "hPRN/hNRN use Measure.rnDeriv_withDensity on hPD/hND. hFG uses those a.e. identities and ENNReal.toReal_ofReal; the absolute-continuity outputs use withDensity_absolutelyContinuous."
+        },
+        {
+          "title": "Establish genuine L1 before transporting the integral",
+          "text": "The normalized-density comparison theorem yields integrability of the square-root product of the actual split densities. Pull it back through the actual volume-preserving split and apply the a.e. RN identity. The change of variables follows from the measurable pushforward identity.",
+          "formula": "G=\\sqrt{Q_+Q_-}\\in L^1,\\qquad F\\in L^1(dx),\\qquad\\int F\\,dx=\\int G\\,d(x_1,\\ldots,x_k,z).",
+          "lean": "hGi calls the one shared DensityAffinity.normalized_density_tv_affinity with all hypotheses discharged from Ex70; hvol.integrable_comp_of_integrable and hFG give ambient L1. htrans applies integral_map_of_stronglyMeasurable and the actual hvol.map_eq."
+        },
+        {
+          "title": "Separate the common residual and the block factors",
+          "text": "Nonnegativity of the actual block densities allows square roots to distribute over their finite product. The residual density is common to both signs and nonnegative, so the square root of its square is itself. This algebra also holds in the zero-dimensional unit-factor case.",
+          "formula": "\\sqrt{Q_+Q_-}=\\left(\\prod_{j=1}^k\\sqrt{p_+(x_j)p_-(x_j)}\\right)\\varphi_r(z).",
+          "lean": "MixtureDensities.actual_mixture_densities supplies hqpos0/hqneg0. hφ0 is direct positivity of the literal residual formula. hfactor uses Finset.prod_mul_distrib, Real.sqrt_mul, Real.sqrt_sq and Real.sqrt_prod."
+        },
+        {
+          "title": "Integrate the independent factors",
+          "text": "Finite-product Fubini gives unit mass for the positive block-density product. Together with the already proved unit mass of the actual Ex70 split density, binary Fubini yields integral one for the common residual factor, including dimension zero. Applying the same product rules to the affinity factors leaves one copy of the block integral per block. The focused consumer combines this equality with the previously proved Eq25 estimate to bound the actual ambient-law affinity.",
+          "formula": "1=\\left(\\prod_{j=1}^k\\int p_+\\right)\\int\\varphi_r=\\int\\varphi_r,\\qquad\\int G=\\left(\\prod_{j=1}^k\\int\\sqrt{p_+p_-}\\right)\\int\\varphi_r=a^k.",
+          "lean": "hblocks1 and hφ1 use integral_fintype_prod_volume_eq_pow, actual block unit mass, actual hP1 and integral_prod_mul with the canonical product-volume equality. The final calc uses hFG/htrans/hfactor and the same finite-product integral theorem. Tests.GaussianComplexityAffinityTensorization is a true-law RN-integral decay consumer; Eq25 is not an ancestor of the tensorization proof."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.OrthogonalHaar.orthogonalHaar",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.ProductDensity.actual_product_density",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.MixtureDensities.actual_mixture_densities",
+        "AutoSamplingTheory.TechnicalLemmas.InformationTheory.DensityAffinity.normalized_density_tv_affinity"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.Measure.rnDeriv_withDensity",
+        "MeasureTheory.withDensity_absolutelyContinuous",
+        "MeasureTheory.MeasurePreserving.integrable_comp_of_integrable",
+        "MeasureTheory.integral_map_of_stronglyMeasurable",
+        "MeasureTheory.integral_prod_mul",
+        "MeasureTheory.integral_fintype_prod_volume_eq_pow",
+        "MeasureTheory.Measure.volume_eq_prod",
+        "Real.sqrt_prod",
+        "Real.sqrt_mul",
+        "Real.sqrt_sq",
+        "ENNReal.toReal_ofReal"
+      ],
+      "lean_statement": "Exactly the preproof sealed statement. Both AC facts and genuine affinity L1 are outputs; source-domain bounds are the only logical premises.",
+      "lean_proof": "The exact complete production theorem is extracted beside the proof; local providers have no separate source credit.",
+      "boundary": "Actual Ex71 tensorization, genuine L1 and absolute continuity only. Tests combine it with the existing single-block bound to give actual-law affinity decay. Actual Ex72 TV, determinant-sign exact-matvec/transcript/TV-precision/deterministic worst-case query-cap and explicit expected-cost adapters, fixed-spectrum hidden eigenbasis and both main lower bounds remain open. Independent source verification, root/site integration, remote publication, postmerge purification/Exposition Seal and whole Goal are separate phases.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.Ex71",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S2 standing model; S3.E4-E6; A2.SS2.p2.1 densities; A2.Ex68, Ex70, Ex71 and A2.SS2.SSS3.p3.3 zero-residual convention. Ex72 is the downstream consumer.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. Ex71 applies Tonelli to the actual averaged target densities; ASTIS supplies the actual RN-representative and coordinate-volume adapters.",
+          "scope": "Actual ambient-law affinity equals the exact block affinity power, with genuine L1 and both absolute-continuity conclusions. Ex72 TV and main oracle lower bounds are separate.",
+          "label": "Zhou–Suzuki, Appendix B.2.3 Ex71"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityAffinityTensorization"
+      ]
+    }
+  ]
+}

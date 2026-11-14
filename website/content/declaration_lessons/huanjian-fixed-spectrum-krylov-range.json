@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range",
+      "title": "The actual cosine feature matrix spans the block Krylov space",
+      "reader_note": "Open conditions and proof steps for the details. Each formula has exact folded Lean; step6 includes the full private Euclidean application.",
+      "statement": "For the literal affine cosine spectrum, the image of the normalized feature matrix is exactly the block Krylov space. Every Krylov vector therefore has one coefficient representation giving both Euclidean quadratic identities.",
+      "formula": "\\operatorname{range}(B)=K_q=\\operatorname{span}\\{\\Lambda^j g_a:0\\le a,j\\le q\\}.",
+      "assumptions": [
+        "\\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), and \\(\\kappa\\ge2\\). The case \\(q=0\\) is included; the dimension condition implies \\(d\\ge2\\).",
+        "Put \\(r=q+1\\), \\(\\theta_i=(i+1/2)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(\\Lambda=\\operatorname{diag}(\\lambda_i)\\), with zero-based indices.",
+        "The starts \\(g_a\\in\\mathbb R^d\\) are arbitrary deterministic vectors, encoded by \\(x\\in\\mathbb R^{d\\times r}\\). They are unscaled. Define \\(t_{i0}=1\\), \\(t_{ij}=\\sqrt2\\cos(j\\theta_i)\\) for \\(j>0\\), and \\(B_{i,(a,j)}=d^{-1/2}(g_a)_i t_{ij}\\).",
+        "The space \\(K_q\\) is defined independently as the span of ordinary matrix powers \\(\\Lambda^j g_a\\). No full-rank, vector-independence, Gaussian, polynomial-basis or normalization certificate is assumed.",
+        "For the private application, \\(D=\\operatorname{diag}(\\cos((2q+1)\\theta_i))\\). Norm and inner product are the real Euclidean ones, explicitly realized by \\(\\mathrm{WithLp.toLp}\\ 2\\)."
+      ],
+      "steps": [
+        {
+          "title": "Undo the affine spectrum and keep all normalizations nonzero",
+          "text": "Write the eigenvalue as alpha plus beta times the cosine. Kappa at least2 makes beta nonzero. The source dimension gives a nonzero square-root scale, while the constant and positive-frequency columns have nonzero factors1 and sqrt2. These facts are proved inside the theorem.",
+          "formula": "\\alpha=(\\kappa+1)/2,\\quad\\beta=(\\kappa-1)/2\\ne0,\\quad z(X)=\\beta^{-1}(X-\\alpha),\\quad z(\\lambda_i)=\\cos\\theta_i.",
+          "lean": "  have hβ : β ≠ 0 := by dsimp [β]; linarith\n  have hd : 0 < (d : ℝ) := by exact_mod_cast (show 0 < d by omega)\n  have hs : s ≠ 0 := inv_ne_zero (Real.sqrt_ne_zero'.mpr hd)\n  have hw (k : Fin (q + 1)) : w k ≠ 0 := by\n    dsimp [w]\n    split_ifs\n    · exact one_ne_zero\n    · exact Real.sqrt_ne_zero'.mpr (by norm_num)\n  let z : ℝ[X] := C β⁻¹ * (X - C α)\n  have hz : z.degree = 1 := by\n    simp only [z, Polynomial.degree_C_mul (inv_ne_zero hβ), Polynomial.degree_X_sub_C]\n"
+        },
+        {
+          "title": "Use the same truncated polynomial space",
+          "text": "The monomials U_j=X^j and transformed Chebyshev polynomials Q_j=T_j composed with z each have degree j. Over the real field their leading coefficients are units. The canonical polynomial-sequence theorem shows that their first q+1 elements span precisely the same polynomial space. This is the triangular change of polynomial coordinates; it requires no independence of sampled vectors.",
+          "formula": "U_j=X^j,\\quad Q_j=T_j\\circ z,\\quad\\deg U_j=\\deg Q_j=j,\\qquad\\operatorname{span}_{j\\le q}U_j=\\mathbb R[X]_{<q+1}=\\operatorname{span}_{j\\le q}Q_j.",
+          "lean": "  let U : Polynomial.Sequence ℝ :=\n    { elems' := fun n => X ^ n\n      degree_eq' := fun n => by simp }\n  let Q : Polynomial.Sequence ℝ :=\n    { elems' := fun n => (Polynomial.Chebyshev.T ℝ (n : ℤ)).comp z\n      degree_eq' := fun n => by\n        rw [Polynomial.degree_comp (by rw [hz]; norm_num)]\n        simp [hz] }\n  have hU : Submodule.span ℝ (U '' Set.Iio (q + 1)) = Polynomial.degreeLT ℝ (q + 1) :=\n    U.span_degreeLT (fun n _ => isUnit_iff_ne_zero.mpr (Polynomial.leadingCoeff_ne_zero.mpr (U.ne_zero n)))\n  have hQ : Submodule.span ℝ (Q '' Set.Iio (q + 1)) = Polynomial.degreeLT ℝ (q + 1) :=\n    Q.span_degreeLT (fun n _ => isUnit_iff_ne_zero.mpr (Polynomial.leadingCoeff_ne_zero.mpr (Q.ne_zero n)))\n"
+        },
+        {
+          "title": "Evaluate polynomials against each actual start",
+          "text": "For each start, weighted evaluation is a linear map. Diagonal matrix powers act coordinatewise, including power0. The Chebyshev cosine identity sends Q_j to the cosine-weighted start. Thus the polynomial comparison applies to the actual Krylov columns and the literal feature columns.",
+          "formula": "F_a(p)_i=p(\\lambda_i)(g_a)_i,\\qquad F_a(U_j)=\\Lambda^j g_a,\\qquad F_a(Q_j)_i=\\cos(j\\theta_i)(g_a)_i.",
+          "lean": "  let F : Fin (q + 1) → ℝ[X] →ₗ[ℝ] (Fin d → ℝ) := fun a =>\n    { toFun := fun p i => p.eval (eigenvalue i) * g a i\n      map_add' := fun p r => by ext i; simp [add_mul]\n      map_smul' := fun c p => by\n        ext i\n        simp only [Polynomial.eval_smul, Pi.smul_apply, RingHom.id_apply,\n          smul_eq_mul, mul_assoc] }\n  have hpower (a : Fin (q + 1)) (n : ℕ) :\n      F a (U n) = (Λ ^ n).mulVec (g a) := by\n    ext i\n    simp [F, U, Λ, Matrix.diagonal_pow, Matrix.mulVec_diagonal]\n  have hangle (i : Fin d) : z.eval (eigenvalue i) = Real.cos (θ i) := by\n    simp only [z, Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_sub, Polynomial.eval_X,\n      eigenvalue, add_sub_cancel_left, inv_mul_cancel_left₀ hβ]\n  have hcos (a : Fin (q + 1)) (n : ℕ) :\n      F a (Q n) = fun i => Real.cos ((n : ℝ) * θ i) * g a i := by\n    ext i\n    change ((Polynomial.Chebyshev.T ℝ (n : ℤ)).comp z).eval (eigenvalue i) * g a i = _\n    rw [Polynomial.eval_comp, hangle]\n    simp only [Polynomial.Chebyshev.T_real_cos, Int.cast_natCast]\n"
+        },
+        {
+          "title": "Compare both column spans",
+          "text": "Each feature column is a nonzero scalar multiple of its evaluated Chebyshev polynomial. Map the two polynomial spans through weighted evaluation to obtain both inclusions. Finally use the canonical equality between a finite matrix image and its column span. Neither inclusion needs B to be injective.",
+          "formula": "B_{\\bullet,(a,j)}=d^{-1/2}w_jF_a(Q_j),\\quad w_0=1,\\ w_j=\\sqrt2\\ (j>0),\\qquad\\operatorname{range}(B)=K_q.",
+          "lean": "  have hcol (a k : Fin (q + 1)) :\n      B.col (a, k) = (s * w k) • F a (Q k.val) := by\n    ext i\n    rw [hcos]\n    change s * g a i * t i k = (s * w k) * (Real.cos ((k.val : ℝ) * θ i) * g a i)\n    by_cases hk : k.val = 0\n    · simp [t, w, hk, mul_comm, mul_left_comm, mul_assoc]\n    · simp only [t, w, if_neg hk]\n      ring\n  have hpolyK (a : Fin (q + 1)) :\n      Polynomial.degreeLT ℝ (q + 1) ≤ K.comap (F a) := by\n    rw [← hU]\n    refine Submodule.span_le.mpr ?_\n    rintro _ ⟨n, hn, rfl⟩\n    change F a (U n) ∈ K\n    rw [hpower]\n    exact Submodule.subset_span ⟨(a, ⟨n, hn⟩), rfl⟩\n  have hpolyR (a : Fin (q + 1)) :\n      Polynomial.degreeLT ℝ (q + 1) ≤ R.comap (F a) := by\n    rw [← hQ]\n    refine Submodule.span_le.mpr ?_\n    rintro _ ⟨n, hn, rfl⟩\n    change F a (Q n) ∈ R\n    let k : Fin (q + 1) := ⟨n, hn⟩\n    have hscaled : (s * w k) • F a (Q n) ∈ R := by\n      rw [← hcol a k]\n      change B.col (a, k) ∈ LinearMap.range B.mulVecLin\n      rw [Matrix.range_mulVecLin]\n      exact Submodule.subset_span ⟨(a, k), rfl⟩\n    exact (R.smul_mem_iff (mul_ne_zero hs (hw k))).mp hscaled\n  have hRK : R = K := by\n    apply le_antisymm\n    · change LinearMap.range B.mulVecLin ≤ K\n      rw [Matrix.range_mulVecLin]\n      refine Submodule.span_le.mpr ?_\n      rintro _ ⟨⟨a, k⟩, rfl⟩\n      rw [hcol]\n      apply K.smul_mem\n      apply hpolyK a\n      rw [Polynomial.mem_degreeLT, Q.degree_eq]\n      exact_mod_cast k.isLt\n    · change Submodule.span ℝ _ ≤ R\n      refine Submodule.span_le.mpr ?_\n      rintro _ ⟨⟨a, k⟩, rfl⟩\n      change (Λ ^ k.val).mulVec (g a) ∈ R\n      rw [← hpower]\n      apply hpolyR a\n      rw [Polynomial.mem_degreeLT, U.degree_eq]\n      exact_mod_cast k.isLt\n  exact congrArg (fun M : Submodule ℝ (Fin d → ℝ) => (M : Set (Fin d → ℝ))) hRK\n"
+        },
+        {
+          "title": "Choose one coefficient vector for each Krylov vector",
+          "text": "Invoke the compiled range theorem. Membership in K_q becomes actual membership in the image of B, providing one c with Bc=v. This is pointwise existence; no measurable selection or expectation involving a random coefficient is claimed.",
+          "formula": "v\\in K_q\\ \\Longrightarrow\\ \\exists c\\in\\mathbb R^{r^2},\\ Bc=v.",
+          "lean": "  have hr :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range\n      κ hκ hq x\n  change Set.range (fun c : Fin (q + 1) × Fin (q + 1) → ℝ => B.mulVec c) =\n    (K : Set (Fin d → ℝ)) at hr\n  change ∀ v : Fin d → ℝ, v ∈ K →\n    ∃ c : Fin (q + 1) × Fin (q + 1) → ℝ,\n      B.mulVec c = v ∧\n      ‖(WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))‖ ^ 2 =\n        (∑ a : Fin (q + 1) × Fin (q + 1), c a * ((B.transpose * B).mulVec c) a) ∧\n      (inner ℝ (WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))\n        (WithLp.toLp 2 (D.mulVec v) : EuclideanSpace ℝ (Fin d))) =\n        (∑ a : Fin (q + 1) × Fin (q + 1), c a * ((B.transpose * D * B).mulVec c) a)\n  intro v hv\n  have hvimage : v ∈ Set.range (fun c : Fin (q + 1) × Fin (q + 1) → ℝ => B.mulVec c) := by\n    rw [hr]\n    exact hv\n  obtain ⟨c, hc⟩ := hvimage\n  change B.mulVec c = v at hc\n"
+        },
+        {
+          "title": "Use that same coefficient in both Euclidean identities",
+          "text": "The real Euclidean inner product agrees with the finite dot product. Transposing B in this bilinear form gives the norm identity and the signed D-weighted identity for the same c. The complete private application is folded below; concentration events are needed only for later inequalities.",
+          "formula": "\\|v\\|_2^2=c^\\top B^\\top Bc,\\qquad\\langle v,Dv\\rangle=c^\\top B^\\top DBc.",
+          "lean": "import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange\n\nopen Matrix\nopen scoped BigOperators\nset_option autoImplicit false\n\n/-! The actual range theorem supplies one common coefficient witness for both\nEuclidean quadratic identities. No concentration event or norm bound is a\npremise; the later inequalities of Lemma 4.4 remain separate. -/\nnamespace AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumKrylovRange\n\nprivate theorem actual_krylov_quadratic_coordinates {d q : ℕ} (κ : ℝ) (hκ : 2 ≤ κ) (hq : 2 * q + 1 < d)\n    (x : EuclideanSpace ℝ (Fin d × Fin (q + 1))) :\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let g : Fin (q + 1) → Fin d → ℝ := fun a i => WithLp.ofLp x (i, a)\n  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let B : Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i a =>\n    (Real.sqrt (d : ℝ))⁻¹ * g a.1 i * t i a.2\n  let K : Submodule ℝ (Fin d → ℝ) :=\n    Submodule.span ℝ (Set.range (fun a : Fin (q + 1) × Fin (q + 1) =>\n      (Λ ^ a.2.val).mulVec (g a.1)))\n  let D : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i))\n  ∀ v : Fin d → ℝ, v ∈ K →\n    ∃ c : Fin (q + 1) × Fin (q + 1) → ℝ,\n      B.mulVec c = v ∧\n      ‖(WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))‖ ^ 2 =\n        (∑ a : Fin (q + 1) × Fin (q + 1), c a * ((B.transpose * B).mulVec c) a) ∧\n      (inner ℝ (WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))\n        (WithLp.toLp 2 (D.mulVec v) : EuclideanSpace ℝ (Fin d))) =\n        (∑ a : Fin (q + 1) × Fin (q + 1), c a * ((B.transpose * D * B).mulVec c) a) := by\n  classical\n  dsimp only\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)\n  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue\n  let g : Fin (q + 1) → Fin d → ℝ := fun a i => WithLp.ofLp x (i, a)\n  let t : Matrix (Fin d) (Fin (q + 1)) ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let B : Matrix (Fin d) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i a =>\n    (Real.sqrt (d : ℝ))⁻¹ * g a.1 i * t i a.2\n  let K : Submodule ℝ (Fin d → ℝ) :=\n    Submodule.span ℝ (Set.range (fun a : Fin (q + 1) × Fin (q + 1) =>\n      (Λ ^ a.2.val).mulVec (g a.1)))\n  let D : Matrix (Fin d) (Fin d) ℝ :=\n    Matrix.diagonal (fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i))\n  have hr :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumKrylovRange.actual_cosine_feature_krylov_range\n      κ hκ hq x\n  change Set.range (fun c : Fin (q + 1) × Fin (q + 1) → ℝ => B.mulVec c) =\n    (K : Set (Fin d → ℝ)) at hr\n  change ∀ v : Fin d → ℝ, v ∈ K →\n    ∃ c : Fin (q + 1) × Fin (q + 1) → ℝ,\n      B.mulVec c = v ∧\n      ‖(WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))‖ ^ 2 =\n        (∑ a : Fin (q + 1) × Fin (q + 1), c a * ((B.transpose * B).mulVec c) a) ∧\n      (inner ℝ (WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))\n        (WithLp.toLp 2 (D.mulVec v) : EuclideanSpace ℝ (Fin d))) =\n        (∑ a : Fin (q + 1) × Fin (q + 1), c a * ((B.transpose * D * B).mulVec c) a)\n  intro v hv\n  have hvimage : v ∈ Set.range (fun c : Fin (q + 1) × Fin (q + 1) → ℝ => B.mulVec c) := by\n    rw [hr]\n    exact hv\n  obtain ⟨c, hc⟩ := hvimage\n  change B.mulVec c = v at hc\n  have hcoord (u : Fin d → ℝ) :\n      inner ℝ (WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))\n        (WithLp.toLp 2 u : EuclideanSpace ℝ (Fin d)) =\n      c ⬝ᵥ (B.transpose.mulVec u) := by\n    rw [EuclideanSpace.inner_toLp_toLp]\n    simp only [star_trivial]\n    rw [Matrix.dotProduct_transpose_mulVec, hc]\n  refine ⟨c, hc, ?_, ?_⟩\n  · calc\n      ‖(WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))‖ ^ 2 =\n          inner ℝ (WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d))\n            (WithLp.toLp 2 v : EuclideanSpace ℝ (Fin d)) :=\n        (real_inner_self_eq_norm_sq _).symm\n      _ = c ⬝ᵥ (B.transpose.mulVec v) := hcoord v\n      _ = c ⬝ᵥ ((B.transpose * B).mulVec c) := by\n        rw [← hc, Matrix.mulVec_mulVec]\n      _ = ∑ a, c a * ((B.transpose * B).mulVec c) a := rfl\n  · rw [hcoord]\n    change c ⬝ᵥ (B.transpose.mulVec (D.mulVec v)) =\n      c ⬝ᵥ ((B.transpose * D * B).mulVec c)\n    simp only [← Matrix.mulVec_mulVec, hc]\n\nend AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumKrylovRange\n"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Polynomial.Sequence.span_degreeLT",
+        "Polynomial.Sequence.degree_eq",
+        "Polynomial.Sequence.ne_zero",
+        "Polynomial.degree_comp",
+        "Polynomial.degree_C_mul",
+        "Polynomial.degree_X_sub_C",
+        "Polynomial.Chebyshev.degree_T",
+        "Polynomial.Chebyshev.T_real_cos",
+        "Polynomial.eval_smul",
+        "Polynomial.eval_comp",
+        "Matrix.diagonal_pow",
+        "Matrix.mulVec_diagonal",
+        "Matrix.range_mulVecLin",
+        "Submodule.smul_mem_iff",
+        "Submodule.span_le",
+        "Submodule.subset_span",
+        "EuclideanSpace.inner_toLp_toLp",
+        "real_inner_self_eq_norm_sq",
+        "Matrix.dotProduct_transpose_mulVec",
+        "Matrix.mulVec_mulVec"
+      ],
+      "dependency_notes": "The producer has no public ASTIS proof parents: it directly reuses canonical Mathlib polynomial and span facts. Its private application genuinely invokes this producer as its only public ASTIS parent. The two reachable generated proof certificates are internal providers, not additional source results. No separate cosine-Gram or Gaussian-moment node is required for this range statement.",
+      "lean_statement": "The exact sealed natural d,q range includes q0 and preserves kappa>=2, the literal diagonal spectrum, unscaled starts, normalized feature matrix, independently defined Krylov span and actual set image.",
+      "lean_proof": "Transport the equal truncated monomial and transformed Chebyshev spans through weighted polynomial evaluation, remove the internally proved nonzero column scalars and identify image with column span. The private application uses that image equality to obtain one c and then applies canonical Euclidean bilinear identities.",
+      "boundary": "Pointwise range component of Appendix C.2 Fact C.5, and a private same-witness Euclidean quadratic-coordinate application underlying the proof of Lemma4.4. Arbitrary deterministic starts are a source-proof-supported strengthening of the Gaussian-context assertion; no Gaussian law or coefficient measurability is asserted. The signed bilinear identity is proved directly, not inferred by reversing an absolute-value equality. The separate cosine-frame Gram/mean results are not formal parents of range. Fact C.6 concentration, a source-valid absolute constant, full uniform Lemma4.4, deferred Haar/joint/adaptive/private-seed/transcript/output-law constructions, exact matvec/finite precision/TV and dimension-condition-number adapters, deterministic worst-query caps and explicit expected-cost comparisons, both main lower bounds, public integration, desktop/mobile delivery and postmerge purification/Exposition Seal remain open.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.Thmtheorem5",
+          "edition": "arXiv2610.20492v1; pinned raw SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Section4.2 block Krylov definition S4.SS2.SSS0.Px1.p2; AppendixC.2 FactC.5 range, A3.SS2.2 proof and A3.SS2.p19/inline Ex130–131 quadratic use",
+          "wording_status": "faithful paraphrase",
+          "attribution": "On Complexity of Gaussian Sampling, arXiv2610.20492v1.",
+          "scope": "Range component and a private exact Euclidean quadratic-coordinate application; not complete C5/C6/Lemma4.4 or either lower bound.",
+          "label": "FactC.5 range and Lemma4.4 representation use",
+          "pointwise_generalization_disclosure": "The extracted range identity is proved for arbitrary deterministic starts, as supported by the source polynomial proof; source Gaussian context and downstream stochastic estimates remain separate. See the assumption ledger and remaining boundary."
+        },
+        {
+          "path": "Tests/GaussianComplexityFixedSpectrumKrylovRange.lean",
+          "line": 12,
+          "label": "Complete same-witness Euclidean application",
+          "scope": "Private implementation consumer; no extra public or Registry node."
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumKrylovRange"
+      ]
+    }
+  ]
+}

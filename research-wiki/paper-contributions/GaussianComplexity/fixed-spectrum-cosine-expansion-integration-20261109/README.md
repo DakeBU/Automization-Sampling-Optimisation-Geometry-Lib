@@ -1,0 +1,7 @@
+# C7 actual local integration evidence
+
+The mathematical candidate37645 proves the exact reciprocal-spectrum identity, absolute summability and fixed-kappa uniform convergence; its private Test genuinely interchanges the weighted midpoint-grid sum and infinite series. Authored mathematics remains in the one canonical declaration lesson/publication binding8ddbbdb0.
+
+The original independent source reviewer made one normal V, first carried in8af00592. The actual sole STAB then made one normal transition. A real merge of main95322 matched all34 reviewed incoming paths, followed by exactly8 reviewed shared payloads. The independent actual readback accepts those exact bytes and the two mechanical own-cell projections. Read integration-notes.json, sole-STAB-actual-receipt.json, eight-payload-application-receipt.json and independent-reader/actual-shared-application-readback-v1/actual-application-readback-review.json. The tar archive preserves the exact preparatory contracts, failed/unexecuted predecessors and actual application tools.
+
+This record precedes the immutable integration-core commit. Aggregate Lean/Tests/fake-closure, current-core publication/contributor/semantic/frontier/site/graph gates and actual desktop/mobile originals remain pending at this phase. No remote merge, original-owner release, purification/Exposition Seal, C8 closed Gaussian moments or complete main lower bound is claimed. Subsequent acceptance evidence must identify the actual immutable core; it cannot retroactively turn this preparatory phase into a build result.

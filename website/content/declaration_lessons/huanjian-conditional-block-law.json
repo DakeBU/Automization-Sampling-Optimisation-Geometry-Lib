@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.GaussianBlockLaw.actual_conditional_block_product",
+      "title": "Conditional Gaussian blocks: a prerequisite for Eq6",
+      "reader_note": "The actual joint-law identity is shown first; complete objects, assumptions, proof and exact Lean are folded below.",
+      "statement": "For every fixed orthogonal tuple in the source block precision family, the actual centered Gaussian target becomes the independent product of its actual block Gaussians and the residual standard Gaussian under the literal contiguous coordinate split. This is the ASTIS-completed conditional ingredient of the printed prior-averaged Eq6.",
+      "formula": "\\mathrm{split}_{\\#}\\mathcal N(0,A_{\\boldsymbol O}^{-1})=\\left(\\bigotimes_{j=1}^{k}\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r).",
+      "assumptions": [
+        "\\(d,n\\in\\mathbb N,\\ 3\\le n\\le d,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge4\\), with inclusive endpoints. Put \\(k=\\lfloor d/n\\rfloor\\) and \\(r=d-kn=d\\bmod n\\).",
+        "\\(\\boldsymbol O=(O_1,\\ldots,O_k)\\in O(n)^k\\) is any fixed tuple in the full real orthogonal group. The matrices may differ and their determinant signs may differ; no prior on the tuple is supplied.",
+        "\\(A_O=\\frac{\\kappa+1}{2}I-\\frac{\\kappa-1}{4}(O+O^\\top)\\) and \\(A_{\\boldsymbol O}=\\operatorname{diag}(A_{O_1},\\ldots,A_{O_k},I_r)\\) are the existing literal source precision matrices. Positive definiteness, valid inverse covariances and independence are internal proof outputs.",
+        "Coordinates are consecutive blocks: in zero-based indices, block entry \\((j,i)\\) is ambient coordinate \\(jn+i\\), and residual entry \\(t\\) is \\(kn+t\\). The split is a continuous linear coordinate bijection; no isometry for the ordinary max-normed product is asserted.",
+        "When \\(r=0\\), the residual standard Gaussian is the unique probability measure on the zero-dimensional space. It is a point mass, not zero measure or a discarded unproved case."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(X,\\mathrm{split},k,r\\)",
+          "text": "The conclusion is equality of genuine Borel probability measures under an explicit coordinate pushforward. The finite product is an actual product of possibly different block laws. The source averages these conditional laws only in the later Eq6 step.",
+          "formula": "\\mathrm{split}(x)=(x_1,\\ldots,x_k,z),\\quad (x_j)_i=x_{jn+i},\\quad z_t=x_{kn+t}."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Produce admissible Gaussian covariances",
+          "text": "Apply the canonical single-block and ambient quadratic bounds. Their lower bounds imply strict positivity away from zero, hence invertibility and positive inverse covariance. This excludes the Gaussian constructor’s off-domain fallback internally.",
+          "formula": "I\\preceq A_{O_j}\\preceq\\kappa I,\\quad I\\preceq A_{\\boldsymbol O}\\preceq\\kappa I\\quad\\Longrightarrow\\quad A_{O_j},A_{\\boldsymbol O}\\succ0.",
+          "lean": "hp and hpd consume singleBlockPrecision_regular and blockPrecision_regular. Matrix.posDef_iff_dotProduct_mulVec, dotProduct_star_self_pos_iff and PosDef.inv supply the actual domain facts."
+        },
+        {
+          "title": "Invert the literal block precision",
+          "text": "Multiply the unreindexed block matrix by the block diagonal matrix of actual inverses. Each block product is the identity, including the residual identity. Uniqueness of the inverse and exact reindexing identify the full covariance; the desired law is not defined to be a product. Here [M]_e denotes simultaneous row and column reindexing into the ambient contiguous coordinates.",
+          "formula": "A_{\\boldsymbol O}^{-1}=\\left[\\operatorname{diag}(A_{O_1}^{-1},\\ldots,A_{O_k}^{-1},I_r)\\right]_{e},\\qquad BC=I.",
+          "lean": "hBC uses fromBlocks_multiply, blockDiagonal_mul and each genuine mul_nonsing_inv. hAdef is a definitional equality with the unchanged canonical precision; hInv uses inv_eq_right_inv and inv_reindex."
+        },
+        {
+          "title": "Pull back every product-space frequency",
+          "text": "The explicit split is linear and continuous. Decompose an arbitrary continuous linear functional on the ordinary product into block and residual parts. Riesz representation in each Euclidean factor assembles one ambient frequency. Thus the argument tests every dual frequency without treating the max-normed product as Hilbert.",
+          "formula": "L(\\mathrm{split}(x))=\\sum_j\\langle v_j,x_j\\rangle+\\langle v_r,z\\rangle=\\langle v,x\\rangle.",
+          "lean": "Tlin and T are the actual split. hinner and hvfunctional use the exact finite-coordinate equivalence, sum_comp_single, comp_inl_add_comp_inr and the real Euclidean Riesz map."
+        },
+        {
+          "title": "Factor the actual Gaussian characteristic function",
+          "text": "The covariance quadratic form splits into the sum of block inverse-covariance forms and the residual square norm. The canonical Gaussian characteristic formula becomes a product of the block characteristic functions. All covariance validity conditions come from the first step.",
+          "formula": "v^\\top A_{\\boldsymbol O}^{-1}v=\\sum_jv_j^\\top A_{O_j}^{-1}v_j+\\|v_r\\|^2,\\qquad e^{-v^\\top A_{\\boldsymbol O}^{-1}v/2}=\\prod_j e^{-v_j^\\top A_{O_j}^{-1}v_j/2}\\,e^{-\\|v_r\\|^2/2}.",
+          "lean": "hchange and hquad transport the exact block covariance. hG is a local restatement of Mathlib.charFun_multivariateGaussian through the Riesz map; hb and hr specialize it. No independent characteristic-function equality is assumed."
+        },
+        {
+          "title": "Identify measures and consume their true marginals",
+          "text": "Finite-product and binary-product characteristic functions give the same expression at every continuous dual functional. Uniqueness therefore gives the full measure equality. The focused consumer then pushes this same actual law to any block and to the residual, recovering their actual Gaussian laws. Separate checks establish the contiguous coordinates, inverse assembly and zero-dimensional probability point mass.",
+          "formula": "\\widehat{\\mathrm{split}_{\\#}\\pi_{A_{\\boldsymbol O}}}=\\widehat{\\left(\\bigotimes_j\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r)}\\quad\\Longrightarrow\\quad\\mathrm{split}_{\\#}\\pi_{A_{\\boldsymbol O}}=\\left(\\bigotimes_j\\mathcal N(0,A_{O_j}^{-1})\\right)\\otimes\\mathcal N(0,I_r).",
+          "lean": "The proof uses charFunDual_map/prod/pi, Complex.exp_sum/add and Measure.ext_of_charFunDual. Tests.GaussianComplexityConditionalBlockLaw derives genuine block/residual marginal equalities with measurePreserving_eval and product projections; these are not a scalar substitute for the joint law."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.singleBlockPrecision_regular",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision_regular"
+      ],
+      "mathlib_dependencies": [
+        "Matrix.posDef_iff_dotProduct_mulVec",
+        "Matrix.inv_eq_right_inv",
+        "Matrix.inv_reindex",
+        "ProbabilityTheory.charFun_multivariateGaussian",
+        "MeasureTheory.charFunDual_map",
+        "MeasureTheory.charFunDual_prod",
+        "MeasureTheory.charFunDual_pi",
+        "MeasureTheory.Measure.ext_of_charFunDual"
+      ],
+      "lean_statement": "Exactly the sealed fixed-tuple source-domain signature; all mathematical proof ingredients are internal.",
+      "lean_proof": "The exact proof is extracted from the sole production theorem; private proof regions receive no extra source credit.",
+      "boundary": "Only the actual fixed-tuple Gaussian factorization. No full Eq6 prior mixture, actual product density Ex70, affinity Ex71, amplified TV Ex72, oracle/precision/query cap/expected-cost adapter, hidden-eigenbasis or main lower bound is concluded. Local compilation is separate from independent source/semantic verification, root integration, publication, purification and whole-Goal completion.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S3.E6",
+          "edition": "arXiv:2610.20492v1; fixed HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Section3.1 S3.SS1.p1.1-p3.2, Eq4-Eq6; AppendixB.2.3 Ex70 product-density context; regularity source Lemma3.4 and AppendixB.3 Ex73/Eq26/Ex74",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. ASTIS supplies the fixed-matrix conditional Gaussian product ingredient omitted between the literal Eq5 family and printed prior-averaged Eq6; it is not advertised as a separately printed author theorem.",
+          "scope": "Fixed arbitrary tuple only. The common-sign independent prior average, actual density and amplification are separate obligations.",
+          "label": "Zhou–Suzuki, Eq5–Eq6 and Appendix B.3"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityConditionalBlockLaw"
+      ]
+    }
+  ]
+}

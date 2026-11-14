@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef",
+      "title": "Probability expectations preserve full real matrix positivity",
+      "reader_note": "Open assumptions and source-ordered proof steps for the full conditions and adjacent exact Lean.",
+      "statement": "An integrable, almost-everywhere positive semidefinite real matrix map has a positive semidefinite probability expectation.",
+      "formula": "f\\in L^1(\\mu),\\quad f(\\omega)\\succeq0\\ \\mu\\text{-a.e.}\\quad\\Longrightarrow\\quad\\int f\\,d\\mu\\succeq0.",
+      "assumptions": [
+        "Let \\(n\\) be a finite index set, possibly empty, and let \\((\\Omega,\\mu)\\) be any measurable probability space. The function \\(f\\) takes values in real \\(n\\)-by-\\(n\\) matrices.",
+        "The explicit authored contracts are \\(f\\in L^1(\\mu)\\) and \\(f(\\omega)\\succeq0\\) almost everywhere. Integrability includes an a.e. strongly measurable representative and finite extended-norm integral.",
+        "Here \\(A\\succeq0\\) means both \\(A^\\top=A\\) and \\(v^\\top A v\\ge0\\) for every finite vector. Positivity is full matrix PSD, rather than entrywise positivity.",
+        "The matrix space uses its complete Euclidean operator norm and the integral is Bochner. No caller-supplied closed/convex cone, pointwise measurability, nonempty matrix index or representative certificate is required.",
+        "This arbitrary-function background statement is authored explicitly. Concrete Gaussian consumers prove its contracts internally; the original Gaussian Source Anchor gains no new premise."
+      ],
+      "steps": [
+        {
+          "title": "Fix the full PSD cone and the actual integral contract",
+          "text": "Use the literal finite real matrix space and the genuine integrable, a.e. PSD function. The full signature permits empty finite indices. Its standard operator-norm and completeness instances are synthesized internally.",
+          "formula": "\\mathcal P=\\{A:A^\\top=A,\\ v^\\top A v\\ge0\\ \\text{for every }v\\}.",
+          "lean": "import Mathlib.Algebra.Order.Star.Real\nimport Mathlib.Analysis.Convex.Integral\nimport Mathlib.Analysis.CStarAlgebra.Matrix\nimport Mathlib.LinearAlgebra.Matrix.PosDef\n\n/-! ASTIS-authored reusable background for positivity under expectation.\nThe full PSD cone geometry is proved here once. Concrete source applications\nmust derive integrability and AE positivity internally. Empty finite matrix\nindices are permitted. This is not a printed generic theorem in the paper. -/\n\nnoncomputable section\nopen MeasureTheory\nopen scoped Matrix.Norms.L2Operator\nset_option autoImplicit false\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\n\ntheorem integral_posSemidef\n    {n Ω : Type*} [Fintype n] [DecidableEq n] [MeasurableSpace Ω]\n    {μ : Measure Ω} [IsProbabilityMeasure μ]\n    (f : Ω → Matrix n n ℝ) (hf : Integrable f μ)\n    (hpos : ∀ᵐ ω ∂μ, Matrix.PosSemidef (f ω)) :\n    Matrix.PosSemidef (∫ ω, f ω ∂μ)\n:= by\n  classical\n  let M := Matrix n n ℝ\n"
+        },
+        {
+          "title": "Prove the cone closed in the declared topology",
+          "text": "Hermitian matrices form the equalizer of continuous star and identity. For every fixed finite vector, its quadratic evaluation is continuous and the nonnegative half-line is closed. Intersect these closed conditions; no cone-geometry certificate is a public input.",
+          "formula": "\\mathcal P=\\{A:A^\\top=A\\}\\cap\\bigcap_v\\{A:v^\\top A v\\ge0\\}.",
+          "lean": "  have PSD_closed : IsClosed {A : M | A.PosSemidef} := by\n    have hermitian_closed : IsClosed {A : M | A.IsHermitian} := by\n      change IsClosed {A : M | star A = A}\n      exact isClosed_eq continuous_star continuous_id\n    have quadratic_closed (v : n → ℝ) :\n        IsClosed {A : M | 0 ≤ dotProduct (star v) (Matrix.mulVec A v)} := by\n      apply isClosed_le continuous_const\n      change Continuous (fun A : M => ∑ a, star (v a) * ∑ b, A a b * v b)\n      fun_prop\n    convert hermitian_closed.inter (isClosed_iInter quadratic_closed) using 1\n    ext A\n    simp [Matrix.posSemidef_iff_dotProduct_mulVec]\n"
+        },
+        {
+          "title": "Use convexity and the canonical probability integral theorem",
+          "text": "Nonnegative scalar combinations of full PSD matrices remain PSD, proving convexity. Apply the existing closed-convex integral theorem to the actual a.e. membership and integrability hypotheses. The proof does not strengthen a.e. positivity to pointwise positivity.",
+          "formula": "a,b\\ge0,\\ a+b=1,\\ A,B\\in\\mathcal P\\Longrightarrow aA+bB\\in\\mathcal P,\\qquad\\int f\\,d\\mu\\in\\mathcal P.",
+          "lean": "  have PSD_convex : Convex ℝ {A : M | A.PosSemidef} := by\n    intro A hA B hB a b ha hb hab\n    exact (hA.smul ha).add (hB.smul hb)\n  exact PSD_convex.integral_mem PSD_closed hpos hf\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\n"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "Convex.integral_mem",
+        "Matrix.posSemidef_iff_dotProduct_mulVec",
+        "Matrix.PosSemidef.smul",
+        "Matrix.PosSemidef.add"
+      ],
+      "dependency_notes": "Exact common compiled declarations remain canonical once. The shared producer has no ASTIS parent; the concrete source consumer materially uses it and the existing row-law, fourth-moment and weighted-frame nodes. Planned centered use is not a current compiled call.",
+      "lean_statement": "An integrable, almost-everywhere positive semidefinite real matrix map has a positive semidefinite probability expectation.",
+      "lean_proof": "See the complete source-ordered formula steps and exact Lean folds.",
+      "boundary": "Explicit ASTIS-authored shared background, with probability/integrability/AE-PSD contracts on arbitrary f. The full PSD cone geometry is proved internally. Empty finite matrix indices are included. This is a specialization of the fixed upstream closed-convex integral theorem, not a printed arbitrary-f Gaussian-paper theorem or a source repair. The concrete original-experiment uncentered bound is an actual consumer with its own source binding. The later centered/weighted source variance, concentration, both main lower bounds and oracle/TV/precision/cap/cost adapters remain open. Serialized integration, actual desktop/mobile/MathJax/global source-index/graph/copy/download/public delivery and purification remain open.",
+      "sources": [
+        {
+          "url": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/Convex/Integral.lean#L57",
+          "edition": "ASTIS-authored matrix specialization; external source Mathlibdb584cd6d46c92f209a44c0f1c829460d327499d, source SHA1b3115887fabf0dccc2fed689d1f1ddc7a114b5de4594e752c02908a445aafb4",
+          "anchor": "Authored finite-real-matrix PSD-cone specialization of Convex.integral_mem lines46-83; arXiv2610.20492v1 C.2 p14 supplies concrete application need only",
+          "wording_status": "licensed original",
+          "attribution": "ASTIS-authored reusable background; upstream closed-convex integral theorem is Mathlib.",
+          "scope": "Generic probability expectation positivity, with cone geometry proved, distinct from the concrete source calculation.",
+          "label": "Authored finite-real-matrix PSD-cone specialization of Convex.integral_mem lines46-83; arXiv2610.20492v1 C.2 p14 supplies concrete application need only"
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveIntegral.lean",
+          "line": 18,
+          "label": "Complete exact compiled declaration source",
+          "scope": "Explicit ASTIS-authored shared background, with probability/integrability/AE-PSD contracts on arbitrary f. The full PSD cone geometry is proved internally. Empty finite matrix indices are included. This is a specialization of the fixed upstream closed-convex integral theorem, not a printed arbitrary-f Gaussian-paper theorem or a source repair. The concrete original-experiment uncentered bound is an actual consumer with its own source binding. The later centered/weighted source variance, concentration, both main lower bounds and oracle/TV/precision/cap/cost adapters remain open. Serialized integration, actual desktop/mobile/MathJax/global source-index/graph/copy/download/public delivery and purification remain open."
+        },
+        {
+          "path": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixVariance.lean",
+          "line": 19,
+          "label": "Actual original-experiment uncentered consumer",
+          "scope": "Its own source binding proves integrability and uncentered PSD domination; full centered R9 remains unfinished."
+        }
+      ],
+      "tests": [
+        "lake build Tests.RealMatrixPositiveIntegral"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+def proposed_block_law_statement : {d n : ℕ} →
+  3 ≤ n → n ≤ d → {κ : ℝ} → 4 ≤ κ → (Fin (d / n) → ↥(orthogonalGroup (Fin n) ℝ)) → Prop :=
+fun {d n} _hn _hnd {κ} _hκ O =>
+  have e :=
+    ((((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv).sumCongr (Equiv.refl (Fin (d % n)))).trans
+          finSumFinEquiv).trans
+      (finCongr ⋯);
+  have split := fun x =>
+    (fun j => WithLp.toLp 2 fun i => x.ofLp (e (Sum.inl (i, j))), WithLp.toLp 2 fun i => x.ofLp (e (Sum.inr i)));
+  Measure.map split (multivariateGaussian 0 (blockPrecision κ O)⁻¹) =
+    (Measure.pi fun j => multivariateGaussian 0 (singleBlockPrecision κ (O j))⁻¹).prod
+      (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))

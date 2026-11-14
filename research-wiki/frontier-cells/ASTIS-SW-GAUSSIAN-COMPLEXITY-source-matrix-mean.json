@@ -1,0 +1,328 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-mean",
+  "route": "samplewiki-route",
+  "mode": "faithfulPaper",
+  "title": "Actual original-experiment truncated matrix means and two mean sums",
+  "source_anchor": "arXiv2610.20492v1 C.2 p12 actual Yi first moments and Ex110 two mean sums, using original p1 experiment and Fact C5; standing integer query range",
+  "target_statement": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ :=\n    (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L} (fun y : E => ‖y‖ ^ 2) x\n      ∂stdGaussian E) / r\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  (∀ i : Fin d, Integrable (Y i) μ) ∧\n    ∀ i : Fin d, (∫ ω, Y i ω ∂μ) =\n      (a / (d : ℝ)) • Matrix.kronecker\n        (1 : Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ) (Matrix.vecMulVec (t i) (t i))\n\nPrivate actual consumer\n    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let a : ℝ :=\n    (∫ x : E, Set.indicator {y : E | ‖y‖ ^ 2 ≤ L} (fun y : E => ‖y‖ ^ 2) x\n      ∂stdGaussian E) / r\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  Integrable (fun ω => ∑ i : Fin d, Y i ω) μ ∧\n    Integrable (fun ω => ∑ i : Fin d,\n      Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i) • Y i ω) μ ∧\n    (∫ ω, ∑ i : Fin d, Y i ω ∂μ) =\n      a • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) ∧\n    (∫ ω, ∑ i : Fin d, Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i) • Y i ω ∂μ) = 0\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_gc_20261112_source_matrix_mean",
+  "advance_id": "ASTIS-SA-20261112-GaussianComplexitySourceMatrixMean",
+  "parents": [
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+    "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+  ],
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixMean.actual_source_truncated_sum_means"
+  ],
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib: Existing canonical actual-row Gaussian marginal law, truncated row second moment, and cosine Gram identities are compiled and known. Their exact compiled identities are reused; all prior code/API exposure is disclosed.",
+      "The old private canonical-row matrix mean is an application of the same truncated-row node, not a new public canonical provider. The new statement concerns actual original-column maps and their actual sum integrals, not a duplicate canonical-row moment theorem.",
+      "Mathlib: Literal Bochner integrability and integral definition, closed indicator, Gaussian product, Kronecker coordinate order and actual Matrix L2Operator/completeness instances are audited. No new target proof implementation/API search before seal/source-type-topology admission."
+    ],
+    "classification": "adapt",
+    "decision": "new_route_local",
+    "canonical_declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+    "canonical_shared_cell": ""
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib: Existing canonical actual-row Gaussian marginal law, truncated row second moment, and cosine Gram identities are compiled and known. Their exact compiled identities are reused; all prior code/API exposure is disclosed.",
+      "The old private canonical-row matrix mean is an application of the same truncated-row node, not a new public canonical provider. The new statement concerns actual original-column maps and their actual sum integrals, not a duplicate canonical-row moment theorem.",
+      "Mathlib: Literal Bochner integrability and integral definition, closed indicator, Gaussian product, Kronecker coordinate order and actual Matrix L2Operator/completeness instances are audited. No new target proof implementation/API search before seal/source-type-topology admission."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+      "MeasureTheory.MeasurePreserving.integrable_comp_of_integrable",
+      "MeasureTheory.integral_map",
+      "ContinuousLinearMap.integrable_comp",
+      "ContinuousLinearMap.integral_comp_comm",
+      "Matrix.kroneckerBilinear",
+      "Matrix.sum_apply",
+      "Matrix.mul_diagonal",
+      "Matrix.one_kronecker_one",
+      "MeasureTheory.integrable_finsetSum",
+      "MeasureTheory.integral_finsetSum",
+      "MeasureTheory.Integrable.smul",
+      "MeasureTheory.integral_smul"
+    ],
+    "planned_existing_parents": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+    ],
+    "new_shared_declarations": [],
+    "known_consumers": [
+      "_private.Tests.GaussianComplexityFixedSpectrumSourceMatrixMean.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixMean.actual_source_truncated_sum_means"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixMean.actual_source_truncated_sum_means"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Use the same canonical row law and truncated radial moment to derive actual Yi integrability and means under the original product law; consume these exact means with the existing cosine frame in both actual finite-sum integrals. No duplicated public radial/marginal theorem or supplied mean certificate."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Independent source and complete module review plus six exact closed production static folds accepted; full private158-line source at L17. Native theme is bounded and minimal. Actual desktop/mobile/MathJax/global source-index/graph/copy/download interaction and public delivery, serialized integration and purification remain HOLD."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means"
+    ],
+    "visual_review": "Exact compiled parent extraction and source/Lean map available. Shared graph integration/visual acceptance await original stabilization owner release."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [],
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Control-plane reservation label and exploratory API lookup failures retained. Producer compiled first attempt; two consumer elaboration/API errors fixed without changing the exact statement or mathematical route. Final v3 and original strict kernel probe passed. All failed source versions/streams retained; no discarded mathematical fragment.",
+      "promoted_fragments": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means"
+      ],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "One mathematical prover with independent raw-source and different-role topology reviewers.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "One source-facing implementation packet."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": true
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 raw SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "C.2 p1,p10,p12 Ex107/108/110 and exact Fact C5 feature sums",
+    "detail_status": "omitted",
+    "gap": "Source suppresses actual row-law applicability, Bochner integrability/transport, tensor/scalar image commutation, finite integral exchange and exact cosine-frame assembly. All remain internal proof obligations, not theorem binders.",
+    "consulted": [
+      {
+        "source": "Pinned original source and literal canonical definitions",
+        "anchor": "C.2 actual matrix means/two expectation sums and literal Bochner/indicator/Kronecker/operator-norm meanings",
+        "hypothesis_adapter": "All actual Yi use one product experiment and source closed cutoff. Derive their integrability/means and finite-sum exchange internally, q=0 retained; no row-law/moment/integrability/Gram/mean/tau/kappa certificate input. Joint independence is separate existing credit and unnecessary for means."
+      }
+    ],
+    "fidelity_boundary": "Canonical original independent-column experiment only. Independence is separate existing credit and not needed to infer these first moments. No arbitrary ambient transfer, scalar a bias/range extension, centered variance or matrix concentration, full Lemma4.4, main bounds or oracle/TV/precision/cap/cost result. Serialized integration, actual reader/browser/globalgraph and purification remain open."
+  },
+  "statement_seal": {
+    "status": "EXACT_UNCHANGED_TYPES_COMPILED;INDEPENDENT_SOURCE_AND_FRESH_NATIVE_COMPLETE;API_NONPRISTINE_DISCLOSED",
+    "file": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-statement-seal.json",
+    "sha256": "b55a1acb837288d580a667903987e5f809610626eb4848c750ff8d3a6c01149b",
+    "signature_sha256": "099bcbe9d6cc440754282873a7f1e1001584c3566fc771a70bf9f1a3846b85fe",
+    "private_consumer_signature_sha256": "00c0b050a632e03d9b169acdb6632ae85a9ec43cc2b5e8aa26b7b6152a711b7e"
+  },
+  "evidence": {
+    "actual_literal_formation": {
+      "receipt": ".astis/huanjian-resume-20261103/20261112T122228147517Z-source-matrix-mean-literal-Prop-formation.receipt.json",
+      "sha256": "16fe20728819199715a16bbe2a589a3626f0394070c78994441f56b3d71ed965",
+      "log_sha256": "1a5c7a5a5072f5005f2f78a516e2c2bb19fa5487f0e1673b3d8cb39366f80c77"
+    },
+    "actual_definition_meaning": {
+      "receipt": ".astis/huanjian-resume-20261103/20261112T122316201034Z-source-matrix-mean-definition-meaning.receipt.json",
+      "sha256": "4869491c6edfa7fbe24e956b894ce20e414bbe060d37da9f43de08e54ec58619",
+      "log_sha256": "9de06b9542872364eebfa1f4ed3066c804786626ef30918056d0c34371dc706b"
+    },
+    "formalizer_API_pristine": false,
+    "reservation_schema_diagnosis": {
+      "class": "IMPLEMENTATION_FAILED",
+      "scope": "New unadmitted control-plane description only",
+      "reason": "Schema requires explicit Samplinglib and Mathlib search provenance labels. Actual known canonical-source inspection and standard-definition lookups were already recorded; only those literal library names were omitted.",
+      "original_cell": ".astis/huanjian-gc-source-matrix-mean-20261112/reserved-cell.description-attempt1.original.json",
+      "original_sha256": "3067fc1197cd5f7722c88c52df2a5d6380678599db7daf5e89518da03fbb471f",
+      "new_target_proof_attempts": 0,
+      "normal_API_calls": 0,
+      "mathematical_signature_or_source_change": false
+    },
+    "preproof_source_admission": {
+      "file": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/preproof-source-admission.json",
+      "sha256": "8e4ee829487526f6dd8b679f8a5046d3b853bd809f54a79c6173097852eff3e2"
+    },
+    "normal_API_calls": 3,
+    "actual_compilation": {
+      "path": ".astis/huanjian-resume-20261103/20261112T125123575778Z-source-matrix-mean-real-consumer-implicit-sum-arguments-v3.receipt.json",
+      "sha256": "a9d7ddad54352db2ecaa2879df1d2bfefe042deb82da108a3a6497a5cde1c4b6",
+      "log_sha256": "9a395a428acf058ad08c6156594165d8d89880c43cdfeda77a3053d06e2eaea2"
+    },
+    "actual_producer_first_compilation": {
+      "path": ".astis/huanjian-resume-20261103/20261112T124717774428Z-source-matrix-mean-producer-firstbuild.receipt.json",
+      "sha256": "5d2260cc72f8d09bc0e5678c60c807482fa19fa8cb33f0fa313225d3b8cb37be",
+      "log_sha256": "010e247177159a5120012702b29e7247d5a306bf63f243f3aa9eed060a664fcd"
+    },
+    "actual_kernel": {
+      "path": ".astis/huanjian-resume-20261103/20261112T125208720803Z-source-matrix-mean-exact-literal-kernel-and-real-parents.receipt.json",
+      "sha256": "051b05df782c4a47e2582c22c2d985573183299e3e78a707f04ec7fca0dd8495",
+      "log_sha256": "b2cd71c32553da7100f3c33631438c442ffc5f4084c2dbbd4ee28704a2b4ca25"
+    },
+    "actual_public_ASTIS_parents": {
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment"
+      ],
+      "_private.Tests.GaussianComplexityFixedSpectrumSourceMatrixMean.0.AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixMean.actual_source_truncated_sum_means": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram"
+      ]
+    },
+    "independent_verification": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/actual-VERIFIED-independent-decision.json",
+    "independent_source_review": {
+      "report": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/source-review/mm_src_8c31/phase4-final-report.md",
+      "report_sha256": "89550a6307ff2d651fc906d342d6690f1bf37c0559623f10966268f2a257b2dd",
+      "overlay_sha256": "272a6337202644e922299cf2199a6b3d643eca3f58b710f41ab09c4d89027793",
+      "custody_manifest": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/independent-source-review-portable-custody.original.json",
+      "reviewed_publication_binding_sha256": "c0e0e354793ad6c2901a23c28c58d1bae8a63bf682d8645ce6e555d2d96df834"
+    },
+    "focused_checks": [
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T125123575778Z-source-matrix-mean-real-consumer-implicit-sum-arguments-v3.receipt.json",
+        "sha256": "a9d7ddad54352db2ecaa2879df1d2bfefe042deb82da108a3a6497a5cde1c4b6",
+        "log_sha256": "9a395a428acf058ad08c6156594165d8d89880c43cdfeda77a3053d06e2eaea2"
+      },
+      {
+        "path": ".astis/huanjian-resume-20261103/20261112T125208720803Z-source-matrix-mean-exact-literal-kernel-and-real-parents.receipt.json",
+        "sha256": "051b05df782c4a47e2582c22c2d985573183299e3e78a707f04ec7fca0dd8495",
+        "log_sha256": "b2cd71c32553da7100f3c33631438c442ffc5f4084c2dbbd4ee28704a2b4ca25"
+      }
+    ],
+    "actual_PROVED_LOCAL_append_sha256": "54c848e162b60fd716874be23acde307fba9e5cd09915913aa369c569ee1cd6d",
+    "independent_native_review": {
+      "report": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/native-review/mm_native_4a62/report.json",
+      "report_sha256": "82efcb654cdbd8e65e11dc17a5136d3c516b8730a92bcdc36416aaaf13f9a65e",
+      "compiled_candidate": "5fb1440f771bdae77ad31f27b2275447fe3e89e5",
+      "metadata_carrier_byte_comparison_head": "121b50ab73aa362a148d2108ee607b76e82321d7",
+      "original_portable_manifest": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/native-review/mm_native_4a62/portable-manifest.json",
+      "original_raw_execution_archive": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/native-review/mm_native_4a62/mm_native_4a62-portable.tar.gz",
+      "normal_VERIFIED_transition_performed": false
+    }
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "owned_files": [
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixMean.lean",
+    "Tests/GaussianComplexityFixedSpectrumSourceMatrixMean.lean",
+    "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-statement-seal.json",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-mean.json",
+    "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-gaussian-source-matrix-mean.json",
+    "website/content/publications/huanjian-gaussian-source-matrix-mean.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-gaussian-source-matrix-mean.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json"
+  ],
+  "truth_boundary": "Canonical original independent-column experiment only. Independence is separate existing credit and not needed to infer these first moments. No arbitrary ambient transfer, scalar a bias/range extension, centered variance or matrix concentration, full Lemma4.4, main bounds or oracle/TV/precision/cap/cost result. Serialized integration, actual reader/browser/globalgraph and purification remain open.",
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "scope": "Bounded NEW correspondence only; existing symmetry identities remain unchanged.",
+    "evidence": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/conceptual-mirror-originals/judgment.json",
+    "independent_reviewer": "/root/row_indep_topology_24a6",
+    "existing_validated_mirrors": [
+      {
+        "discovery_id": "ASTIS-DISC-20261007-GaussianSymmetryPushforwardRepaired",
+        "status": "merged",
+        "family_id": "family:gaussian-law-symmetry",
+        "bridge_id": "transport:gaussian-symmetry-pushforward",
+        "identity_and_status_preserved": true,
+        "historical_scope_and_metadata_preserved": true,
+        "revalidation_performed": false,
+        "status_or_metadata_updated": false,
+        "original_embedded_record_canonical_json_sha256": "ffa17682f5c09fbfc76632f6c0079cd56450c228e85ff27fc42d2f8ffaba7691",
+        "digest_scope": "Exact embedded input record, not an independently fetched historical registry revision."
+      },
+      {
+        "discovery_id": "ASTIS-DISC-20261111-GaussianRadialWeightedMatrixSymmetry",
+        "status": "validated",
+        "family_id": "family:orthogonal-invariance",
+        "bridge_id": "transport:gaussian-radial-weighted-matrix-symmetry",
+        "identity_and_status_preserved": true,
+        "historical_scope_and_metadata_preserved": true,
+        "revalidation_performed": false,
+        "status_or_metadata_updated": false,
+        "original_embedded_record_canonical_json_sha256": "4953149ad902a6ab993ac9d3a59fa765c5bcf0b5af6de780c65f0f009ac1b416",
+        "digest_scope": "Exact embedded input record, not an independently fetched historical registry revision."
+      }
+    ]
+  },
+  "source_proof_coverage": {
+    "inventory_archive": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/preproof-source-types-topology-local-build.original-files.tar.gz",
+    "inventory_member": ".astis/semantic-neutral-20261112/mm_sg_61c4/raw-freeze-v1/atomic-inventory.json",
+    "reviewed_nodes": "Independent raw, type-only and distinct topology freezes, then fresh whole-module and anti-anchored source review.",
+    "excluded_with_reason": "All79 bounded atoms retain44NODE and35EXCLUDED dispositions. Distinct topology challenge checked62nodes/94edges and463locator occurrences, including both formal roots and separate source correspondence endpoints. Canonical row/moment/frame identities retain their existing credit.",
+    "source_gaps": "Actual row-law and retained scalar/matrix moment applicability, actual matrix integrability, selected CLM expectation route, literal frame and actual finite integral exchange are compiled and independently source-reviewed. The entrywise OR route is unselected, not an extra requirement. Arbitrary ambient transfer, public aggregate canonicalization, centered variance/concentration and main bounds remain open.",
+    "alternative_routes": [],
+    "exact_source_and_Lean_map": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-mean-semantic-evidence/source-lean-map.draft.json"
+  },
+  "proof_digestion": {
+    "existing_substrate": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumTruncatedRowMoment.actual_truncated_row_second_moment",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram.actual_cosine_frame_gram",
+      "MeasurePreserving.integrable_comp_of_integrable",
+      "integral_map",
+      "ContinuousLinearMap.integrable_comp",
+      "ContinuousLinearMap.integral_comp_comm",
+      "Matrix.kroneckerBilinear",
+      "Matrix.one_kronecker_one",
+      "integrable_finsetSum",
+      "integral_finsetSum",
+      "integral_smul"
+    ],
+    "bookkeeping": [
+      "Literal same-experiment row pushforward and noninjective moment transport",
+      "Fixed Gaussian-first tensor CLM and exact closed-cutoff image",
+      "Exact half-grid/frame application and paired-identity normalization",
+      "Actual finite-sum integrability and Bochner/scalar exchange"
+    ],
+    "new_reusable": [],
+    "new_topology": "Same canonical row-law and truncated moment yield actual Yi integrability/means, materially consumed with the same cosine-frame node in both actual finite-sum expectation identities."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "All3 new declarations (2 handwritten,1 generated) reachable, standard axioms only. Full7-module fresh native closure checks39 complete types/bodies;32 root-reachable and7 older GridAlias generated helpers outside this root retained unchanged. No global dead-code or post-merge purification claim.",
+    "duplicate_semantics_audit": "One canonical existing row-law, radial moment and frame node each reused. The old private canonical-row matrix application remains immutable history without duplicate public credit.",
+    "canonicalization": "Same row-law and truncated-row-moment producer nodes and same cosine-frame consumer node are shared canonical declarations. Old private canonical-row matrix application is outside this native import closure and gains no new credit.",
+    "compressed_spine_delta": "Exact row pushforward and retained moment -> fixed tensor CLM -> actual Yi means -> source cosine tensor sums -> actual finite-sum integrals.",
+    "reader_default_view": "Compact individual means with six source-ordered formula/Lean folds and the complete158-line private source at L17."
+  }
+}

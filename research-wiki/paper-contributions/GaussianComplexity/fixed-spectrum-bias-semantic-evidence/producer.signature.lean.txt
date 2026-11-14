@@ -1,0 +1,14 @@
+theorem actual_diagonal_gaussian_exponential_bias {d : ℕ} (hd : 2 ≤ d) {κ : ℝ} (hκ : 2 ≤ κ)
+    (n : ℕ) (hn : 1 ≤ n) (hnd : n < d) (hgap : Real.sqrt κ ≤ (d : ℝ) - (n : ℝ)) :
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+  let eigenvalue : Fin d → ℝ := fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)
+  let Λ : Matrix (Fin d) (Fin d) ℝ := Matrix.diagonal eigenvalue
+  let μ : Measure (EuclideanSpace ℝ (Fin d)) :=
+    multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) Λ⁻¹
+  let Q : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+    ∑ i : Fin d, Real.cos ((n : ℝ) * θ i) * (WithLp.ofLp x i) ^ 2
+  let M : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), ‖x‖ ^ 2 ∂μ
+  let b : ℝ := ∫ x : EuclideanSpace ℝ (Fin d), Q x ∂μ
+  0 < M ∧ 0 < (-1 : ℝ) ^ n * b ∧
+  (1 - Real.exp (-4)) * Real.exp (-3 * (n : ℝ) / Real.sqrt κ) ≤ |b| / M ∧
+  |b| / M ≤ Real.exp (-2 * (n : ℝ) / Real.sqrt κ)

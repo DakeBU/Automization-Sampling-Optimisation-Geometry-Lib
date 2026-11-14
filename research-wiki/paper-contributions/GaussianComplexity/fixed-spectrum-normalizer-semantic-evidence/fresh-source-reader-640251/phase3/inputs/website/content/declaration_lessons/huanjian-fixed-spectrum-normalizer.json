@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumNormalizer.actual_normalizing_integral",
+      "title": "Actual fixed-spectrum Gaussian normalizing integral",
+      "reader_note": "The integral value is shown first; exact family, all assumptions, formula proof and precise Lean are folded below.",
+      "statement": "The actual quadratic Gaussian weight is Lebesgue integrable, with a normalizing integral determined by the displayed spectrum.",
+      "formula": "w_A\\in L^1(dx),\\qquad Z_A:=\\int_{\\mathbb R^d}e^{-x^\\top A x/2}\\,dx=\\frac{(2\\pi)^{d/2}}{\\sqrt{\\prod_{i=1}^d\\lambda_i}}.",
+      "assumptions": [
+        "\\(d\\in\\mathbb N,\\ d\\ge2,\\ \\kappa\\in\\mathbb R,\\ \\kappa\\ge2\\). Fix every \\(O\\in O(d)\\), with either determinant sign. This is a pointwise assertion.",
+        "For \\(i=1,\\ldots,d\\), let \\(\\theta_i=(i-\\tfrac12)\\pi/d\\), \\(\\lambda_i=(\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2\\), and \\(A=O\\operatorname{diag}(\\lambda_i)O^\\top\\). Set \\(w_A(x)=e^{-x^\\top A x/2}\\). The zero-based Lean index \\(j.\\mathrm{val}\\) corresponds to \\(i=j.\\mathrm{val}+1\\).",
+        "The integration base \\(dx\\) is ordinary unnormalized Euclidean Lebesgue volume. The exponent \\(d/2\\) is real, including odd dimensions. Integrability, positive definiteness, determinant/product identity and positive mass are proved internally; none is a supplied premise.",
+        "The paper displays the Gaussian normalizer value. Interpreting \\(Z_A\\) as this unweighted Lebesgue integral, and exposing finite integrability explicitly, is a disclosed standard source-implicit elaboration.",
+        "The actual consumer expresses the same \\(N(0,A^{-1})\\) as \\(w_A(x)/Z_A\\,dx\\), using this actual integral. Only the normalizing scalar is independent of \\(O\\); the covariance and quadratic exponent retain the actual \\(A\\)."
+      ],
+      "notation": [
+        {
+          "symbol": "\\(w_A,Z_A,dx\\)",
+          "text": "Actual unnormalized quadratic weight, its actual integral, and unnormalized Euclidean Lebesgue volume.",
+          "formula": "w_A(x)=e^{-x^\\top A x/2},\\qquad Z_A=\\int w_A(x)\\,dx."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Obtain valid precision and its determinant",
+          "text": "Apply the existing actual admissibility and determinant results to the literal source matrix. Positive definiteness also gives a positive determinant and a valid inverse covariance.",
+          "formula": "A\\succ0,\\qquad \\det A=\\prod_i\\lambda_i>0.",
+          "lean": "hA and hdet use the identical canonical actual_precision_admissible and actual_precision_det nodes; hsqrt uses hA.det_pos. The strict historical angle/cosine route is not newly proved here."
+        },
+        {
+          "title": "Reuse the actual Gaussian density",
+          "text": "Put B=(2π)^(d/2) and c=√det(A)/B. Both are positive. The existing canonical Gaussian density identifies the actual centered inverse-precision Gaussian with the Lebesgue density c times this very weight.",
+          "formula": "B=(2\\pi)^{d/2}>0,\\quad c=\\frac{\\sqrt{\\det A}}B>0,\\quad N(0,A^{-1})(dx)=c\\,w_A(x)\\,dx.",
+          "lean": "hdensity applies the unchanged GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef to actual A and internally produced hA. The coordinate dot product and explicit finite sum are definitionally the same quadratic form."
+        },
+        {
+          "title": "Use unit probability mass to prove finite integrability",
+          "text": "The actual Gaussian has mass one. Evaluating the density identity on the whole space gives a finite nonnegative integral. Continuity supplies measurability, so this finite integral proves integrability of c times the weight. Since c is nonzero, the weight itself is integrable.",
+          "formula": "\\int^{\\! -}\\operatorname{ofReal}(c\\,w_A)\\,dx=1<\\infty\\quad\\Longrightarrow\\quad c\\,w_A\\in L^1(dx)\\quad\\Longrightarrow\\quad w_A\\in L^1(dx).",
+          "lean": "hmass uses the whole-space measure identity. hmeas and hnonneg supply the hypotheses of lintegral_ofReal_ne_top_iff_integrable; integrable_const_mul_iff yields hw. This proves finite norm-integral independently of the totalized Bochner integral value."
+        },
+        {
+          "title": "Recover the actual unweighted integral",
+          "text": "For a nonnegative measurable function, the real integral agrees with the real value of its nonnegative integral. Pull out the constant and use the unit-mass identity, then divide by the positive coefficient.",
+          "formula": "c\\int w_A\\,dx=\\int c\\,w_A\\,dx=1,\\qquad \\int w_A\\,dx=\\frac{B}{\\sqrt{\\det A}}.",
+          "lean": "hscaled uses integral_const_mul and integral_eq_lintegral_of_nonneg_ae. The nonzero square root and B justify the final real division; no integrability or normalization certificate is assumed."
+        },
+        {
+          "title": "Substitute the fixed spectral product",
+          "text": "Replace the actual determinant by its proved finite diagonal product. This gives the displayed value, independent of the orientation. Gaussian integration is implemented through the already proved density and its probability mass, an explicit implementation route for the source’s compressed Gaussian-integration step.",
+          "formula": "Z_A=\\frac{(2\\pi)^{d/2}}{\\sqrt{\\prod_i\\lambda_i}}.",
+          "lean": "The exact sealed conclusion follows by hdet and positive-denominator algebra. The existing density proof does not depend on this new theorem, so this route has no circular normalization assumption."
+        },
+        {
+          "title": "Use the new integral in the actual normalized law",
+          "text": "The focused Test substitutes this actual integral into the density of the same Gaussian. It derives strictly positive actual mass internally and uses the new producer consequentially in the denominator calculation.",
+          "formula": "N(0,A^{-1})(dx)=\\frac{w_A(x)}{\\int w_A\\,dx}\\,dx.",
+          "lean": "The compiled private Test proof contains actual_normalizing_integral, the existing actual admissibility and determinant nodes, and the same canonical Gaussian density node. Its signature matches the independently admitted consumer after erasing only the private name."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility.actual_precision_admissible",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumDeterminant.actual_precision_det",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.GaussianPrecisionDensity.multivariateGaussian_eq_withDensity_of_posDef"
+      ],
+      "mathlib_dependencies": [
+        "withDensity_apply",
+        "measure_univ",
+        "lintegral_ofReal_ne_top_iff_integrable",
+        "integrable_const_mul_iff",
+        "integral_const_mul",
+        "integral_eq_lintegral_of_nonneg_ae",
+        "Real.sqrt_pos",
+        "Real.rpow_pos_of_pos"
+      ],
+      "lean_statement": "Exactly the sealed literal source weight is Integrable and its actual volume integral equals the displayed product/sqrt expression; real d/2, source d>=2,kappa>=2 and full O.",
+      "lean_proof": "Exact production statement and proof are extracted adjacent to these steps. Existing canonical precision/determinant/density declarations are actual formal parents; finite-mass/integrability and real-normalization adapters are proved internally.",
+      "boundary": "This proves the actual fixed-spectrum unweighted Euclidean Gaussian integral, its finite integrability and a genuine same-A integral-normalized density consumer. It does not prove the remaining C.4 calculus/strong-convexity/smoothness/unique-minimizer claims or the strict historical angle/cosine route. Moments/Krylov, adaptive/private-seed/transcript/output laws, actual oracle/finite-precision/TV and deterministic/expected-cost adapters, both complete main lower bounds and whole-paper completion remain separate. Source review, canonical integration, remote delivery and postmerge purification/Exposition Seal have their own evidence gates.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS4",
+          "edition": "arXiv2610.20492v1; raw HTML SHA2566bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "S4.SS1 Eq11/public-normalizer; S2 actual potential/target; complete AppendixC.4 Gaussian-integration component A3.Ex160.",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Huanjian Zhou and Taiji Suzuki, On Complexity of Gaussian Sampling. The actual integral/base measure is explicitly labeled a standard source-implicit elaboration.",
+          "scope": "Actual finite unweighted Gaussian integral and same-A normalized-law consumer. Full C4 calculus/minimizer and main lower-bound/operational adapters remain separate.",
+          "label": "Zhou–Suzuki Eq11 and Gaussian integration in AppendixC.4"
+        }
+      ],
+      "tests": [
+        "lake build Tests.GaussianComplexityFixedSpectrumNormalizer"
+      ]
+    }
+  ]
+}

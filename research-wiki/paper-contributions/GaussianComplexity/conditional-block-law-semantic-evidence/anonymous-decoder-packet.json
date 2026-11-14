@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-1197897dee36069b",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d)\n    {κ : ℝ} (hκ : 4 ≤ κ)\n    (O : Fin (d / n) → Matrix.orthogonalGroup (Fin n) ℝ),\n    let e : ((Fin n × Fin (d / n)) ⊕ Fin (d % n)) ≃ Fin d :=\n      ((Equiv.sumCongr\n        ((Equiv.prodComm (Fin n) (Fin (d / n))).trans finProdFinEquiv)\n        (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n        (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n    let split : EuclideanSpace ℝ (Fin d) →\n        (Fin (d / n) → EuclideanSpace ℝ (Fin n)) × EuclideanSpace ℝ (Fin (d % n)) :=\n      fun x => (fun j => WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j)))),\n        WithLp.toLp 2 (fun i => x (e (Sum.inr i))))\n    (multivariateGaussian (0 : EuclideanSpace ℝ (Fin d)) ((Matrix.reindex e e (Matrix.fromBlocks (Matrix.blockDiagonal (fun j => ((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O j : Matrix (Fin n) (Fin n) ℝ) + (O j : Matrix (Fin n) (Fin n) ℝ).transpose))))) 0 0 (1 : Matrix (Fin (d % n)) (Fin (d % n)) ℝ))))⁻¹).map split =\n      (Measure.pi (fun j => multivariateGaussian (0 : EuclideanSpace ℝ (Fin n))\n        (((((κ + 1) / 2) • (1 : Matrix (Fin n) (Fin n) ℝ) - ((κ - 1) / 4) • ((O j : Matrix (Fin n) (Fin n) ℝ) + (O j : Matrix (Fin n) (Fin n) ℝ).transpose))))⁻¹)).prod\n          (stdGaussian (EuclideanSpace ℝ (Fin (d % n))))",
+    "statement_sha256": "1197897dee36069b8ebe3fd34402ddf6b8bacbb01311e2f97e0d6d6577372100",
+    "compiled": true,
+    "approved_definition_context": [
+      "EuclideanSpace real (Fin m) is real m-dimensional Euclidean space with its Borel structure; Fin m indexes coordinates from zero. WithLp.toLp 2 and WithLp.ofLp preserve coordinates. An ordinary finite function space and product carry their usual product Borel structures and default product norms.",
+      "Matrix.orthogonalGroup (Fin n) real is the full real orthogonal group with its usual matrix carrier, including both determinant signs.",
+      "Matrix.reindex e e M has entries M (e.symm i) (e.symm j). Matrix.blockDiagonal f uses index pairs (local coordinate, block index) and is zero between different blocks. Matrix.fromBlocks is the displayed two-by-two block assembly. finProdFinEquiv sends (a,b) to a times the cardinality of the second factor plus b; finSumFinEquiv concatenates its summands.",
+      "multivariateGaussian mean m covariance C is the pushforward of stdGaussian by z -> m + Matrix.toEuclideanCLM (CFC.sqrt C) z. Its stated covariance interpretation holds for positive semidefinite C; outside that domain the constructor defaults to a point mass. Matrix inverse is totalized at singular matrices.",
+      "stdGaussian is the standard Gaussian obtained by independent scalar standard normal coordinates in an orthonormal basis. On a zero-dimensional Euclidean space it is the probability point mass at the sole vector.",
+      "Measure.map is the measurable pushforward operation. Measure.pi is the actual finite independent product of the displayed component measures, and Measure.prod is the actual binary product. Natural division and remainder and real scalar arithmetic have their usual Lean meanings."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "9faa4540847ee02538dabc767c0ac3ffdbfdbae8e3b0fe17ae0c0c4ba291f468"
+}

@@ -1,0 +1,37 @@
+then `Π i, f i` is an inner product space as well. Since `Π i, f i` is endowed with the sup norm,
+we use instead `PiLp 2 f` for the product space, which is endowed with the `L^2` norm.
+-/
+instance PiLp.innerProductSpace {ι : Type*} [Fintype ι] (f : ι → Type*)
+    [∀ i, NormedAddCommGroup (f i)] [∀ i, InnerProductSpace 𝕜 (f i)] :
+    InnerProductSpace 𝕜 (PiLp 2 f) where
+  inner x y := ∑ i, ⟪x i, y i⟫
+  norm_sq_eq_re_inner x := by
+    simp only [PiLp.norm_sq_eq_of_L2, map_sum, ← norm_sq_eq_re_inner]
+  conj_inner_symm := by
+    intro x y
+    unfold inner
+    rw [map_sum]
+    apply Finset.sum_congr rfl
+    rintro z -
+    apply inner_conj_symm
+  add_left x y z :=
+    show (∑ i, ⟪x i + y i, z i⟫ = ∑ i, ⟪x i, z i⟫ + ∑ i, ⟪y i, z i⟫) by
+      simp only [inner_add_left, Finset.sum_add_distrib]
+  smul_left x y r :=
+    show (∑ i : ι, ⟪r • x i, y i⟫ = conj r * ∑ i, ⟪x i, y i⟫) by
+      simp only [Finset.mul_sum, inner_smul_left]
+
+theorem PiLp.inner_apply {ι : Type*} [Fintype ι] {f : ι → Type*} [∀ i, NormedAddCommGroup (f i)]
+    [∀ i, InnerProductSpace 𝕜 (f i)] (x y : PiLp 2 f) : ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
+  rfl
+
+/-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
+space use `EuclideanSpace 𝕜 (Fin n)`.
+
+For the case when `n = Fin _`, there is `!₂[x, y, ...]` notation for building elements of this type,
+analogous to `![x, y, ...]` notation. -/
+@[wikidata Q17295]
+abbrev EuclideanSpace (𝕜 : Type*) (n : Type*) : Type _ :=
+  PiLp 2 fun _ : n => 𝕜
+
+section Notation

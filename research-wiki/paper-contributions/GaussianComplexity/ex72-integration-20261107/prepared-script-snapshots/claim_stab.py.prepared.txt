@@ -1,0 +1,29 @@
+from pathlib import Path
+import sys,json,hashlib,gzip,subprocess
+sys.path.insert(0,'tools')
+import astis_advance as a
+import astis_publication as p
+advance='ASTIS-SA-20261107-GaussianComplexityTVAmplification'
+owner='huanjian_gc_20261107_ex72_integration'
+decl='AutoSamplingTheory.ExampleCases.GaussianComplexity.TVAmplification.actual_averaged_tv_lower_bound'
+out=Path('research-wiki/paper-contributions/GaussianComplexity/ex72-integration-20261107')
+branch=subprocess.check_output(['git','branch','--show-current'],text=True).strip()
+assert branch=='huanjian/gaussian-tv-amplification-20261107'
+assert subprocess.check_output(['git','rev-parse','origin/main'],text=True).strip()=='d9bcd4231df69061c5221f8d557ee179a945c1eb'
+subprocess.run(['git','merge-base','--is-ancestor','origin/main','HEAD'],check=True)
+s=a.current_advances();assert s[advance]['state']=='VERIFIED'
+assert s[advance]['owner_id']=='huanjian_gc_20261107_ex72'
+assert [k for k,v in s.items() if v['state']=='STABILIZING']==[]
+p.check_advance([decl],reviewed=True)
+assert hashlib.sha256(Path('AutoSamplingTheory/ExampleCases/GaussianComplexity/TVAmplification.lean').read_bytes()).hexdigest()=='9c96a4b80420bf114e700ed61f4adf88f79b85d24c4d21848e466d67b93ba431'
+assert hashlib.sha256(Path('Tests/GaussianComplexityTVAmplification.lean').read_bytes()).hexdigest()=='6bd58c4010c81dfa7948c9de1632c35fb0b14385bbdef5e5c28f5e1f2ca10cee'
+item=next(x for x in p.load() if x['id']=='huanjian-tv-amplification')
+assert p.binding_digest(item,item['bindings'][0])=='fdfc58efe464c10868cac35682d8bd5202e0fc69f46880f957582e707b667265'
+ledger=Path('runs/substantive_advances.jsonl');before=ledger.read_bytes()
+prefix=out/'normal-stab-claim-ledger-prefix.jsonl.gz';prefix.write_bytes(gzip.compress(before,compresslevel=9,mtime=0));assert gzip.decompress(prefix.read_bytes())==before
+a.transition_advance(advance,to_state='STABILIZING',worker_id=owner,evidence={'canonical_branch':branch,'integration_owner':owner,'publication_declarations':[decl],'source_verified_commit':'ebf76119351b23ef0718fc69aa5081515bab0b52','scope':'One actual Ex72 measurable-event TV node, existing Ex71 direct consumer, root imports/realTests, two bounded reader scalars and cards; canonicalroot/site/graph/realChrome to follow. No foreign queue or frozen Bench change.'})
+after=ledger.read_bytes();assert after.startswith(before);append=after[len(before):];assert len(append.splitlines())==1
+now=a.current_advances();assert all(now[k]==v for k,v in s.items() if k!=advance)
+r={'branch':branch,'owner':owner,'before_sha256':hashlib.sha256(before).hexdigest(),'after_sha256':hashlib.sha256(after).hexdigest(),'exact_prefix_preserved':True,'append_events':1,'append_sha256':hashlib.sha256(append).hexdigest(),'foreign_states_preserved':len(s)-1,'state':now[advance]['state'],'single_lane':[k for k,v in now.items() if v['state']=='STABILIZING'],'new_source_verdict':False}
+(out/'normal-stab-claim.json').write_text(json.dumps(r,indent=2)+'\n')
+print(json.dumps(r))

@@ -1,0 +1,1132 @@
+FILE docs/contributor-codex-contract.md
+# Samplinglib contributor and Codex contract
+
+This contract applies to every contributor, including `jicheng9617`, `andyjm3`, `hudsonchen`, and automated coding agents acting for them. It complements `AGENTS.md`, `.agents/skills/astis-substantive-advance/SKILL.md`, `docs/theorem-publication-protocol.md`, `docs/proof-digestion-protocol.md`, and `docs/evidence-routed-memory-protocol.md`.
+
+## 1. Plan for a shared Lean graph before proving locally
+
+Before creating a declaration, search Samplinglib, Mathlib, and the relevant compatible upstreams (for example Optlib, CvxLean, StatsMLlib when applicable). Prefer an existing canonical lemma. If a missing lower-level result has at least two realistic consumers, make it one `route: shared` Frontier Cell instead of copying it into each textbook route.
+
+The objective is not to maximize the raw number of helper declarations. It is to maximize mathematically meaningful reuse: fewer canonical leaves, more genuine consumers, explicit adapters where hypotheses differ, and no wrapper lemmas created only to make a reuse count larger.
+
+For subject/resource discovery, use the existing `/resources/` directory and
+`docs/research-resource-intake.md`: the pinned Optlib module inventory and complete
+Optimization × AI Forum bibliography are external references, not proof credit.
+Check existing local/OpenAI intake before scheduling duplicate work; promote only
+through this same theorem-publication contract. No extra resource-only review
+workflow or automatic Lean port is required.
+
+Every new or changed production declaration must record a `reuse_plan` in its Frontier Cell with:
+
+- `searched_existing`: exact local/upstream regions or declarations searched;
+- `reused_declarations`: exact ASTIS declarations actually called by the authored proof;
+- `new_shared_declarations`: new canonical shared declarations introduced by this advance;
+- `known_consumers` and `planned_consumers`;
+- `no_duplicate_wrapper: true`;
+- `decision_reason`: why this abstraction boundary is the most reusable faithful one.
+
+A `new_canonical_shared` declaration must name at least two real consumers.
+
+## 2. Reader standard: Chapter 1.3 is the reference
+
+Use `textbook/chapter-01/section-1-3.html` as the presentation reference. A theorem is not publication-ready when its webpage is only a code listing, theorem inventory, status table, or giant detached proof dump.
+
+For every source statement represented by the contribution, the reader must keep the following adjacent and in source order:
+
+1. the original source statement or attributed faithful restatement, with exact edition/anchor;
+2. notation and all explicit/hidden assumptions;
+3. a readable natural-language mathematical proof with displayed formulas;
+4. source assumptions versus actual Lean assumptions, including API-only assumptions;
+5. the exact Lean statement in a closed disclosure;
+6. the exact Lean proof in a closed disclosure;
+7. ASTIS parents actually reused;
+8. Mathlib and compatible external-library facts actually used (Optlib, CvxLean, StatsMLlib, etc. when applicable);
+9. the remaining red boundary: what this declaration does *not* prove.
+
+The authored source of truth is `website/content/declaration_lessons/*.json` plus `website/content/publications/*.json`. Do not hand-edit generated `_site` HTML.
+
+Each changed binding's Frontier Cell records a `reader_contract` whose reference is `textbook/chapter-01/section-1-3.html` and explicitly confirms: source order, source-adjacent statement/proof, natural-language formula proof, visible hidden assumptions, folded Lean, and visible external dependencies.
+
+## 3. Encoder–denoiser is mandatory for source-facing claims
+
+Compilation only certifies the Lean proposition. It does not certify that the proposition means the cited theorem.
+
+For a source-facing theorem, use the canonical semantic round trip:
+
+- original theorem / faithful attributed restatement;
+- Lean statement;
+- source-blind reconstruction from Lean only;
+- independent anti-anchored source review;
+- separately reviewed theorem repair when a source gap is proposed.
+
+The formalizer, blind decoder, and source reviewer must be distinct actors. Source repairs never silently mutate `faithfulPaper`.
+
+## 4. Four mathematical graph views, plus Overview navigation
+
+Every source-facing Anchor follows the four-view proof-digestion stack from `docs/proof-digestion-protocol.md` and the evidence-routed learning contract from `docs/evidence-routed-memory-protocol.md`; the existing `graph_contribution` Frontier-Cell fields remain the machine-readable integration contract during schema migration.
+
+### Source Proof Graph
+
+Answers **how the author proved it**. It is reconstructed source-first, with exhaustive source-region coverage, direct consumer-use edges, `SOURCE_GAP` nodes and explicit OR-routes. Implementation Lean must not determine this topology.
+
+### Lean Branches / Dependency Graph
+
+This view contains compiler-backed module/declaration structure. Formal structural edges are solid. Source-name scans, curated source correspondences, candidate substrates, and conceptual relations are never promoted to theorem implication.
+
+### Compressed Shared Spine
+
+Answers **which mathematical primitives recur after implementation bookkeeping is removed**. It is produced by the purification pass, preserves lossless drill-down to source/Lean leaves, and never erases hypothesis adapters.
+
+### Functor Hypergraph
+
+Run the conceptual-mirror audit for every substantive advance. Use `none-found` when there is no new reusable cross-domain mechanism. If there is one, publish a typed conceptual-mirror discovery with stable `family:` / `transport:` / `concept:` ids, hypothesis map, conclusion map, source evidence, and failure boundary. The creator cannot independently validate the mirror.
+
+A conceptual mirror is not a Lean theorem edge or a certified functor unless a separate formal certificate exists.
+
+### Overview Graph (navigation, not a fifth proof semantics)
+
+Overview records source/library/frontier placement and generated publication progress around the four mathematical views. A theorem may update the source route without claiming chapter completion.
+
+## 5. Graph colour and edge semantics are part of truth, not decoration
+
+Preserve the canonical graph semantics:
+
+- evidence-status colouring distinguishes compiled / partial / audited / planned / open / proposal states;
+- library-scope colouring is a separate view and never upgrades evidence;
+- formal module/declaration structure uses solid edges;
+- source, curated, scan-derived, semantic, and conceptual overlays use dashed edges.
+
+Do not invent route-specific colours that imply a theorem has stronger evidence than it has. Do not render a conceptual mirror as a solid Lean dependency.
+
+The Frontier Cell records:
+
+- `lean_view`: `new-node`, `reuse-only`, or `integration-node`;
+- `overview_view`: `updated` or `no-change-with-reason`;
+- `functor_view`: `none-found`, `candidate-published`, or `stabilized`;
+- `edge_semantics: "formal-solid; overlays-dashed"`;
+- `color_semantics: "evidence-status; library-scope"`;
+- graph focus targets and the visual review performed.
+
+## 6. Stabilization and collaboration safety
+
+Exploration workers do not edit shared aggregators, root tests, semantic registries, or global graph truth. The stabilization owner rebases/clean-ports onto current `main`, then updates public imports, root tests, publication/semantic metadata, graph views, and website surfaces.
+
+Never overwrite another contributor's append-only or registry work with an old branch snapshot. When a shared metadata file has moved on `main`, merge semantically or use the repository's fragment/serialized mechanism rather than taking one side wholesale.
+
+Before merge, run at least:
+
+```bash
+python3 tools/astis_contributor_contract.py check --base BASE_COMMIT
+python3 tools/astis_publication.py check --base BASE_COMMIT
+python3 tools/astis_semantic_roundtrip.py check
+python3 tools/astis_frontier_cells.py check
+python3 website/scripts/build_site.py
+python3 tools/astis_publication.py graph-check --cell CELL_ID
+python3 website/scripts/check_site.py
+lake build Tests
+python3 tools/astis.py check
+```
+
+The incremental contributor check requires `--base`, or `--ci` with
+`PUBLICATION_BASE`. There is no `--strict` flag. It reports the resolved base,
+HEAD and affected declarations/cells; it includes untracked production and
+publication metadata in local checks. No affected targets is reported as N/A,
+not as certification of the whole inventory.
+
+Changed lessons, source items, individual publication bindings and Frontier
+Cells are checked even without a Lean edit. Deletions retain their old targets
+so removing a binding or lesson cannot hide it from the check. Changed unbound
+planned cells must also supply the three cell contracts, without claiming a
+compiled theorem. Unchanged metadata outside the comparison scope is not
+certified by this incremental command; the publication, semantic, Lean and site
+gates remain independently required.
+
+The `Contributor contract` CI workflow runs on pushes, PRs and merge groups.
+It uses the PR/merge-group base or previous push tip. For a new topic branch
+whose previous tip is zero, it uses the merge base with `origin/main`, not
+`HEAD^`. A manual workflow run uses its selected commit as base; this checks
+regressions but may have no changed contribution. Missing CI base, unavailable
+Git history or initial creation of `main` without an explicit base fails closed.
+
+The PR must state the graph delta, remaining mathematical boundary, reuse decision, and reader/source-fidelity status. Generated `_site/` output is never committed.
+
+## 7. Minimal Codex instruction
+
+A contributor can start Codex with:
+
+> Read `AGENTS.md`, `docs/contributor-codex-contract.md`, `docs/theorem-publication-protocol.md`, `docs/proof-digestion-protocol.md`, `docs/evidence-routed-memory-protocol.md`, and `.agents/skills/astis-substantive-advance/SKILL.md` before planning. Treat Chapter 1.3 as the reader-quality reference. Reuse and generalize canonical shared Lean lemmas before adding route-local copies; record actual and planned consumers. Complete the encoder–denoiser audit. Publish the exact Lean/Overview/Functor graph delta using canonical colour and solid/dashed edge semantics. Do not merge or claim completion until the current-main publication, semantic, graph, site, root Tests, and ASTIS gates pass.
+
+FILE docs/theorem-publication-protocol.md
+# Theorem publication: mathematics once, reader views automatically
+
+For SampleWiki paper entry points and progressive disclosure, follow the compact
+[unified SampleWiki reader contract](samplewiki-reader-navigation.md); exact reviewed
+content and canonical status bindings remain the source of truth.
+
+Applies to **every new or changed production declaration** in every ASTIS route,
+including reusable shared foundations. An unchanged historical proof is not
+retroactively certified; its missing exposition or semantic audit remains debt.
+The current mathematical Goal and frontier are not changed by this protocol.
+
+## Pre-proof constitutional gate: Statement Seal and Source Proof Graph
+
+Every new or materially changed **source-facing** theorem/definition also follows
+[`proof-digestion-protocol.md`](proof-digestion-protocol.md) *before* proof search.
+The exact source-facing Lean signature is sealed first; project-owned bundled
+assumptions are recursively classified as `SOURCE`, `STANDING`, `TYPING`,
+`RULED`, or `EXCESS`, and any `EXCESS` binder rejects the source Anchor.
+A proof ingredient is represented as a dependency edge and discharged inside the
+proof; the existence of a producer theorem never licenses moving its conclusion
+into the public theorem hypotheses.
+
+Definitions are audited as `literal`, `characterized`, or
+`quotient/representative`. A characterized object may be chosen only after the
+real source-level existence/uniqueness theorem has been proved and audited; an
+`if`/default/fallback body that invents off-source semantics is not acceptable.
+
+In parallel, build a **Source Proof Graph** from the source independently of the
+Lean implementation. Every in-scope theorem, definition, reused display,
+citation, and substantive proof paragraph is `NODE` or `EXCLUDED(reason)`;
+omitted bridges remain visible `SOURCE_GAP` nodes and alternative sufficient
+proofs are explicit OR-routes/hyperedges. This graph answers “how did the author
+prove it?”, while the Lean graph answers “what does the checked implementation
+depend on?”. They must not be conflated.
+
+After proof sealing and publication, the result enters the purification gate:
+remove dead/duplicate/wrapper-only proof debris, canonicalize shared leaves,
+compress bookkeeping into reviewed conceptual moves, preserve drill-down audit
+evidence, and update the Compressed Shared Spine. `MERGED` therefore does not
+imply `PURIFIED` or “done for readers.”
+
+Explicitly private implementation declarations may share the review of a public
+theorem in the same file. The diff gate inventories every such declaration,
+including anonymous private instances by file/line/column, and prints its public
+owner. Coverage requires an accepted independent source review, the exact current
+whole-module text, a fresh publication binding and successful publication
+validation. Private helpers gain no separate publication edge or proof credit.
+Changing a helper invalidates the enclosing module review; making it public
+requires its own publication. Unindexed public/Unicode syntax, uncovered private
+implementations and private axioms still fail closed. Always run the final
+`check --base BASE_COMMIT`; a single-target admission check does not exercise the
+changed-module inventory.
+
+## One bounded packet
+
+```bash
+python3 tools/astis_publication.py packet --cell CELL_ID
+```
+
+Read that cell's source contract, existing parents and exact interfaces. Do not
+load all books, all transcripts or all Lean lessons. Search reusable APIs first.
+There are no automatic model calls, background agents or new Goals in this tool.
+The hosting agent follows the instructions below; mechanical CI verifies them.
+
+## Author once
+
+1. Maintain the existing Frontier Cell: exact canonical declaration, compiled
+   checks, independent commit-bound review, consumers and residual boundary.
+2. Write one authored unit per declaration in
+   `website/content/declaration_lessons/*.json`. State **all** objects, domains,
+   quantifiers and assumptions. Give a readable formula proof, not a tactic
+   paraphrase; explain each step's Lean correspondence. Keep the exact Lean
+   statement and proof in source: the renderer extracts them into separate,
+   initially closed disclosures immediately beside the statement and proof.
+   List actual ASTIS calls separately from Mathlib calls and external provenance.
+3. Add a source item/binding in `website/content/publications/*.json` (schema 1;
+   `optimisation.json` is the concrete example). Store the full attributed source
+   statement once, with formulas, version and exact anchor. Bind its individual
+   proof obligations to declarations and cell IDs. `proof-edge` and
+   `prerequisite` are different: a convexity helper alone does not partially
+   formalize a downstream gradient-flow theorem. Do not author chapter status.
+4. Fill `assumption_deltas`: source wording, actual formal assumption,
+   classification and mathematical explanation. Categories are `same`,
+   `source-implicit`, `mathematically-necessary`, `API-limitation`,
+   `generalization`, `unresolved`. A technical limitation is not a textbook
+   correction. Explicitly address relevant measurability, representatives,
+   regularity, integrability, domination, boundaries, domains and constants;
+   omit inapplicable checklist boilerplate; explain only non-obvious omissions.
+
+Mathematical exposition is authored and independently checked, not inferred from
+declaration names. Existing authored units are reused in the chapter reader.
+No copied status table, HTML editing or new wrapper theorem is required.
+
+## Graph contribution: part of the same publication
+
+Codex and Claude Code use this contract (`CLAUDE.md` imports `AGENTS.md`). A
+formalization is not publication-ready if its contribution disappears from the
+Underlying Lean Graph or its affected source/route views. Reuse stable ids;
+never draw a second copy of a shared declaration to make a chapter look complete.
+
+| Changed fact | Canonical input and affected view |
+|---|---|
+| Declaration, owning module, imports, reuse | Lean source + Registry → Underlying Lean Graph / Lean Branches, module and dependency views |
+| Source proof component, prerequisite, remaining boundary | Publication binding + source obligations → chapter/Overview graph and generated progress |
+| Frontier parent, consumer, retired or blocked route | Existing Frontier Cell and route/source metadata → relevant frontier and theorem-local DAG |
+| Semantic mismatch or proposed repair | Existing round-trip audit → Semantic fidelity & repair view |
+| New recurring mathematical mechanism | Existing conceptual-mirror audit; only a real discovery updates Graph Memory / Functor Hypergraph |
+
+Only change the rows affected by the contribution. A routine lemma does not
+require a new conceptual bridge, a full-book redraw, or a graph-specific agent.
+An intended consumer is a planned/curated edge, not an existing Lean use.
+Source-name scans are incomplete reference signals, not elaborated Lean proof
+dependencies. Keep them dashed and labelled; solid `imports`/`declares` edges
+record module structure. Do not infer theorem implication from an import,
+source correspondence, a proof-route leaf, or conceptual similarity. Blue still
+requires owned, compiled evidence; library/source colours do not confer it.
+
+At stabilization, build the site once and inspect the contribution:
+
+```bash
+python3 website/scripts/build_site.py
+python3 tools/astis_publication.py graph-check --cell CELL_ID
+python3 website/scripts/check_site.py
+```
+
+`graph-check` reads the generated graph, verifies mapped nodes, owning modules,
+reference/consumer edges and chapter links, then prints a bounded one-hop slice
+and focus links. The site check runs the same graph contract for all publication
+bindings, including unchanged mappings affected by a generator regression.
+It does not certify that source scanning found every Lean dependency.
+If `_site` is absent/stale, regenerate it; never paste the entire graph into an
+agent prompt. If a curated SVG/Mermaid theorem/frontier diagram is affected,
+update its maintained source too; do not hand-edit generated SVG/PNG/HTML.
+
+Open the changed branch and any changed static diagram: check labels, directions,
+solid/dashed distinction, status, reader links and legibility. Inspect mobile
+layout when layout code or branch size changes. Automation does not claim to
+perform this visual review. Add a short graph delta to the **existing** PR or
+`integration_notes`: node/focus links, changed connections or topology, remaining
+red boundary, and commands + views actually inspected. Do not repeat the proof
+or add a new screenshot/report ledger. Layout-only changes do not invalidate
+mathematical audits; changed source/assumptions/proof explanations do.
+
+## Cost discipline
+
+Each requirement protects one boundary: Lean checks truth, round trips check
+source fidelity, authored lessons explain the mathematics, graph checks prevent
+omitted/misclassified contributions, and visual inspection checks readability.
+Reuse those results rather than adding another reviewer for each surface.
+Use focused tests while editing; run aggregate acceptance once on the final
+candidate (again only after a relevant change). Reuse unchanged audit hashes and
+existing `none-found` conceptual-mirror evidence. Do not read unrelated books,
+dump full graphs, create duplicate metadata, or repeat full builds after every
+sentence edit. This is a bounded workflow, not a claim of globally optimal tokens.
+
+## Encoder–denoiser: required semantic round trip
+
+Follow [.agents/skills/astis-semantic-roundtrip/SKILL.md](../.agents/skills/astis-semantic-roundtrip/SKILL.md).
+Compilation certifies the Lean proposition, **not** fidelity to the source.
+
+1. Pin the original/faithfully paraphrased source and fully elaborated Lean
+   statement in the canonical semantic registry. Link `audit_id` from the
+   publication binding. A draft audit is allowed at `PROVED_LOCAL`, not at
+   `VERIFIED` or `STABILIZING`.
+2. Export `review-context --item ITEM_ID --declaration FULL_NAME` with
+   `tools/astis_publication.py` and copy its `publication_binding_sha256` and
+   `publication_context` into that audit. They bind the
+   entire Lean module (including imports and scoped parameters), toolchain,
+   dependency manifest, source statement, obligation map, assumption ledger and
+   authored lesson. Both enter the independent source/repair review packets, so
+   refreshing a hash cannot replay an older review. The candidate context omits
+   earlier verdicts and assumption-delta classifications. A stale binding fails.
+3. Export the anonymous `decoder-packet` using the existing round-trip tool.
+   Give **only this packet** to a distinct source-blind decoder. The publication
+   packet contains source identity and must never be used as decoder input.
+4. Export a fresh anti-anchored `reviewer-packet` for a reviewer distinct from
+   formalizer and decoder. Compare all seven canonical semantic slots and
+   record packet/run-bound evidence. No self-certified equivalence.
+5. If a source gap is discovered, retain four separate objects: the pinned
+   source, actual Lean theorem, semantic mismatch and proposed repaired theorem.
+   Expose the gap and its reason publicly. A repair requires its own blinded-to-
+   prior-verdict, independent exact-proposal `repair-reviewer-packet`, minimality
+   evidence and rigorous reference/counterexample. API convenience cannot justify
+   adding a mathematical assumption to the source.
+
+Reuse unchanged audit evidence. Reaudit only the affected bounded packet when
+code, source, assumptions or explanation changes. File-level invalidation is
+conservative; it intentionally catches changes outside the visible theorem body.
+The system does not claim this is an optimal token budget or replace human review.
+
+## Admission and generated views
+
+New Harness advances use schema 4. At `PROVED_LOCAL`, include
+`publication_declarations` equal to `lean_declarations`; real metadata validation
+runs. `VERIFIED` and `STABILIZING` carry that same target set and require completed
+independent source review. Rejected source fidelity can be published as explicit
+local mathematics and a visible mismatch, never as source assimilation.
+Schema 1–3 ledgers remain replayable; the Git diff gate also covers legacy lanes.
+
+```bash
+python3 tools/astis_publication.py check --base BASE_COMMIT
+python3 tools/astis_semantic_roundtrip.py check
+python3 website/scripts/build_site.py
+python3 website/scripts/check_site.py
+lake build Tests
+python3 tools/astis.py check
+git diff --check
+```
+
+The diff gate is intentionally conservative: all declarations in a changed
+production module need publication coverage (including scoped-variable/import
+changes). Root imports, Tests and the generated Registry catalog are not new
+theorem proofs. CI checks the PR/push base before the expensive Lean build.
+A separate, independently reviewed retirement of unused planned metadata and
+module documentation is pinned in [the migration record](reviewed-metadata-migration.json).
+It applies only to the three exact LF-normalized before/after file-hash pairs
+listed there. The command scanner still runs first. Any extra import, binder,
+proof, instance or string edit restores the ordinary conservative module gate.
+Existing publication bindings, code/source/exposition hash freshness, independent
+mathematical review and root Tests remain required. This finite migration awards
+no mathematical progress and creates no general metadata/comment exemption.
+
+The site projects the same mapping into source chapter readers, chapter labels,
+route progress and overview graph. No mapping means no inferred chapter credit.
+The declaration-level Lean gate remains authoritative for **blue**; chapter
+partial progress is orange and never implies exhaustive source coverage.
+
+Migration boundary: precisely the two unchanged StrongConvexFirstOrder proofs
+present at commit `5c6adf3b812f3ba9315c92ba78a4ff59ccc2a53e` may retain visible
+historical round-trip debt. This is a fixed file-hash allowlist, not a contributor
+opt-out. They supply partial proof components, not a source-complete certificate.
+
+FILE docs/proof-digestion-protocol.md
+# Proof Digestion Protocol: Formalize → Audit → Compress → Explain
+
+This protocol governs how Samplinglib turns source mathematics into a verified
+Lean library **without leaving machine-generated proof debris as the public
+mathematical product**. It complements
+`docs/formalization-protocol.md`,
+`docs/theorem-publication-protocol.md`, and the semantic round-trip protocol.
+
+The governing principle is:
+
+> **Freeze what is being proved before proof search; reconstruct the source proof
+> topology independently of the Lean implementation; formalize exhaustively; then
+> purify the resulting proof graph for researchers.**
+
+A green Lean build is necessary, but it is not the end of the lifecycle.
+
+## 1. Three declaration levels
+
+Not every helper receives the same review burden.
+
+### A. Source Anchor
+
+A theorem, proposition, corollary, definition, or other mathematical interface
+whose public meaning is tied to a textbook, paper, or explicitly stated
+original result.
+
+Required gates:
+
+- source snapshot and exact anchor;
+- Statement Seal;
+- binder/definition audit;
+- source-proof coverage and topology review;
+- semantic round trip;
+- proof seal;
+- reader publication;
+- post-proof purification.
+
+### B. Canonical Library Node
+
+A reusable Sampling/Optimisation/Geometry lemma intended to support multiple
+source routes.
+
+Required gates:
+
+- exact mathematical statement;
+- local/Mathlib/upstream reuse search;
+- Lean proof and axiom cleanliness;
+- canonicality/reuse audit;
+- actual or realistic consumers;
+- purification against duplicates/wrappers.
+
+It need not pretend to be a source theorem when it is genuinely library
+infrastructure.
+
+### C. Internal Provider
+
+A private or route-local proof helper used only to construct an Anchor or
+Canonical Node.
+
+Required gates:
+
+- compilation;
+- no fake closure;
+- no theorem-shaped assumption smuggling;
+- reachability/dead-code review during purification.
+
+Internal providers do not receive independent source credit.
+
+## 2. Statement Seal comes before proof search
+
+For every new or materially changed Source Anchor, first pin:
+
+- source title, edition/version, immutable source locator and source digest where
+  available;
+- exact objects, domains, quantifier order, constants, endpoint conventions and
+  standing assumptions;
+- the exact final Lean signature and every meaning-carrying project-owned
+  definition used by that signature;
+- a versioned statement-seal identifier and statement digest.
+
+The exact final Lean signature may be elaborated in an **untracked temporary
+probe**. Samplinglib keeps its production tree zero-`sorry`: a temporary
+elaboration probe is deleted after the signature is recorded.
+
+After `STATEMENT_SEALED`, proof workers may change proofs and internal
+providers, but **must not change the sealed theorem interface for convenience**.
+A genuine source correction or design ruling creates a versioned successor,
+invalidates dependent topology/audit evidence, and is reviewed explicitly.
+
+Statement approval is therefore independent of proof success.
+
+## 3. Binder audit: proof ingredients are edges, not hypotheses
+
+Every logical input to a Source Anchor is recursively expanded through
+project-owned `Prop` aliases, structures and typeclasses and classified into
+exactly one bin:
+
+| Class | Meaning |
+| --- | --- |
+| `SOURCE` | Explicit premise of this source statement. |
+| `STANDING` | Field of a separately audited source-wide standing assumption. |
+| `TYPING` | Pure carrier/type information implicit in the source convention. |
+| `RULED` | Exact human-approved correction or source ruling. |
+| `EXCESS` | Any proof result, estimate, witness, gate, regularity condition or convenience premise not justified above. |
+
+A source-facing theorem with `EXCESS` fails the Statement Seal.
+
+The central invariant is:
+
+```text
+proof ingredient = dependency edge
+source hypothesis = theorem binder
+```
+
+If the proof needs a bound, concentration event, integrability lemma,
+localization result, coupling estimate, or moment estimate, prove it as a
+dependency and apply it **inside the proof**. The existence of a producer
+theorem does not legalize adding the producer's conclusion as a new public
+binder.
+
+For Samplinglib this audit must pay particular attention to measurability,
+integrability, domination, representatives, finite moments, support,
+smoothness, boundary/decay conditions, positivity, normalization and
+constant-dependence scope.
+
+## 4. Definitions receive a semantic audit too
+
+Every source-facing definition declares one of:
+
+```text
+definition_kind:
+  literal
+  characterized
+  quotient/representative
+```
+
+### Literal
+
+The complete Lean body must agree with the source formula/predicate on the whole
+public carrier. No invented off-source fallback semantics.
+
+### Characterized
+
+If the source defines an object as the unique object satisfying
+(Phi(x)), first prove and audit the real well-definedness theorem
+
+[
+exists! x,; Phi(x).
+]
+
+Only then define the object from that theorem and land a separately named,
+sorry-free characterization/uniqueness theorem. The definition and
+characterization form one semantic unit.
+
+A fallback such as “if existence is known, choose; otherwise return zero” fails.
+
+### Quotient / representative
+
+If the mathematical object is defined only up to an equivalence or requires a
+representative, record the equivalence relation, public quotient semantics,
+choice mechanism, and every theorem whose statement must be representative
+independent. Never confuse “some representative exists” with a canonical
+object.
+
+High-risk Samplinglib examples include optimal-transport maps and plans,
+Wasserstein geodesics, scores, conditional-expectation representatives, Markov
+kernels, invariant laws, Poisson-equation solutions, proximal maps and RGO
+objects.
+
+## 5. Build the Source Proof Graph independently of Lean
+
+Before Lean implementation topology is allowed to influence exposition, build a
+source-only proof graph.
+
+The source-topology extractor/reviewer may use the pinned source and the sealed
+Anchor interface, but it must not use implementation Lean to decide what the
+author's proof structure was.
+
+Every in-scope item receives exactly one disposition:
+
+- theorem/proposition/lemma/corollary/claim;
+- source definition;
+- reused display/equation;
+- external citation;
+- substantive proof paragraph or unnamed estimate;
+
+as either:
+
+```text
+NODE <stable-id>
+```
+
+or
+
+```text
+EXCLUDED <explicit reason>
+```
+
+Silence is not coverage.
+
+Each source edge records the **consumer use site**, not merely where the
+prerequisite was proved. Conditional premises must be shown as discharged.
+Omitted mathematical bridges remain visible `SOURCE_GAP` nodes.
+
+This prevents a section from being reported “100% formalized” merely because
+all numbered lemmas were covered while unnamed bookkeeping paragraphs were
+lost.
+
+
+### Independent topology review
+
+The source-topology extractor may not approve its own coverage. A distinct
+reviewer re-reads the raw source and the proposed node/edge records **without
+implementation Lean or the extractor's private rationale**, and tries to find
+missing proof regions, wrong edge directions, hidden external inputs, false
+ANDs, quantifier/constant-scope drift, and conditional premises whose discharge
+is missing.
+
+For a large paper/book slice, a fresh global root-closure reviewer additionally
+traces each sealed Source Anchor backward through the complete Source Proof
+Graph and checks that every substantive proof region is represented or
+explicitly excluded. Structural lint can validate the database shape; it never
+substitutes for this mathematical coverage review.
+
+## 6. Alternative proofs are OR-routes, not one false AND
+
+If a target (T) has two sufficient routes,
+
+[
+A land B Rightarrow T,
+qquad
+C land D Rightarrow T,
+]
+
+the graph must not flatten them into (A,B,C,D	o T). Use explicit route
+nodes/hyperedges so the semantics are
+
+[
+(Aland B)lor(Cland D)Rightarrow T.
+]
+
+A Chewi proof, a Villani/OT proof, a coupling proof, a semigroup proof, or a
+Mathlib-compatible proof may all coexist as alternative routes. Statement
+fidelity remains tied to the target Anchor; proof-route provenance is recorded
+separately.
+
+When choosing among routes before formalization, record at least:
+
+- formalization cost;
+- existing Samplinglib/Mathlib reuse;
+- new reusable leaves created;
+- hidden analytical prerequisites;
+- reader/pedagogical quality.
+
+## 7. Four graph views with four different questions
+
+Samplinglib keeps these views semantically distinct.
+
+### 1. Source Proof Graph — “How did the author prove it?”
+
+Source-derived theorem/step/citation topology, including omitted bookkeeping and
+alternative routes.
+
+### 2. Lean Dependency Graph — “What does the checked implementation actually depend on?”
+
+Compiler-backed modules/declarations and reviewed proof dependencies. Imports
+alone never masquerade as theorem implication.
+
+### 3. Compressed Shared Spine — “After removing implementation bookkeeping, what mathematical primitives recur?”
+
+The purified reusable backbone: canonical lemmas/families plus explicit
+adapters. Fine-grained Lean leaves stay available by drill-down, but the default
+researcher view shows conceptual moves rather than machine residue.
+
+### 4. Functor Hypergraph — “Which proof mechanisms persist after changing the space, metric, energy, oracle or discrepancy?”
+
+Reviewed conceptual transports with hypothesis/conclusion maps and failure
+boundaries. Conceptual similarity remains distinct from formal implication.
+
+The existing Overview Graph remains the route/source navigation surface around
+these four mathematical views.
+
+## 8. Decompose a paper contribution before discussing novelty
+
+For each formalized paper/result, maintain the reviewed decomposition
+
+[
+G_{mathrm{paper}}
+=
+G_{mathrm{existing}}
+cup
+G_{mathrm{bookkeeping}}
+cup
+G_{mathrm{new reusable}}
+cup
+G_{mathrm{new topology}}.
+]
+
+- **existing substrate reuse**: proof edges already supplied by Samplinglib,
+  Mathlib, or an admitted compatible library;
+- **bookkeeping expansion**: source-faithful compositions of known estimates,
+  event/error budgets, recursive accounting, index manipulations, parameter
+  checks or other mechanically necessary glue;
+- **new reusable primitives**: genuinely new canonical lemmas/families with
+  plausible future consumers;
+- **new topology**: a new way of composing existing/new primitives into a
+  theorem route.
+
+Counts and graph shape are **not automatic novelty scores**. They are auditable
+evidence for the researcher asking whether a paper adds mostly bookkeeping, a
+new primitive, or a new proof architecture.
+
+## 9. Proof Seal
+
+A Source Anchor reaches `PROOF_SEALED` only when:
+
+- its final signature matches the Statement Seal;
+- focused and repository Lean checks compile the actual target;
+- unauthorized axioms/placeholders/fake closures are absent;
+- binder audit still contains no `EXCESS`;
+- every required conditional premise is supplied by actual dependencies;
+- the semantic encoder–denoiser review is accepted or the mismatch is published
+  explicitly;
+- the Source Proof Graph identifies what source obligations have and have not
+  been discharged.
+
+## 10. PURIFICATION is the final human-facing state
+
+`PROVED` and `MERGED` do not mean `DONE`.
+
+After proof integration, run a purification pass. The result is not called
+finished for readers until it is `PURIFIED`.
+
+The pass checks:
+
+| Check | Required question |
+| --- | --- |
+| dead declarations | Did failed agent attempts leave unreachable lemmas? |
+| duplicate semantics | Are two declarations mathematically the same interface? |
+| wrapper-only lemmas | Does a declaration merely repackage assumptions or another theorem? |
+| import minimization | Are proof-only dependencies unnecessarily polluting foundations? |
+| canonicalization | Should a route-local result move to the shared technical layer? |
+| proof-route compression | Which bookkeeping leaves can be folded behind one reviewed conceptual move? |
+| graph compression | Which nodes instantiate one reusable family and which adapters are essential? |
+| elaboration | Did automation leave pathologically expensive proof scripts? |
+| reader compression | What should a researcher see by default, and what should remain drill-down detail? |
+
+Purification must **never delete evidence needed to audit the proof**. It changes
+the public presentation and canonical library organization while preserving a
+lossless path back to source nodes and Lean leaves.
+
+The rule is simple:
+
+> **Do not leave machine garbage for humans.**
+
+## 11. Lifecycle
+
+The human-facing lifecycle is:
+
+```text
+SOURCE_PINNED
+  -> STATEMENT_SEALED
+  -> SOURCE_TOPOLOGY_REVIEWED
+  -> PROVED_LOCAL
+  -> PROOF_SEALED
+  -> PUBLISHED
+  -> MERGED
+  -> PURIFIED
+```
+
+The existing Frontier Cell state machine remains the repository-integration
+state machine until its schema is migrated. In particular, `merged` means
+“repository truth has landed”; it does **not** imply `PURIFIED`.
+
+No chapter/paper may advertise “finished” merely from a merge flag when
+purification remains pending.
+
+## 12. Sampling-specific compression targets
+
+Purification should preferentially expose reusable mechanisms such as:
+
+- metric/entropy/energy dissipation;
+- functional inequalities and coercivity;
+- coupling and contraction;
+- transport/geodesic interpolation;
+- proximal/regularized energies;
+- martingale, stopping and localization;
+- discretization and one-step error control;
+- recursive error/cost accumulation;
+- Lyapunov and Grönwall closures.
+
+These names are navigation families, not licenses to identify distinct
+hypotheses. The compressed view must retain the adapters showing exactly where
+Euclidean, Riemannian, Wasserstein, Markov-chain, discrete-state and other
+settings differ.
+
+## 13. Required contribution report
+
+A substantive source-facing contribution must report, in addition to existing
+ASTIS fields:
+
+```text
+statement_seal:
+  source_revision
+  statement_version
+  signature_digest
+  binder_audit
+  definition_kind
+
+source_proof_coverage:
+  inventory
+  reviewed_nodes
+  excluded_with_reason
+  source_gaps
+  alternative_routes
+
+proof_digestion:
+  existing_substrate
+  bookkeeping
+  new_reusable
+  new_topology
+
+purification:
+  status: pending | purified
+  dead_code_audit
+  duplicate_semantics_audit
+  canonicalization
+  compressed_spine_delta
+  reader_default_view
+```
+
+A future checker may make these fields mechanically mandatory. Until then they
+are a **normative protocol requirement** for new Source Anchors and major paper
+routes and should be included in their Frontier/publication records without
+weakening any existing gate.
+
+
+## Design provenance
+
+The source-first statement-sealing, independent source dependency/coverage
+graph, binder audit, definition audit, explicit alternative-route, and
+post-proof cleanup ideas were informed by Scott N. Armstrong's October 2026
+autoformalization workflow and the public LeanAutoformalizationSkills project:
+https://www.scottnarmstrong.com/2026/10/autoformalization-is-now-very-easy/ and
+https://github.com/scottnarmstrong/LeanAutoformalizationSkills.
+
+This library adapts those ideas to its own trust model rather than copying the
+workflow verbatim: production Lean remains zero-sorry, the existing
+encoder-denoiser/source review remains mandatory, and the four-view
+source/Lean/compressed/Functor proof-digestion stack plus PURIFIED reader state
+are project-specific requirements.
+
+## Evidence-routed memory and scheduling
+
+The post-proof lifecycle is coupled to [the evidence-routed research-memory protocol](evidence-routed-memory-protocol.md). A failed route is not discarded until its salvage audit runs; non-mathematical failures never become negative mathematical evidence; process standing instructions are evidence-bound and cannot invent theorem content; parallel workers require distinct direction fingerprints; and parallel serious routes trigger a common-blind-spot audit. PURIFICATION additionally carries reader-backpressure state and an Exposition Seal so compressed prose cannot silently drop hypotheses or boundaries.
+
+FILE docs/evidence-routed-memory-protocol.md
+# Evidence-Routed Research Memory and Scheduling Protocol
+
+This protocol complements `docs/proof-digestion-protocol.md`. It adapts the
+useful cross-round learning ideas of arXiv:2609.40324 to Samplinglib without
+turning the repository into a generic multi-agent proof factory.
+
+The operating rule is:
+
+> **Verified mathematics may become proof memory; verified failure may become
+> negative knowledge; repeated process mistakes may become process instructions.
+> None of these are interchangeable.**
+
+Samplinglib keeps the final acceptance authority in Lean plus the existing
+source/semantic review gates.
+
+## 1. Failure is typed before it changes scheduling
+
+Every non-successful route is classified as exactly one of:
+
+- `REFUTED`: the mathematical route/claim is ruled out by a checked
+  counterexample or rigorous reviewed argument;
+- `SOURCE_INVALID`: the pinned source statement/convention is false,
+  ill-posed, or needs a separately reviewed repair;
+- `API_BLOCKED`: the mathematics is not refuted; the current Lean/Mathlib/API
+  surface is the obstruction;
+- `ENV_BLOCKED`: filesystem, dependency, CI, toolchain, package, or runtime
+  environment prevents the attempt;
+- `IMPLEMENTATION_FAILED`: this implementation/proof attempt failed without
+  evidence that the mathematics is false;
+- `NONE`: no failure is being recorded.
+
+Only `REFUTED` or a reviewed `SOURCE_INVALID` record may retire a route on
+mathematical grounds. API, environment, and implementation failures must never
+be displayed as negative mathematical evidence.
+
+## 2. Salvage before garbage collection
+
+Before a blocked/rejected proof branch is discarded or purified away, run a
+**salvage audit**.
+
+For every theorem-shaped fragment that appears to have survived the failed
+route:
+
+1. isolate it from theorem-local context;
+2. minimize assumptions and imports;
+3. check that no failed parent is smuggled in as a hypothesis;
+4. compile it independently;
+5. run the shared-floor/canonicality audit;
+6. classify it as `canonical-library-node | route-local | counterexample |
+   process-only | discard`.
+
+A fragment becomes reusable proof memory only after the ordinary Lean and
+source/semantic gates appropriate to its declaration level. Text from a failed
+proof is never promoted merely because another model described it as correct.
+
+This gate runs **before** dead-code deletion in PURIFICATION. Thus machine
+debris is not kept, but verified mathematical content is not thrown away with
+a failed parent proof.
+
+## 3. Two durable ledgers: positive and negative
+
+Positive proof memory remains the canonical compiled Lean library plus the
+existing Frontier/Discovery records.
+
+Negative/process memory lives in
+`research-wiki/process-memory.json` and is validated by
+`tools/astis_process_memory.py`.
+
+A negative-memory record includes its exact scope, evidence, invalidation keys,
+and route effect. It is not a global ban. For example, an API-blocked route may
+reopen after a Mathlib/toolchain change; a source-invalid record may reopen
+after a new source edition or accepted repair.
+
+A process-standing instruction must be **process-only**: it may say “separate
+the normalization base measure from the Fisher integration law before proof
+search”, but it may not invent a mathematical lemma or tell workers that a
+particular unverified proof direction is true.
+
+## 4. Evidence-bound failure router
+
+The control plane has no mathematical authority. It may route evidence:
+
+| Failure class | Default next process |
+| --- | --- |
+| `REFUTED` | retire same sealed route; salvage verified fragments; search a mathematically distinct route |
+| `SOURCE_INVALID` | source audit / repair lane; no proof search on the stale seal |
+| `API_BLOCKED` | retrieval/API adapter or upstream-dependency lane |
+| `ENV_BLOCKED` | deterministic environment/infrastructure repair |
+| `IMPLEMENTATION_FAILED` | inspect error signature; retry only with a changed route fingerprint |
+| `NONE` | ordinary proof/frontier scheduling |
+
+The router may recommend a **process**, never a theorem conclusion.
+
+## 5. Parallelism is admitted by distinct uncertainty
+
+Samplinglib's default is serial/bounded scheduling. Parallel workers are
+admitted only when their packets have different `direction_fingerprint`
+values and own genuinely different uncertainty, for example:
+
+- coupling versus semigroup proof routes;
+- proof construction versus counterexample search;
+- source audit versus implementation;
+- two disjoint theorem leaves with non-overlapping ownership.
+
+Each parallel packet receives:
+
+- the same Statement Seal and verified shared-memory digest;
+- only route-specific failed-history relevant to its direction;
+- disjoint file ownership where possible;
+- an explicit expected-information-gain statement.
+
+Duplicating the same large context across workers to attack the same
+unclassified leaf is not an admissible parallel experiment.
+
+## 6. Cross-route common-blind-spot audit
+
+When two or more serious routes to the same Source Anchor survive to
+verification, a distinct reviewer performs a side-by-side audit. Its purpose is
+not to re-prove every line; it asks whether the routes share the same hidden
+premise, representative choice, integrability assumption, invariant-law gap,
+constant-scope error, or source misreading.
+
+A parallel/multi-route Source Anchor cannot be called proof-sealed until the
+required common-blind-spot audit is accepted or every alternative but one has
+been retired with evidence.
+
+## 7. Verified-route comparator
+
+After the common-blind-spot audit, if more than one route remains verified, a comparator selects the **default reader route**, not the only true route. It may compare source fidelity, assumption strength, reuse of canonical primitives, proof compression, and pedagogical readability. The selected route and reason are recorded, while all other verified alternatives remain explicit OR-routes in the Source Proof Graph.
+
+The comparator may choose only among routes that already passed their own verification; it cannot promote an unverified candidate because it looks shorter or more elegant.
+
+## 8. Reader backpressure and Exposition Seal
+
+Samplinglib explicitly tracks the debt created when proof production outruns
+human digestion:
+
+- `merged_not_purified`: merged Source Anchors whose proof forest has not been
+  compressed;
+- `purification_age`: time from merge to PURIFIED;
+- `fine_to_conceptual_ratio`: fine Lean/source nodes divided by reviewed
+  conceptual moves, when the graph exposes both counts.
+
+These metrics are scheduling signals, not mathematical quality scores. If the
+debt grows, the scheduler must reserve capacity for synthesis/purification
+rather than spending all capacity on new Source Anchors.
+
+A PURIFIED source-facing result additionally receives an **Exposition Seal**.
+The compressed reader statement must expand losslessly to source and Lean nodes,
+preserve hidden hypotheses and the remaining boundary, and be independently
+reviewable without knowledge of the agent run.
+
+The Exposition Seal is evidence-bearing rather than a status word alone: it records the source nodes and Lean nodes to which the compressed explanation expands, plus independent confirmation that assumptions and the remaining boundary were preserved.
+
+## 9. Run-record integration
+
+New Frontier Cells should use schema version 3 and record a
+`learning_contract` containing:
+
+- process-memory IDs consulted;
+- failure class;
+- salvage status;
+- serial/parallel admission and direction fingerprints;
+- common-blind-spot audit status;
+- reader-backpressure / exposition status.
+
+Historical schema-1/2 cells remain valid. This is a forward protocol, not
+retroactive evidence fabrication.
+
+## 10. Samplinglib-specific standing lessons
+
+The initial process-memory registry is deliberately small and evidence-backed.
+It records only lessons already visible in the repository's reviewed runs,
+including:
+
+- do not conflate the normalization base measure of a tilted law with the
+  probability measure used by a Fisher-information integral;
+- positive-time/domain repairs for normalized gradient-flow and gradient-descent
+  rate formulae remain source-repair knowledge, not theorem assumptions silently
+  inserted by future formalizers.
+
+The registry should grow only when repeated or high-impact evidence justifies a
+durable instruction.
+
+## Design provenance
+
+This protocol is informed by the cross-round attempt/lemma/advisor architecture
+of arXiv:2609.40324. Samplinglib deliberately differs in three ways: verified
+fragments are promoted only through Lean/source gates, control-plane memory has
+no mathematical authority, and the terminal goal is a PURIFIED researcher-facing
+proof spine rather than proof-discovery throughput alone.
+
+FILE .agents/skills/astis-semantic-roundtrip/SKILL.md
+---
+name: astis-semantic-roundtrip
+description: Audit whether a compiled Lean declaration preserves its source theorem and propose source-reviewable minimal theorem repairs.
+---
+
+# ASTIS Semantic Round-Trip Skill
+
+Use this skill for every source-facing Chewi, SampleWiki, or paper theorem after its exact Lean declaration compiles. Lean compilation proves the formal proposition; it does not prove that the proposition is the one the source intended.
+
+## Truth boundary
+
+Keep these claims separate:
+
+1. **Lean truth:** the pinned declaration compiles without fake closure.
+2. **Reconstruction evidence:** an independent decoder reconstructs the theorem from the Lean statement while source text, source identity, theorem number, prior audit, and repair proposals are hidden.
+3. **Source fidelity:** an independent source reviewer compares the original and reconstruction slot by slot using a packet-bound review run.
+4. **Repair status:** a proposed denoising repair remains an overlay until a separate exact-proposal repair review accepts it. It never overwrites the pinned source theorem automatically.
+
+A proving/formalizing Worker must not act as its own blind decoder or source-facing reviewer.
+
+## Required workflow
+
+For new/changed declarations, also read `docs/theorem-publication-protocol.md`.
+The bounded publication packet supplies a `publication_binding_sha256`; record
+it on the canonical audit to bind current code, source, assumptions and authored
+proof explanation. It is coordinator metadata, **never blind decoder input**.
+Reuse an unchanged review; changed inputs invalidate it. The Harness and CI
+enforce admission automatically but never invent a decoder/reviewer verdict.
+
+1. Pin the source ID, exact anchor, verbatim or licensed ASTIS source restatement, and SHA-256.
+2. Pin the Lean declaration, file, fully elaborated statement available to the decoder, statement SHA-256, and compiler evidence.
+3. Create or update an audit in `research-wiki/semantic-roundtrip/registry.json` in `draft` state.
+4. Record only the minimal definition context needed to interpret the Lean proposition. Each context item must be a plain non-empty string. The gate scans these strings for exact source text, source/audit/anchor identity, Lean file/declaration identity, and repair material; a detected leak blocks packet generation.
+5. Generate the anonymous decoder-only input. The exported packet contains no audit ID, source identity, theorem number, source anchor, Lean file/declaration identity, prior audit, or repair proposal:
+
+   ```bash
+   python3 tools/astis_semantic_roundtrip.py decoder-packet \
+     --audit-id ASTIS-RT-... \
+     --output runs/semantic-roundtrip/ASTIS-RT-....decoder.json
+   ```
+
+6. Give that packet—not the registry, source text, or source-facing Lean card—to an independent decoder. Record `source_text_visible=false`, the canonical decoder-packet hash, exact input artifacts, decoder identity/run hash, and reconstructed-theorem hash.
+7. Generate a fresh anti-anchored source review packet:
+
+   ```bash
+   python3 tools/astis_semantic_roundtrip.py reviewer-packet \
+     --audit-id ASTIS-RT-... \
+     --output runs/semantic-roundtrip/ASTIS-RT-....review.json
+   ```
+
+   Give it to a reviewer distinct from both formalizer and decoder. The packet contains source and reconstruction but omits all earlier semantic slots, deltas, verdicts, and repairs. Record both the exact reviewer-packet hash and reviewer-run hash.
+8. Compare all seven semantic slots: objects, domains, quantifiers, assumptions, conclusion, scopes/senses, and constant dependencies. Text or embedding similarity is not evidence of equivalence.
+9. Classify every delta and issue a fidelity verdict. Exact/equivalent verdicts require no blocking delta; source-facing acceptance requires an independent reviewer distinct from the formalizer and decoder.
+10. When formalization exposes a possible missing condition, create a separate repair proposal with a reconstructed statement, justification, minimality evidence, and a rigorous reference or counterexample. Classify whether it is mathematically necessary, source implicit, uncertain, or a formalization-artifact risk.
+11. Before marking a repair `source-reviewed` or `accepted`, generate its own exact-proposal review packet:
+
+   ```bash
+   python3 tools/astis_semantic_roundtrip.py repair-reviewer-packet \
+     --audit-id ASTIS-RT-... \
+     --repair-id ASTIS-REPAIR-... \
+     --output runs/semantic-roundtrip/ASTIS-REPAIR-....review.json
+   ```
+
+   The repair reviewer may inspect the source, Lean statement, blind reconstruction, and exact repair proposal, but the packet hides earlier fidelity verdicts, semantic-delta classifications, theorem source-review decisions, and earlier repair-review decisions. Record the independent reviewer identity, review-run hash, reviewer-packet hash, and `proposal_sha256`. Any later change to the source-facing proposal payload invalidates that review.
+12. A formalization-artifact risk cannot be accepted as a source repair. In `faithfulPaper` mode, never add an assumption merely to close the current proof route.
+13. Run:
+
+   ```bash
+   python3 tools/astis_semantic_roundtrip.py check
+   python3 tools/astis_semantic_roundtrip.py summary
+   ```
+
+The website build projects accepted evidence, pending mismatches, and repair proposals into the `Semantic fidelity & repair` view of the Underlying Lean Graph.
+
+## Hard rejects
+
+Reject an audit when any of the following occurs:
+
+- the decoder saw the source theorem, source/source-anchor/audit/declaration identity, theorem number, prior semantic audit, or repair proposal;
+- approved definition context contains an exact known source/audit/declaration/repair secret or an unscanned structured object;
+- one of the seven semantic slots is absent or only asserted without evidence;
+- the formalizer, decoder, and source-facing reviewers are not independent where required;
+- a completed source review is not bound to the canonical reviewer packet and reviewer run;
+- a green Lean build is used as evidence of source fidelity;
+- an accepted repair lacks minimality evidence and a reference or counterexample;
+- a reviewed/accepted repair lacks its own packet-bound independent repair review;
+- a reviewed repair's proposal payload changed after review;
+- a repair silently changes the canonical source statement;
+- a source-facing theorem is marked assimilated before both Lean compilation and source review pass.
+

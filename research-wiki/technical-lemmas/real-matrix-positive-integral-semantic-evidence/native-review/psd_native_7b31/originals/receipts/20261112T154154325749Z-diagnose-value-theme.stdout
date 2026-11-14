@@ -1,0 +1,67 @@
+def type (d : ConstantInfo) : Expr :=
+  d.toConstantVal.type
+
+/--
+Returns the value of a definition. With `allowOpaque := true`, values
+of theorems and opaque declarations are also returned.
+-/
+def value? (info : ConstantInfo) (allowOpaque := false) : Option Expr :=
+  match info with
+  | .defnInfo {value, ..}   => some value
+  | .thmInfo  {value, ..}   => if allowOpaque then some value else none
+  | .opaqueInfo {value, ..} => if allowOpaque then some value else none
+  | _                       => none
+
+/--
+Returns `true` if this declaration as a value for the purpose of reduction
+and type-checking, i.e. is a definition.
+With `allowOpaque := true`, theorems and opaque declarations are also considered to have values.
+-/
+def hasValue (info : ConstantInfo) (allowOpaque := false) : Bool :=
+  match info with
+  | .defnInfo _   => true
+  | .thmInfo  _   => allowOpaque
+  | .opaqueInfo _ => allowOpaque
+  | _             => false
+
+
+<section class="sidebar-group"><h2>Project</h2><nav>
+<a href="{p}workflow/index.html">ASTIS Harness</a>
+<a href="{p}contribute/index.html">Contribute</a>
+<a href="{p}attribution/index.html">Attribution</a>
+</nav></section>
+</div>
+"""
+    return text[:start] + fallback + text[end:]
+
+
+def stylesheet_names(text: str) -> list[str]:
+    return [
+        Path(value).name
+        for value in re.findall(r'<link\s+rel="stylesheet"\s+href="([^"]+)"', text)
+    ]
+
+
+def canonical_theme_styles(output: Path) -> list[str]:
+    canonical = output / CANONICAL_THEME_PAGE
+    if not canonical.exists():
+        raise RuntimeError(f"canonical Samplinglib theme page missing: {CANONICAL_THEME_PAGE}")
+    names = stylesheet_names(canonical.read_text(encoding="utf-8"))
+    if "site.css" not in names or "information-architecture.css" not in names:
+        raise RuntimeError("canonical Samplinglib theme stack is incomplete")
+    return names
+
+
+def inherit_canonical_theme(text: str, rel: str, output: Path) -> str:
+    """Give generated library pages exactly the Chewi reader presentation stack."""
+    existing = set(stylesheet_names(text))
+    additions = []
+    for name in canonical_theme_styles(output):
+        if name in existing:
+            continue
+        additions.append(f'  <link rel="stylesheet" href="{prefix(rel)}assets/{escape(name)}">')
+        existing.add(name)
+    if additions:
+        if "</head>" not in text:
+            raise RuntimeError(f"{rel}: missing </head> while inheriting canonical theme")
+

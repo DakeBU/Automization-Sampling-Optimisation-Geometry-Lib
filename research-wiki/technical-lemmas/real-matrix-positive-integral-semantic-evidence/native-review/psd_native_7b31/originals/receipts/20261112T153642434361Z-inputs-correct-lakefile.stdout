@@ -1,0 +1,910 @@
+FILE lakefile.lean
+import Lake
+open Lake DSL
+
+package auto_sampling_theory where
+  version := v!"0.1.0"
+
+require mathlib from git
+  "https://github.com/leanprover-community/mathlib4.git" @ "v4.33.0"
+
+@[default_target]
+lean_lib AutoSamplingTheory
+
+lean_lib Tests
+
+FILE lake-manifest.json
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
+ "packages":
+ [{"url": "https://github.com/leanprover-community/mathlib4.git",
+   "type": "git",
+   "subDir": null,
+   "scope": "",
+   "rev": "db584cd6d46c92f209a44c0f1c829460d327499d",
+   "name": "mathlib",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "v4.33.0",
+   "inherited": false,
+   "configFile": "lakefile.lean"},
+  {"url": "https://github.com/leanprover-community/plausible",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover-community",
+   "rev": "b7eb3304aeae834b12dda98993a37f6a41f6f0bb",
+   "name": "plausible",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "main",
+   "inherited": true,
+   "configFile": "lakefile.toml"},
+  {"url": "https://github.com/leanprover-community/LeanSearchClient",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover-community",
+   "rev": "5f4d51b81cbd3f6b32b156bfad9056621a040404",
+   "name": "LeanSearchClient",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "main",
+   "inherited": true,
+   "configFile": "lakefile.toml"},
+  {"url": "https://github.com/leanprover-community/import-graph",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover-community",
+   "rev": "16f02aa7642864af59f1ff0e384a015994db9118",
+   "name": "importGraph",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "main",
+   "inherited": true,
+   "configFile": "lakefile.toml"},
+  {"url": "https://github.com/leanprover-community/ProofWidgets4",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover-community",
+   "rev": "4be2e3d5087eeb272cf5a8853b8f9dd025ef5957",
+   "name": "proofwidgets",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "main",
+   "inherited": true,
+   "configFile": "lakefile.lean"},
+  {"url": "https://github.com/leanprover-community/aesop",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover-community",
+   "rev": "3448c0bcc5ce01b2d1546e483ec3620e32df3d0e",
+   "name": "aesop",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "master",
+   "inherited": true,
+   "configFile": "lakefile.toml"},
+  {"url": "https://github.com/leanprover-community/quote4",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover-community",
+   "rev": "92c15be17b7caf78c2ad767ec40f89052d908d81",
+   "name": "Qq",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "master",
+   "inherited": true,
+   "configFile": "lakefile.toml"},
+  {"url": "https://github.com/leanprover-community/batteries",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover-community",
+   "rev": "4488d40d070b9700d4d5a6aa342f0d40c31b2a2d",
+   "name": "batteries",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "main",
+   "inherited": true,
+   "configFile": "lakefile.toml"},
+  {"url": "https://github.com/leanprover/lean4-cli",
+   "type": "git",
+   "subDir": null,
+   "scope": "leanprover",
+   "rev": "6130a47896ce867c6a4a55373441e59e565bad0f",
+   "name": "Cli",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "v4.33.0",
+   "inherited": true,
+   "configFile": "lakefile.toml"}],
+ "name": "auto_sampling_theory",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}
+
+FILE AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveIntegral.lean
+import Mathlib.Algebra.Order.Star.Real
+import Mathlib.Analysis.Convex.Integral
+import Mathlib.Analysis.CStarAlgebra.Matrix
+import Mathlib.LinearAlgebra.Matrix.PosDef
+
+/-! ASTIS-authored reusable background for positivity under expectation.
+The full PSD cone geometry is proved here once. Concrete source applications
+must derive integrability and AE positivity internally. Empty finite matrix
+indices are permitted. This is not a printed generic theorem in the paper. -/
+
+noncomputable section
+open MeasureTheory
+open scoped Matrix.Norms.L2Operator
+set_option autoImplicit false
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral
+
+theorem integral_posSemidef
+    {n Ω : Type*} [Fintype n] [DecidableEq n] [MeasurableSpace Ω]
+    {μ : Measure Ω} [IsProbabilityMeasure μ]
+    (f : Ω → Matrix n n ℝ) (hf : Integrable f μ)
+    (hpos : ∀ᵐ ω ∂μ, Matrix.PosSemidef (f ω)) :
+    Matrix.PosSemidef (∫ ω, f ω ∂μ)
+:= by
+  classical
+  let M := Matrix n n ℝ
+  have PSD_closed : IsClosed {A : M | A.PosSemidef} := by
+    have hermitian_closed : IsClosed {A : M | A.IsHermitian} := by
+      change IsClosed {A : M | star A = A}
+      exact isClosed_eq continuous_star continuous_id
+    have quadratic_closed (v : n → ℝ) :
+        IsClosed {A : M | 0 ≤ dotProduct (star v) (Matrix.mulVec A v)} := by
+      apply isClosed_le continuous_const
+      change Continuous (fun A : M => ∑ a, star (v a) * ∑ b, A a b * v b)
+      fun_prop
+    convert hermitian_closed.inter (isClosed_iInter quadratic_closed) using 1
+    ext A
+    simp [Matrix.posSemidef_iff_dotProduct_mulVec]
+  have PSD_convex : Convex ℝ {A : M | A.PosSemidef} := by
+    intro A hA B hB a b ha hb hab
+    exact (hA.smul ha).add (hB.smul hb)
+  exact PSD_convex.integral_mem PSD_closed hpos hf
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral
+
+FILE AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixVariance.lean
+import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound
+
+/-! Actual source-experiment uncentered squared moments, arXiv2610.20492v1 C.2.
+The original column-product law, physical rows and closed cutoff stay literal.
+The shared positivity-integral node is used on a genuinely integrable pointwise
+PSD majorant residual; no moment/positivity certificate is a source input. -/
+
+noncomputable section
+open MeasureTheory ProbabilityTheory
+open scoped BigOperators Matrix.Norms.L2Operator
+open AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral
+set_option autoImplicit false
+
+namespace AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance
+
+theorem actual_source_truncated_matrix_second_moments
+    {d q : ℕ} (hq : 2 * q + 1 < d) :
+  let D := EuclideanSpace ℝ (Fin d)
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let Ω := Fin (q + 1) → D
+  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let row : Fin d → Ω → E := fun i ω =>
+    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)
+  let Y : Fin d → Ω →
+      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (d : ℝ)⁻¹ • Matrix.kronecker
+        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))
+        (Matrix.vecMulVec (t i) (t i))
+    else 0
+  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)
+  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧
+    Matrix.PosSemidef
+      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -
+        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)
+:= by
+  classical
+  dsimp only
+  let D := EuclideanSpace ℝ (Fin d)
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let Ω := Fin (q + 1) → D
+  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)
+  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)
+  let row : Fin d → Ω → E := fun i ω =>
+    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)
+  let Y : Fin d → Ω →
+      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (d : ℝ)⁻¹ • Matrix.kronecker
+        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))
+        (Matrix.vecMulVec (t i) (t i))
+    else 0
+  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)
+
+  let ν : Measure E := stdGaussian E
+  let M := Matrix (Fin (q + 1)) (Fin (q + 1)) ℝ
+  let N := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ
+  let R : E → ℝ := fun x => ‖x‖ ^ 2
+  let G : E → M := fun x => Matrix.vecMulVec (WithLp.ofLp x) (WithLp.ofLp x)
+  let weighted : E → M := fun x => R x • G x
+  let feature : Fin d → M := fun i => Matrix.vecMulVec (t i) (t i)
+  let S : Fin d → ℝ := fun i => ∑ k : Fin (q + 1), (t i k) ^ 2
+  let K : Fin d → N := fun i => Matrix.kronecker (1 : M) (feature i)
+  let α : ℝ := (r + 2) / (d : ℝ) ^ 2
+  let B : N := α • (∑ i : Fin d, S i • K i)
+  let good : Fin d → Set Ω := fun i => {ω | ‖row i ω‖ ^ 2 ≤ L}
+  let squared : Fin d → Ω → N := fun i ω => Y i ω * Y i ω
+  let c : Fin d → ℝ := fun i => S i / (d : ℝ) ^ 2
+  let tensor : Fin d → M →ₗ[ℝ] N := fun i =>
+    (Matrix.kroneckerBilinear : M →ₗ[ℝ] M →ₗ[ℝ] N).flip (feature i)
+  let scaled : Fin d → M →L[ℝ] N := fun i => c i • (tensor i).toContinuousLinearMap
+  let W : Fin d → Ω → N := fun i ω => scaled i (weighted (row i ω))
+
+  -- Canonical fourth moment, transported by the actual physical row map.
+  have moment := FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix
+    (d := d) (q := q) hq
+  change Integrable weighted ν ∧ (∫ x, weighted x ∂ν) = (r + 2) • (1 : M) at moment
+  have row_law (i : Fin d) : MeasurePreserving (row i) μ ν :=
+    FixedSpectrumSourceRowLaw.actual_source_row_marginal_law hq i
+  have actual_weighted_integrable (i : Fin d) :
+      Integrable (fun ω => weighted (row i ω)) μ :=
+    (row_law i).integrable_comp_of_integrable moment.1
+  have actual_weighted_mean (i : Fin d) :
+      (∫ ω, weighted (row i ω) ∂μ) = (r + 2) • (1 : M) := by
+    have measurable_on_map : AEStronglyMeasurable weighted (Measure.map (row i) μ) := by
+      rw [(row_law i).map_eq]
+      exact moment.1.aestronglyMeasurable
+    have transport := integral_map (row_law i).measurable.aemeasurable measurable_on_map
+    rw [(row_law i).map_eq] at transport
+    exact transport.symm.trans moment.2
+  have W_integrable (i : Fin d) : Integrable (W i) μ :=
+    (scaled i).integrable_comp (actual_weighted_integrable i)
+  have good_measurable (i : Fin d) : MeasurableSet (good i) := by
+    dsimp only [good]
+    exact measurableSet_le ((row_law i).measurable.norm.pow_const 2) measurable_const
+
+  -- Both ordinary rank-one squares, retaining the actual row's own cutoff.
+  have rank_square (v : Fin (q + 1) → ℝ) :
+      Matrix.vecMulVec v v * Matrix.vecMulVec v v =
+        (∑ k : Fin (q + 1), (v k) ^ 2) • Matrix.vecMulVec v v := by
+    rw [Matrix.vecMulVec_mul_vecMulVec, Matrix.vecMulVec_smul]
+    congr 1
+    simp [dotProduct, pow_two]
+  have gram_square (x : E) : G x * G x = R x • G x := by
+    have h := rank_square (WithLp.ofLp x)
+    have radius_sum : (∑ k : Fin (q + 1), (x k) ^ 2) = R x :=
+      (EuclideanSpace.real_norm_sq_eq x).symm
+    simpa only [radius_sum] using h
+  have feature_square (i : Fin d) : feature i * feature i = S i • feature i :=
+    rank_square (t i)
+  have squared_as_indicator (i : Fin d) : squared i = (good i).indicator (W i) := by
+    funext ω
+    by_cases hω : ω ∈ good i
+    · have hcut : ‖row i ω‖ ^ 2 ≤ L := hω
+      simp only [squared, Y, if_pos hcut, Set.indicator_of_mem hω]
+      change ((d : ℝ)⁻¹ • Matrix.kronecker (G (row i ω)) (feature i)) *
+        ((d : ℝ)⁻¹ • Matrix.kronecker (G (row i ω)) (feature i)) =
+          c i • Matrix.kronecker (R (row i ω) • G (row i ω)) (feature i)
+      dsimp only [Matrix.kronecker]
+      rw [smul_mul_assoc, mul_smul_comm, ← Matrix.mul_kronecker_mul,
+        gram_square (row i ω), feature_square i]
+      ext a b
+      change (d : ℝ)⁻¹ * ((d : ℝ)⁻¹ *
+        ((R (row i ω) * G (row i ω) a.1 b.1) * (S i * feature i a.2 b.2))) =
+          c i * ((R (row i ω) * G (row i ω) a.1 b.1) * feature i a.2 b.2)
+      dsimp [c]
+      simp only [div_eq_mul_inv]
+      ring
+    · have hcut : ¬ ‖row i ω‖ ^ 2 ≤ L := hω
+      simp [squared, Y, hcut, Set.indicator_of_notMem hω]
+  have squared_integrable (i : Fin d) : Integrable (squared i) μ := by
+    rw [squared_as_indicator i]
+    exact (W_integrable i).indicator (good_measurable i)
+
+  -- The actual untruncated majorant is a nonnegative rank-one matrix.
+  have W_positive (i : Fin d) (ω : Ω) : (W i ω).PosSemidef := by
+    let x := row i ω
+    let v : Fin (q + 1) × Fin (q + 1) → ℝ := fun a => x a.1 * t i a.2
+    have rank_positive : (Matrix.vecMulVec v v).PosSemidef := by
+      simpa only [star_trivial] using Matrix.posSemidef_vecMulVec_self_star v
+    have W_rank : W i ω = (c i * R x) • Matrix.vecMulVec v v := by
+      ext a b
+      change c i * (R x * (x a.1 * x b.1) * (t i a.2 * t i b.2)) =
+        (c i * R x) * ((x a.1 * t i a.2) * (x b.1 * t i b.2))
+      ring
+    rw [W_rank]
+    exact rank_positive.smul (mul_nonneg
+      (div_nonneg (Finset.sum_nonneg (fun _ _ => sq_nonneg _)) (sq_nonneg _))
+      (sq_nonneg ‖x‖))
+  have residual_positive (ω : Ω) :
+      ((∑ i : Fin d, W i ω) - ∑ i : Fin d, squared i ω).PosSemidef := by
+    rw [← Finset.sum_sub_distrib]
+    apply Matrix.posSemidef_sum Finset.univ
+    intro i _
+    rw [squared_as_indicator i]
+    by_cases hω : ω ∈ good i
+    · simpa [Set.indicator_of_mem hω] using (Matrix.PosSemidef.zero : (0 : N).PosSemidef)
+    · simpa [Set.indicator_of_notMem hω] using W_positive i ω
+  have W_sum_integrable : Integrable (fun ω => ∑ i : Fin d, W i ω) μ :=
+    integrable_finsetSum Finset.univ (fun i _ => W_integrable i)
+  have squared_sum_integrable : Integrable (fun ω => ∑ i : Fin d, squared i ω) μ :=
+    integrable_finsetSum Finset.univ (fun i _ => squared_integrable i)
+  have integrated_residual :
+      (∫ ω, (∑ i : Fin d, W i ω) - ∑ i : Fin d, squared i ω ∂μ).PosSemidef :=
+    integral_posSemidef _ (W_sum_integrable.sub squared_sum_integrable)
+      (Filter.Eventually.of_forall residual_positive)
+
+  -- Exact tensor/scalar means and the existing canonical weighted-frame bound.
+  have W_mean (i : Fin d) : (∫ ω, W i ω ∂μ) = α • (S i • K i) := by
+    calc
+      (∫ ω, W i ω ∂μ) = scaled i (∫ ω, weighted (row i ω) ∂μ) :=
+        (scaled i).integral_comp_comm (actual_weighted_integrable i)
+      _ = scaled i ((r + 2) • (1 : M)) := congrArg (scaled i) (actual_weighted_mean i)
+      _ = α • (S i • K i) := by
+        change c i • Matrix.kronecker ((r + 2) • (1 : M)) (feature i) =
+          α • (S i • Matrix.kronecker (1 : M) (feature i))
+        dsimp only [Matrix.kronecker]
+        rw [Matrix.smul_kronecker, smul_smul, smul_smul]
+        congr 1
+        dsimp [c, α]
+        simp only [div_eq_mul_inv]
+        ring
+  have W_sum_mean : (∫ ω, ∑ i : Fin d, W i ω ∂μ) = B := by
+    rw [integral_finsetSum Finset.univ (fun i _ => W_integrable i)]
+    simp_rw [W_mean]
+    exact Finset.smul_sum.symm
+  rw [integral_sub W_sum_integrable squared_sum_integrable, W_sum_mean,
+    integral_finsetSum Finset.univ (fun i _ => squared_integrable i)] at integrated_residual
+  have deterministic := FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound
+    (d := d) (q := q) hq
+  have angle_old (i : Fin d) :
+      ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ) = θ i := by
+    dsimp [θ]
+    ring
+  dsimp only at deterministic
+  simp_rw [angle_old] at deterministic
+  change (C • (1 : N) - B).PosSemidef at deterministic
+  change (∀ i : Fin d, Integrable (squared i) μ) ∧
+    (C • (1 : N) - ∑ i : Fin d, ∫ ω, squared i ω ∂μ).PosSemidef
+  refine ⟨squared_integrable, ?_⟩
+  convert deterministic.add integrated_residual using 1
+  abel
+
+end AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance
+
+FILE Tests/RealMatrixPositiveIntegral.lean
+import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance
+
+/-! Build entry for the canonical shared producer and its actual source consumer.
+Literal universal and empty-index kernel applications are separately retained in
+the exact sealed-type probe. These checks create no new mathematical aliases. -/
+
+#check AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef
+#check AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments
+
+FILE research-wiki/technical-lemmas/real-matrix-positive-integral-statement-seal.json
+{
+  "schema_version": 1,
+  "seal_id": "SHARED-REAL-MATRIX-POSITIVE-INTEGRAL-20261112-v1",
+  "created_utc": "2026-11-12T14:18:57.339760+00:00",
+  "state": "EXACT_LITERAL_PROPS_FORMED;UNPROVED;INDEPENDENT_BACKGROUND_TYPE_TOPOLOGY_PENDING",
+  "current_HEAD": "441d54ee96a6182374d2df3bf4d2fb096d5b7e14",
+  "classification": "ASTIS-authored shared background bridge, not a new printed primary-paper theorem, source repair or extra Gaussian premise.",
+  "source": {
+    "version": "arXiv2610.20492v1",
+    "raw": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+    "raw_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "anchors": [
+      {
+        "source_id": "A3.SS2.p14",
+        "char_start": 809771,
+        "char_end": 825331,
+        "raw_utf8_start": 818094,
+        "raw_utf8_end": 833849,
+        "lf_line_start": 3630,
+        "lf_column0_start": 0,
+        "lf_line_end": 3699,
+        "span_sha256": "7c3f73ea3d271aed4ba8cb43157e35d0035a0943d38f891c23d17e8114faf029"
+      },
+      {
+        "source_id": "A3.Ex115.m1",
+        "char_start": 815169,
+        "char_end": 815636,
+        "raw_utf8_start": 823556,
+        "raw_utf8_end": 824030,
+        "lf_line_start": 3659,
+        "lf_column0_start": 48,
+        "lf_line_end": 3659,
+        "span_sha256": "d9fc3a1018f83169dbc32abcb564c22856e38aa3693e6881cbb985646d9747d9"
+      },
+      {
+        "source_id": "A3.Ex118.m1",
+        "char_start": 820604,
+        "char_end": 821534,
+        "raw_utf8_start": 829054,
+        "raw_utf8_end": 830008,
+        "lf_line_start": 3680,
+        "lf_column0_start": 42,
+        "lf_line_end": 3680,
+        "span_sha256": "0a7fc25fc88c5126050a50c77e0fadd7cb1962733af9feb227fbe55f4041d381"
+      },
+      {
+        "source_id": "A3.Ex120.m1",
+        "char_start": 823853,
+        "char_end": 825242,
+        "raw_utf8_start": 832340,
+        "raw_utf8_end": 833760,
+        "lf_line_start": 3696,
+        "lf_column0_start": 42,
+        "lf_line_end": 3696,
+        "span_sha256": "90a9d4d5b03bc48bda17a67c097457a46a8663954ad26014d6ddea9de16ffafc"
+      }
+    ],
+    "scope": "Omitted integration-of-PSD residual/square step in the source calculation; arbitrary-function probability lemma is an explicitly authored general background expansion."
+  },
+  "producer": {
+    "name": "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef",
+    "planned_file": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveIntegral.lean",
+    "signature": "    {n Ω : Type*} [Fintype n] [DecidableEq n] [MeasurableSpace Ω]\n    {μ : Measure Ω} [IsProbabilityMeasure μ]\n    (f : Ω → Matrix n n ℝ) (hf : Integrable f μ)\n    (hpos : ∀ᵐ ω ∂μ, Matrix.PosSemidef (f ω)) :\n    Matrix.PosSemidef (∫ ω, f ω ∂μ)\n",
+    "signature_sha256": "283e07e3c85b9a5cce5c3c40f574f23f593dfcca5e35be4d3e2800f378208b19"
+  },
+  "actual_consumer": {
+    "name": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments",
+    "planned_file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixVariance.lean",
+    "signature": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    Matrix.PosSemidef\n      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -\n        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)\n",
+    "signature_sha256": "d5ac54443c79ea7b35b09ddcd6b5e3c40bef081bbe4f196cae5ab3ead35aa2ea"
+  },
+  "consumer_existing_exact_seal": {
+    "file": "research-wiki/paper-contributions/GaussianComplexity/source-matrix-variance-statement-seal.json",
+    "sha256": "5f905cafe6035238cebdedd4f841e87b703e741b4c8aa204471d89e4c07e8a14",
+    "unchanged": true
+  },
+  "binder_audit": [
+    {
+      "binder": "n,Omega:Type*,Fintype n,DecidableEq n,MeasurableSpace Omega",
+      "class": "TYPING",
+      "meaning": "Finite real square matrices and measurable sample carrier; no dimension positivity or nonempty restriction."
+    },
+    {
+      "binder": "mu:Measure Omega, IsProbabilityMeasure mu",
+      "class": "AUTHORED_BACKGROUND_HYPOTHESIS",
+      "meaning": "Arbitrary probability law for this generic background theorem, exactly available internally for both actual product-Gaussian consumers."
+    },
+    {
+      "binder": "f:Omega->Matrix n n Real",
+      "class": "TYPING",
+      "meaning": "Arbitrary actual matrix random variable, no placeholder expected matrix."
+    },
+    {
+      "binder": "hf:Integrable f mu",
+      "class": "AUTHORED_BACKGROUND_HYPOTHESIS",
+      "meaning": "Genuine integrability contract on arbitrary f. Not an input of the sealed Gaussian theorem; its proof derives this for each concrete application."
+    },
+    {
+      "binder": "hpos:AE PosSemidef(f omega)",
+      "class": "AUTHORED_BACKGROUND_HYPOTHESIS",
+      "meaning": "AE full Hermitian/quadratic positivity of arbitrary f. No project-owned bundle remains unexpanded; each concrete Gaussian consumer proves it internally."
+    }
+  ],
+  "EXCESS_public_binders": [],
+  "output_bundle_audit": {
+    "input_project_bundle": false,
+    "output": "Full PosSemidef of the actual integrable Bochner expectation."
+  },
+  "shared_floor_audit": {
+    "decision": "new_canonical_shared",
+    "canonical_shared_cell": "ASTIS-SHARED-REAL-MATRIX-POSITIVE-INTEGRAL",
+    "searched": [
+      "Samplinglib/ASTIS exact public theorem searches found no integral_posSemidef provider; existing R4/R5 historical private cone applications are not public providers.",
+      "Pinned Mathlib Analysis.Matrix.Order, Matrix.PosDef and CFC sources provide matrix positivity/order primitives; Convex.integral_mem is the existing canonical general integral provider. A public real-matrix PSD specialization with proved cone applicability is absent from the actual searched floor."
+    ],
+    "actual_consumers": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments",
+      "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixVariance.actual_source_centered_variance_bounds"
+    ],
+    "decision_reason": "One public canonical finite-real-matrix positivity integration interface supplies actual uncentered residual and actual centered/weighted-square expectations; old private application histories stay intact. No algorithmic implication or PBPS/SPHMC dependency is asserted."
+  },
+  "scope_boundary": "Shared mathematical background only. No concrete Gaussian moment identity, source variance bound, complex-matrix generality, concentration, main lower bound, integration/publication/purification or Goal completion follows from this generic lemma alone. Actual consumer is sealed but not yet implemented.",
+  "actual_statement_formation": {
+    "receipt": ".astis/huanjian-resume-20261103/20261112T141642155267Z-real-matrix-positive-integral-literal-Prop-formation.receipt.json",
+    "sha256": "e1549d3a4b77259573680521d0f4c30b35e053e61b46e1e19f560aac3cee392b",
+    "log_sha256": "c7aa6e5bfc7d89db1691052da6457c9a43260f41e643f55d7c85ed5d182ed369"
+  },
+  "actual_definition_meaning_reused_exactly": {
+    "receipt": ".astis/huanjian-resume-20261103/20261112T133710785116Z-source-matrix-variance-complete-definition-meaning-v2.receipt.json",
+    "sha256": "34a5be42b697881f79598f9b83954abcc478e9d4d870023c4506f509259dfe3c",
+    "log_sha256": "ae2456e958755109ab3908f7a2baee94ed345331779c691f73aa4c141acdc3aa"
+  },
+  "actual_environment": {
+    "observed_utc": "2026-11-12T14:17:39.008754+00:00",
+    "HEAD": "441d54ee96a6182374d2df3bf4d2fb096d5b7e14",
+    "lean_version": "Lean (version 4.33.0, arm64-apple-darwin24.6.0, commit d8b18978322de05a8f3dba51ef03cf5461676c17, Release)",
+    "lean_binary_sha256": "1b370cfcbf44e80d1b004ab1b1ab9a4c73951f9f7c242140bcff9bc577576554",
+    "lean_toolchain_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "manifest_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "packages": [
+      {
+        "name": "mathlib",
+        "revision": "db584cd6d46c92f209a44c0f1c829460d327499d",
+        "porcelain_empty": true
+      },
+      {
+        "name": "plausible",
+        "revision": "b7eb3304aeae834b12dda98993a37f6a41f6f0bb",
+        "porcelain_empty": true
+      },
+      {
+        "name": "LeanSearchClient",
+        "revision": "5f4d51b81cbd3f6b32b156bfad9056621a040404",
+        "porcelain_empty": true
+      },
+      {
+        "name": "importGraph",
+        "revision": "16f02aa7642864af59f1ff0e384a015994db9118",
+        "porcelain_empty": true
+      },
+      {
+        "name": "proofwidgets",
+        "revision": "4be2e3d5087eeb272cf5a8853b8f9dd025ef5957",
+        "porcelain_empty": true
+      },
+      {
+        "name": "aesop",
+        "revision": "3448c0bcc5ce01b2d1546e483ec3620e32df3d0e",
+        "porcelain_empty": true
+      },
+      {
+        "name": "Qq",
+        "revision": "92c15be17b7caf78c2ad767ec40f89052d908d81",
+        "porcelain_empty": true
+      },
+      {
+        "name": "batteries",
+        "revision": "4488d40d070b9700d4d5a6aa342f0d40c31b2a2d",
+        "porcelain_empty": true
+      },
+      {
+        "name": "Cli",
+        "revision": "6130a47896ce867c6a4a55373441e59e565bad0f",
+        "porcelain_empty": true
+      }
+    ],
+    "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "scope": "Actual read-only environment check before new-target proof implementation. Prior canonical reuse API exposure is recorded separately.",
+    "formalizer_API_pristine": false
+  },
+  "process_memory_readback": {
+    "source": "research-wiki/process-memory.json",
+    "source_sha256": "4f5d50f127fd94baf6b11254d03dc908617080ddd0594806ab5b9d6e43860726",
+    "entries_read": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES",
+      "ASTIS-NK-GRADIENT-FLOW-ZERO-TIME",
+      "ASTIS-NK-GD-INVERSE-DOMAIN"
+    ],
+    "applicable_standing_or_negative_entry_ids": [],
+    "control_plane_math_authority": false,
+    "decision": "No current process/negative entry decides this arbitrary finite real-matrix positivity theorem. Actual measure roles remain explicit."
+  },
+  "preseal_exposure": {
+    "formalizer_API_pristine": false,
+    "known_context": [
+      "Prior compiled R4/R5 private consumers already contain local closed/convex PSD-set applications of Convex.integral_mem; their complete proofs and APIs were known before this shared target selection.",
+      "Post-seal/admission R9 API search inspected the same local proofs and pinned Mathlib CFC/Matrix order/integrability APIs; real Matrix lacks the complex CStarAlgebra hypotheses of the direct norm shortcut. Generic real CFC norm APIs exist and remain separate from this positivity bridge.",
+      "Exact ASTIS/Mathlib/frontier name searches did not identify a public integral_posSemidef provider; no preseal pristine or independent rediscovery claim."
+    ],
+    "new_shared_target_proof_implementation_attempts": 0,
+    "selection": "Multiple real consumers require one shared canonical positivity-integral node, rather than another private duplicate of the cone application. Existing historical private code remains untouched.",
+    "R9_newtarget_API_search_chunks_before_shared_selection": [
+      "d75a9e",
+      "8da081",
+      "9f06b5",
+      "d88481",
+      "92ed31",
+      "d7822c",
+      "fc8763",
+      "26065b",
+      "b663b0",
+      "8ab0b6",
+      "357313",
+      "91d02b",
+      "2b3e45",
+      "2777c9",
+      "326d48",
+      "1d0bc1"
+    ],
+    "honest_search_qualification": "The first R9 technical-library rg was overbroad and output-truncated; several guessed source paths did not exist. No missing full stdout/hash is invented and no API or environment failure is a mathematical refutation."
+  },
+  "formalizer_API_pristine": false,
+  "new_shared_target_proof_implementation_attempts": 0,
+  "minimal_definition_context_sha256": "f43d358af135d42c8585f927f7e20b2b3363af2bf28eed98298f2996a2f8e591",
+  "chronology": "The actors already froze original p14 source independently for R9. The new generic background statement is selected explicitly by ROOT after actual floor search; no claim that the source independently printed this arbitrary-f theorem. Exact new type/topology review follows this seal, before a new shared-target proof implementation."
+}
+
+FILE research-wiki/paper-contributions/GaussianComplexity/source-matrix-variance-statement-seal.json
+{
+  "schema_version": 1,
+  "seal_id": "GAUSSIAN-COMPLEXITY-SOURCE-MATRIX-VARIANCE-20261112-v1",
+  "created_utc": "2026-11-12T13:47:41.592021+00:00",
+  "state": "EXACT_LITERAL_PROPS_FORMED;UNPROVED;INDEPENDENT_TYPE_GRAPH_TOPOLOGY_PENDING",
+  "current_HEAD": "13010966ab04fe4bc848ac6d9f06e89d684c83f1",
+  "source": {
+    "version": "arXiv2610.20492v1",
+    "raw": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+    "raw_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "anchors": [
+      {
+        "source_id": "S4.Thmtheorem4.p1",
+        "char_start": 230581,
+        "char_end": 236865,
+        "raw_utf8_start": 232635,
+        "raw_utf8_end": 238980,
+        "lf_line_start": 1209,
+        "lf_column0_start": 0,
+        "lf_line_end": 1230,
+        "span_sha256": "00f66fac7ae3cca6c10e5cfeb93cf22f9622867593ccd7c9cbc09cde73fb9737"
+      },
+      {
+        "source_id": "A3.SS2.p1",
+        "char_start": 731718,
+        "char_end": 736218,
+        "raw_utf8_start": 739163,
+        "raw_utf8_end": 743698,
+        "lf_line_start": 3317,
+        "lf_column0_start": 0,
+        "lf_line_end": 3329,
+        "span_sha256": "4b07cd73f4561d56956c212747af710882b47f8d70253b679ed93e1cda9eafbc"
+      },
+      {
+        "source_id": "A3.SS2.p10",
+        "char_start": 787410,
+        "char_end": 792787,
+        "raw_utf8_start": 795457,
+        "raw_utf8_end": 800895,
+        "lf_line_start": 3532,
+        "lf_column0_start": 0,
+        "lf_line_end": 3556,
+        "span_sha256": "f5893d415e7a14cf7f0a8c619b6997d2b6f23c7a86573a1a370dfafc961648ee"
+      },
+      {
+        "source_id": "A3.Ex107.m1",
+        "char_start": 796493,
+        "char_end": 797416,
+        "raw_utf8_start": 804638,
+        "raw_utf8_end": 805574,
+        "lf_line_start": 3576,
+        "lf_column0_start": 42,
+        "lf_line_end": 3576,
+        "span_sha256": "2fccd6d10267f830c08762305aaf43245b495034c893dc8ae6191f8196ebbf0b"
+      },
+      {
+        "source_id": "A3.SS2.p13",
+        "char_start": 804229,
+        "char_end": 809770,
+        "raw_utf8_start": 812473,
+        "raw_utf8_end": 818093,
+        "lf_line_start": 3608,
+        "lf_column0_start": 0,
+        "lf_line_end": 3629,
+        "span_sha256": "8972c1e0948cb89ac310f36272c33d25e4a5cf20c409527c22221da4f7742d22"
+      },
+      {
+        "source_id": "A3.Ex113.m1",
+        "char_start": 810150,
+        "char_end": 810982,
+        "raw_utf8_start": 818473,
+        "raw_utf8_end": 819320,
+        "lf_line_start": 3636,
+        "lf_column0_start": 42,
+        "lf_line_end": 3636,
+        "span_sha256": "69b8b9372e26f5c84f33441d08d7bf407db2428e368c87f1a2cbf122c52ef1b3"
+      },
+      {
+        "source_id": "A3.Ex114.m1",
+        "char_start": 813451,
+        "char_end": 814658,
+        "raw_utf8_start": 821819,
+        "raw_utf8_end": 823045,
+        "lf_line_start": 3650,
+        "lf_column0_start": 42,
+        "lf_line_end": 3650,
+        "span_sha256": "f626565af992701c28351ea184eff53c35aef9384d443df9ed9c8ba62bdad61b"
+      },
+      {
+        "source_id": "A3.SS2.p14",
+        "char_start": 809771,
+        "char_end": 825331,
+        "raw_utf8_start": 818094,
+        "raw_utf8_end": 833849,
+        "lf_line_start": 3630,
+        "lf_column0_start": 0,
+        "lf_line_end": 3699,
+        "span_sha256": "7c3f73ea3d271aed4ba8cb43157e35d0035a0943d38f891c23d17e8114faf029"
+      }
+    ],
+    "scope": "Actual uncentered matrix squared-moment domination and both actual centered/cosine-weighted variance operator-norm bounds. Z definition is p13, Ex113/114 and comparisons p14. Entire Bernstein p15 excluded."
+  },
+  "producer": {
+    "name": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments",
+    "planned_file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumSourceMatrixVariance.lean",
+    "signature": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Y i ω * Y i ω) μ) ∧\n    Matrix.PosSemidef\n      (C • (1 : Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ) -\n        ∑ i : Fin d, ∫ ω, Y i ω * Y i ω ∂μ)\n",
+    "signature_sha256": "d5ac54443c79ea7b35b09ddcd6b5e3c40bef081bbe4f196cae5ab3ead35aa2ea"
+  },
+  "actual_private_consumer": {
+    "name": "AutoSamplingTheory.Tests.GaussianComplexityFixedSpectrumSourceMatrixVariance.actual_source_centered_variance_bounds",
+    "planned_file": "Tests/GaussianComplexityFixedSpectrumSourceMatrixVariance.lean",
+    "signature": "    {d q : ℕ} (hq : 2 * q + 1 < d) :\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let t : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * θ i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω →\n      Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (t i) (t i))\n    else 0\n  let mean : Fin d → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ :=\n    fun i ω => Y i ω - mean i\n  let w : Fin d → ℝ := fun i => Real.cos (((2 * q + 1 : ℕ) : ℝ) * θ i)\n  let C : ℝ := 2 * r * (r + 2) / (d : ℝ)\n  (∀ i : Fin d, Integrable (fun ω => Z i ω * Z i ω) μ) ∧\n    (∀ i : Fin d, Integrable (fun ω => (w i • Z i ω) * (w i • Z i ω)) μ) ∧\n    ‖∑ i : Fin d, ∫ ω, Z i ω * Z i ω ∂μ‖ ≤ C ∧\n    ‖∑ i : Fin d, ∫ ω, (w i • Z i ω) * (w i • Z i ω) ∂μ‖ ≤ C\n",
+    "signature_sha256": "95e81a02e5302de9a42e3b60038ffad6195315ac2eca99a4e6abb39978609f7e",
+    "consumer_edge": "Use the actual uncentered second moments to prove integrability and genuine operator-norm bounds for the actual centered and cosine-weighted centered second moments on the identical experiment. PSD comparison alone is not this norm conclusion."
+  },
+  "binder_audit": [
+    {
+      "binder": "d q : Nat",
+      "class": "TYPING",
+      "meaning": "Natural physical dimension and query count, including q=0."
+    },
+    {
+      "binder": "hq : 2*q+1<d",
+      "class": "STANDING",
+      "meaning": "Exact source range; d>0 and all denominator facts must follow internally."
+    },
+    {
+      "binder": "all local lets",
+      "class": "DEFINITION",
+      "meaning": "Literal original experiment, closed cutoff, features, matrices, actual means, centering, weights and explicit bound; no proof/data certificate."
+    }
+  ],
+  "output_bundle_audit": {
+    "input_bundle": false,
+    "producer": {
+      "all_actual_Y_squared_integrable": "TARGET_CONCLUSION",
+      "uncentered_second_moment_PSD_domination": "TARGET_CONCLUSION"
+    },
+    "private_consumer": {
+      "both_actual_centered_squared_variables_integrable": "TARGET_CONCLUSION",
+      "both_actual_variance_operator_norm_bounds": "TARGET_CONCLUSION"
+    }
+  },
+  "EXCESS_public_binders": [],
+  "proof_components_forbidden_as_extra_binders": [
+    "Actual row Gaussian law, independence or measurability certificates",
+    "Yi/mean/Z integrability, Hermitian or PSD certificates and centered variance identity",
+    "Radial fourth moment, weighted frame/Gram identity or norm-comparison lemma",
+    "Supplied first-moment matrices, squared-moment bounds, scalar a bounds or variance estimates",
+    "Positive-query restriction, tau/kappa restrictions or arbitrary ambient-law adapter"
+  ],
+  "shared_floor_audit": {
+    "known_canonical_nodes": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceRowLaw.actual_source_row_marginal_law",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumRadialFourthMoment.actual_radial_fourth_moment_matrix",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumWeightedFrameBound.actual_weighted_cosine_coefficient_bound",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixMean.actual_source_truncated_matrix_means"
+    ],
+    "decision": "Reuse the compiled canonical source-row, radial-fourth and weighted-frame nodes; no second public canonical-row aggregate. Actual declarations/API applicability and generic variance/PSD norm infrastructure are searched only after seal and source-topology admission. If a missing generic lemma has multiple realistic consumers, name one shared cell before advancing that shared proof; no private route copy.",
+    "known_names_checked_from_existing_publication_metadata_without_new_proof_retrieval": true,
+    "actual_compiled_parent_edges": "Pending actual proof and kernel extraction, never inferred from imports."
+  },
+  "scope_boundary": "Same canonical original independent-column Gaussian experiment only; q=0 retained (C=6/d). No arbitrary ambient transfer, bounded-summand radius R*, matrix Bernstein/concentration, full Lemma4.4, either main lower bound or oracle/TV/precision/cap/cost result. Serialized integration, actual browser/site/globalgraphs and purification remain open.",
+  "actual_statement_formation": {
+    "receipt": ".astis/huanjian-resume-20261103/20261112T133317277564Z-source-matrix-variance-literal-Prop-formation.receipt.json",
+    "sha256": "a7125b84dd04357100aa571f00dc10dc85ef50bcf54decbb3c15351b09c59f9e",
+    "log_sha256": "4c3ba803bff6ae485e4a66ba6fb9237af98e695067a3c38346ba97d04538e264"
+  },
+  "actual_definition_meaning": {
+    "receipt": ".astis/huanjian-resume-20261103/20261112T133710785116Z-source-matrix-variance-complete-definition-meaning-v2.receipt.json",
+    "sha256": "34a5be42b697881f79598f9b83954abcc478e9d4d870023c4506f509259dfe3c",
+    "log_sha256": "ae2456e958755109ab3908f7a2baee94ed345331779c691f73aa4c141acdc3aa"
+  },
+  "actual_environment": {
+    "observed_utc": "2026-11-12T13:36:04.419374+00:00",
+    "HEAD": "94116ada2dad7de1d31ca9c67189ee734a72ed16",
+    "lean_version": "Lean (version 4.33.0, arm64-apple-darwin24.6.0, commit d8b18978322de05a8f3dba51ef03cf5461676c17, Release)",
+    "lean_binary_sha256": "1b370cfcbf44e80d1b004ab1b1ab9a4c73951f9f7c242140bcff9bc577576554",
+    "lean_toolchain_sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "manifest_sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "packages": [
+      {
+        "name": "mathlib",
+        "revision": "db584cd6d46c92f209a44c0f1c829460d327499d",
+        "porcelain_empty": true
+      },
+      {
+        "name": "plausible",
+        "revision": "b7eb3304aeae834b12dda98993a37f6a41f6f0bb",
+        "porcelain_empty": true
+      },
+      {
+        "name": "LeanSearchClient",
+        "revision": "5f4d51b81cbd3f6b32b156bfad9056621a040404",
+        "porcelain_empty": true
+      },
+      {
+        "name": "importGraph",
+        "revision": "16f02aa7642864af59f1ff0e384a015994db9118",
+        "porcelain_empty": true
+      },
+      {
+        "name": "proofwidgets",
+        "revision": "4be2e3d5087eeb272cf5a8853b8f9dd025ef5957",
+        "porcelain_empty": true
+      },
+      {
+        "name": "aesop",
+        "revision": "3448c0bcc5ce01b2d1546e483ec3620e32df3d0e",
+        "porcelain_empty": true
+      },
+      {
+        "name": "Qq",
+        "revision": "92c15be17b7caf78c2ad767ec40f89052d908d81",
+        "porcelain_empty": true
+      },
+      {
+        "name": "batteries",
+        "revision": "4488d40d070b9700d4d5a6aa342f0d40c31b2a2d",
+        "porcelain_empty": true
+      },
+      {
+        "name": "Cli",
+        "revision": "6130a47896ce867c6a4a55373441e59e565bad0f",
+        "porcelain_empty": true
+      }
+    ],
+    "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "scope": "Actual read-only environment check before new-target proof implementation. Prior canonical reuse API exposure is recorded separately.",
+    "formalizer_API_pristine": false
+  },
+  "actual_environment_receipt": {
+    "receipt": ".astis/huanjian-resume-20261103/20261112T133604214657Z-source-matrix-variance-exact-environment-before-seal.receipt.json",
+    "sha256": "1cc057864ad2a6d21b7754fb1da61b856955b0c0937732235aa9c939b81f17af",
+    "log_sha256": "a584c683d1ea31d874ca21d677c5842176de8ea08f8f3d1d49c193ee6c62ae21"
+  },
+  "process_memory_readback": {
+    "source": "research-wiki/process-memory.json",
+    "source_sha256": "4f5d50f127fd94baf6b11254d03dc908617080ddd0594806ab5b9d6e43860726",
+    "control_plane_math_authority": false,
+    "entries_read": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES",
+      "ASTIS-NK-GRADIENT-FLOW-ZERO-TIME",
+      "ASTIS-NK-GD-INVERSE-DOMAIN"
+    ],
+    "applicable_standing_or_negative_entry_ids": [],
+    "decision": "All current entries were read. No source-matrix-variance-specific standing/negative entry applies; actual measure roles remain explicit. No mathematical route is retired by process memory."
+  },
+  "preseal_exposure": {
+    "formalizer_API_pristine": false,
+    "known_context": [
+      "Prior R4 full radial-fourth matrix moment and R5 weighted-frame/old private canonical-row squared-moment aggregate code and proof APIs are known.",
+      "Prior R6 actual-row law, R7 independence and current R8 actual first-moment/sum code, proof APIs and kernel results are known.",
+      "Pinned C.2 source first moments, squared moments, centered identity and cosine weighting have already been read in the wider task.",
+      "Source/consumer selection distinguishes PSD domination from the actual variance operator norm; required positivity/integrability/Bochner and norm bridges must remain internal, not new target premises."
+    ],
+    "source_locator_correction": "Initial raw-reading assignment called the centered variance passage p15. Actual pinned source places Z definition in p13 and Ex113/114 plus centered/cos² variance comparisons in p14; p15 is Bernstein and remains outside this prospective packet.",
+    "new_target_library_API_retrieval_or_implementation_started": false,
+    "new_target_proof_files_exist": false,
+    "status": "Unsealed/unadmitted prospective literal formation only. No theorem proof or pristine chronology claimed.",
+    "definition_lookup_exposure": {
+      "successful_standard_prints": {
+        "receipt": ".astis/huanjian-resume-20261103/20261112T133710785116Z-source-matrix-variance-complete-definition-meaning-v2.receipt.json",
+        "sha256": "34a5be42b697881f79598f9b83954abcc478e9d4d870023c4506f509259dfe3c",
+        "log_sha256": "ae2456e958755109ab3908f7a2baee94ed345331779c691f73aa4c141acdc3aa"
+      },
+      "failed_definition_print": "20261112T133604214657Z-source-matrix-variance-definition-meaning (exit1 only unknown Matrix.mul; original retained)",
+      "literal_source_lookup": "Exact standard-definition location rg included one nonexistent guessed Defs path; actual Mul lines286-309 additionally exposed the adjacent mul_apply and mul_apply-prime one-line rfl theorem bodies. These are disclosed standard multiplication semantics, not a new-target proof attempt. No pristine API claim.",
+      "tool_chunks": [
+        "fd149c",
+        "ead58b",
+        "4d4add",
+        "1a1b11"
+      ]
+    },
+    "new_target_proof_implementation_attempts": 0
+  },
+  "formalizer_API_pristine": false,
+  "new_target_proof_implementation_attempts": 0,
+  "minimal_definition_context_sha256": "c8f86ad1db7cf3798073ff5bde1d859cd2f95dcd54dbe7f759fa4b2022c5383a",
+  "source_preparation_chronology": "Independent raw source freezes precede first exposure to this packet. No raw note is retroactively recertified as accepted type/graph/topology. Actual formal type/graph review starts after this exact seal."
+}
+

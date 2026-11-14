@@ -1,0 +1,785 @@
+FILE website/scripts/declaration_lessons.py
+"""Authored declaration-level mathematics, with an exhaustive coverage ledger.
+
+An exact Lean listing or a tactic glossary is not textbook-level exposition.
+The ledger deliberately keeps every not-yet-authored declaration visible.
+"""
+from __future__ import annotations
+
+import json
+import hashlib
+import re
+from html.parser import HTMLParser
+from functools import lru_cache
+from collections import Counter, defaultdict
+from pathlib import Path
+
+import astis_site as base
+import inline_lean
+import source_lineage
+
+ROOT = Path(__file__).resolve().parents[2]
+CONTENT = ROOT / 'website/content/declaration_lessons'
+
+
+@lru_cache(maxsize=1)
+def mathlib_pin() -> str:
+    manifest = json.loads((ROOT / 'lake-manifest.json').read_text(encoding='utf-8'))
+    return next(p['rev'] for p in manifest['packages'] if p['name'] == 'mathlib')
+
+
+def source_link(source: dict, page: str) -> str:
+    """Resolve reviewed repository anchors without leaking local paths.
+
+    Mathematics lives in metadata; exact Lean is always taken from the checkout.
+    Local documents are copied into the same generated site for unpublished work.
+    """
+    if source.get('url'):
+        if not source['url'].startswith('https://'):
+            raise ValueError('Exposition sources must use HTTPS or a repository path')
+        return source['url']
+    raw = source['path']
+    path = Path(raw)
+    if raw.startswith(('/', '\\')) or '\\' in raw or path.is_absolute() or '..' in path.parts or re.match(r'^[A-Za-z]:', raw):
+        raise ValueError(f'Nonportable exposition source: {raw}')
+    if raw.startswith('.lake/packages/mathlib/'):
+        path = raw.removeprefix('.lake/packages/mathlib/')
+        return f'https://github.com/leanprover-community/mathlib4/blob/{mathlib_pin()}/{path}' + (f'#L{source["line"]}' if source.get('line') else '')
+    return base.relative_prefix(page) + 'data/lesson-sources/' + path.as_posix() + '.html' + (f'#L{source["line"]}' if source.get('line') else '')
+
+
+def source_citation_anchor(source: dict, page: str) -> str:
+    """Keep a historical mathematical citation distinct from current implementation links."""
+    url = source_link(source, page)
+    git = base._ACTIVE_GIT or base.git_context()
+    root = git.web_root.rstrip("/")
+    historical = bool(root and url.startswith(root + '/blob/')
+                      and re.search(r'/blob/[0-9a-f]{40}/', url)
+                      and git.commit and f'/blob/{git.commit}/' not in url)
+    marker = ' data-source-kind="historical-citation"' if historical else ''
+    suffix = ' (historical source)' if historical else ''
+    return f'<a href="{base.esc(url)}"{marker}>{base.esc(source["label"])}</a>{suffix}'
+
+
+def source_citation(source: dict, page: str) -> str:
+    return f'<li>{source_citation_anchor(source, page)} — {base.esc(source["scope"])}</li>'
+
+
+def inline_text(value: str) -> str:
+    """Typeset prose relations without rewriting literal Lean or audited TeX."""
+    def prose(part: str) -> str:
+        spans = re.split(r'(\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]|\$\$[\s\S]*?\$\$|(?<!\\)\$[^\n$]+(?<!\\)\$)', part)
+        return base.esc(''.join(span if i % 2 else
+            span.replace('<=', '≤').replace('>=', '≥').replace('!=', '≠').replace('->', '→')
+            for i, span in enumerate(spans)))
+    return ''.join('<code>' + base.esc(part) + '</code>' if i % 2 else prose(part)
+                   for i, part in enumerate(re.split(r'`([^`]+)`', value)))
+
+
+def prose_list(values: list[object]) -> str:
+    """Natural-language hypotheses/boundaries, not raw code/API inventories."""
+    return ('<ul>' + ''.join('<li>' + (inline_text(value) if isinstance(value, str)
+                            else base.esc(value)) + '</li>' for value in values) + '</ul>') if values else ''
+
+
+def _canonical_prose(value: object) -> str:
+    """Independent presence check: ignore markup notation, not authored words."""
+    return ' '.join(str(value).replace('`', '').replace('<=', '≤').replace('>=', '≥')
+                    .replace('!=', '≠').replace('->', '→').split())
+
+
+def _authored_prose_text(text: str) -> str:
+    class ProseText(HTMLParser):
+        skip_tags = {'pre', 'script', 'style', 'textarea', 'noscript', 'svg'}
+
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.skip = 0
+            self.parts = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag in self.skip_tags:
+                self.skip += 1
+
+        def handle_endtag(self, tag):
+            if tag in self.skip_tags:
+                self.skip = max(0, self.skip - 1)
+
+        def handle_data(self, data):
+            if not self.skip:
+                self.parts.append(data)
+    parser = ProseText()
+    parser.feed(text)
+    return _canonical_prose(''.join(parser.parts))
+
+
+def export_sources(output: Path, units: list[dict]) -> None:
+    exported = set()
+    source_lines = {}
+    for unit in units:
+        for source in unit.get('sources', []):
+            source_link(source, 'lessons/index.html')  # validate even external anchors
+            raw = source.get('path', '')
+            if not raw:
+                continue
+            path = ROOT / raw
+            # Website-only CI has the repository but need not install Lean's
+            # dependencies. External anchors remain pinned to lake-manifest;
+            # this does not upgrade an absent Lean build to compiled status.
+            if raw.startswith('.lake/packages/mathlib/') and not path.is_file():
+                continue
+            if not path.is_file():
+                raise ValueError(f'Missing exposition source: {raw}')
+            if raw not in source_lines:
+                source_lines[raw] = path.read_text(encoding='utf-8').splitlines()
+            lines = source_lines[raw]
+            if source.get('line') and not 1 <= source['line'] <= len(lines):
+                raise ValueError(f'Exposition source line out of range: {source}')
+            if raw.startswith('.lake/packages/mathlib/') or raw in exported:
+                continue
+            exported.add(raw)
+            # The exact source excerpt remains readable without leaving the site.
+            rel = 'data/lesson-sources/' + raw
+            numbered = ''.join(f'<span id="L{i}">{base.esc(line)}</span>\n' for i, line in enumerate(lines, 1))
+            target = output / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            # Keep .lean/.md anchors as HTML companion documents, not MIME-dependent files.
+            text = base.page(raw, rel + '.html', '<h1>Exact source context</h1><pre>' + numbered + '</pre>')
+            target.with_suffix(target.suffix + '.html').write_text(source_lineage.canonical_shell(text, rel + '.html', output), encoding='utf-8')
+
+
+def load_units() -> list[dict]:
+    units = []
+    for path in sorted(CONTENT.glob('*.json')):
+        raw = json.loads(path.read_text(encoding='utf-8'))
+        units.extend(raw['units'] if isinstance(raw, dict) else raw)
+    names = set()
+    for unit in units:
+        name = unit['declaration']
+        if name in names:
+            raise ValueError(f'Duplicate authored lesson: {name}')
+        names.add(name)
+        for key in ('kind', 'title', 'statement', 'formula', 'assumptions', 'steps',
+                    'lean_statement', 'lean_proof', 'boundary'):
+            if not unit.get(key):
+                raise ValueError(f'{name}: missing authored {key}')
+        for step in unit['steps']:
+            if not all(step.get(k) for k in ('title', 'text', 'formula', 'lean')):
+                raise ValueError(f'{name}: incomplete mathematical proof step')
+    return units
+
+
+def lesson_path(name: str) -> str:
+    # Lean identifiers are case sensitive; slugify is not. In particular the
+    # DV interface type and its constructor have otherwise identical URLs.
+    suffix = hashlib.sha256(name.encode('utf-8')).hexdigest()[:12]
+    return f'lessons/{base.slugify(name)[:160]}-{suffix}.html'
+
+
+def validate_projection(projection: dict, known: dict) -> None:
+    """A structure accessor is not a separately authored theorem leaf."""
+    parent, field = projection['structure'], projection['field']
+    if parent not in known or known[parent].kind not in {'structure', 'class'}:
+        raise ValueError(f'Unknown projection structure: {parent}')
+    source = base.sanitize_lean(known[parent].source_text)
+    if not re.search(r'^\s+' + re.escape(field) + r'\s*(?:\([^\n]*\)\s*)?:', source, re.M):
+        raise ValueError(f'Unknown structure field: {parent}.{field}')
+    if not projection.get('role'):
+        raise ValueError(f'Missing projection explanation: {parent}.{field}')
+
+
+def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
+    name = unit['declaration']
+    declaration = inline_lean.declarations()[name]
+    # Literal Prop helpers contain the expanded theorem statement, not a proof.
+    statement_helpers = []
+    for helper in unit.get('helpers', []):
+        item = inline_lean.declarations()[helper]
+        signature, _ = inline_lean.split_statement(inline_lean.display_source(item.source_text))
+        if (item.kind == 'def' and item.short_name.endswith('_statement')
+                and re.search(r':\s*Prop\s*$', base.sanitize_lean(signature)) is not None):
+            statement_helpers.append(helper)
+    proof_helpers = tuple(n for n in unit.get('helpers', []) if n not in statement_helpers)
+    is_proof = declaration.kind in {'lemma', 'theorem', 'instance'}
+    proof_title = 'Mathematical proof' if is_proof else 'Construction and meaning'
+    progressive = unit.get('reading_layout') == 'progressive'
+    roadmap = ''.join(
+        f'<li><span>{i}</span><strong>{base.esc(s["title"])}</strong>'
+        f'<p>{inline_text(s["text"])}</p></li>'
+        for i, s in enumerate(unit['steps'], 1)
+    )
+    steps = ''.join(
+        (f'<details class="proof-reader-step reader-proof-disclosure"><summary>{i}. {base.esc(s["title"])}</summary><div class="reader-step-body">'
+         if progressive else f'<div class="proof-reader-step"><h4>{i}. {base.esc(s["title"])}</h4>')
+        + f'<p>{inline_text(s["text"])}</p><div class="proof-reader-equation">\\[{base.esc(s["formula"])}\\]</div>'
+        '<details><summary>Corresponding Lean step</summary>'
+        + (base.code_html(s['lean']) if '\n' in s['lean'] else f'<p>{inline_text(s["lean"])}</p>')
+        + (f'<p>{inline_text(s["detail"])}</p>' if s.get('detail') else '') + '</details></div>'
+        + ('</details>' if progressive else '')
+        for i, s in enumerate(unit['steps'], 1)
+    )
+    astis = ''.join(
+        f'<li><a href="{base.relative_prefix(page)}{base.declaration_path(inline_lean.declarations()[n])}"><code>{base.esc(n)}</code></a></li>'
+        for n in unit.get('astis_dependencies', [])
+    )
+    projections = ''.join(
+        f'<li><a href="{base.relative_prefix(page)}{base.declaration_path(inline_lean.declarations()[p["structure"]])}"><code>{base.esc(p["structure"] + "." + p["field"])}</code></a> — {base.esc(p["role"])}</li>'
+        for p in unit.get('astis_projection_dependencies', [])
+    )
+    external = base.list_html(unit.get('mathlib_dependencies', []), empty='No direct Mathlib call recorded; see the Samplinglib parents.')
+    sources = ''.join(source_citation(s, page) for s in unit.get('sources', []))
+    notation = ''.join(f'<dt>{inline_text(n["symbol"])}</dt><dd><p>{inline_text(n["text"])}</p><div class="proof-reader-equation">\\[{base.esc(n["formula"])}\\]</div></dd>' for n in unit.get('notation', []))
+    test = unit.get('tests', {})
+    examples = ''
+    for key, title in [('worked_example', 'Worked example'), ('null_fiber_example', 'Why the positive-fiber hypothesis matters')]:
+        example = test.get(key) if isinstance(test, dict) else None
+        if example:
+            examples += f'<h3>{title}</h3><p>{inline_text(example.get("definition", ""))}</p><div class="proof-reader-equation">\\[{base.esc(example["formula"])}\\]</div><p>{inline_text(example["explanation"])}</p>'
+    dep_notes = unit.get('dependency_notes', '')
+    if isinstance(dep_notes, list):
+        dep_notes = ' '.join(str(n) for n in dep_notes)
+    boundary = unit['boundary']
+    if isinstance(boundary, str):
+        boundary = [boundary]
+    return (
+        f'<article class="proof-reader{" reader-progressive" if progressive else ""}" data-authored-declaration="{base.esc(name)}">'
+        '<div class="eyebrow">Samplinglib mathematical lesson</div>'
+        f'<h1>{base.esc(unit["title"])}</h1>'
+        + ('' if progressive else f'<p><code>{base.esc(name)}</code> · {base.esc(declaration.kind)} · <a href="index.html">Teaching coverage</a></p>')
+        +
+        '<section class="reader-first-pass" aria-label="First reading">'
+        '<div class="reader-first-pass-label">Read this first</div>'
+        f'<h2>Mathematical statement</h2><p class="reader-claim">{inline_text(unit["statement"])}</p>'
+        f'<div class="proof-reader-equation reader-main-equation">\\[{base.esc(unit["formula"])}\\]</div>'
+        + inline_lean.disclosure(name, role='statement', explanation=unit['lean_statement'],
+                                 page=page, trim_following_docstring=True)
+        + ''.join(inline_lean.disclosure(helper, role='proof',
+                                        explanation='Complete literal proposition asserted by the theorem above.',
+                                        page=page, trim_following_docstring=True)
+                  for helper in statement_helpers)
+        + ('' if progressive else '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol>')
+        + (f'<p class="reader-scope-note">{inline_text(unit["reader_note"])}</p>' if unit.get('reader_note') else '')
+        + '</section>'
+        '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'
+        '<h3>All objects and hypotheses</h3>' + prose_list(unit['assumptions'])
+        + ('<h3>Notation and interpretation</h3><dl>' + notation + '</dl>' if notation else '')
+        + prose_list(unit.get('conventions', [])) + '</details>'
+        + f'<h2>{proof_title}</h2>'
+        + ('<p class="reader-expand-hint">Open a step to read its argument and formula.</p>' if progressive else '') + steps
+        + '<section class="lean-verification"><h2>Lean verification</h2>'
+        + ('' if progressive else '<p>The exact proof begins folded immediately after the mathematical argument; the statement is folded beside the claim above.</p>')
+        + inline_lean.disclosure(name, role='proof', explanation=unit['lean_proof'], page=page,
+                                 helpers=proof_helpers,
+                                 trim_following_docstring=True)
+        + '</section>'
+        + examples
+        + (('<details class="reader-ledger"><summary>Source correspondence and review</summary>'
+            + source_comparison + '</details>') if progressive and source_comparison else source_comparison)
+        + '<details class="reader-ledger boundary-ledger"><summary>Scope and omitted-condition boundaries</summary>'
+        + prose_list(boundary) + '</details>'
+        + '<details class="proof-reader-provenance reader-ledger"><summary>Sources, dependencies, and reuse</summary><h2>Source and reuse</h2><h3>Samplinglib parents called</h3><ul>' + astis
+        + '</ul>'
+        + ('<h3>Domain assumptions accessed</h3><p>These are fields of the linked structure, not additional independently authored theorem leaves.</p><ul>' + projections + '</ul>' if projections else '')
+        + '<h3>Mathlib API called (external library)</h3>' + external
+        + (f'<p>{inline_text(dep_notes)}</p>' if dep_notes else '')
+        + ''.join(f'<p><code>{base.esc(n["declaration"])}</code>: {base.esc(n["role"])}</p>' for n in unit.get('mathlib_dependency_notes', []))
+        + '<h3>Mathematical sources</h3><ul>' + sources
+        + '</ul>'
+        + (f'<p>{base.esc(unit["source_history_boundary"])}</p>' if unit.get('source_history_boundary') else '')
+        + '<p>Samplinglib prose is not a quotation or a source-equivalence certificate. '
+        'Definitions and aliases are explained as constructions, not counted as new mathematical proofs.</p></details>'
+        + '</article>'
+    )
+
+
+def coverage(data: dict, units: list[dict], data_lessons: dict | None = None) -> list[dict]:
+    from proof_readers import load_items
+    authored = {u['declaration']: lesson_path(u['declaration']) for u in units}
+    for reader in load_items():
+        authored.update({u['declaration']: f'proofs/{reader["id"]}.html' for u in reader['theorems']})
+    existing_notes = {d['declaration'] for d in data['teaching_declarations']}
+    data_lessons = data_lessons or {}
+    rows = []
+    for declaration in data['declarations']:
+        name = declaration['full_name']
+        if declaration['module'] == 'Tests' or declaration['module'].startswith('Tests.'):
+            continue
+        rows.append({
+            'declaration': name, 'kind': declaration['kind'], 'module': declaration['module'],
+            'lean_status': declaration['local_status'],
+            'exposition': 'authored' if name in authored else data_lessons[name]['exposition'] if name in data_lessons else 'existing-notes' if name in existing_notes else 'needed',
+            'page': authored.get(name, data_lessons.get(name, {}).get('page', declaration['page'])),
+        })
+    return rows
+
+
+def declaration_kind_matches(authored: str, lean: str) -> bool:
+    """Accept the prose spelling of `def`, never a proof-kind promotion."""
+    return {'definition': 'def'}.get(authored, authored) == lean
+
+
+def enrich_site(output: Path) -> None:
+    units = load_units()
+    export_sources(output, units)
+    known = inline_lean.declarations()
+    for unit in units:
+        for name in [unit['declaration'], *unit.get('astis_dependencies', []), *unit.get('helpers', [])]:
+            if name not in known:
+                raise ValueError(f'Unknown lesson dependency: {name}')
+        if not declaration_kind_matches(unit['kind'], known[unit['declaration']].kind):
+            raise ValueError(f'{unit["declaration"]}: Lean declaration kind drift')
+        for projection in unit.get('astis_projection_dependencies', []):
+            validate_projection(projection, known)
+        rel = lesson_path(unit['declaration'])
+        text = base.page(unit['title'], rel, render_unit(unit, rel), extra_head='<link rel="stylesheet" href="../assets/proof-readers.css">')
+        base.write_page(output, rel, source_lineage.canonical_shell(text, rel, output))
+        declaration = known[unit['declaration']]
+        module_page = output / f'modules/{base.slugify(declaration.module)}.html'
+        text = module_page.read_text(encoding='utf-8')
+        # The existing stable declaration anchor remains the identity of the node.
+        marker = f'<details class="declaration" id="{declaration.anchor}">'
+        start = text.index(marker)
+        end = text.index('</summary>', start) + len('</summary>')
+        jump = f'<p data-lesson-link="{base.esc(unit["declaration"])}"><a href="../{rel}">Read the complete mathematical statement and proof, with Lean below each</a></p>'
+        text = text[:end] + jump + text[end:]
+        module_page.write_text(text, encoding='utf-8')
+    # A module is also a continuous mathematical reading route, not just a
+    # collection of code anchors. Shared declarations retain their own identity.
+    by_module = defaultdict(list)
+    for unit in units:
+        by_module[known[unit['declaration']].module].append(unit)
+    for module, module_units in by_module.items():
+        module_units.sort(key=lambda u: known[u['declaration']].source_line)
+        rel = 'lessons/module-' + base.slugify(module) + '.html'
+        compact_module = len(module_units) == 1 and module_units[0].get('reading_layout') == 'progressive'
+        contents = '<ol>' + ''.join(f'<li><a href="#{known[u["declaration"]].anchor}">{base.esc(u["title"])}</a></li>' for u in module_units) + '</ol>'
+        body = f'<h1>{base.esc(module.rsplit(".", 1)[-1])}: mathematical reading route</h1><p>Read the statements and derivations in source order. Every result has its own optional Lean statement and proof. Source assumptions, library reuse and unproved boundaries are kept explicit.</p>' + contents
+        if compact_module:
+            body = ''
+        for unit in module_units:
+            card = render_unit(unit, rel)
+            if not compact_module:
+                card = re.sub(r'<(/?)h([1-4])>', lambda m: f'<{m[1]}h{int(m[2])+1}>', card)
+            body += f'<section id="{known[unit["declaration"]].anchor}">{card}</section>'
+        base.write_page(output, rel, source_lineage.canonical_shell(base.page(module, rel, body, extra_head='<link rel="stylesheet" href="../assets/proof-readers.css">'), rel, output))
+        module_page = output / f'modules/{base.slugify(module)}.html'
+        text = module_page.read_text(encoding='utf-8')
+        text = text.replace('</h1>', f'</h1><p><a href="../{rel}">Read the mathematical statements and proofs in order</a></p>', 1)
+        module_page.write_text(text, encoding='utf-8')
+    data = json.loads((output / 'data/site-data.json').read_text(encoding='utf-8'))
+    import metadata_lessons
+    rows = coverage(data, units, metadata_lessons.coverage_rows())
+    (output / 'data/declaration-exposition.json').write_text(json.dumps(rows, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    counts = Counter(r['exposition'] for r in rows)
+    table = ''.join(f'<tr data-search="{base.esc((r["declaration"] + " " + r["kind"] + " " + r["exposition"]).lower())}"><td><a href="../{base.esc(r["page"])}"><code>{base.esc(r["declaration"])}</code></a></td><td>{base.esc(r["kind"])}</td><td>{base.esc(r["exposition"])}</td></tr>' for r in rows)
+    body = f'<h1>Declaration-by-declaration textbook coverage</h1><p>{len(rows)} production declarations: {counts["authored"]} have newly authored complete teaching units; {counts["data-explained"]} are audited data constructions with field-by-field explanations, not mathematical proofs; {counts["data-unresolved"]} are unresolved data constructions; {counts["existing-notes"]} have existing notes not certified as complete textbook proofs; {counts["needed"]} still need a complete exposition. This is documentation coverage, not Lean completion. The requested full-library teaching expansion is unfinished.</p><p>Source records and definitions require explanations of their meaning, not fictitious proofs. A compiled proposition definition is not a proof of that proposition. <a href="../data-readers/index.html">Read the separate data-construction audit.</a></p><label>Find a declaration <input data-table-search="exposition-table" placeholder="Name or module"></label><table id="exposition-table"><thead><tr><th>Declaration</th><th>Kind</th><th>Teaching coverage</th></tr></thead><tbody>{table}</tbody></table>'
+    rel = 'lessons/index.html'
+    base.write_page(output, rel, source_lineage.canonical_shell(base.page('Textbook exposition coverage', rel, body), rel, output))
+    for rel in ('proofs/index.html', 'progress/index.html'):
+        path = output / rel
+        text = path.read_text(encoding='utf-8')
+        path.write_text(text.replace('</main>', '<p><a href="../lessons/index.html">Complete declaration-by-declaration teaching coverage</a></p></main>', 1), encoding='utf-8')
+
+
+def validate_site(output: Path, *, require_complete: bool = False) -> list[str]:
+    errors = []
+    units = load_units()
+    data = json.loads((output / 'data/site-data.json').read_text(encoding='utf-8'))
+    import metadata_lessons
+    expected = coverage(data, units, metadata_lessons.coverage_rows())
+    actual = json.loads((output / 'data/declaration-exposition.json').read_text(encoding='utf-8'))
+    if actual != expected:
+        errors.append('Declaration exposition coverage drift')
+    if require_complete and any(r['exposition'] not in {'authored', 'data-explained'} for r in expected):
+        errors.append('Full-library textbook exposition is not complete')
+    for unit in units:
+        path = output / lesson_path(unit['declaration'])
+        if not path.is_file():
+            errors.append(f'{unit["declaration"]}: missing authored page; rebuild the site')
+            continue
+        text = path.read_text(encoding='utf-8')
+        prose = _authored_prose_text(text)
+        for value in (unit['statement'], *unit['assumptions']):
+            if not _canonical_prose(value) or _canonical_prose(value) not in prose:
+                errors.append(f'{unit["declaration"]}: missing authored mathematics')
+        for value in (unit['formula'], *[s['formula'] for s in unit['steps']]):
+            if not value or base.esc(value) not in text:
+                errors.append(f'{unit["declaration"]}: missing authored mathematics')
+        order = [text.find('inline-lean-statement'), text.find('inline-lean-proof')]
+        if min(order) < 0 or order != sorted(order):
+            errors.append(f'{unit["declaration"]}: missing adjacent Lean statement/proof')
+        if re.search(r'<details\b[^>]*\bopen(?:\s|>)', text):
+            errors.append(f'{unit["declaration"]}: Lean must start folded')
+    return errors
+
+FILE website/scripts/publication_reader.py
+"""Project publication correspondences into reader pages; no authored statuses."""
+from __future__ import annotations
+
+import json
+import re
+from html import escape
+from pathlib import Path
+
+import astis_publication as publication
+import astis_site
+import declaration_lessons
+import source_lineage
+import samplewiki_navigation
+
+SOURCE_EDGE = 'source correspondence; not a Lean dependency'
+REFERENCE_EDGE = 'source reference (scanner)'
+
+
+def status(library: str, chapter: str | None = None) -> str:
+    p = publication.chapter_progress(library, chapter)
+    return (f'<span class="status status-{"orange" if p["status"] != "scaffold" else "gray"}" '
+            f'data-publication-status="{p["status"]}">{escape(p["label"])}</span>')
+
+
+
+def graph_chapter_path(chapter_path: str) -> str:
+    """Keep the reader at its section while attaching to the chapter graph node.
+
+    The textbook graph has one node per chapter, not one per HTML section.
+    Peer-library and companion paths retain their existing exact identities.
+    """
+    section = re.fullmatch(r'textbook/chapter-(\d{2})/section-[^/]+\.html', chapter_path)
+    return f'textbook/chapter-{section.group(1)}.html' if section else chapter_path
+
+
+def chapter_path_progress(chapter_path: str) -> dict:
+    """Aggregate publication progress for every source item rendered on one page.
+
+    A companion page may cover several source sections.  Its graph badge must not
+    depend on which JSON item happened to be loaded last.
+    """
+    progress = [publication.chapter_progress(item['library'], item['chapter'])
+                for item in publication.load()
+                if graph_chapter_path(item['chapter_path']) == graph_chapter_path(chapter_path)]
+    proved = sorted({name for item in progress for name in item['proof_declarations']})
+    prerequisites = sorted({name for item in progress for name in item['prerequisites']})
+    return {
+        'status': 'partial' if proved else 'prerequisite-ready' if prerequisites else 'scaffold',
+        'label': ('Partially formalized' if proved else
+                  'Prerequisites available' if prerequisites else 'scaffold'),
+        'proof_declarations': proved,
+        'prerequisites': prerequisites,
+        'source_complete': False,
+    }
+
+
+def semantic_details(audit: dict) -> str:
+    gaps = ''.join(f'<li><strong>{escape(str(d.get("slot", "")))}</strong>: '
+                   f'{escape(str(d.get("description", "")))} — {escape(str(d.get("evidence", "")))}</li>'
+                   for d in audit.get('deltas', []))
+    repairs = ''.join('<article><h4>Proposed source repair — not the original theorem</h4>'
+                      f'<p>{escape(r["reconstructed_statement"])}</p><p>{escape(r["proposed_change"])}</p>'
+                      f'<p>Classification: {escape(r["necessity"])} · Status: {escape(r["status"])}</p>'
+                      f'<p>{escape(r["justification"])}</p><p>Minimality: {escape(r["minimality_evidence"])}</p>'
+                      f'<p>Evidence: {escape(r["reference_or_counterexample"])}</p></article>'
+                      for r in audit.get('repairs', []))
+    return ('<h4>Detected semantic differences</h4><ul>' + gaps + '</ul>' if gaps else '') + repairs
+
+
+def source_card(item: dict, page: str) -> str:
+    data = publication.inputs()
+    source = item['source']
+    progressive = all(data['lessons'][b['declaration']].get('reading_layout') == 'progressive'
+                      for b in item['bindings'])
+    formulae = ''.join(f'<h3>{escape(f["label"])}</h3><div class="proof-reader-equation">'
+                       f'\\[{escape(f["tex"])}\\]</div>' for f in item['formulae'])
+    obligations = []
+    for o in item['obligations']:
+        verified = [b for b in item['bindings']
+                    if o['id'] in b.get('supports', [])
+                    and publication.verified_binding(b, data)]
+        proof_supporters = [b for b in verified if b['role'] == 'proof-edge']
+        prerequisite_supporters = [b for b in verified if b['role'] == 'prerequisite']
+        if proof_supporters:
+            label, color = 'Formalized proof edge; source adapter/review separate', 'orange'
+        elif prerequisite_supporters:
+            label, color = 'Independently verified prerequisite', 'green'
+        else:
+            label, color = 'TODO — not closed by these contributions', 'red'
+        obligations.append(f'<li><span class="status status-{color}">{label}</span> '
+                           f'{escape(o["label"])}</li>')
+    lessons = []
+    for b in item['bindings']:
+        name = b['declaration']
+        audit = data['audits'].get(b.get('audit_id'), {})
+        debt = b.get('legacy_audit_debt', {})
+        history = ('<p><strong>Historical audit record: legacy_audit_debt.</strong> '
+                   + escape(debt.get('reason', ''))
+                   + ' Any current review below applies to the current version; it does not certify a historical worker run.</p>') if debt else ''
+        rows = ''.join('<tr>' + ''.join(f'<td>{escape(r[k])}</td>' for k in ('source', 'lean', 'classification', 'reason')) + '</tr>'
+                       for r in b['assumption_deltas'])
+        comparison = (f'<section data-source-comparison="{escape(name)}">'
+                           '<h3>Source assumptions versus formal assumptions</h3>'
+                           '<div class="table-scroll"><table><thead><tr><th>Source</th><th>Actual Lean</th>'
+                           '<th>Difference kind</th><th>Why it matters</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+                           f'<p>{escape(b["boundary"])}</p>'
+                           + history
+                           + '<p><strong>Encoder–denoiser:</strong> ' + escape(audit.get('state', 'pending historical audit'))
+                           + ' · ' + escape(audit.get('verdict', 'No source-fidelity verdict. Local compilation is not source assimilation.')) + '</p>'
+                           + semantic_details(audit)
+                           + '<p>A generalization is not a source correction. Proposed missing conditions require separate independent repair review. '
+                           'No proposed repair silently changes the original theorem.</p></section>')
+        lesson = data['lessons'][name]
+        rendered = declaration_lessons.render_unit(lesson, page, source_comparison=comparison)
+        rendered = rendered.replace('<h1>', '<h2>').replace('</h1>', '</h2>')
+        rendered = rendered.replace('href="index.html">Teaching coverage',
+                                    f'href="{astis_site.relative_prefix(page)}lessons/index.html">Teaching coverage')
+        lessons.append(rendered)
+    return (f'<section id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}">'
+            f'<h2>{escape(item["title"])}</h2><p>{escape(source.get("attribution", ""))}</p>'
+            '<p>' + declaration_lessons.source_citation_anchor(
+                {'url': source['url'], 'label': source['edition'] + ' · ' + source['anchor']}, page)
+            + f' · {escape(source["wording_status"])}</p>'
+            + ('<details class="reader-ledger"><summary>Complete source statement and conditions</summary>'
+               if progressive else '<h3>Complete source statement (Samplinglib restatement)</h3>')
+            + f'<p>{escape(item["statement"])}</p>' + astis_site.list_html(item['assumptions']) + formulae
+            + ('</details>' if progressive else '')
+            + '<h2>Read the formalized proofs</h2><p>Each statement and proof below has its own closed Lean disclosure. '
+            'Samplinglib parents, Mathlib calls and external mathematical sources are distinguished in each proof.</p>'
+            + ''.join(lessons)
+            + '<h3>Which proof obligations and prerequisites are covered?</h3><ul>'
+            + ''.join(obligations) + '</ul></section>')
+
+
+def source_proof_path(item: dict) -> str:
+    return 'proofs/source-' + astis_site.slugify(item['id']) + '.html'
+
+
+def companion_publication_block(items: list[dict], page: str) -> str:
+    """One compact index; exact statements/proofs remain available on demand."""
+    data = publication.inputs()
+    names = {b['declaration'] for i in items for b in i['bindings']}
+    reviewed = {b['declaration'] for i in items for b in i['bindings']
+                if publication.verified_binding(b, data)}
+    entries = []
+    for item in items:
+        target = astis_site.relative_prefix(page) + source_proof_path(item)
+        units = ''.join(f'<li data-proof-declaration="{escape(b["declaration"])}">'
+                        + escape(data['lessons'][b['declaration']]['title']) + '</li>'
+                        for b in item['bindings'])
+        entries.append(f'<details class="paper-verified-unit" id="{escape(item["id"])}" data-publication-item="{escape(item["id"])}"><summary>'
+                       + escape(item['title']) + '</summary><ul>' + units + '</ul>'
+                       + f'<p><a href="{escape(target)}">Read full statement and proof →</a></p>'
+                       + '<p>Source assumptions, verification evidence and optional Lean are beside the proof on that page.</p></details>')
+    return ('<section id="paper-lean-progress" class="paper-checked-work"><h2>3. What has been verified?</h2>'
+            f'<p>{len(names)} source-mapped declarations; {len(reviewed)} independently reviewed. '
+            'These are building blocks, not completed paper results.</p>'
+            '<details class="paper-verified-index"><summary>Browse statements and their mathematical proofs</summary>'
+            + ''.join(entries) + '</details></section>')
+
+
+def enrich_site(output: Path) -> None:
+    errors = publication.validate()
+    if errors:
+        raise ValueError('\n'.join(errors))
+    research_model = samplewiki_navigation.load_model()
+    research_titles = {samplewiki_navigation.PAPER_BASE + row['slug'] + '.html':
+                       row.get('reader_label', row['title'])
+                       for row in [*research_model['cases'], research_model['composition']]}
+    groups = {}
+    for item in publication.load():
+        groups.setdefault(item['chapter_path'], []).append(item)
+    for rel, items in groups.items():
+        path = output / rel
+        text = path.read_text(encoding='utf-8')
+        # A common projection hook covers peer shelves without asking authors
+        # to copy state into that library's generator or generated HTML.
+        marker = status(items[0]['library'], items[0]['chapter'])
+        text = re.sub(r'(<div class="tag-row">)<span class="status[^>]*>.*?</span>',
+                      lambda m: m[1] + marker, text, count=1)
+        # Explicit book order takes precedence over metadata fragment filenames.
+        # Unordered legacy items retain their existing relative order.
+        ordered = sorted(items, key=lambda i: i.get('source_order', float('inf')))
+        if rel.startswith('example-cases/samplewiki/companions/'):
+            for item in ordered:
+                focused = source_proof_path(item)
+                proof = source_card(item, focused)
+                proof = proof.replace(f'<h2>{escape(item["title"])}</h2>', '', 1)
+                breadcrumb = ('<nav class="reader-breadcrumb"><a href="../example-cases/samplewiki.html">SampleWiki</a> / '
+                              f'<a href="{astis_site.relative_prefix(focused)}{rel}">{escape(research_titles.get(rel, "Research result"))}</a></nav>')
+                body = breadcrumb + f'<h1>{escape(item["title"])}</h1>' + proof
+                rendered = astis_site.page(item['title'], focused, body, active='SampleWiki',
+                    extra_head='<link rel="stylesheet" href="../assets/proof-readers.css">')
+                astis_site.write_page(output, focused, source_lineage.canonical_shell(rendered, focused, output))
+            block = companion_publication_block(ordered, rel)
+            text, replaced = re.subn(
+                r'<section id="paper-lean-progress" data-paper-publications="pending">.*?</section>',
+                lambda _: block, text, count=1, flags=re.S)
+            if not replaced:
+                text = text.replace('</main>', block + '</main>', 1)
+        else:
+            block = ''.join(source_card(i, rel) for i in ordered)
+            text = text.replace('</main>', block + '</main>', 1)
+        path.write_text(text, encoding='utf-8', newline='\n')
+        index = path.parent / 'index.html'
+        if index.exists():
+            shelf = index.read_text(encoding='utf-8')
+            def card(match):
+                value = match[0]
+                if f'href="{path.name}"' in value:
+                    value = re.sub(r'<span class="status[^>]*>.*?</span>', lambda _: marker, value, count=1)
+                return value
+            shelf = re.sub(r'<article class="library-chapter-card".*?</article>', card, shelf, flags=re.S)
+            index.write_text(shelf, encoding='utf-8', newline='\n')
+    projection = {i['id']: {'chapter_path': i['chapter_path'],
+                            **publication.chapter_progress(i['library'], i['chapter'])}
+                  for i in publication.load()}
+    (output / 'data/publication-progress.json').write_text(json.dumps(projection, indent=2), encoding='utf-8')
+
+
+def project_graph(builder) -> None:
+    """Project source containers and missing mapped nodes; never upgrade proof badges."""
+    data = publication.inputs()
+    for item in publication.load():
+        for binding in item['bindings']:
+            decl = data['declarations'][binding['declaration']]
+            ident = 'decl:' + decl.full_name
+            if ident not in builder.nodes:
+                # Mapping alone cannot confer a compiled badge or Registry count.
+                builder.add(ident, 'declaration', decl.full_name, status='partial',
+                            subtitle='Source-present publication; compiled badge not inferred',
+                            url=astis_site.declaration_path(decl))
+            # Open the authored mathematics, with adjacent exact Lean and source
+            # links. The existing node identity and evidence status stay intact.
+            if decl.full_name in data.get('lessons', {}):
+                builder.nodes[ident]['url'] = declaration_lessons.lesson_path(decl.full_name)
+            builder.edge('module:' + decl.module, ident, 'declares')
+    by_path = {graph_chapter_path(i['chapter_path']): chapter_path_progress(i['chapter_path'])
+               for i in publication.load()}
+    by_path.update({str(Path(i['chapter_path']).parent / 'index.html').replace('\\', '/'):
+                   publication.chapter_progress(i['library']) for i in publication.load()})
+    for node in builder.nodes.values():
+        p = by_path.get(node.get('url'))
+        if p and node.get('kind') in {'library', 'library-chapter', 'chapter', 'frontier-case'}:
+            node['status'] = 'partial' if p['status'] == 'partial' else 'planned'
+            node['subtitle'] = p['label'] + ' · source fidelity and chapter closure separate'
+            node['search'] += ' ' + node['subtitle'].lower()
+            for item in publication.load():
+                if graph_chapter_path(item['chapter_path']) == node.get('url'):
+                    node.setdefault('details', []).append({'label': 'Mapped source',
+                        'value': item['title'] + ' · ' + item['source']['anchor']
+                                 + ' · ' + item['chapter_path']})
+                    for b in item['bindings']:
+                        node['details'].append({'label': 'Local component / boundary',
+                            'value': b['declaration'] + ' · ' + b['boundary']})
+                        # Correspondence overlay, not an implication extracted from Lean.
+                        builder.edge('decl:' + b['declaration'], node['id'], SOURCE_EDGE)
+
+
+def graph_input_digest() -> str:
+    """Cheap rebuild freshness, independent of semantic-review admission."""
+    data = publication.inputs()
+    return publication.digest({'lean': astis_site.source_digest(), 'items': publication.load(),
+        'cells': {b['cell']: data['cells'].get(b['cell']) for i in publication.load() for b in i['bindings']}})
+
+
+def validate_graph(graph: dict, site: dict, items: list[dict] | None = None) -> list[str]:
+    """Verify generated contribution coverage, not mathematical completeness.
+
+    Expected facts are read from the existing site inventory/publication inputs;
+    no separate dependency or status manifest is authored for this check.
+    """
+    items = publication.load() if items is None else items
+    errors = []
+    if graph.get('publication_inputs_sha256') != graph_input_digest():
+        errors.append('Generated contribution graph is stale; rebuild the site')
+    nodes = {n['id']: n for n in graph.get('nodes', [])}
+    if len(nodes) != len(graph.get('nodes', [])):
+        errors.append('Graph has duplicate node identities')
+    edges = {(e['source'], e['target'], e['relation']) for e in graph.get('edges', [])}
+    if len(edges) != len(graph.get('edges', [])):
+        errors.append('Graph has duplicate edges')
+    if any(a not in nodes or b not in nodes for a, b, _ in edges):
+        errors.append('Graph has dangling edges')
+    declarations = {d['full_name']: d for d in site.get('declarations', [])}
+    registry = {d['local_decl']: d for d in site.get('registry_declarations', [])}
+    modules = {m['name']: m for m in site.get('modules', [])}
+    targets = {b['declaration'] for i in items for b in i['bindings']}
+
+    def require_edge(a, b, relation):
+        if (a, b, relation) not in edges:
+            errors.append(f'Graph contribution missing {relation}: {a} → {b}')
+
+    for name in sorted(targets):
+        decl, ident = declarations.get(name), 'decl:' + name
+        if not decl or nodes.get(ident, {}).get('kind') != 'declaration':
+            errors.append(f'Graph contribution missing declaration: {name}')
+            continue
+        if decl.get('has_placeholder'):
+            errors.append(f'Graph contribution contains placeholder: {name}')
+        if not nodes[ident].get('url'):
+            errors.append(f'Graph contribution missing reader link: {name}')
+        module_id = 'module:' + decl['module']
+        if nodes.get(module_id, {}).get('kind') != 'module':
+            errors.append(f'Graph contribution missing owning module: {name}')
+        require_edge(module_id, ident, 'declares')
+        for imported in modules.get(decl['module'], {}).get('imports', []):
+            if imported in modules:
+                require_edge('module:' + imported, module_id, 'imports')
+        if nodes[ident].get('status') == 'compiled' and not (
+            decl.get('local_status') == 'Compiled'
+            or registry.get(name, {}).get('status') == 'formalizedLocal'
+        ):
+            errors.append(f'Graph contribution has unsupported compiled badge: {name}')
+    # Check both parents and actual scanned consumers, including edges to a
+    # mapped contribution from an otherwise unmapped Registry declaration.
+    for consumer, record in registry.items():
+        for parent in record.get('dependencies', []):
+            if consumer in targets or parent in targets:
+                require_edge('decl:' + parent, 'decl:' + consumer, REFERENCE_EDGE)
+                if ('decl:' + parent, 'decl:' + consumer, 'depends-on') in edges:
+                    errors.append(f'Graph promotes a name scan to a formal dependency: {consumer}')
+    for item in items:
+        chapters = [n for n in nodes.values() if n.get('url') == graph_chapter_path(item['chapter_path'])
+                    and n.get('kind') in {'chapter', 'library-chapter', 'frontier-case'}]
+        if len(chapters) != 1:
+            errors.append(f'Graph contribution needs one source chapter: {item["id"]}')
+            continue
+        expected = chapter_path_progress(item['chapter_path'])
+        if chapters[0].get('status') != ('partial' if expected['status'] == 'partial' else 'planned'):
+            errors.append(f'Graph chapter progress drift: {item["id"]}')
+        for binding in item['bindings']:
+            require_edge('decl:' + binding['declaration'], chapters[0]['id'], SOURCE_EDGE)
+    return errors
+
+
+def validate_site(output: Path) -> list[str]:
+    errors = publication.validate()
+    graph_path, site_path = output / 'data/underlying-lean-graph.json', output / 'data/site-data.json'
+    if not graph_path.exists() or not site_path.exists():
+        errors.append('Missing generated contribution graph/inventory; rebuild the site')
+    else:
+        errors.extend(validate_graph(json.loads(graph_path.read_text(encoding='utf-8')),
+                                     json.loads(site_path.read_text(encoding='utf-8'))))
+    for item in publication.load():
+        path = output / item['chapter_path']
+        if not path.exists():
+            errors.append(f'Missing publication chapter {item["chapter_path"]}')
+            continue
+        text = path.read_text(encoding='utf-8')
+        if item['chapter_path'].startswith('example-cases/samplewiki/companions/'):
+            focused = source_proof_path(item)
+            if focused not in text:
+                errors.append(f'{path.name}: missing focused source proof link {focused}')
+            target = output / focused
+            if not target.exists():
+                errors.append(f'Missing complete source/proof reader {focused}')
+                continue
+            # Moving a proof out of the index may never drop its source ledger,
+            # exact authored mathematics, audit or adjacent Lean.
+            text = target.read_text(encoding='utf-8')
+        for marker in (f'data-publication-item="{item["id"]}"', 'Encoder–denoiser:',
+                       'Source assumptions versus formal assumptions'):
+            if marker not in text:
+                errors.append(f'{path.name}: missing {marker}')
+        for b in item['bindings']:
+            if f'data-authored-declaration="{b["declaration"]}"' not in text:
+                errors.append(f'{path.name}: missing adjacent authored proof {b["declaration"]}')
+    return errors
+

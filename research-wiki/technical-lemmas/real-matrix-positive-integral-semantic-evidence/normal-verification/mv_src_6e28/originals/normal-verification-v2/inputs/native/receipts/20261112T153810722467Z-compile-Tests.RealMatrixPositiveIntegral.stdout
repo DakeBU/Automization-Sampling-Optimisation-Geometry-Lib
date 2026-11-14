@@ -1,0 +1,22 @@
+AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef.{u_1, u_2} {n : Type u_1}
+  {Ω : Type u_2} [Fintype n] [DecidableEq n] [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
+  [MeasureTheory.IsProbabilityMeasure μ] (f : Ω → Matrix n n ℝ) (hf : MeasureTheory.Integrable f μ)
+  (hpos : ∀ᵐ (ω : Ω) ∂μ, (f ω).PosSemidef) : (∫ (ω : Ω), f ω ∂μ).PosSemidef
+AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixVariance.actual_source_truncated_matrix_second_moments
+  {d q : ℕ} (hq : 2 * q + 1 < d) :
+  let D := EuclideanSpace ℝ (Fin d);
+  let E := EuclideanSpace ℝ (Fin (q + 1));
+  let Ω := Fin (q + 1) → D;
+  have μ := MeasureTheory.Measure.pi fun x => ProbabilityTheory.stdGaussian D;
+  have r := ↑(q + 1);
+  have L := 2 * r + 3 * Real.log (1000 * ↑d);
+  have θ := fun i => (↑↑i + 1 - 1 / 2) * Real.pi / ↑d;
+  have t := fun i k => if ↑k = 0 then 1 else √2 * Real.cos (↑↑k * θ i);
+  have row := fun i ω => WithLp.toLp 2 fun b => (ω b).ofLp i;
+  have Y := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (↑d)⁻¹ • (Matrix.vecMulVec (row i ω).ofLp (row i ω).ofLp).kronecker (Matrix.vecMulVec (t i) (t i))
+    else 0;
+  have C := 2 * r * (r + 2) / ↑d;
+  (∀ (i : Fin d), MeasureTheory.Integrable (fun ω => Y i ω * Y i ω) μ) ∧
+    (C • 1 - ∑ i, ∫ (ω : Ω), Y i ω * Y i ω ∂μ).PosSemidef

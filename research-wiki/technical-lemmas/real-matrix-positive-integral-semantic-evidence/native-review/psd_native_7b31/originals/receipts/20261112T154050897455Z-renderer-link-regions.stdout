@@ -1,0 +1,374 @@
+FILE tools/astis_site.py:900
+def source_commit_link_error(
+    url: str,
+    commit: str,
+    web_root: str,
+    *,
+    require_current_local: bool = True,
+    historical_citation: bool = False,
+) -> str | None:
+    """Validate immutable blob links while distinguishing source from provenance.
+
+    Exact generated declaration-source links must name this checkout. Historical
+    provenance/review links may intentionally name an older immutable commit in
+    the same repository, but they must still use a full 40-hex SHA.
+    """
+    root = web_root.rstrip("/") or "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib"
+    if url.startswith(root + "/blob/"):
+        match = re.search(r"/blob/([0-9a-f]{40})/", url)
+        if not match:
+            return f"local repository blob link is not pinned to an immutable commit: {url}"
+        if require_current_local and not historical_citation and commit and match.group(1) != commit:
+            return f"source link is not pinned to the generated commit: {url}"
+    elif not re.search(r"/blob/[0-9a-f]{40}/", url):
+        return f"external source link is not pinned to an immutable commit: {url}"
+    return None
+
+
+def source_href(
+    declaration: SourceDeclaration,
+    *,
+    from_path: str,
+) -> tuple[str, str]:
+    git = _ACTIVE_GIT or git_context()
+    if (
+        git.web_root
+        and git.commit
+        and git.commit_published
+        and git.public_source_links
+        and declaration.source_file not in git.dirty_files
+    ):
+        return (
+            f"{git.web_root}/blob/{git.commit}/{declaration.source_file}#L{declaration.source_line}",
+            f"published source at {git.commit[:12]}",
+        )
+    prefix = relative_prefix(from_path)
+    return (
+        f"{prefix}modules/{slugify(declaration.module)}.html#complete-module-source",
+        "local preview source",
+    )
+
+
+def relative_prefix(rel_path: str) -> str:
+
+FILE tools/astis_site.py:2620
+def render_source_module(
+    module: SourceModule,
+    imported_by: list[str],
+) -> str:
+    gate = _ACTIVE_GATE or load_gate_evidence()
+    complete_source = (ROOT / module.source_file).read_text(encoding="utf-8")
+    imports = [
+        f'<a href="{slugify(name)}.html"><code>{esc(name)}</code></a>'
+        if any(candidate.name == name for candidate in _ALL_MODULES)
+        else f'<code>{esc(name)}</code> <span class="muted">external</span>'
+        for name in module.imports
+    ]
+    consumers = [
+        f'<a href="{slugify(name)}.html"><code>{esc(name)}</code></a>'
+        for name in imported_by
+    ]
+    declaration_blocks = []
+    for declaration in module.declarations:
+        excerpt, clipped = compact_source(declaration.source_text)
+        local_status = local_declaration_status(declaration, gate)
+        source_url, source_label = source_href(
+            declaration,
+            from_path=f"modules/{slugify(module.name)}.html",
+        )
+        detail_link = ""
+        target = declaration_path(declaration)
+        own_anchor = f"modules/{slugify(module.name)}.html#{declaration.anchor}"
+        if target != own_anchor:
+            detail_link = f'<a href="../{esc(target)}">Open detailed card</a>'
+        declaration_blocks.append(
+            f"""<details class="declaration" id="{esc(declaration.anchor)}">
+  <summary><span class="kind">{esc(declaration.kind)}</span> <code>{esc(declaration.full_name)}</code> {route_badge(local_status)} {route_badge(declaration.route_status)}</summary>
+  <div class="declaration-content">
+    {f'<p class="docstring">{esc(declaration.docstring)}</p>' if declaration.docstring else '<p class="muted">No declaration docstring.</p>'}
+    {code_html(excerpt)}
+    <p class="source-links"><a href="{esc(source_url)}">{esc(module.source_file)}:{declaration.source_line}</a><span>{esc(source_label)}</span>{detail_link}</p>
+    {f'<p class="muted">Excerpt truncated; the exact source link is authoritative.</p>' if clipped else ''}
+  </div>
+</details>"""
+        )
+    body = f"""
+<section class="page-hero compact"><div class="eyebrow">{esc(module.role)} module</div>
+<h1><code>{esc(module.name)}</code></h1><p class="lede">{len(module.declarations)} named declarations scanned from <code>{esc(module.source_file)}</code>.</p></section>
+<section class="module-meta">
+  <div><dt>Imports</dt><dd class="decl-links">{''.join(imports) if imports else 'None'}</dd></div>
+  <div><dt>Imported by</dt><dd class="decl-links">{''.join(consumers) if consumers else 'No local reverse import.'}</dd></div>
+  <div><dt>Placeholder scan</dt><dd>{sum(item.has_placeholder for item in module.declarations)} declaration(s) flagged</dd></div>
+  <div><dt>Gate status</dt><dd>{route_badge("Compiled" if gate.passed else "Partial")}</dd></div>
+</section>
+<section><h2>Declarations</h2><div class="declaration-list">{''.join(declaration_blocks) if declaration_blocks else '<p class="muted">This aggregator contains no named declarations.</p>'}</div></section>
+<section id="complete-module-source"><h2>Complete Lean source</h2>
+<details data-lean-code-panel><summary><code>{esc(module.source_file)}</code> — full module with imports and context</summary>
+{lean_source_actions(module.source_file, page=f"modules/{slugify(module.name)}.html", copy_label="Copy complete module")}
+{code_html(complete_source)}
+</details></section>
+"""
+    return page(module.name, f"modules/{slugify(module.name)}.html", body, active="Modules")
+
+
+def render_teaching_declaration(
+    declaration: SourceDeclaration,
+
+FILE website/scripts/source_lineage.py:1
+#!/usr/bin/env python3
+"""Final public source-lineage overlay for Samplinglib.
+
+This layer makes mathematical provenance explicit:
+- Chewi's book is the primary sampling source;
+- supp.pdf is an official Chapter 2 source layer;
+- background textbooks justify omitted standard details without replacing Chewi;
+- Chewi's arXiv Lectures on Optimization are the public Optimisation target;
+- Beck/Bubeck/Nesterov remain attributed background/cross-check sources.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+from html import escape
+from pathlib import Path
+from typing import Any
+
+import astis_site
+import formalization_progress
+import library_shelves
+
+
+ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_OUTPUT = ROOT / "_site"
+DATA_PATH = ROOT / "website" / "content" / "source_lineage.json"
+SOURCE_CSS = ROOT / "website" / "static" / "source-lineage.css"
+STYLE_NAME = "source-lineage.css"
+
+TEXTBOOK_INDEX = "textbook/index.html"
+CHEWI_CHAPTER_2 = "textbook/chapter-02.html"
+ATTRIBUTION = "attribution/index.html"
+OPT_PROGRESS = "progress/optimisation.html"
+OLD_OPT_PROGRESS = "progress/first-order-optimization.html"
+
+
+def load_data() -> dict[str, Any]:
+    raw = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise RuntimeError("source_lineage.json must contain an object")
+    return raw
+
+
+def prefix(rel: str) -> str:
+    return "../" * len(Path(rel).parent.parts)
+
+
+def add_style(text: str, rel: str) -> str:
+    href = f"{prefix(rel)}assets/{STYLE_NAME}"
+    if href in text:
+        return text
+    if "</head>" not in text:
+        raise RuntimeError(f"{rel}: missing </head>")
+    return text.replace("</head>", f'  <link rel="stylesheet" href="{href}">\n</head>', 1)
+
+
+def canonical_shell(text: str, rel: str, output: Path) -> str:
+    """Apply the same final reader shell used by the established Samplinglib pages."""
+    text = library_shelves.replace_sidebar(text, rel)
+    text = formalization_progress.insert_progress_sidebar(text, rel)
+    text = formalization_progress.patch_site_nav(text, rel)
+    # formalization_progress is intentionally backwards-compatible with the old
+    # route name, so normalize the public route atomically after reusing it.
+    text = text.replace("progress/first-order-optimization.html", "progress/optimisation.html")
+    text = text.replace("first-order-optimization.html", "optimisation.html")
+    text = text.replace("First-Order Optimization", "Optimisation")
+    text = library_shelves.inherit_canonical_theme(text, rel, output)
+    text = add_style(text, rel)
+    # Late astis_site.page calls still contain an obsolete root anchor that the
+    # final information-architecture overlay removes from established pages.
+    text = text.replace(f'{prefix(rel)}index.html#samplinglib', f'{prefix(rel)}index.html')
+    return text
+
+
+def append_main(output: Path, rel: str, html: str, marker: str) -> None:
+    path = output / rel
+
+FILE website/scripts/formalization_progress.py:1
+#!/usr/bin/env python3
+"""Unified collaborative Current Progress dashboard for Samplinglib.
+
+The five public formalization and research routes live on one page so collaborators can
+track their own theorem-sized Frontier Cells while seeing the other routes and
+the shared Lean floor. Historical route URLs remain stable aliases.
+"""
+
+from __future__ import annotations
+
+import posixpath
+import re
+import shutil
+import sys
+from html import escape
+from pathlib import Path
+from urllib.parse import urlsplit
+
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+
+import astis_frontier_cells  # noqa: E402
+import astis_site  # noqa: E402
+import library_shelves  # noqa: E402
+import cross_domain  # noqa: E402
+import discrete_sampling  # noqa: E402
+import mcmc_library  # noqa: E402
+
+
+DEFAULT_OUTPUT = ROOT / "_site"
+SOURCE_CSS = ROOT / "website" / "static" / "formalization-progress.css"
+STYLE_NAME = "formalization-progress.css"
+HARNESS = ROOT / "website" / "static" / "astis-harness-current.svg"
+HARNESS_NAME = "astis-harness-current.svg"
+
+OVERVIEW = "progress/index.html"
+SAMPLEWIKI_DETAIL = "progress/samplewiki-detail.html"
+SAMPLEWIKI_ROUTE = "progress/samplewiki-route.html"
+RIEMANNIAN_ROUTE = "progress/riemannian-optimization.html"
+OPTIMISATION_ROUTE = "progress/optimisation.html"
+OLD_FIRST_ORDER_ROUTE = "progress/first-order-optimization.html"
+OLD_SAMPLEWIKI_PROGRESS = "example-cases/samplewiki/progress.html"
+
+ROUTE_ANCHORS = {
+    "samplewiki-route": "samplewiki",
+    "riemannian-optimization": "riemannian",
+    "optimisation": "optimisation",
+    "statistical-optimal-transport": "optimal-transport",
+    "higher-order-sampling": "higher-order-sampling",
+    "discrete-sampling": "discrete-sampling",
+    "mcmc": "mcmc",
+}
+
+PRIVATE_PUBLIC_MARKERS = (
+    "ZDD-style",
+    "categorical or functor-like",
+    "alternative minimal supports",
+    "compression candidates",
+)
+
+
+def prefix(rel: str) -> str:
+    return "../" * len(Path(rel).parent.parts)
+
+
+def href_from(current: str, target: str) -> str:
+    start = posixpath.dirname(current) or "."
+    return posixpath.relpath(target, start=start)
+
+
+FILE website/scripts/library_shelves.py:1
+#!/usr/bin/env python3
+"""Add peer-level Boumal and Chewi optimisation shelves to Samplinglib.
+
+The generated library pages deliberately inherit the same presentation stack as
+Log-Concave Sampling.  They are not a second mini-site with their own theme.
+"""
+
+from __future__ import annotations
+
+import re
+import shutil
+from html import escape
+from pathlib import Path
+from urllib.parse import quote
+
+import astis_site
+import cross_domain
+import discrete_sampling
+import mcmc_library
+import publication_reader
+
+
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE_CSS = ROOT / "website" / "static" / "library-shelves.css"
+STYLE_NAME = "library-shelves.css"
+
+BOUMAL_URL = "https://www.nicolasboumal.net/book/"
+CHEWI_OPT_URL = "https://arxiv.org/pdf/2605.07006"
+BECK_URL = "https://epubs.siam.org/doi/book/10.1137/1.9781611974997"
+OPTLIB_URL = "https://github.com/optsuite/optlib"
+CVXLEAN_URL = "https://github.com/verified-optimization/CvxLean"
+
+BOUMAL = (
+    "Introduction",
+    "Simple examples",
+    "Embedded geometry: first order",
+    "First-order optimization algorithms",
+    "Embedded geometry: second order",
+    "Second-order optimization algorithms",
+    "Embedded submanifolds: examples",
+    "General manifolds",
+    "Quotient manifolds",
+    "Additional tools",
+    "Geodesic convexity",
+)
+
+OPTIMISATION = (
+    ("01", "Introduction and basics of convex functions", "§1", 3),
+    ("02", "Gradient flow", "§2", 12),
+    ("03", "Gradient descent: smooth case", "§3", 18),
+
+FILE tools/astis_source.py:1
+#!/usr/bin/env python3
+"""Canonical source-edition validation for the ASTIS Chewi program."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import subprocess
+import unicodedata
+from collections import Counter
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+CONTENT = ROOT / "website" / "content"
+EDITION_PATH = CONTENT / "source_edition.json"
+CHAPTERS_PATH = CONTENT / "chapters.json"
+CORRESPONDENCE_PATH = CONTENT / "source_correspondence.json"
+CHAPTER_1_MATRIX_PATH = CONTENT / "chapter_1_completion_matrix.json"
+CANONICAL_URL = "https://chewisinho.github.io/main.pdf"
+CANONICAL_EDITION = "2026-08-09"
+PDF_OFFSET = 12
+PDF_SHA256 = "9b454ccf44fe700081e13a766ae9cabb83c3530f5fdc532d59ac335f53652597"
+DEFAULT_LOCAL_PDF = (
+    ROOT.parent
+    / "outer_papers"
+    / "sampling_theory_sde"
+    / "Chewi-Log-Concave-Sampling"
+    / "main.pdf"
+)
+
+EXPECTED_CHAPTER_1_STATEMENTS = set("""
+1.1.1 1.1.4 1.1.8 1.1.11 1.1.12 1.1.13 1.1.15 1.1.16 1.1.17 1.1.19 1.1.22
+1.2.1 1.2.2 1.2.3 1.2.4 1.2.5 1.2.6 1.2.7 1.2.8 1.2.9 1.2.10 1.2.12 1.2.13
+1.2.14 1.2.15 1.2.17 1.2.19 1.2.20 1.2.21 1.2.22 1.2.23 1.2.25 1.2.26 1.2.27
+1.2.28 1.2.29 1.2.30 1.2.31
+1.3.1 1.3.3 1.3.4 1.3.6 1.3.8 1.3.12 1.3.13 1.3.14 1.3.15 1.3.16 1.3.17 1.3.19
+1.3.20 1.3.23 1.3.25 1.3.26
+
+FILE tools/astis_publication.py:235
+def verified_binding(binding: dict, data: dict | None = None) -> bool:
+    data = data or inputs()
+    cell = data['cells'].get(binding.get('cell'), {})
+    d = data['declarations'].get(binding.get('declaration'))
+    return bool(d and not d.has_placeholder
+                and (binding.get('role') != 'proof-edge' or d.kind in {'theorem', 'lemma'})
+                and cell.get('shared_floor_audit', {}).get('canonical_declaration') == d.full_name
+                and cell.get('status') in {'independently_verified', 'stabilized', 'merged'})
+
+
+def chapter_progress(library: str, chapter: str | None = None) -> dict:
+

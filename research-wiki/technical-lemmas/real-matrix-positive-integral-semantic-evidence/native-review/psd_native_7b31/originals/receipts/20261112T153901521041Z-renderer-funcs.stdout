@@ -1,0 +1,189 @@
+FILE website/scripts/inline_lean.py
+6:from __future__ import annotations
+8:from functools import lru_cache
+9:import json
+10:import re
+11:from pathlib import Path
+13:import astis_site as base
+16:def split_statement(source: str) -> tuple[str, str]:
+52:def display_source(source: str) -> str:
+68:def declarations() -> dict:
+74:def disclosure(name: str, *, role: str, explanation: str,
+113:def block_bounds(text: str, css: str) -> tuple[int, int] | None:
+127:def enrich_textbook(output: Path) -> int:
+202:def validate_textbook(output: Path) -> list[str]:
+FILE website/scripts/source_lineage.py
+12:from __future__ import annotations
+14:import json
+15:import shutil
+16:from html import escape
+17:from pathlib import Path
+18:from typing import Any
+20:import astis_site
+21:import formalization_progress
+22:import library_shelves
+25:ROOT = Path(__file__).resolve().parents[2]
+38:def load_data() -> dict[str, Any]:
+45:def prefix(rel: str) -> str:
+49:def add_style(text: str, rel: str) -> str:
+58:def canonical_shell(text: str, rel: str, output: Path) -> str:
+76:def append_main(output: Path, rel: str, html: str, marker: str) -> None:
+91:def linked_name(ref: dict[str, Any]) -> str:
+97:def source_stack_html(data: dict[str, Any]) -> str:
+127:def supplement_html(data: dict[str, Any]) -> str:
+156:def patch_chapter2_sections(output: Path, supp_url: str) -> None:
+178:def attribution_html(data: dict[str, Any]) -> str:
+205:def optimisation_progress_body() -> str:
+224:def write_optimisation_progress(output: Path) -> None:
+248:def patch_public_names(output: Path) -> None:
+261:def validate(output: Path, data: dict[str, Any]) -> None:
+312:def enrich_site(output: Path = DEFAULT_OUTPUT) -> None:
+FILE tools/astis_site.py
+11:from __future__ import annotations
+13:import argparse
+14:import dataclasses
+15:import datetime as dt
+16:import hashlib
+17:import html
+18:import json
+19:import os
+20:import re
+21:import shutil
+22:import subprocess
+23:import sys
+24:from collections import Counter, defaultdict
+25:from pathlib import Path
+26:from typing import Iterable
+27:from urllib.parse import urlparse
+29:import astis_source
+32:ROOT = Path(__file__).resolve().parents[1]
+45:class RegistryEntry:
+80:class SourceDeclaration:
+99:class SourceModule:
+108:class GitContext:
+119:class GateEvidence:
+129:def slugify(value: str) -> str:
+134:def esc(value: object) -> str:
+138:def load_json(path: Path) -> object:
+142:def run_command(command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
+153:def source_digest() -> str:
+174:def git_context() -> GitContext:
+210:def load_gate_evidence(path: Path = GATE_EVIDENCE) -> GateEvidence:
+256:def sanitize_lean(text: str) -> str:
+311:def declaration_anchor(module: str, full_name: str, line: int) -> str:
+316:def project_lean_paths() -> list[Path]:
+322:def scan_project_sources() -> tuple[list[SourceModule], list[SourceDeclaration]]:
+431:def parse_string(field: str, block: str) -> str:
+438:def parse_registry() -> list[RegistryEntry]:
+463:def lean_module_from_path(path: Path) -> str:
+467:def source_index() -> tuple[dict[str, dict[str, object]], dict[str, str]]:
+528:def enrich_entries(entries: list[RegistryEntry]) -> tuple[list[RegistryEntry], dict[str, str]]:
+612:def validate_chapter_1_evidence(
+744:def validate_chapter_1_closure(
+755:def chapter_1_completion_report(items: list[dict[str, object]]) -> dict[str, object]:
+782:def test_registry_count() -> int | None:
+796:def status_class(entry: RegistryEntry) -> str:
+807:def status_label(entry: RegistryEntry) -> str:
+818:def badge(label: str, css: str) -> str:
+822:def list_html(items: Iterable[object], *, empty: str = "None recorded.") -> str:
+829:def code_html(code: str, language: str = "lean") -> str:
+833:def lean_source_actions(source_file: str, *, page: str, copy_label: str) -> str:
+879:def route_badge(status: str) -> str:
+892:def local_declaration_status(declaration: SourceDeclaration, gate: GateEvidence) -> str:
+900:def source_commit_link_error(
+926:def source_href(
+950:def relative_prefix(rel_path: str) -> str:
+954:def textbook_section_path(chapter_number: int, section_id: str) -> str:
+958:def sidebar_html(prefix: str, active: str) -> str:
+1013:def page(
+1102:def write_page(output: Path, rel_path: str, content: str) -> None:
+1108:def diagram_block(name: str, caption: str) -> str:
+1116:def render_home(chapters: list[dict[str, object]], entries: list[RegistryEntry]) -> str:
+1185:def chapter_status_badge(status: str) -> str:
+1195:def render_textbook_index(chapters: list[dict[str, object]]) -> str:
+1222:def chapter_source_entries(chapter_number: int, source_entries: list[dict[str, object]]) -> list[dict[str, object]]:
+1226:def render_chapter(
+1330:def render_textbook_chapter(
+1406:def render_textbook_section(
+1513:def render_calculation_route(chapters: list[dict[str, object]]) -> str:
+1534:def render_rigorous_details(chapters: list[dict[str, object]]) -> str:
+1578:def render_lean_foundations(entries: list[RegistryEntry]) -> str:
+1619:def source_status_badge(status: str) -> str:
+1627:def expand_chapter_1_matrix(
+1674:def render_chapter_1_matrix(items: list[dict[str, object]]) -> str:
+1710:def render_source_correspondence(
+1756:def render_implementation_map(entries: list[RegistryEntry]) -> str:
+1791:def inferred_natural_statement(entry: RegistryEntry) -> str:
+1799:def lean_vocabulary(entry: RegistryEntry) -> list[str]:
+1826:def proof_walkthrough(entry: RegistryEntry) -> list[str]:
+1854:def hidden_contracts(entry: RegistryEntry) -> list[str]:
+1876:def theorem_card(
+1974:def module_card(module: str, rel_file: str, module_entries: list[RegistryEntry]) -> str:
+1992:def render_dependency_explorer(entries: list[RegistryEntry]) -> str:
+2018:def render_progress(
+2059:def render_frontier(entries_by_short: dict[str, RegistryEntry]) -> str:
+2103:def render_learn_lean(entries_by_short: dict[str, RegistryEntry]) -> str:
+2146:def render_attribution() -> str:
+2172:def render_maintenance(count: int) -> str:
+2208:def render_contribute(count: int) -> str:
+2258:def render_related_systems() -> str:
+2323:def teaching_card_path(declaration: SourceDeclaration) -> str:
+2328:def declaration_path(declaration: SourceDeclaration) -> str:
+2336:def compact_source(source: str, *, max_lines: int = 44, max_chars: int = 9000) -> tuple[str, bool]:
+2347:def annotate_declarations(
+2365:def render_overview(
+2457:def render_full_implementation_map(
+2509:def render_learning_path(
+2559:def render_declaration_catalog(
+2599:def render_module_index(modules: list[SourceModule]) -> str:
+2620:def render_source_module(
+2679:def render_teaching_declaration(
+2721:def render_roadmap(milestones: list[dict[str, object]]) -> str:
+2746:def render_workflow(gate: GateEvidence) -> str:
+2779:def build_live_mappings(
+2826:def render_live_formalization(mapping_count: int) -> str:
+2977:def render_attribution_index(git: GitContext) -> str:
+3002:def copy_assets(output: Path) -> None:
+3026:def build_site(output: Path = DEFAULT_OUTPUT) -> dict[str, object]:
+3399:def iter_local_links(html_path: Path, output: Path) -> Iterable[tuple[str, Path, str]]:
+3412:def validate_site(
+3806:def command_build(args: argparse.Namespace) -> int:
+3818:def command_check(args: argparse.Namespace) -> int:
+3841:def parser() -> argparse.ArgumentParser:
+3859:def main(argv: list[str] | None = None) -> int:
+FILE tools/astis_publication.py
+8:from __future__ import annotations
+10:import argparse
+11:import hashlib
+12:import json
+13:import os
+14:import re
+15:import subprocess
+16:import sys
+17:from functools import lru_cache
+18:from pathlib import Path
+19:from urllib.parse import quote
+21:ROOT = Path(__file__).resolve().parents[1]
+24:import astis_site
+25:import astis_frontier_cells
+26:import astis_semantic_roundtrip as roundtrip
+57:def reviewed_metadata_migration(path: str, base: str, current_text: str) -> bool:
+71:def digest(value) -> str:
+76:def file_digest(path: str) -> str:
+80:def git(*args: str) -> str:
+85:def inputs() -> dict:
+96:def load() -> list[dict]:
+106:def binding_payload(item: dict, binding: dict, data: dict | None = None) -> dict:
+128:def binding_digest(item: dict, binding: dict, data: dict | None = None) -> str:
+132:def review_context(item: dict, binding: dict, data: dict | None = None) -> dict:
+144:def legacy_debt_valid(binding: dict, data: dict) -> bool:
+155:def validate(items: list[dict] | None = None, data: dict | None = None,
+235:def verified_binding(binding: dict, data: dict | None = None) -> bool:
+245:def chapter_progress(library: str, chapter: str | None = None) -> dict:
+260:def private_implementation_owner(path: str, text: str, public_names: set[str], data: dict) -> str:
+284:def changed_declarations(base: str) -> set[str]:
+348:def packet(cell_id: str) -> dict:
+374:def graph_report(cell_id: str, output: Path) -> dict:
+410:def release_targets(base: str | None) -> set[str]:
+418:def check_advance(declarations: list[str], *, reviewed: bool) -> None:
+429:def main(argv=None) -> int:

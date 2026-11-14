@@ -73,3 +73,25 @@ Shared main/Registry/global graph/production-site integration is still held by
 the original stabilization lane. Full independent-sum/Lieb/master-tail/Bernstein,
 C6/Lemma4.4, both main lower bounds and actual oracle/TV/precision/cap/cost
 adapters, post-merge purification and whole-Goal completion remain unfinished.
+
+## Matrix Laplace-tail local mathematics — 2026-11-14
+
+This bounded increment adds the real largest-eigenvalue Laplace-tail theorem
+and its private consumer for all four signed ordinary/cosine Gaussian sums.
+The generic expectation is explicitly a nonnegative extended scalar integral;
+the actual Gaussian application derives finite trace-exponential Bochner
+integrability inside its proof. It adds no integrability premise, matrix-MGF
+product rule, Bernstein theorem or full-paper conclusion.
+
+The exact two proof files were frozen at local mathematical commit
+`1d1103af694b9663a72b0d610004ed85c7c6b527`. The actual ROOT Lean check streams,
+receipts and source hashes are retained here. Their recorded build HEADs and
+file hashes are the evidence; no build of this new public export identity is
+claimed. This snapshot publishes compiled local mathematical progress only.
+Independent source/reader acceptance and normal PROVED_LOCAL/VERIFIED admission
+for this new Laplace packet are not claimed by this increment. Existing R14
+verification and old public ledger bytes remain unchanged.
+
+Full independent-sum/Lieb/master-tail/Bernstein, C6/Lemma4.4, both main lower
+bounds, oracle/TV/precision/query-cap/expected-cost adaptation, main/site
+integration, purification and whole-Goal completion remain unfinished.

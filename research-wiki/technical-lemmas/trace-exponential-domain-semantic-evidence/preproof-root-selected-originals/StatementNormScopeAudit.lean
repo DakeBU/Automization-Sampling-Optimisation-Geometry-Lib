@@ -1,0 +1,60 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure
+open MeasureTheory ProbabilityTheory
+open scoped BigOperators Matrix.Norms.L2Operator MatrixOrder ENNReal
+noncomputable section
+universe u
+namespace GCTraceMgfDomainMinimalInterfaceOnly
+def CandidateP : Prop :=
+∀ {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι],
+  ∀ (A : Matrix ι ι ℝ), A.IsHermitian → ∀ s : ℝ,
+    0 < Matrix.trace (NormedSpace.exp (s • A)) ∧
+      Matrix.trace (NormedSpace.exp (s • A)) ≤
+        (Fintype.card ι : ℝ) * Real.exp (|s| * ‖A‖)
+
+def CandidateT : Prop :=
+∀ {d q : ℕ} (hq : 2 * q + 1 < d),
+  let D := EuclideanSpace ℝ (Fin d)
+  let E := EuclideanSpace ℝ (Fin (q + 1))
+  let Ω := Fin (q + 1) → D
+  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)
+  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ
+  let r : ℝ := ((q + 1 : ℕ) : ℝ)
+  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))
+  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)
+  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>
+    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)
+  let row : Fin d → Ω → E := fun i ω =>
+    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)
+  let Y : Fin d → Ω → M := fun i ω =>
+    if ‖row i ω‖ ^ 2 ≤ L then
+      (d : ℝ)⁻¹ • Matrix.kronecker
+        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))
+        (Matrix.vecMulVec (tvec i) (tvec i))
+    else 0
+  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ
+  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i
+  let w : Bool → Fin d → ℝ := fun useCos i =>
+    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1
+  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1
+  let S : Bool → Bool → Ω → M := fun useCos minus ω =>
+    sign minus • ∑ i : Fin d, w useCos i • Z i ω
+  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)
+  ∀ s : ℝ, ∀ useCos minus : Bool,
+    let f : Ω → ℝ := fun ω => Matrix.trace (NormedSpace.exp (s • S useCos minus ω))
+    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))
+    Integrable f μ ∧ (∀ ω, 0 < f ω ∧ f ω ≤ B) ∧
+      0 < ∫ ω, f ω ∂μ ∧ (∫ ω, f ω ∂μ) ≤ B
+
+#check CandidateP
+#check CandidateT
+end GCTraceMgfDomainMinimalInterfaceOnly
+
+set_option pp.all true in
+#print GCTraceMgfDomainMinimalInterfaceOnly.CandidateP
+section ExactNormScopeAudit
+variable {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]
+set_option pp.all true in
+#synth Norm (Matrix ι ι ℝ)
+end ExactNormScopeAudit

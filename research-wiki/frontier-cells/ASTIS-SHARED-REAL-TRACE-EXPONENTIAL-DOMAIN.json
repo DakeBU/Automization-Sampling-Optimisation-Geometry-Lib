@@ -1,0 +1,468 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SHARED-REAL-TRACE-EXPONENTIAL-DOMAIN",
+  "route": "shared",
+  "mode": "faithfulPaper",
+  "title": "Shared real trace-exponential domain bound with private literal Gaussian scalar-expectation consumer",
+  "source_anchor": "P: canonical deterministic all-real finite-nonempty real-Hermitian ordinary trace-exponential strict-positivity/operator-norm bound; spectral background from Tropp author preprint §§2.1–2.4, with §3.1 finite-expectation-domain caveat, not a literal full complex Tropp theorem. T: explicitly inferred omitted scalar E tr exp(sS) domain bridge for Gaussian arXiv:2610.20492v1 Appendix C.2 literal original experiment, Ex107–112 and p13.1, ordinary/cosine sums and both global signs. Ex121→p15.2 is downstream source continuation only.",
+  "target_statement": "∀ {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι],\n  ∀ (A : Matrix ι ι ℝ), A.IsHermitian → ∀ s : ℝ,\n    0 < Matrix.trace (NormedSpace.exp (s • A)) ∧\n      Matrix.trace (NormedSpace.exp (s • A)) ≤\n        (Fintype.card ι : ℝ) * Real.exp (|s| * ‖A‖)\n",
+  "private_consumer_statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let f : Ω → ℝ := fun ω => Matrix.trace (NormedSpace.exp (s • S useCos minus ω))\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable f μ ∧ (∀ ω, 0 < f ω ∧ f ω ≤ B) ∧\n      0 < ∫ ω, f ω ∂μ ∧ (∫ ω, f ω ∂μ) ≤ B\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_20261115_trace_exponential_domain",
+  "advance_id": "ASTIS-SA-20261115-TraceExponentialDomain",
+  "base_commit": "1db9b48ff3572a159608dce9b062cc0ed841d633",
+  "base_commit_scope": "Actual next-intake source baseline after R15 independently verified public push. Original type/seal context3fdf preserved; only R15 metadata/evidence changed through1db9.",
+  "parents": [],
+  "parent_scope": "Independent immutable301728 type/value/kernel extraction confirms P has no external ASTIS value parents. Its Mathlib floor is real; empty parents does not mean no mathematical dependencies. Private T actually calls P, Radius and Structure.",
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityTraceMgfDomain.actual_source_four_trace_mgfs_integrable_positive_and_bounded",
+    "Future generic Lieb / independent-sum master-tail finite trace-expectation domain consumer; PLANNED_ONLY, no declaration, compiled call, formal transport or downstream theorem claimed."
+  ],
+  "consumer_scope": {
+    "first_realistic_consumer": {
+      "name": "AutoSamplingTheory.Tests.GaussianComplexityTraceMgfDomain.actual_source_four_trace_mgfs_integrable_positive_and_bounded",
+      "state": "ACTUAL_PRIVATE_COMPILED_MATERIAL_CONSUMER; immutable301728 native/source and isolated reader accepted within one independent normal proof VERIFIED for public P; no separate public T node. Stabilization remains pending.",
+      "public_node": false
+    },
+    "second_realistic_consumer": {
+      "description": "Future generic Lieb / independent-sum master-tail finite trace-expectation domain consumer; PLANNED_ONLY, no declaration, compiled call, formal transport or downstream theorem claimed.",
+      "state": "PLANNED_ONLY"
+    },
+    "compiled_consumer_credit": true,
+    "four_cases": "Both global signs of literal ordinary/cosine centered sums; every real s and every ω, q=0 retained."
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS and pinned Mathlib: ROOT bounded declaration-head observation recorded in .astis/huanjian-gc-trace-mgf-domain-20261115/pre-intake.v1.json, actual tool chunk 4778e6, exit0. Bounded declaration-head patterns over local probability/Gaussian source and pinned matrix/exponential Mathlib files. Found private positive-s ingredients; no exact matching complete public interface among inspected hits. Not an exhaustive absence assertion. No independent receipt is invented; no proof-body, value-dependency or whole-library absence audit is claimed."
+    ],
+    "classification": "adapt",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm",
+    "canonical_shared_cell": "ASTIS-SHARED-REAL-TRACE-EXPONENTIAL-DOMAIN",
+    "status": "BOUNDED_REUSE_SEARCH_PLUS_ACTUAL_IMMUTABLE_NATIVE_PARENT_EXTRACTION",
+    "classification_qualification": "One deterministic all-real strict-positive trace envelope; bounded exact-interface reuse search only, no whole-library absence assertion. Existing radius/structure and older Laplace/MGF results are not recounted."
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS and pinned Mathlib: ROOT bounded declaration-head observation recorded in .astis/huanjian-gc-trace-mgf-domain-20261115/pre-intake.v1.json, actual tool chunk 4778e6, exit0. Bounded declaration-head patterns over local probability/Gaussian source and pinned matrix/exponential Mathlib files. Found private positive-s ingredients; no exact matching complete public interface among inspected hits. Not an exhaustive absence assertion. No independent receipt is invented; no proof-body, value-dependency or whole-library absence audit is claimed."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm"
+    ],
+    "new_shared_declarations_status": "ACTUAL_IMMUTABLE301728_P_WITH_MATERIAL_PRIVATE_T; independent native/source/isolated reader accepted; normalPL1 and independent normal proofV1; integration/purification pending.",
+    "known_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityTraceMgfDomain.actual_source_four_trace_mgfs_integrable_positive_and_bounded"
+    ],
+    "planned_consumers": [
+      "Future generic Lieb / independent-sum master-tail finite trace-expectation domain consumer; PLANNED_ONLY, no declaration, compiled call, formal transport or downstream theorem claimed."
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "P supplies pointwise positive trace and exact card(I) envelope to literal T. Native extraction confirms no ASTIS value parent for P and exact P/Radius/Structure value parents for T. No extra public T edge.",
+    "actual_parent_calls_pending": false,
+    "actual_P_ASTIS_parents": [],
+    "public_P_input_plan": {
+      "expected_floor": "Mathlib",
+      "exact_declarations": [
+        "cfc_comp_const_mul",
+        "CFC.real_exp_eq_normedSpace_exp",
+        "cfc_isStrictlyPositive_iff",
+        "Matrix.isStrictlyPositive_iff_posDef",
+        "Matrix.PosDef.trace_pos",
+        "cfc_le_algebraMap_iff",
+        "IsometricContinuousFunctionalCalculus.norm_spectrum_le",
+        "Matrix.le_iff",
+        "Matrix.PosSemidef.trace_nonneg"
+      ],
+      "status": "ACTUAL_SOURCE_API_USES; COMPLETE_NATIVE_DAG_RETAINED"
+    },
+    "planned_private_T_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure"
+    ],
+    "planned_private_T_existing_parent_cells": [
+      "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-radius",
+      "ASTIS-SW-GAUSSIAN-COMPLEXITY-source-matrix-structure"
+    ],
+    "private_T_dependency_status": "ACTUAL_TYPE_VALUE_PARENTS_CONFIRMED; ORIGINAL_PLANNED_LIST_RETAINED_AS_HISTORY"
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Current e441 authored source/wholemodule/seven-slot exposition and actual isolated desktop/mobile reader accepted independently. Main/production/purification remain separate."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "candidate-published",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm"
+    ],
+    "visual_review": "Actual independent inspection of all36 current PNGs, including all six P/Radius/Structure desktop/mobile actual focus states, node/label SVGclip intersections1 and full IDs in detail. One canonical P; private T only module; source references remain dashed. No full/global graph fit or production claim.",
+    "classification_qualification": "One typed conceptual mechanism independently normal-validated under the existing bounded-single-variable-laplace family. Actual native P/T parents confirmed. Global graph stabilization remains held; validation is not a formal implication or proofV.",
+    "source_edge_guard": "Ex121->p15.2 is source-continuation/same-application navigation only, never an ordinary-tail-to-weighted-tail logical implication.",
+    "current_reader_report": {
+      "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/reader-originals/trace_exp_reader_61e4/readable-originals/reader-acceptance-v1/reader-acceptance-report.json",
+      "sha256": "59bed62c292887d2f8bfa1c8401443033a1a4e8ea4cacb68188a4e96cd9a1071"
+    }
+  },
+  "conceptual_mirror_audit": {
+    "status": "candidates-published",
+    "discovery_ids": [
+      "ASTIS-DISC-20261115-ScalarSelfadjointExponentialEnvelope"
+    ],
+    "evidence": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/conceptual-mirror-and-process-audit.authored-v1.json",
+    "scope": "Raw typed Discovery plus one real independent normal validation; source/CM actor51c8 differs from creator. No formal transport/global graph or proofV.",
+    "independent_normal_validation": {
+      "actor": "trace_exp_fresh_source_51c8",
+      "actual_calls": 1,
+      "exact_append_sha256": "08bdafdd44953cb0541b028a555004e3786de1b7737463afcbc73f3bc8ed16d5",
+      "receipt": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/normal-discovery-validation/trace_exp_fresh_source_51c8/normal-validation.receipt.json",
+      "all18_preservation_checks_pass": true
+    }
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES",
+      "ASTIS-NK-GRADIENT-FLOW-ZERO-TIME",
+      "ASTIS-NK-GD-INVERSE-DOMAIN"
+    ],
+    "process_memory_scope": "ROOT read the actual three-entry registry; none supplies a mathematical conclusion or retires this new target. Existing one-sided-MGF failure boundary is separately cited in the authored conceptual audit.",
+    "failure_class": "NONE",
+    "salvage": {
+      "required": false,
+      "status": "not-applicable",
+      "reason": "Target P/T proofs passed first attempts. Two independent diagnostic harness failures are retained and corrected without changing P/T. Renderer missing citation scopes is a presentation implementation failure, not a mathematical negative result; exact six-field repair independently accepted.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [
+        "root-proof-CFC-envelope-and-literal-consumer",
+        "blind-statement-decoding",
+        "fresh-source-wholemodule-exposition",
+        "immutable-native-type-value-kernel",
+        "explicit-leaf-public-privacy-custody",
+        "isolated-reader-runtime"
+      ],
+      "expected_information_gain": "ROOT sole prover; distinct source-blind decoder, fresh raw-source-first semantic/wholemodule reviewer, native kernel reviewer, privacy custody review and reader preparation answer separate uncertainties.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "Only one target proof route implemented. Frozen sufficient OR alternatives are preserved, not counted as multiple verified routes. Actual CFC positivity/upper plus support-integral route independently reviewed; no quantitative lower envelope emitted."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "Tropp author preprint PDF SHA f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86; Gaussian arXiv2610.20492v1 HTML SHA 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "P: canonical deterministic all-real finite-nonempty real-Hermitian ordinary trace-exponential strict-positivity/operator-norm bound; spectral background from Tropp author preprint §§2.1–2.4, with §3.1 finite-expectation-domain caveat, not a literal full complex Tropp theorem. T: explicitly inferred omitted scalar E tr exp(sS) domain bridge for Gaussian arXiv:2610.20492v1 Appendix C.2 literal original experiment, Ex107–112 and p13.1, ordinary/cosine sums and both global signs. Ex121→p15.2 is downstream source continuation only.",
+    "detail_status": "omitted",
+    "gap": "The omitted scalar domain/regularity bridge has actual local narrow outputs and independent source/native acceptance. The full matrix-MGF and downstream uncited Bernstein invocation remain open/excluded.",
+    "consulted": [
+      {
+        "source": "Pinned Tropp §§2.1–2.4/§3.1 and Gaussian Appendix C.2, independently reconstructed by source-only actor4c71 and challenged by distinct actor29a6.",
+        "anchor": "Source-derived omitted finite trace-MGF bridge: Tropp author preprint §§2.1–2.4 and §3.1 finite-expectation-domain caveat; Gaussian arXiv2610.20492v1 AppendixC.2 actual experiment, Ex107–112 and downstream Ex121/p15.2. Not the full Bernstein conclusion.",
+        "hypothesis_adapter": "Generic P is a real finite-nonempty deterministic canonical-library statement, not a literal full complex Tropp theorem. T keeps literal law/means/cutoff/r² and allreal/pointwise quantifiers; no regularity or proof estimate becomes a binder."
+      }
+    ],
+    "fidelity_boundary": "Only the deterministic finite nonempty REAL Hermitian all-real ordinary trace-exponential envelope and one private literal full-Gaussian four-family scalar domain are proved here: Integrable f, pointwise0<f<=r^2 exp(|s|dRstar), and ordinary0<integral f<=the same cap. All regularity/radius/Hermitian/normalization facts are discharged internally. No full matrix-valued MGF, independent-sum/Lieb/master-tail/Bernstein/norm-tail/Ex121/weighted p15.2/C6/complete Lemma4.4/main lower-bound or oracle/TV/precision/deterministic worst-query/expected-cost adapter follows. Ex121->p15.2 is source continuation only. Main/shared imports/Registry/sourceIndex/global graph/site integration, reader runtime, normal PL/V and purification remain separate."
+  },
+  "statement_seal": {
+    "status": "EXACT_SIGNATURES_UNCHANGED_AFTER_ACTUAL_PROOF_AND_INDEPENDENT_SOURCE_NATIVE_REVIEW",
+    "file": "research-wiki/technical-lemmas/trace-exponential-domain-statement-seal.json",
+    "sha256": "baac7a9074f869cdd98c6a027176f7d33ec7531c60f0a4709f0fc01bf81ee04d",
+    "planned_canonical_path": "research-wiki/technical-lemmas/trace-exponential-domain-statement-seal.json",
+    "signature_sha256": "b39869331ad510104d34bcf5c6d2833333b51e028d54ad2ad34f4aaf78033e97",
+    "private_consumer_signature_sha256": "9013c0f1a28e9f9a0b2175208ea91abaded7fa3a760172f7b8ead404aebbefe1",
+    "binder_audit": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/binder-definition-audit.original.v1.json",
+    "norm_scope_supplement": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/norm-scope-seal-supplement.v1.json",
+    "definition_kind": "Literal private T lets; ordinary trace/matrix-algebra exp; actual Matrix.instL2OpNormedRing confirmed. No characterized fallback, extra theorem premise or duplicate public T."
+  },
+  "source_proof_coverage": {
+    "inventory": ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/phase1/coverage-inventory.json",
+    "graph": ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/phase1/source-proof-graph.json",
+    "phase1_freeze": ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/phase1/PHASE1-FROZEN.json",
+    "source_vs_seal": ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/phase2/source-vs-seal-audit.json",
+    "sufficient_OR_routes": ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/phase1/sufficient-or-routes.json",
+    "review": ".astis/semantic-neutral-20261115/trace_mgf_topology_29a6/preproof-topology-review.v1.json",
+    "root_preproof_admission": ".astis/huanjian-gc-trace-mgf-domain-20261115/preproof-admission.v1.json",
+    "admission_scope": "Only exact-identity source/binder/definition/coverage/typed topology before proof search; not semantic roundtrip, normal intake, theorem build or math V.",
+    "source_gap_status": [
+      {
+        "id": "GAP:trace-domain",
+        "status": "NARROW_SCALAR_ALLREAL_OUTPUT_COMPILED_AND_SOURCE_REVIEWED; NOT_FULL_MATRIX_MGF"
+      },
+      {
+        "id": "GAP:measurability",
+        "status": "REUSED_Z_REGULARITY_PLUS_INTERNAL_SCALAR_CONTINUITY_DOMINATION; NO_NEW_PUBLIC_MEASURABLE_LEAF"
+      },
+      {
+        "id": "GAP:Bernstein-external",
+        "status": "OPEN_DOWNSTREAM_EXCLUDED"
+      }
+    ],
+    "source_edge_guard": "Ex121->p15.2 is source-continuation/same-application navigation only, never an ordinary-tail-to-weighted-tail logical implication.",
+    "hash_bindings": {
+      ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/capsule.json": "175691dc92a65c07bab73b26448fd36ae5882979a502ebe917a67d3d8895fcf5",
+      ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/phase1/PHASE1-FROZEN.json": "ea810b7b2ee6628357fbcba9cb7f8791bb1885a0a0935eca2153310ccd019fc7",
+      ".astis/semantic-neutral-20261115/trace_mgf_source_graph_4c71/phase2/source-vs-seal-audit.json": "7b1e2ae707725fdbef033d454451f19b878b32acdefbfe467ffdd7cdd193d201",
+      ".astis/semantic-neutral-20261115/trace_mgf_topology_29a6/preproof-topology-review.v1.json": "8e9c936125e699a4e616f61ccf58b3b8ffff0e5f8e7dc6109bd8e921aebb921b"
+    },
+    "source_to_Lean_correspondence": {
+      "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/source-to-lean.correspondence.authored-v3.json",
+      "sha256": "6d1dcd5557a59126264fcb27ab8daaeb5a9f4dc7add8604c468565eba7238cfc"
+    },
+    "correspondence_delta_acceptance": {
+      "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/source-review/trace_exp_fresh_source_51c8/originals/phase2_correspondence_v3_delta_review.json",
+      "sha256": "29fee4053a9152747494a4868c183e210204b1f58dc16a4ef65e4f880610f052"
+    },
+    "portable_originals": {
+      "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/independent-native-and-preproof-originals/ROOT-original-reference-portable-resolution.v1.json",
+      "sha256": "0f12303b146f4976199703abbbe1aeb31996092e13e6b512ec0cb7c6fb72d9fb"
+    }
+  },
+  "proof_digestion": {
+    "status": "ACTUAL_LOCAL_COMPILED_AND_INDEPENDENTLY_SOURCE_REVIEWED; PURIFICATION_PENDING",
+    "existing_substrate": [
+      "Mathlib CFC/order/trace/analytic-exponential/integral APIs",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure"
+    ],
+    "bookkeeping": "Literal experiment alignment, radius subtraction, finite weighted signed sum cap, r^2 cardinality, probability normalization and scalar domination stay inside private T.",
+    "new_reusable": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm"
+    ],
+    "new_topology": "Material application of P to four literal full-law Gaussian sums closes their narrow scalar trace-exponential domain, not a new concentration architecture.",
+    "canonicality": "Bounded local search found only P itself and its T use for this exact all-real strict-positive trace envelope; old trace-exp-sum/Laplace/single-matrix MGF results are reused unchanged, not wrapped or recounted."
+  },
+  "purification": {
+    "status": "pending",
+    "dead_code_audit": "pending",
+    "duplicate_semantics_audit": "pending",
+    "canonicalization": "Shared P with private material consumer; no separate T publication edge. Independent final integration/purification remains pending.",
+    "compressed_spine_delta": "pending",
+    "reader_default_view": "Short formula statement; assumptions, five mathematical proof steps and exact adjacent P/T Lean folded in layers."
+  },
+  "semantic_roundtrip": {
+    "required": true,
+    "audit_id": "huanjian-trace-exponential-domain",
+    "state": "source-reviewed",
+    "qualification": "Distinct source-blind decoder and raw-source-first wholemodule/seven-slot/lesson review accepted; original82c0 full review and independently reviewed six-citation-scope successor e441 retained.",
+    "publication_binding_sha256": "e44190bca918ce5a1e8f4ff5fc942c56ea400deb7a10af9929a698ef22a9d45c"
+  },
+  "evidence": {
+    "focused_checks": [
+      "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/local-math-originals/20261115T073055663367Z-gc-trace-exponential-domain-P-production-focused-module-build.receipt.json",
+      "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/local-math-originals/20261115T073638817414Z-gc-trace-exponential-domain-T-production-focused-module-build.receipt.json"
+    ],
+    "independent_verification": ".astis/semantic-neutral-20261115/trace_exp_native_61e4/normal-proof-verification/normal-V-outcome.public.json",
+    "root_build": "",
+    "graph_regeneration": "",
+    "pr": "",
+    "current_normal_stage": {
+      "advance_state": "VERIFIED",
+      "cell_status": "independently_verified",
+      "normal_intake_pending": false,
+      "normal_advance_intake_calls": 3,
+      "raw_conceptual_Discovery_calls": 1,
+      "theorem_PROVED_LOCAL": true,
+      "theorem_VERIFIED": true,
+      "local_P_and_private_T_compiled": true,
+      "normal_independent_proof_VERIFIED_calls": 1,
+      "verifier_id": "trace_exp_native_61e4_independent_verifier",
+      "verified_source_carrier": "45564beb6e0dd5e4357718ea04347a50613ad502",
+      "actual_math_build_identity": "30172847ec40c24426f0b39afc4887719810eca0"
+    },
+    "snapshot_counters": {
+      "normal_API_calls": 0,
+      "target_proof_calls": 0,
+      "qualification": "Historical pre-intake metadata-author counters only; actual current normal stage and actual proof/source/native evidence above supersede them."
+    },
+    "actual_Prop_formation_only": {
+      "receipt": ".astis/huanjian-resume-20261103/20261115T062240179009Z-gc-trace-mgf-domain-minimal-P-pointwise-T-proposition-formation-only.receipt.json",
+      "sha256": "a81a77c474badcf14078bb7fa717281c4a882f6c77b441cc1397d9ebb2562c5e",
+      "exit_code": 0,
+      "only_Prop_formation_not_any_target_theorem": true
+    },
+    "actual_norm_scope_elaboration_only": {
+      "receipt": ".astis/huanjian-resume-20261103/20261115T063152938555Z-gc-trace-mgf-domain-statement-only-full-elaboration-norm-scope.receipt.json",
+      "receipt_sha256": "c0689997078af1ca4abfcd4a37d2983bd776d7845aeb401ff8d8e89b4b71ab59",
+      "raw_stdout_stderr_log": "/Users/zhouhuanjian/ASTIS-GC/.astis/huanjian-resume-20261103/20261115T063152938555Z-gc-trace-mgf-domain-statement-only-full-elaboration-norm-scope.log",
+      "raw_log_sha256": "4a6f019e22185a3773ba1e59eba62038d1225bc6f6efd52dc3116abdd8c39a75",
+      "actual_exit_code": 0
+    },
+    "preproof_admission": {
+      "file": ".astis/huanjian-gc-trace-mgf-domain-20261115/preproof-admission.v1.json",
+      "sha256": "d7f8518654efd8773311fec2cf23d6dfdcbc0b854b4287e97ba6cb5a98138d12",
+      "not_math_VERIFIED": true
+    },
+    "distinct_topology_admission": {
+      "file": ".astis/semantic-neutral-20261115/trace_mgf_topology_29a6/preproof-topology-review.v1.json",
+      "sha256": "8e9c936125e699a4e616f61ccf58b3b8ffff0e5f8e7dc6109bd8e921aebb921b",
+      "verdict": "ADMITTED",
+      "only_preproof_topology": true
+    },
+    "bounded_reuse_observation": {
+      "file": ".astis/huanjian-gc-trace-mgf-domain-20261115/pre-intake.v1.json",
+      "actual_tool_chunk": "4778e6",
+      "no_independent_receipt_invented": true
+    },
+    "planned_evidence_prefix": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/",
+    "native_type_value_review": {
+      "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/independent-native-and-preproof-originals/readable-native-originals/native-mathematics-report.v1.json",
+      "sha256": "51481e488bee3d6de641a61a5dced0bd9bfaa6f7666e64d5c36595f3b0c5c1ca"
+    },
+    "reader_review": {
+      "report": {
+        "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/reader-originals/trace_exp_reader_61e4/readable-originals/reader-acceptance-v1/reader-acceptance-report.json",
+        "sha256": "59bed62c292887d2f8bfa1c8401443033a1a4e8ea4cacb68188a4e96cd9a1071"
+      },
+      "actual_runtime_result_sha256": "17654105a8a14921e275ba90191df0ab125a297b7a94032155eab08b577d27c2",
+      "actual_exit_code": 0,
+      "actual_checks": 389,
+      "false_checks": 0,
+      "actual_PNGs": 36,
+      "independent_actual_PNGs_viewed": 36,
+      "required_isolated_reader_residuals": 0,
+      "originals77_archive": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/reader-originals/trace_exp_reader_61e4/selected-actual-reader-originals77.v1.tar.gz",
+      "complete_served_byte_resolution": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/reader-served-byte-closure/ROOT-complete-current-served-byte-resolution.v1.json",
+      "limits": "Headless Chrome responsive CSS viewports, not physical touch. SVG longID ellipsis resolved in full detail. Glyph bbox subpixel overhang<=0.359375px within original1CSSpx contract; actual glyphs readable. Steps1/5 representativePNG; all five folds/source/copy/download checks actual. Clipboard payloads not separately saved;18 exact real comparisons retained. Not production/fullsite/postV-pixels/purification.",
+      "actual_browser_and_visual": "PASS_BOUNDED_ISOLATED_READER",
+      "current_acceptance": {
+        "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/reader-originals/trace_exp_reader_61e4/selected-actual-reader-originals77.v1.tar.gz",
+        "bytes": 5484360,
+        "sha256": "905c36318ea28807a0a2c484f273e7d3f3585418b07e3d64e6ed3ceecc9870e0",
+        "member": "reader-acceptance-v1/reader-acceptance-report.json",
+        "member_sha256": "59bed62c292887d2f8bfa1c8401443033a1a4e8ea4cacb68188a4e96cd9a1071",
+        "member_bytes": 6076
+      },
+      "actual_browser_exit_code": 0,
+      "actual_false_checks": 0,
+      "actual_original_PNGs": 36,
+      "blocking_reader_residuals": 0,
+      "physical_touch_or_production_acceptance": false
+    },
+    "source_blind_review": {
+      "actor": "trace_domain_blind_decoder_8a39",
+      "source_visible": false,
+      "originals": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/decoder-originals/blind_decoder_8a39"
+    },
+    "fresh_source_semantic_review": {
+      "actor": "trace_exp_fresh_source_51c8",
+      "public_verdict": "equivalent-after-elaboration",
+      "private_verdict": "equivalent-after-elaboration",
+      "binding": "e44190bca918ce5a1e8f4ff5fc942c56ea400deb7a10af9929a698ef22a9d45c",
+      "raw_originals": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/source-review/trace_exp_fresh_source_51c8/originals"
+    },
+    "normal_PL": "pending",
+    "normal_V": {
+      "state": "VERIFIED",
+      "actual_calls": 1,
+      "actual_exact_append": {
+        "file": ".astis/semantic-neutral-20261115/trace_exp_native_61e4/normal-proof-verification/normal-V-exact-append.jsonl",
+        "bytes": 24393,
+        "sha256": "687201b4deea0187f8a94fa69b6f07aa16bc01237a6917c574e35ac197835784"
+      },
+      "actual_normal_outcome": {
+        "file": ".astis/semantic-neutral-20261115/trace_exp_native_61e4/normal-proof-verification/normal-V-outcome.public.json",
+        "bytes": 1780,
+        "sha256": "88dceac7c7f79528f4efe737ad3cb755615bc3b33168c169a6f9d73d2fc87fa5"
+      },
+      "verifier_id": "trace_exp_native_61e4_independent_verifier",
+      "verified_source_carrier": "45564beb6e0dd5e4357718ea04347a50613ad502"
+    },
+    "actual_local_mathematics": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/local-mathematics-checkpoint.v1.json",
+    "normal_PROVED_LOCAL": {
+      "full_evidence": {
+        "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/PROVED_LOCAL-evidence.full.json",
+        "bytes": 12825,
+        "sha256": "a17ff70fa56a86070673d630943b43148f32f874f6f3f1243ddf6b73c2d889bf"
+      },
+      "actual_append": {
+        "file": "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/actual-PROVED_LOCAL-append.exact.jsonl",
+        "bytes": 11968,
+        "sha256": "2b9f48ff20b6f919e1068b460a47638a0fab9b8e1616bc43c666250aa2d15947"
+      },
+      "normal_calls": 1,
+      "checked_metadata_commit": "ef5cfe9feb38b716aa17595aedcaea81b18fb032"
+    }
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "truth_boundary": "Only the deterministic finite nonempty REAL Hermitian all-real ordinary trace-exponential envelope and one private literal full-Gaussian four-family scalar domain are proved here: Integrable f, pointwise0<f<=r^2 exp(|s|dRstar), and ordinary0<integral f<=the same cap. All regularity/radius/Hermitian/normalization facts are discharged internally. No full matrix-valued MGF, independent-sum/Lieb/master-tail/Bernstein/norm-tail/Ex121/weighted p15.2/C6/complete Lemma4.4/main lower-bound or oracle/TV/precision/deterministic worst-query/expected-cost adapter follows. Ex121->p15.2 is source continuation only. One normal PROVED_LOCAL and one independent normal VERIFIED now exist for public P, with its private material consumer checked and no extra public T node. The verified source/evidence carrier is 45564beb6e0dd5e4357718ea04347a50613ad502; the actual fresh native Lean build remains immutable301728. The accepted isolated reader is separate from main/shared imports/Registry/sourceIndex/global graph/site integration, physical touch, purification and full-paper/whole-Goal completion; those remain held/open.",
+  "integration_notes": {
+    "public_imports_needed": [],
+    "registry_or_site_updates": [],
+    "downstream_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityTraceMgfDomain.actual_source_four_trace_mgfs_integrable_positive_and_bounded",
+      "Future generic Lieb / independent-sum master-tail finite trace-expectation domain consumer; PLANNED_ONLY, no declaration, compiled call, formal transport or downstream theorem claimed."
+    ],
+    "status": "Canonical main/imports/Registry/sourceIndex/global graph/site integration held by original owners; isolated source/native/reader work and safe public progress are separate. No new Goal/reset or takeover.",
+    "original_stabilization_owners_held": [
+      {
+        "advance_id": "ASTIS-SA-20261110-SlcLsiWeightedRadialMGF",
+        "owner_id": "/root"
+      },
+      {
+        "advance_id": "ASTIS-SA-20261109-StatOTGaussianMixtureWasserstein",
+        "owner_id": "root_statot_gaussian_mixture_wasserstein_20261109"
+      }
+    ],
+    "main_observation_scope": "Actual Root git ls-remote toolabebd5 exit0: main9448a8b6692ec17408e99f5aadafcd321d0daedf, public f1d58. Actual immutable main ledger read tool86d5de confirms both original owners still STABILIZING. Local replay is not a release."
+  },
+  "owned_files": [
+    "AutoSamplingTheory/TechnicalLemmas/Analysis/MatrixTraceExponentialBounds.lean",
+    "Tests/GaussianComplexityTraceMgfDomain.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-REAL-TRACE-EXPONENTIAL-DOMAIN.json",
+    "research-wiki/technical-lemmas/trace-exponential-domain-statement-seal.json",
+    "research-wiki/technical-lemmas/trace-exponential-domain-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-trace-exponential-domain.json",
+    "website/content/publications/huanjian-trace-exponential-domain.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-trace-exponential-domain.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Analysis.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "research-wiki/source-index/",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json",
+    "website/static/",
+    "website/scripts/",
+    "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
+    "Tests/GaussianComplexityLaplaceTail.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-REAL-MATRIX-LAPLACE-TAIL.json",
+    "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/"
+  ],
+  "phase_snapshot": "PL1 and one independent normal proofV by trace_exp_native_61e4_independent_verifier at source/evidence carrier 45564beb6e0dd5e4357718ea04347a50613ad502. Immutable301728 native/source and the actual isolated reader are accepted; no new build or browser run. API window kept every frontier unchanged; only this cell is projected in this separately authorized second window. Main/site/global integration, original stabilization ownership and purification/full-paper remain held/open."
+}

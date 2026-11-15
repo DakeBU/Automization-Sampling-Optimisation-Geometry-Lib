@@ -160,3 +160,56 @@ main/Registry/global graph/production-site integration, post-merge purification,
 full independent-sum/Lieb/master-tail/Bernstein and C6/Lemma4.4, both main lower
 bounds, and actual oracle/TV/precision/deterministic-query-cap/expected-cost
 adaptation and whole-Goal acceptance remain unfinished.
+
+
+## All-real trace-exponential domain — 2026-11-15
+
+For a finite nonempty real Hermitian matrix and every real parameter, the new
+shared canonical declaration proves
+
+$$
+0<\operatorname{tr}e^{sA}\le |\mathcal I|\exp(|s|\|A\|_{\mathrm{op}}),
+\qquad s\in\mathbb R.
+$$
+
+Its private material application keeps the original unconditional Gaussian
+experiment, inclusive own-row truncation, true full-law Bochner means,
+Gaussian-first/feature-second tensor coordinates, both ordinary/cosine weights
+and both global signs. For each actual sum, all real parameters have an
+integrable, pointwise strictly positive scalar trace exponential and a finite
+strictly positive ordinary expectation, both bounded by exactly
+$r^2\exp(|s|dR_*)$. Measurability, Hermitian structure, radius estimates,
+probability normalization and cardinality are proved inside the consumer using
+canonical producers. No proof ingredient becomes an extra target hypothesis;
+the private application receives no second public theorem node.
+
+The immutable mathematical source is `30172847ec40c24426f0b39afc4887719810eca0`.
+Root first compiled the exact new worktree bytes while HEAD was `1db9`; bare
+`1db9` did not yet contain them. An independent verifier freshly rebuilt the
+exact 11-module ASTIS/Tests closure at `3017284`, checked complete type/value
+graphs and the kernel with only the three standard axioms, and tested zero and
+negative parameters, the q=0/d=2 boundary, four literal choices and a mixed-sign
+spectrum. No later metadata or public-export identity is retroactively claimed
+Lean-built. Original failed diagnostic and presentation attempts are retained.
+
+Distinct source-blind decoding, raw-source-first source/whole-module/seven-slot
+review and exact five-step exposition are recorded. Three source-map locators
+and six required citation-scope fields were corrected through independent exact
+delta review, preserving all predecessors. The source graph's stronger proposed
+quantitative lower envelope is not emitted or claimed; the implemented route
+uses spectral positivity, a same-operator upper envelope and support positivity
+for the ordinary scalar integral. The exponential-series alternative remains
+unimplemented. Ex121 to p15.2 remains source continuation, without a formal
+ordinary-to-weighted tail implication. The typed conceptual mechanism is independently validated under
+an existing family; it is not a certified transport or Lean implication.
+
+Current normal admission and actual isolated desktop/mobile reader acceptance
+are bound separately in the incremental provenance and original evidence. The
+public snapshot retains the original mathematical/build identities and adds no
+private source-history ancestry. Main imports, Registry, source index, global
+graphs, production website and post-merge purification remain with the original
+stabilization lane. This packet proves no full matrix-valued MGF, sharp matrix
+Bernstein/norm tail, C.6 or complete main lower bound. Exact-matvec, TV/precision,
+dimension/condition-number ranges, deterministic worst-query caps and explicit
+expected-cost adaptations remain separate obligations. Both full main lower
+bounds and whole-Goal acceptance remain open.

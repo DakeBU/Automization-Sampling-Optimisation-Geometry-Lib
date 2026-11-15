@@ -1,0 +1,59 @@
+For every pair of natural numbers d,q ∈ ℕ satisfying 2q + 1 < d, make the following definitions, in the displayed order. Write I_d = {0,…,d−1} for Fin d and J = {0,…,q} for Fin(q+1); when an index occurs in a real formula it means its natural-number value coerced to ℝ.
+
+Let D = EuclideanSpace ℝ (Fin d), the real Euclidean space with coordinate carrier I_d, and E = EuclideanSpace ℝ (Fin(q+1)), the real Euclidean space with coordinate carrier J. Let Ω = J → D, so ω ∈ Ω assigns one vector ω_b ∈ D to each b ∈ J. Equip Ω with the unconditional measure
+
+    μ = Measure.pi (b ↦ stdGaussian D),
+
+the displayed finite product of the standard centered Gaussian law on D. Let
+
+    M = Matrix (J × J) (J × J) ℝ,
+    r = ((q+1 : ℕ) : ℝ),
+    L = 2r + 3 log(1000 · (d : ℝ)),
+    α_i = ((i.val : ℝ) + 1 − 1/2) · π / (d : ℝ)             (i ∈ I_d),
+    t_i(k) = 1                                            if k.val = 0,
+             √2 · cos((k.val : ℝ) · α_i)                  otherwise (k ∈ J).
+
+Here log, cos, π and the square root are the real operations appearing in these definitions. Define the Euclidean row vector
+
+    x_i(ω) = WithLp.toLp 2 (b ↦ ω_b(i)) ∈ E.
+
+WithLp.toLp 2 and WithLp.ofLp change only the representation between coordinate functions and Euclidean vectors, preserving all coordinates. For every i ∈ I_d and every ω ∈ Ω define the real matrix Y_i(ω) ∈ M by the literal inclusive cutoff
+
+    Y_i(ω) = (d : ℝ)⁻¹ · [outer(WithLp.ofLp(x_i(ω)), WithLp.ofLp(x_i(ω)))
+                          ⊗ outer(t_i,t_i)]              if ‖x_i(ω)‖₂² ≤ L,
+             0_M                                         otherwise.
+
+The multiplication by (d : ℝ)⁻¹ is scalar multiplication of every matrix entry. The symbol outer(a,b) means Matrix.vecMulVec a b, with entry a_j b_k. The symbol ⊗ means Matrix.kronecker, with the first coordinate of each paired index coming from its first matrix factor. Thus the nonzero branch has entry, for b,k,b′,k′ ∈ J,
+
+    Y_i(ω)_((b,k),(b′,k′))
+       = (d : ℝ)⁻¹ · ω_b(i) · ω_b′(i) · t_i(k) · t_i(k′).
+
+The other branch is the actual zero matrix, and the norm in the cutoff is the Euclidean norm of the row vector. Define
+
+    mean_i = ∫_Ω Y_i(ω) dμ(ω) ∈ M,
+    Z_i(ω) = Y_i(ω) − mean_i,
+
+where the mean is exactly the displayed unconditional matrix-valued Bochner integral under μ. For Boolean values useCos and minus define deterministic weights and one global scalar sign by
+
+    w_useCos(i) = cos((((2q+1 : ℕ) : ℝ)) · α_i)            if useCos = true,
+                  1                                      if useCos = false,
+    sign_minus = −1                                      if minus = true,
+                 1                                       if minus = false,
+    S_useCos,minus(ω) = sign_minus · ∑_{i∈I_d} w_useCos(i) · Z_i(ω),
+    Rstar = 2r(L+1)/(d : ℝ).
+
+The sum runs over every i ∈ Fin d. Both multiplications involving w_useCos and sign_minus are matrix scalar multiplications; sign_minus multiplies the entire sum. The Boolean choices are universally quantified deterministic selectors, not random signs.
+
+Then for every real s ∈ ℝ and every useCos,minus ∈ Bool, let
+
+    f(ω) = tr(expₘ(s · S_useCos,minus(ω))),
+    B = r² · expℝ(|s| · ((d : ℝ) · Rstar)).
+
+All of the following hold simultaneously:
+
+    (1) f is Bochner integrable as a real scalar function on (Ω,μ);
+    (2) for every ω ∈ Ω, 0 < f(ω) and f(ω) ≤ B;
+    (3) 0 < ∫_Ω f(ω) dμ(ω);
+    (4) ∫_Ω f(ω) dμ(ω) ≤ B.
+
+The pointwise bounds hold for every ω, not only almost everywhere. All displayed integrals use exactly μ. There is no sign or magnitude restriction on s. The trace is the ordinary sum of all diagonal entries indexed by J × J, without division by the dimension; M has (q+1)² rows and (q+1)² columns. The matrix exponential expₘ is the power-series exponential ∑ₙ₌₀^∞ Aⁿ/n! in M with ordinary matrix multiplication; expℝ is the scalar real exponential. A norm of a matrix, if used, has the approved Euclidean operator-norm sense; the norm actually present in this proposition is the Euclidean row norm in the cutoff. No integrability premise is added to the definition of mean_i; the asserted integrability conclusion is specifically Integrable f μ.

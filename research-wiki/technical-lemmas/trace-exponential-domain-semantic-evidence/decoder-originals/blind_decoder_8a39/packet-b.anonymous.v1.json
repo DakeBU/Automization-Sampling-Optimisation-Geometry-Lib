@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-9013c0f1a28e9f9a",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let f : Ω → ℝ := fun ω => Matrix.trace (NormedSpace.exp (s • S useCos minus ω))\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable f μ ∧ (∀ ω, 0 < f ω ∧ f ω ≤ B) ∧\n      0 < ∫ ω, f ω ∂μ ∧ (∫ ω, f ω ∂μ) ≤ B\n",
+    "statement_sha256": "9013c0f1a28e9f9a0b2175208ea91abaded7fa3a760172f7b8ead404aebbefe1",
+    "compiled": true,
+    "approved_definition_context": [
+      "A finite matrix type Matrix ι ι ℝ is the real square-matrix algebra; multiplication is matrix multiplication. Fintype supplies a finite enumeration and DecidableEq supplies equality decisions. Nonempty asserts that the index carrier has at least one element.",
+      "Matrix.IsHermitian means conjugate transpose equals the matrix; over ℝ this is transpose equality. Matrix.trace is the ordinary sum of diagonal entries without division by the dimension.",
+      "NormedSpace.exp is the power-series exponential in the matrix algebra, whereas Real.exp is scalar exponential. The notation ‖A‖ uses Matrix.Norms.L2Operator, the operator norm induced by the Euclidean norm.",
+      "The scalar s ranges over ℝ; |s| denotes the real absolute value. Matrix scalar multiplication multiplies every entry by the displayed scalar.",
+      "EuclideanSpace ℝ (Fin n) is the n-dimensional real Euclidean space. WithLp.toLp 2 and WithLp.ofLp change representation between coordinate functions and Euclidean coordinates without changing their values.",
+      "stdGaussian on a finite-dimensional real Euclidean space is its standard centered Gaussian law; Measure.pi forms the displayed finite product law. A displayed Bochner integral uses exactly the displayed unconditional measure.",
+      "Matrix.vecMulVec is the outer product of its two displayed vectors. Matrix.kronecker uses a paired index with the first coordinate from the first factor. The if expression uses its displayed inclusive cutoff and actual zero-matrix branch.",
+      "Fin d ranges over zero through d−1. The angle formula explicitly adds1. The two universally quantified Boolean values select the displayed deterministic weight and one global scalar sign; they do not name random signs.",
+      "Integrable f μ means Bochner integrability of the displayed real scalar function. The ordinary integral notation is the real scalar Bochner integral under μ; a literal integral expression alone does not supply an integrability hypothesis."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "ab37831a628de0e22fdc28c9688a82d77b686d530e65f30c7a9db262ef8b5f6d"
+}

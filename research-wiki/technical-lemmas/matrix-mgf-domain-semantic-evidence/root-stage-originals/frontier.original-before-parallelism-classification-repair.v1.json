@@ -1,0 +1,257 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SHARED-REAL-MATRIX-EXPONENTIAL-DOMAIN",
+  "route": "shared",
+  "mode": "faithfulPaper",
+  "title": "Positive-definite matrix expectation with literal Gaussian matrix-MGF consumers",
+  "source_anchor": "Source-derived omitted true matrix-MGF finite/positive-definite domain bridge: Tropp author preprint §§2.1–2.4 and §3.1 finite-expectation/log-domain caveat; Gaussian arXiv2610.20492v1 Appendix C.2 Ex107–112 and downstream Ex121/p15.2. The generic PD-integral P is author-derived library infrastructure, not a printed source theorem.",
+  "target_statement": "∀ {ι : Type u} {Ω : Type v} [Fintype ι] [DecidableEq ι] [MeasurableSpace Ω]\n  {μ : Measure Ω} [IsProbabilityMeasure μ],\n  ∀ (f : Ω → Matrix ι ι ℝ), Integrable f μ →\n    (∀ᵐ ω ∂μ, (f ω).PosDef) → (∫ ω, f ω ∂μ).PosDef\n",
+  "private_consumer_statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n",
+  "status": "claimed",
+  "owner_id": "huanjian_20261115_matrix_exponential_domain",
+  "advance_id": "ASTIS-SA-20261115-MatrixExponentialDomain",
+  "base_commit": "960c7dbe2215ba2f76d2346e2e86883ee7a43d95",
+  "parents": [
+    "ASTIS-SHARED-REAL-MATRIX-POSITIVE-INTEGRAL"
+  ],
+  "parent_scope": "Planned reuse of the existing exact PSD-integral canonical node, never a duplicate or replacement. No new P compiled value-parent claim. Private T dependencies are separate and planned only.",
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain.actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded [ordinary full-law signed matrix exponential means; useCos=false]",
+    "AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain.actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded [cosine-weighted full-law signed matrix exponential means; useCos=true]"
+  ],
+  "consumer_scope": {
+    "families": [
+      "Full-law ordinary signed Gaussian matrix exponential means",
+      "Full-law cosine-weighted signed Gaussian matrix exponential means"
+    ],
+    "state": "SEALED_REALISTIC_TARGETS_ONLY; NOT_COMPILED",
+    "same_private_T_public_node": false,
+    "compiled_consumer_credit": false
+  },
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS and selected pinned Mathlib: bounded ROOT observations only, as recorded in .astis/huanjian-gc-matrix-mgf-domain-20261115/pre-intake.candidate-v1.json and .astis/huanjian-gc-matrix-mgf-domain-20261115/metadata-drafts/reuse-and-mirror.root-instruction-record.v1.json. No matching integral_posDef among inspected hits; no global absence or new theorem proof."
+    ],
+    "classification": "adapt",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef",
+    "canonical_shared_cell": "ASTIS-SHARED-REAL-MATRIX-EXPONENTIAL-DOMAIN",
+    "status": "AUTHOR_REUSE_PLAN; no target proof/value-parent audit"
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS and selected pinned Mathlib: bounded ROOT observations only, as recorded in .astis/huanjian-gc-matrix-mgf-domain-20261115/pre-intake.candidate-v1.json and .astis/huanjian-gc-matrix-mgf-domain-20261115/metadata-drafts/reuse-and-mirror.root-instruction-record.v1.json. No matching integral_posDef among inspected hits; no global absence or new theorem proof."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef",
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure"
+    ],
+    "planned_public_P_existing_ASTIS_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+    ],
+    "planned_private_T_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef",
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef"
+    ],
+    "known_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain.actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded [ordinary full-law signed matrix exponential means; useCos=false]",
+      "AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain.actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded [cosine-weighted full-law signed matrix exponential means; useCos=true]"
+    ],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain.actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded [ordinary full-law signed matrix exponential means; useCos=false]",
+      "AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain.actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded [cosine-weighted full-law signed matrix exponential means; useCos=true]"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "Reuse the exact existing generic PSD-integral node; add only the sealed PD-integral interface, with ordinary/cosine true full matrix means as the realistic private consuming families. All actual proof calls remain pending.",
+    "actual_value_dependencies": "Exact authored proof calls listed; independently elaborated value-DAG audit pending. P directly calls canonical PSD integral; T directly calls new P, existing trace envelope, source Radius and source Structure."
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "CONTRACT_ONLY; no lesson, implementation, reader or acceptance authored here"
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef"
+    ],
+    "visual_review": "Pending. No target compiled Lean graph or reader; source-only preproof graph/topology also remain pending.",
+    "qualification": "Planned public P only; T is an associated private consumer. none-found is the scoped ROOT candidate author audit, not independent source or proof acceptance."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "evidence": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/reuse-and-mirror.root-instruction-record.v1.json",
+    "scope": "ROOT candidate author audit pending proof: same existing measure-map-integral/spectral-envelope substrate; no NEW independently useful cross-domain transport discovered in this bounded preparation. No new CM is manufactured to register an analog of PSD mean. Future source/proof review may identify an actual new mechanism."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES",
+      "ASTIS-NK-GRADIENT-FLOW-ZERO-TIME",
+      "ASTIS-NK-GD-INVERSE-DOMAIN"
+    ],
+    "process_memory_scope": "Current three-entry process-memory policy read for process constraints only; none supplies mathematical authority for this target.",
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Only failed v1 Prop formation/import-context probe is preserved; corrected v2 forms the exact statements. Compiler-generated sorry in the failed probe is not a target proof or promoted fragment.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "parallel",
+      "direction_fingerprints": [
+        "source-only-graph48bc",
+        "raw-first-distinct-topology79ad",
+        "root-only-Lean-proof"
+      ],
+      "expected_information_gain": "Source graph and distinct source-only challenge admitted the sealed problem. Root remains the sole prover; no competing mathematical proof search.",
+      "shared_verified_context_digest": "1b52776e9793f302109cb649dd0c82c666193086aa7546006e36651ee389e638"
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "Only ROOT proof route will be implemented; source reconstruction and review are distinct uncertainties, not parallel proof routes. Optional source-only OR route is unimplemented."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "Pinned Tropp author preprint f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86 and Gaussian2610.20492v1 HTML6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "Source-derived omitted true matrix-MGF finite/positive-definite domain bridge: Tropp author preprint §§2.1–2.4 and §3.1 finite-expectation/log-domain caveat; Gaussian arXiv2610.20492v1 Appendix C.2 Ex107–112 and downstream Ex121/p15.2. The generic PD-integral P is author-derived library infrastructure, not a printed source theorem.",
+    "detail_status": "omitted",
+    "gap": "Standalone generic PD-integral and literal matrix-MGF-domain bridge are author-derived infrastructure, not printed source theorems; independent SG/TC and later source review remain pending.",
+    "consulted": [
+      {
+        "source": "Pinned Tropp §§2.1–2.4/§3.1 and original Gaussian C.2 context",
+        "anchor": "Source-derived omitted true matrix-MGF finite/positive-definite domain bridge: Tropp author preprint §§2.1–2.4 and §3.1 finite-expectation/log-domain caveat; Gaussian arXiv2610.20492v1 Appendix C.2 Ex107–112 and downstream Ex121/p15.2. The generic PD-integral P is author-derived library infrastructure, not a printed source theorem.",
+        "hypothesis_adapter": "Generic P uses probability/integrability/AE-PD as natural data. Source T adds none of them as premises; its full matrix mean and exact trace statements remain literal internal goals."
+      }
+    ],
+    "fidelity_boundary": "Author-sealed targets only. P is the generic real probability integral of an integrable AE positive-definite matrix function; its probability/integrability/AE-PD hypotheses are natural generic data, not new Gaussian T premises. Empty finite matrix indices remain permitted by the exact P. T retains the original unconditional Gaussian experiment, inclusive own-row cutoff, actual full-law means, Gaussian-first paired indices, q=0, every real s, two actual weights and both global signs. Its exact target is matrix-exponential Bochner integrability, positive definiteness of the true matrix mean, trace/integral commutation, strict positive ordinary trace and the exact r² exp(|s| d Rstar) upper cap. Those internal regularity/radius/PD/integrability ingredients must be produced inside T. No new target proof, compiled value parent/consumer, independent source/native/reader acceptance, intake/PL/V, matrix logarithm theorem, quantitative uniform spectral lower bound, Lieb/master-tail/Bernstein/tail/C6/main lower bound or oracle/precision/cost claim. Main/shared imports/Registry/graphs/rootTests/site/purification/Goal remain held. SG48bc and distinct TC79ad admission are pending."
+  },
+  "statement_seal": {
+    "file": "research-wiki/technical-lemmas/matrix-mgf-domain-statement-seal.json",
+    "sha256": "1b52776e9793f302109cb649dd0c82c666193086aa7546006e36651ee389e638",
+    "binder_audit": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/binder-definition-audit.original.v1.json",
+    "binder_audit_sha256": "ab17ddb4d2b402194af7b4668054d580956a80a103da938a25978d94e03e7744",
+    "status_clarification": ".astis/huanjian-gc-matrix-mgf-domain-20261115/seal-status-clarification.v1.json",
+    "signature_sha256": "1325b641c2497b5a495bfd16dc78a5699d4210ebff30d7b99f4b7e7079a9cf69",
+    "private_consumer_signature_sha256": "6945dce6a782eda6241c692777a8aa2fa5c98718af31106e0b6e046842deaf38",
+    "status": "STATEMENT_SEALED_AND_DISTINCT_PREPROOF_TOPOLOGY_ADMITTED"
+  },
+  "source_proof_coverage": {
+    "state": "source-topology-reviewed-mathematical-gaps-open",
+    "source_graph_actor_hint": "SG48bc",
+    "distinct_topology_actor_hint": "TC79ad",
+    "review_files": [
+      ".astis/semantic-neutral-20261115/matrix_domain_tc_79ad/topology-review.v1.json",
+      ".astis/semantic-neutral-20261115/matrix_domain_sg_48bc/source-graph.v1.json",
+      ".astis/huanjian-gc-matrix-mgf-domain-20261115/source-topology-repair.proposed-v2.json"
+    ],
+    "not_math_VERIFIED": true,
+    "source_gap_discharge": "Compiled author implementation supplies finite integration, strict true mean PD, four-family envelope and trace commutation; independent source/native/module review remains pending. Optional uniform lower-envelope route is unimplemented.",
+    "independent_verdict_scope": "Only preproof exact statement/topology; no future source fidelity or Lean truth."
+  },
+  "semantic_roundtrip": {
+    "required": true,
+    "audit_id": "huanjian-matrix-mgf-domain",
+    "state": "draft",
+    "qualification": "Planned ID only; no canonical audit or blind/source verdict exists."
+  },
+  "evidence": {
+    "focused_checks": [],
+    "independent_verification": "",
+    "root_build": "",
+    "graph_regeneration": "",
+    "pr": "",
+    "actual_type_formation_only": {
+      "receipt": ".astis/huanjian-resume-20261103/20261115T133521893299Z-gc-matrix-mgf-P-T-candidate-type-formation-v2-import-context-only.receipt.json",
+      "sha256": "05e400c58f0d1272f14e7eea763af6966a30651d4d509b76acf33300099a7552",
+      "exit_code": 0,
+      "only_Prop_formation_not_any_target_theorem": true
+    },
+    "failed_type_formation_preserved": ".astis/huanjian-resume-20261103/20261115T133203939211Z-gc-matrix-mgf-P-T-candidate-statements-type-formation-only.receipt.json",
+    "failed_formation_classification": "IMPLEMENTATION_FAILED: absent Gaussian import context only; signatures unchanged; v1 failed probe contains compiler-generated sorry term and is never proof evidence. v2 has no error.",
+    "normal_intake": "pending",
+    "target_proof": "pending",
+    "native_review": "pending",
+    "source_review": "pending",
+    "reader_review": "pending",
+    "normal_PL": "pending",
+    "normal_V": "pending",
+    "planned_evidence_prefix": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/"
+  },
+  "purification": {
+    "status": "pending"
+  },
+  "blocked": {
+    "reason": "",
+    "children": []
+  },
+  "truth_boundary": "Author-sealed targets only. P is the generic real probability integral of an integrable AE positive-definite matrix function; its probability/integrability/AE-PD hypotheses are natural generic data, not new Gaussian T premises. Empty finite matrix indices remain permitted by the exact P. T retains the original unconditional Gaussian experiment, inclusive own-row cutoff, actual full-law means, Gaussian-first paired indices, q=0, every real s, two actual weights and both global signs. Its exact target is matrix-exponential Bochner integrability, positive definiteness of the true matrix mean, trace/integral commutation, strict positive ordinary trace and the exact r² exp(|s| d Rstar) upper cap. Those internal regularity/radius/PD/integrability ingredients must be produced inside T. No new target proof, compiled value parent/consumer, independent source/native/reader acceptance, intake/PL/V, matrix logarithm theorem, quantitative uniform spectral lower bound, Lieb/master-tail/Bernstein/tail/C6/main lower bound or oracle/precision/cost claim. Main/shared imports/Registry/graphs/rootTests/site/purification/Goal remain held. SG48bc and distinct TC79ad admission are pending.",
+  "integration_notes": {
+    "status": "Preserve every old/foreign ledger/frontier and held main owner. No shared imports/rootTests/Registry/Graph/sourceIndex/site edit or new Goal. No old R16 result re-audited here.",
+    "original_stabilization_owners_held": [
+      {
+        "advance_id": "ASTIS-SA-20261110-SlcLsiWeightedRadialMGF",
+        "owner_id": "/root"
+      },
+      {
+        "advance_id": "ASTIS-SA-20261109-StatOTGaussianMixtureWasserstein",
+        "owner_id": "root_statot_gaussian_mixture_wasserstein_20261109"
+      }
+    ]
+  },
+  "phase_snapshot": "Normal proposal/CLAIMED/EXPLORING completed once. Exact P and literal private T now compile on the actual working bytes at sourceHEAD960c. Local mathematical candidate only; no normal PL/V/source/module/reader acceptance. Future immutable candidate identity must not be retroactively attributed as build-time HEAD.",
+  "compiled_worktree_candidate": {
+    "source_HEAD_at_build": "960c7dbe2215ba2f76d2346e2e86883ee7a43d95",
+    "files": [
+      {
+        "role": "canonical_producer",
+        "path": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+        "sha256": "d3c6e5a194fecf1ae1abe45c70310f4f47d66e903b098019c326ee0d3018b024",
+        "sealed_signature_sha256": "1325b641c2497b5a495bfd16dc78a5699d4210ebff30d7b99f4b7e7079a9cf69"
+      },
+      {
+        "role": "private_real_consumer",
+        "path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+        "sha256": "60e9f7b928ebc1b8a0d9efad93f39f1b172fe0a871893d67eb1015582c5d5c61",
+        "sealed_signature_sha256": "6945dce6a782eda6241c692777a8aa2fa5c98718af31106e0b6e046842deaf38"
+      }
+    ],
+    "receipt": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/first-actual-P-T-build.original.receipt.json",
+    "receipt_sha256": "49a98ab7de33aa3699b1b16b9e1160cc1ea84636ce9a97beb852d40882194d8e",
+    "exit_code": 0,
+    "immutable_candidate_commit_pending": true
+  }
+}

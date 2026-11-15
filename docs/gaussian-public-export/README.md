@@ -213,3 +213,50 @@ Bernstein/norm tail, C.6 or complete main lower bound. Exact-matvec, TV/precisio
 dimension/condition-number ranges, deterministic worst-query caps and explicit
 expected-cost adaptations remain separate obligations. Both full main lower
 bounds and whole-Goal acceptance remain open.
+
+
+## Positive-definite matrix-exponential means — 2026-11-15
+
+The new canonical real-matrix integral theorem proves that an integrable,
+almost-everywhere positive-definite matrix function on a probability space has
+a positive-definite Bochner mean. Empty finite matrix indices remain allowed.
+The proof uses the existing canonical positive-semidefinite integral theorem
+and proves strict positivity of every nonzero quadratic direction; no uniform
+spectral lower bound is added as a premise.
+
+Its private material consumer keeps the literal unconditioned Gaussian row
+experiment, own-row truncation, true full-law means, Gaussian-first paired
+indices, q=0, both ordinary/cosine weights, both global signs and every real
+parameter. It derives matrix-exponential integrability and
+
+$$
+M(s)=\mathbb E[e^{sS}]\succ0,\qquad
+\operatorname{tr}M(s)=\mathbb E[\operatorname{tr}e^{sS}],\qquad
+0<\operatorname{tr}M(s)\le r^2\exp(|s|dR_*).
+$$
+
+All measurability, integrability, Hermitian structure, radius and positive-domain
+ingredients are proved internally using canonical producers. The consumer
+receives no extra public theorem node. The immutable mathematical source is
+`a8bb8ea5b4474be5214bd83ae380a612e2cecb78`. Independent native verification
+freshly rebuilt its exact13 ASTIS/Tests modules, checked actual type/value and
+kernel closure with only the three standard axioms, and tested empty/singleton
+indices, an almost-everywhere-only case and all four q=0 Gaussian choices.
+Later metadata and public-export identities are not retroactively called built.
+
+Separate source-blind decoding and fresh raw-source-first review accepted both
+complete modules and the five reader proof spans. Two correspondence locators
+were corrected through a distinct exact review. The actual isolated successor
+reader passed523 checks with0 false checks and50 new screenshots; an independent
+review inspected all50 and recomputed261 data checks. The original failed
+reader, separate diagnosis and withdrawn unexecuted proposal remain explicit.
+The served successor changes only two scoped declaration-grid CSS rules; source
+anchors use natural settled geometry with the original strict predicate.
+
+Normal admission, its original evidence and exact independent outcome are bound
+separately in the incremental provenance. Shared main/Registry/global graph and
+production-site integration remain with the original stabilization lane.
+Matrix logarithm identities, Lieb/master-tail/Bernstein, C.6/Lemma4.4,
+adaptive transcript/output laws, both complete main lower bounds, exact-matvec,
+TV/precision/deterministic-cap/expected-cost adapters and final purification and
+whole-Goal acceptance remain unfinished.

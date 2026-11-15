@@ -1,0 +1,270 @@
+{
+  "schema": "author-derived-domain-bridges-v1",
+  "seal_sha256": "1b52776e9793f302109cb649dd0c82c666193086aa7546006e36651ee389e638",
+  "classification": "Level B canonical matrix-integration infrastructure plus private concrete source consumer; no printed theorem attribution and no proof evidence",
+  "exact_sealed_P": "∀ {ι : Type u} {Ω : Type v} [Fintype ι] [DecidableEq ι] [MeasurableSpace Ω]\n  {μ : Measure Ω} [IsProbabilityMeasure μ],\n  ∀ (f : Ω → Matrix ι ι ℝ), Integrable f μ →\n    (∀ᵐ ω ∂μ, (f ω).PosDef) → (∫ ω, f ω ∂μ).PosDef\n",
+  "exact_sealed_T": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n",
+  "nodes": [
+    {
+      "id": "AD-P",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "On any probability space, an integrable finite real square-matrix field f with f(ω) PD a.e. has PD Bochner mean ∫f.",
+      "needs": [
+        "finite real square carrier",
+        "probability measure",
+        "Integrable f",
+        "f PD a.e."
+      ],
+      "conditional_discharge": [
+        "Self-adjointness of the integral follows by finite entrywise transpose/linear integration.",
+        "For each fixed nonzero real vector x, xᵀf(ω)x is integrable and positive a.e.; a probability measure has positive total mass, so its integral is positive.",
+        "Finite-sum/linear-map commutation identifies ∫xᵀf x with xᵀ(∫f)x. No uniform lower eigenvalue hypothesis is required.",
+        "Empty finite index carrier is allowed: positivity on nonzero vectors is vacuous; integral self-adjointness remains."
+      ],
+      "consumer_use_sites": [
+        "Sealed canonical P",
+        "AD-MX-PD via route R-T-P"
+      ]
+    },
+    {
+      "id": "AD-LAW-DEFINITIONS",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "The sealed finite product μ=⊗_{b∈Fin r}stdGaussian(R^d) is a probability measure; the sealed zero-based α,row,tvec,Y,mean,Z agree with the source one-based γ_i,t_i,Y_i,EY_i,Z_i.",
+      "needs": [
+        "sealed hq:2q+1<d",
+        "source GC-SETUP,GC-TRUNCATION,GC-Y,GC-Z"
+      ],
+      "conditional_discharge": [
+        "d≥2 and r=q+1≥1; α_i=((i.val+1)−1/2)π/d is the source angle.",
+        "Each row is an N(0,I_r) vector; tvec matches the constant/cosine source vector coordinate by coordinate.",
+        "Finite product law is the full Gaussian law. Ex107 cutoff is incorporated in Y, never imposed by conditioning on T.",
+        "Y entries are measurable: Gaussian coordinates, polynomial products, finite Kronecker entries and the measurable cutoff."
+      ],
+      "consumer_use_sites": [
+        "Sealed private T and all AD nodes below"
+      ]
+    },
+    {
+      "id": "AD-Y-Z-DOMAIN",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "Every source-truncated Y_i is a bounded measurable finite-dimensional matrix field, hence Bochner integrable; mean_i is its actual integral and Z_i=Y_i−mean_i is a measurable symmetric field.",
+      "needs": [
+        "AD-LAW-DEFINITIONS",
+        "GC-Y-MEAN-NORM",
+        "GC-Z"
+      ],
+      "conditional_discharge": [
+        "The source operator bound 2rL/d is finite; L>0 from d≥2,r≥1.",
+        "Finite-dimensional norm equivalence transports the operator-norm bound to any implementation norm used for Bochner integration.",
+        "Symmetry follows from real outer products, Kronecker product, scalar cutoff, and entrywise integration; no mean supplied as an extra binder."
+      ],
+      "consumer_use_sites": [
+        "AD-S-BOUND",
+        "AD-G-DOMAIN"
+      ]
+    },
+    {
+      "id": "AD-S-BOUND",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "For each useCos,minus∈Bool and every ω, S=sign(minus)Σ_i w(useCos,i)Z_i(ω) is symmetric and ‖S‖op≤dR*; R*=2r(L+1)/d.",
+      "needs": [
+        "AD-Y-Z-DOMAIN",
+        "GC-Z-NORM",
+        "GC-WEIGHTED-NORM"
+      ],
+      "conditional_discharge": [
+        "Ordinary w=1; cosine w=cos(nα_i) has |w|≤1.",
+        "Both signs have absolute value1; the triangle inequality over exactly d summands gives dR*.",
+        "R*≥0 and the bound holds pointwise on the entire product law, including outside T."
+      ],
+      "consumer_use_sites": [
+        "AD-G-DOMAIN",
+        "AD-POINTWISE-PD",
+        "AD-TRACE-ENVELOPE"
+      ]
+    },
+    {
+      "id": "AD-G-DOMAIN",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "For every real s and all four signed/weighted families, G(ω)=exp(sS(ω)) is measurable and Bochner integrable.",
+      "needs": [
+        "AD-Y-Z-DOMAIN",
+        "AD-S-BOUND",
+        "TR-EXP",
+        "TR-FUNCTIONAL-CALCULUS"
+      ],
+      "conditional_discharge": [
+        "Matrix exponential is continuous; composing with measurable S is measurable.",
+        "Let c=|s|dR*≥0. Symmetry and ‖sS‖op≤c place every eigenvalue in[−c,c], giving ‖exp(sS)‖op≤exp(c).",
+        "Finite-dimensional norm equivalence and μ(Ω)=1 turn this uniform finite bound into Bochner integrability.",
+        "No s>0 or small-s condition is needed; s=0 and either sign are covered."
+      ],
+      "consumer_use_sites": [
+        "AD-MX-PD",
+        "AD-TRACE-COMMUTE",
+        "Sealed T integrability conjunct"
+      ]
+    },
+    {
+      "id": "AD-POINTWISE-PD",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "For all real s, exp(sS(ω)) is symmetric positive definite at every ω.",
+      "needs": [
+        "AD-S-BOUND",
+        "TR-EXP-PD"
+      ],
+      "conditional_discharge": [
+        "sS is real symmetric; spectral mapping gives strictly positive exp eigenvalues."
+      ],
+      "consumer_use_sites": [
+        "AD-MX-PD route R-T-P"
+      ]
+    },
+    {
+      "id": "AD-MX-PD",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "The actual mean MX=∫G is positive definite.",
+      "needs": [
+        "AD-G-DOMAIN"
+      ],
+      "conditional_discharge": [
+        "Choose one of the independent sufficient routes R-T-P OR R-T-UNIFORM below; do not require both."
+      ],
+      "consumer_use_sites": [
+        "Sealed T PosDef conjunct",
+        "AD-TRACE-POSITIVE",
+        "Tropp log-domain motivation only"
+      ]
+    },
+    {
+      "id": "AD-TRACE-COMMUTE",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "tr(MX)=∫tr(G), with tr(G) integrable.",
+      "needs": [
+        "AD-G-DOMAIN",
+        "finite matrix dimension N=r²"
+      ],
+      "conditional_discharge": [
+        "Trace is a continuous linear functional/finite sum of integrable diagonal coordinates; commute it with the Bochner integral."
+      ],
+      "consumer_use_sites": [
+        "Sealed T trace equality",
+        "AD-TRACE-ENVELOPE"
+      ]
+    },
+    {
+      "id": "AD-TRACE-POSITIVE",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "0<tr(MX).",
+      "needs": [
+        "AD-MX-PD",
+        "AD-LAW-DEFINITIONS"
+      ],
+      "conditional_discharge": [
+        "The matrix index Fin r×Fin r is nonempty because r≥1, so a PD matrix has positive diagonal entries and strictly positive finite trace.",
+        "Generic P itself does not assume nonempty indices; that condition is required here for strict trace positivity."
+      ],
+      "consumer_use_sites": [
+        "Sealed T strict trace conjunct"
+      ]
+    },
+    {
+      "id": "AD-TRACE-ENVELOPE",
+      "level": "B-author-derived",
+      "status": "MATHEMATICAL_OBLIGATION_NOT_FORMAL_PROOF",
+      "statement": "For c=|s|dR*, tr(MX)≤r²exp(c)=B.",
+      "needs": [
+        "AD-S-BOUND",
+        "AD-G-DOMAIN",
+        "AD-TRACE-COMMUTE",
+        "TR-FUNCTIONAL-CALCULUS"
+      ],
+      "conditional_discharge": [
+        "Pointwise exp eigenvalues≤exp(c), so trG≤Nexp(c), N=card(Fin r×Fin r)=r².",
+        "Integrate the pointwise bound on the probability measure and use trace commutation.",
+        "This is a deterministic dimension envelope; it does not use independence, centering, variance, Lieb, or Bernstein."
+      ],
+      "consumer_use_sites": [
+        "Sealed T upper-bound conjunct"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "id": "R-T-P",
+      "semantics": "sufficient-all-of",
+      "all_of": [
+        "AD-P",
+        "AD-G-DOMAIN",
+        "AD-POINTWISE-PD"
+      ],
+      "to": "AD-MX-PD",
+      "consumer_use_site": "Actual integral MX in sealed T",
+      "discharge": "Integrable G is established internally and pointwise PD implies a.e. PD; μ is a probability law."
+    },
+    {
+      "id": "R-T-UNIFORM",
+      "semantics": "sufficient-all-of",
+      "all_of": [
+        "AD-G-DOMAIN",
+        "AD-S-BOUND",
+        "TR-TRANSFER",
+        "TR-FUNCTIONAL-CALCULUS"
+      ],
+      "to": "AD-MX-PD",
+      "consumer_use_site": "Optional direct domain route for actual MX in sealed T",
+      "discharge": "Spectrum(sS)⊆[−c,c] gives exp(sS)≽exp(−c)I; integration preserves order; exp(−c)>0 and μ(Ω)=1 give a strictly PD mean.",
+      "source_credit": "author-derived composition; not a printed standalone theorem"
+    }
+  ],
+  "route_choices": [
+    {
+      "target": "AD-MX-PD",
+      "any_of_routes": [
+        "R-T-P",
+        "R-T-UNIFORM"
+      ],
+      "false_and_forbidden": true
+    }
+  ],
+  "gap_map": {
+    "GAP-FINITE-MATRIX-INTEGRATION": [
+      "AD-LAW-DEFINITIONS",
+      "AD-Y-Z-DOMAIN",
+      "AD-G-DOMAIN"
+    ],
+    "GAP-STRICT-MEAN-PD": [
+      "AD-P",
+      "AD-MX-PD"
+    ],
+    "GAP-FOUR-MGF-ENVELOPE": [
+      "AD-S-BOUND",
+      "AD-POINTWISE-PD",
+      "AD-TRACE-POSITIVE",
+      "AD-TRACE-ENVELOPE"
+    ],
+    "GAP-TRACE-COMMUTE": [
+      "AD-TRACE-COMMUTE"
+    ]
+  },
+  "source_to_seal_semantics": {
+    "P": "Author-derived generic finite real matrix integral positivity. No source theorem/lemma number is claimed.",
+    "T": "A concrete full-law domain completion for literal Ex107–112 matrices and the two families later consumed at Ex121/p15.2. The sources do not print the all-real four-family theorem.",
+    "not_sealed": [
+      "definition or theorem about matrix logarithm",
+      "Lieb or matrix Bernstein",
+      "FactC.6 or main lower bound",
+      "any compiled theorem status"
+    ]
+  },
+  "verdict": "NONE: mathematical obligations and candidate sufficient routes only; independent topology review pending"
+}

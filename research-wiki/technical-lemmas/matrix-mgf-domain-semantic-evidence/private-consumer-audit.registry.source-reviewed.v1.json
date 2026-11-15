@@ -1,0 +1,683 @@
+{
+  "schema_version": 1,
+  "protocol": {
+    "name": "ASTIS Semantic Round-Trip",
+    "status": "active",
+    "decoder_blindness": "required",
+    "decoder_context_content_scan": "required",
+    "independent_source_review": "required",
+    "source_review_packet_binding": "required",
+    "independent_repair_review": "required",
+    "repair_review_packet_binding": "required",
+    "decoder_allowed_inputs": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "verdicts": [
+      "pending",
+      "exact",
+      "equivalent-after-elaboration",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "domain-mismatch",
+      "quantifier-mismatch",
+      "source-underspecified",
+      "possible-source-error"
+    ],
+    "repair_policy": "A repair is a separately reviewed proposal. It never overwrites or silently weakens the pinned source theorem, and formalization artifacts may not be accepted as source corrections. Every reviewed repair is bound to its exact proposal payload and an independent repair-review packet."
+  },
+  "audits": [
+    {
+      "id": "huanjian-matrix-mgf-domain-private",
+      "state": "source-reviewed",
+      "base_commit": "960c7dbe2215ba2f76d2346e2e86883ee7a43d95",
+      "candidate_commit": "a8bb8ea5b4474be5214bd83ae380a612e2cecb78",
+      "source": {
+        "source_id": "literal-four-matrix-MGF-domain-derived-bridge",
+        "anchor": "Tropp §§2.4/2.7/3.1 background; Gaussian C.2 literal definitions/Ex107–112 and concentration continuation context; standalone bridge not printed",
+        "original_text": "For the literal original product Gaussian experiment with only 2q+1<d, retain inclusive own-row truncated Kronecker matrices and actual full-law means. For ordinary/cosine weights, both global signs and every real s, G=exp(sS) is matrix-Bochner-integrable, its true mean MX=∫G is positive definite, tr MX=∫tr G, and 0<tr MX≤r²exp(|s|dRstar). All regularity, radius and integrability ingredients are internal. This is an author-derived omitted source-domain bridge, not the source Bernstein theorem.",
+        "text_sha256": "1fd3193b31c72f7ec1b52da16d43f2d435832d9f846b9884cddb41677dc7d5f9",
+        "original_text_status": "Author-formulated candidate correspondence; not a verbatim printed theorem."
+      },
+      "lean": {
+        "declaration": "AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain.actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded",
+        "file": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+        "statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n",
+        "statement_sha256": "6945dce6a782eda6241c692777a8aa2fa5c98718af31106e0b6e046842deaf38",
+        "compiled": true,
+        "formalizer": "huanjian_20261115_matrix_exponential_domain",
+        "decoder_context": [
+          "Matrix ι ι ℝ is the finite real square-matrix algebra; Fintype supplies a finite enumeration and DecidableEq equality decisions. No Nonempty typeclass is present.",
+          "A.PosDef denotes a Hermitian real matrix whose quadratic form is strictly positive on each nonzero vector. Over ℝ Hermitian means transpose equality.",
+          "Measure Ω is a measure on the given measurable space. IsProbabilityMeasure means total mass one. Integrable f μ is Bochner integrability of the displayed matrix-valued function, and ∫ω,f ω∂μ is its Bochner integral under precisely μ.",
+          "∀ᵐω∂μ means for μ-almost every ω. Type universes u and v permit independent index and outcome types.",
+          "EuclideanSpace ℝ (Fin n) is the n-dimensional real Euclidean space. WithLp.toLp 2 and WithLp.ofLp change coordinate representation without changing coordinates.",
+          "stdGaussian denotes the centered standard Gaussian law and Measure.pi forms the displayed finite product measure.",
+          "Matrix.vecMulVec is the displayed outer product; Matrix.kronecker has paired indices in the displayed factor order. An if expression uses its literal inclusive comparison and zero-matrix branch.",
+          "Fin d enumerates zero through d−1; the angle adds one explicitly. The universally quantified Booleans select the displayed deterministic weight and one global scalar sign.",
+          "NormedSpace.exp is the power-series exponential in the matrix algebra, not entrywise exponentiation. Real.exp is scalar exponential. Matrix.trace is the ordinary unnormalized diagonal sum. The scoped matrix norm is the Euclidean/L2 operator norm."
+        ],
+        "compiler_evidence": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/first-actual-P-T-build.original.receipt.json",
+        "compiler_evidence_sha256": "49a98ab7de33aa3699b1b16b9e1160cc1ea84636ce9a97beb852d40882194d8e",
+        "compilation_scope": "ROOT first-attempt actual P/T worktree build exit0 at960c with exact new file bytes, then immutable a8bb freeze. No retroactive immutable-a8bb or future-metadata build claim."
+      },
+      "reconstruction": {
+        "text": "Let d,q ∈ ℕ satisfy 2q + 1 < d. Put n = q + 1 and r = n, with r regarded as a real number. Let D = ℝ^d and E = ℝ^n with their Euclidean structures, let Ω = (Fin n → D), and let μ = ⨂_{b∈Fin n} γ_D, where γ_D is the centered standard Gaussian law on D. Let M be the real square-matrix algebra indexed, in each direction, by Fin n × Fin n; thus its matrices have size n² × n².\n\nFor i ∈ Fin d and k ∈ Fin n define\n  L = 2r + 3 log(1000d),\n  α_i = ((i + 1 - 1/2)π)/d,\n  t_i(k) = 1 if k = 0, and t_i(k) = √2 cos(k α_i) otherwise.\nAll natural-number entries in these real formulas are cast to ℝ, and i and k denote the zero-based integer values of their Fin indices. For ω ∈ Ω let x_i(ω) ∈ E have coordinate x_i(ω)_b = ω(b)_i. Define\n  Y_i(ω) = d⁻¹ [(x_i(ω)x_i(ω)ᵀ) ⊗ (t_i t_iᵀ)] if ‖x_i(ω)‖² ≤ L,\n  Y_i(ω) = 0 otherwise,\n  m_i = ∫_Ω Y_i(ω) dμ(ω),\n  Z_i(ω) = Y_i(ω) - m_i.\nHere ⊗ is the Kronecker product with the x-factor first and the t-factor second. The truncation includes equality at L, and the other branch is the zero matrix.\n\nFor Boolean values c,e define\n  w_c(i) = cos((2q + 1)α_i) if c = true, and w_c(i) = 1 if c = false,\n  σ_e = -1 if e = true, and σ_e = 1 if e = false,\n  S_{c,e}(ω) = σ_e ∑_{i∈Fin d} w_c(i) Z_i(ω),\n  R_* = 2r(L + 1)/d.\nFor every real s and every pair of Boolean values c,e, set\n  G(ω) = exp_M(s S_{c,e}(ω)),\n  MX = ∫_Ω G(ω) dμ(ω),\n  B = r² exp_ℝ(|s| d R_*).\nThen G is Bochner integrable with respect to μ; MX is positive definite; tr(MX) = ∫_Ω tr(G(ω)) dμ(ω); and 0 < tr(MX) ≤ B. The exponential exp_M is the power-series exponential of the matrix algebra, exp_ℝ is the scalar exponential, and tr is the ordinary unnormalized trace. Positive definite means symmetric with a strictly positive quadratic form on every nonzero vector.",
+        "text_sha256": "9a495c5572f94430b8f4a953f68c1c8fe1c584e6972981e74f4a620642406db1",
+        "decoder": "/root/blind_decoder_8f2c",
+        "decoder_run_sha256": "e99cfb25a546fd7b75db934dce5660b20c41e1a9f012d7089458aed9a656afa6",
+        "source_text_visible": false,
+        "lean_statement_sha256": "6945dce6a782eda6241c692777a8aa2fa5c98718af31106e0b6e046842deaf38",
+        "decoder_packet_sha256": "9ac9e263ab4da427e7721edad1f208be903b5f283e9278ae2e87d1db1798cc54",
+        "input_artifacts": [
+          "lean-statement",
+          "approved-definition-context"
+        ],
+        "actor_exact_input_artifacts": [
+          {
+            "approved_definition_context_sha256": "bdbb5e85499f85ff943dcac0aa13186caebcbd928ac517c200c43a89f8ed7a0d",
+            "canonical_packet_sha256": "9ac9e263ab4da427e7721edad1f208be903b5f283e9278ae2e87d1db1798cc54",
+            "file_sha256": "91bc940db5108bc9830360b3e511921500bffd65ab352c6f9fd7388a76c26347",
+            "mathematical_input_fields": [
+              "lean.statement",
+              "lean.approved_definition_context"
+            ],
+            "path": "/Users/zhouhuanjian/ASTIS-GC/.astis/semantic-neutral-20261115/blind_inputs_8f2c/packet-b.json",
+            "statement_sha256": "6945dce6a782eda6241c692777a8aa2fa5c98718af31106e0b6e046842deaf38"
+          }
+        ],
+        "actor_original_result": {
+          "file": ".astis/semantic-neutral-20261115/blind_result_8f2c/result-b.json",
+          "sha256": "2f33891afbb53dc659dd9f0370bbc178211aa6df7dfe50cb5ad8bb23f8d1ab06",
+          "portable_alias": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/decoder-originals/blind_decoder_8f2c/result-b.json"
+        },
+        "actor_original_run": {
+          "file": ".astis/semantic-neutral-20261115/blind_result_8f2c/decoder-run.json",
+          "sha256": "e99cfb25a546fd7b75db934dce5660b20c41e1a9f012d7089458aed9a656afa6",
+          "portable_alias": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/decoder-originals/blind_decoder_8f2c/decoder-run.json"
+        },
+        "actor_seven_reconstruction_slots": {
+          "objects": "Natural numbers d,q; n=q+1 and real r=n; Euclidean spaces D=ℝ^d and E=ℝ^n; Ω=Fin n→D; the finite product Gaussian law μ; the real matrix algebra M indexed by Fin n×Fin n; deterministic L,α_i,t_i; row vectors x_i(ω); truncated matrices Y_i; their Bochner means m_i; centered matrices Z_i; Boolean-selected deterministic weights w_c and one global sign σ_e; S_{c,e}; R_*; a real parameter s; the matrix exponential G; its Bochner integral MX; and scalar bound B.",
+          "domains": "d,q range over ℕ, subject to 2q+1<d. Thus q=0 is allowed and d is positive (indeed d≥2); n=q+1≥1 follows from the domains. i ranges over Fin d={0,…,d−1}; b,k range over Fin n={0,…,q}. ω is a function assigning one vector of D to each b. μ=Measure.pi(fun b=>stdGaussian D). Matrices have n² rows and n² columns with paired indices in the displayed factor order. s ranges over all ℝ. c,e each range over Bool.",
+          "quantifiers": "For every d,q∈ℕ and every witness of 2q+1<d, introduce the displayed deterministic and random objects by definitions. Then for every s∈ℝ and every c,e∈Bool, define G,MX,B and assert all five conjuncts together: integrability of G; positive definiteness of MX; equality between trace of its integral and integral of its trace; strict positivity of that trace; and its upper bound B. Finite sums include every i∈Fin d. No existential parameter or probability-event quantifier occurs in the conclusion.",
+          "assumptions": "The sole numerical hypothesis is 2q+1<d for natural d,q. The Gaussian product law and every matrix, vector, scalar, and Boolean choice are supplied by the displayed definitions. There is no added restriction s>0 or s≥0, no separate q>0 premise, no conditioning event, and no extra integrability or positive-definiteness premise.",
+          "conclusion": "For G(ω)=exp_M(s S_{c,e}(ω)), MX=∫_ΩG dμ, and B=r²exp_ℝ(|s|dR_*), one has Integrable G μ, MX.PosDef, tr(MX)=∫_Ωtr(G(ω))dμ(ω), and 0<tr(MX)≤B. These hold for all real s and all four Boolean choices of c,e.",
+          "scopes": "All displayed integrals use precisely the finite product Gaussian measure μ. x_i(ω) has coordinates ω(b)_i; converting to or from WithLp preserves these coordinates. Truncation is by the Euclidean vector norm squared, with the inclusive condition ‖x_i(ω)‖²≤L and zero outside. In the Kronecker product, x_ix_iᵀ is the first factor and t_it_iᵀ the second, so entry ((b,k),(b′,k′)) is d⁻¹x_i(b)x_i(b′)t_i(k)t_i(k′) inside the truncation. The first cosine coordinate is t_i(0)=1; later coordinates use √2cos(kα_i). The angle uses the explicitly added one: α_i=(i+1−1/2)π/d for zero-based i. c selects either the cosine weight at frequency 2q+1 or constant weight one. e selects one global scalar sign outside the entire sum. exp_M is the matrix-algebra power-series exponential, whereas exp_ℝ is scalar. Trace is the ordinary diagonal sum without division by dimension. MX.PosDef means symmetry and strict positivity on nonzero vectors. Any scoped matrix norm is the Euclidean/L2 operator norm. The parameter s includes zero and negative values; |s| occurs in B.",
+          "constant_dependencies": "n=q+1 and r=(q+1) as a real number. L=2r+3log(1000d), so L depends only on d,q and the literal constants 2,3,1000. α_i=(i+1−1/2)π/d depends on d,i; t_i(k) depends on d,i,k and the literal √2 and π. Y_i depends on d,q,i,ω; m_i additionally uses the fixed μ, itself determined by d,q; Z_i=Y_i−m_i. w_c(i) depends on d,q,c,i, and σ_e depends only on e. S_{c,e} depends on d,q,c,e,ω. R_*=2r(L+1)/d depends only on d,q. G depends on d,q,c,e,s,ω; MX depends on d,q,c,e,s after integrating ω. B=r²exp_ℝ(|s|dR_*) depends only on d,q,s and is uniform across both Boolean choices. There are no unspecified or existential constants."
+        }
+      },
+      "source_review": {
+        "state": "accepted",
+        "reviewer": "/root/matrix_domain_fresh_source_53d8",
+        "independent_from_formalizer": true,
+        "independent_from_decoder": true,
+        "evidence": "Actual run .astis/semantic-neutral-20261115/matrix_domain_fresh_source_53d8/source-review.run.v1.json SHA256 1b2e4964109b4ca0c495f9ad2ecf50ed7f1508adfe38370487a182ad5fc9466a; unchanged raw-first freeze 3fc085c0ea95ed3ce56ce4b7d75af67c52fe842e4b20913f38b0877b0eab7ee1; exact immutable/current modules and five spans audited. Publication binding 5e79fa3d4390c4d1e689174b0c014d67fb8dbfb550f986b4af7d8474ef644691. The author-derived generic P and literal concrete T are reviewed separately from printed source theorem attribution. No blocking mathematical delta or source/Lean repair found. Two authored source-gap locator metadata fields require the separate exact overlay .astis/semantic-neutral-20261115/matrix_domain_fresh_source_53d8/source-correspondence-locator-only.proposed-v1.json SHA256 44707d2a450a5fc09d749a9ee5196be05d025a603c77e2508a0c9c0044a50725, not a source theorem repair; its acceptance remains for a distinct reviewer.",
+        "review_run_sha256": "1b2e4964109b4ca0c495f9ad2ecf50ed7f1508adfe38370487a182ad5fc9466a",
+        "reviewer_packet_sha256": "733a00239226590d8a5255e2ff80572226d6e89e452cf04dbe290796d434e878",
+        "run_artifact": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/source-review/matrix_domain_fresh_source_53d8/originals/source-review.run.v1.json",
+        "result_artifact": "research-wiki/technical-lemmas/matrix-mgf-domain-semantic-evidence/source-review/matrix_domain_fresh_source_53d8/originals/source-review.private.v1.json",
+        "original_result_sha256": "d79ffed0cc5981bddbecb4fce0fea2f9023d56b4ca425bf3736ee53ebef802a9",
+        "locator_overlay_scope": "The source/Lean/lesson seven-slot verdict is accepted. Exact two-field correspondence locator overlay remains separately pending another reviewer; original authored map is preserved."
+      },
+      "semantic_slots": {
+        "objects": {
+          "original": "The source's original r=q+1 independent standard Gaussian d-vectors, own-row Gaussian vectors γ_i, cosine t_i, inclusive truncated gamma-first Kronecker Y_i, true means and centered Z_i; derived signed ordinary/cosine sums S and matrix exponential G=exp(sS), true MX and ordinary trace.",
+          "reconstructed": "The decoder expands the actual definitions, including row coordinates, zero branch, tensor order, actual full-law means, four Boolean families, matrix-algebra exponential and ordinary trace.",
+          "relation": "equivalent",
+          "evidence": "T20-49 matches frozen raw Gaussian C.2 definitions: row i uses ω b i, Y_i uses that same row, d⁻¹ and gamma-first Kronecker order, and mean_i is ∫Y_i under μ. T145-150 proves that G is the same-matrix spectral exponential, not entrywise exp. T187-190 identifies ordinary trace as a continuous linear map."
+        },
+        "domains": {
+          "original": "d,q∈N with 2q+1<d; q=0 allowed; μ is the original unconditional product standard Gaussian probability law on (R^d)^(q+1); real matrices of size r²; every finite real s.",
+          "reconstructed": "The decoder gives exactly this product law, finite paired index and all-real parameter domain, without event conditioning or a small-parameter restriction.",
+          "relation": "explicit-elaboration",
+          "evidence": "T19 is the sole mathematical premise. T23 defines Measure.pi stdGaussian; T83-87 constructs local Borel/probability instances rather than adding hypotheses. T24 has Fin(q+1)×Fin(q+1), and T46 quantifies all s∈R. d≥2 and r≥1 follow from typing/hq; no q>0 or d=r² assumption appears."
+        },
+        "quantifiers": {
+          "original": "For each allowed d,q, for every real s and each choice of ordinary/cosine weights and global sign, the full-law MGF-domain package holds. Global signs are not separately chosen per row.",
+          "reconstructed": "The decoder has ∀s and ∀c,e∈Bool; σ_e multiplies the entire sum. Its auxiliary symbol n=q+1 names the count of Gaussian vectors, while the cosine frequency remains explicitly 2q+1.",
+          "relation": "explicit-elaboration",
+          "evidence": "T40-46 uses one useCos and one minus for the whole experiment and sum. T115-137 treats both weight choices and both signs, and T138 introduces arbitrary s,useCos,minus. The decoder's local n rename has no semantic conflict with raw-source n=2q+1 because it preserves the actual frequency formula and every index cardinality."
+        },
+        "assumptions": {
+          "original": "The concrete source construction with only hq:2q+1<d. Analytic validity, probability structure, measurability, symmetry, norm bounds, exponential integrability and positivity are internal obligations.",
+          "reconstructed": "The decoder lists hq and definitions, with all matrix integrability and mean positivity placed in the conclusion rather than the hypotheses.",
+          "relation": "equivalent",
+          "evidence": "Whole T1-212 has no scoped variable or typeclass smuggling. T95-107 applies existing Structure/Radius producers to hq and the definitionally identical actual objects. T108-183 proves the Z/S radius, S structure, spectral exponential norm bound and Integrable G. T184-186 applies P with internally proved inputs. Independence and centering from Structure are available but are not required to create this deterministic dimension envelope."
+        },
+        "conclusion": {
+          "original": "Author-derived omitted domain bridge: G is matrix-Bochner integrable; actual MX=∫G is PD; tr MX=∫tr G; and 0<tr MX≤r²exp(|s|dR*). This is not the printed source Bernstein inequality.",
+          "reconstructed": "The decoder reconstructs all five conjuncts exactly, with the true matrix mean rather than a scalar-only integral or surrogate expectation.",
+          "relation": "equivalent",
+          "evidence": "T50-52 states the five conjuncts. T181-186 supplies integrability and PD of the same MX; T187-190 commutes trace; T191-209 obtains the exact cap; T210 uses hMX.trace_pos on the nonempty paired carrier. No finite bound is obtained from a totalized nonintegrable integral."
+        },
+        "scopes": {
+          "original": "Original-law indicator truncation at ||γ_i||²≤L, centering after truncation, same sample throughout, all four derived families, matrix power-series exp, ordinary unnormalized trace; no signed-law equality, logarithm or tail claim.",
+          "reconstructed": "The decoder states the same cutoff, zero off-cutoff branch, same-law means, global signs, matrix-algebra exponential and unnormalized trace.",
+          "relation": "explicit-elaboration",
+          "evidence": "T27 converts Fin i to physical i+1, T28-31 preserves the constant cosine coordinate and row, T33-39 retains the closed cutoff and genuine means, and T42-44 applies the global sign after summation. T145-158 supplies actual spectral positivity. The source's strict >t Bernstein endpoint is left untouched because no tail event is asserted. Ex121/p15.2 are downstream context/repeated applications, not ordinary-tail⇒weighted-tail implication."
+        },
+        "constant_dependencies": {
+          "original": "r=q+1, L=2r+3log(1000d), R*=2r(L+1)/d and B_s=r²exp(|s|dR*); d summands and r² ambient matrix dimension. No variance/Bernstein constant or uniform lower eigenvalue conclusion is part of this domain package.",
+          "reconstructed": "The decoder has these exact constants and dimensions, including absolute s and ordinary trace.",
+          "relation": "same",
+          "evidence": "T25-27, T45 and T49 give the exact formulas. T108-130 derives ||S||≤dR*. T159-175 bounds exp on the real spectrum. T191-206 proves card(Fin r×Fin r)=r² and applies the existing canonical trace-exponential envelope. The cap has r², not d,r,dr or Bernstein's 2r² prefactor; at s=0 its trace normalization is r²."
+        }
+      },
+      "deltas": [],
+      "verdict": "equivalent-after-elaboration",
+      "repairs": [],
+      "scope_boundary": "Only the author-derived generic real PD-integral P and its associated private literal Gaussian true matrix-exponential-mean domain consumer T are covered. P has natural probability, Bochner integrability and AE-PD data; these are not new T premises. Empty finite indices are allowed by P. T retains only hq:2q+1<d and its real/case parameters, the original unconditional product Gaussian law, inclusive own-row truncation, true full-law means, Gaussian-first paired indices, q=0, both actual weights and both global signs. T emits matrix-Bochner integrability, positive definiteness of the true mean, trace/integral commutation, and a strictly positive ordinary trace with the r² exponential upper cap. P is author-derived canonical background and T an omitted source-derived domain bridge, neither a standalone theorem printed by Tropp nor the source Bernstein conclusion. No matrix-log theorem, quantitative uniform spectral lower bound, Lieb/Jensen/Golden-Thompson, master-tail/independent-sum/Bernstein/norm-tail, Ex121/p15.2/C6/complete Lemma4.4/main lower bound or oracle/TV/precision/query-cap/expected-cost result is claimed. The Ex121→p15.2 source continuation is a repeated application for a weighted sequence, not ordinary-tail⇒weighted-tail implication. ROOT first-attempt exact-byte P/T worktree build at960c passed before freezing a8bb; no independent immutable-a8bb or future metadata/public-tree build is asserted. Independent native/value/source-blind/fresh-source/reader review, normal PL/V, main/shared graph/site integration, purification and Goal completion remain pending. T receives no extra public-node credit.",
+      "publication_binding_sha256": "5e79fa3d4390c4d1e689174b0c014d67fb8dbfb550f986b4af7d8474ef644691",
+      "publication_context": {
+        "file": "d3c6e5a194fecf1ae1abe45c70310f4f47d66e903b098019c326ee0d3018b024",
+        "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nimport Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap\nimport Mathlib.Topology.Algebra.Module.FiniteDimension\n\n/-! Positive definiteness of the true probability mean. This author-derived\ncanonical background reuses the existing PSD integral node and proves strict\npositivity separately for every nonzero quadratic-form test vector. Generic\nintegrability and AE-PD data must be derived internally by source consumers.\nEmpty finite matrix indices are allowed. -/\n\nopen MeasureTheory\nopen scoped Matrix.Norms.L2Operator\nnoncomputable section\nuniverse u v\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral\n\ntheorem integral_posDef :\n∀ {ι : Type u} {Ω : Type v} [Fintype ι] [DecidableEq ι] [MeasurableSpace Ω]\n  {μ : Measure Ω} [IsProbabilityMeasure μ],\n  ∀ (f : Ω → Matrix ι ι ℝ), Integrable f μ →\n    (∀ᵐ ω ∂μ, (f ω).PosDef) → (∫ ω, f ω ∂μ).PosDef\n := by\n  classical\n  intro ι Ω _ _ _ μ _ f hf hpos\n  have hpsd :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      f hf (hpos.mono fun _ h => h.posSemidef)\n  apply Matrix.PosDef.of_dotProduct_mulVec_pos hpsd.isHermitian\n  intro x hx\n  let L : Matrix ι ι ℝ →ₗ[ℝ] ℝ :=\n    { toFun := fun A => dotProduct (star x) (A.mulVec x)\n      map_add' := by intro A B; simp [Matrix.add_mulVec, dotProduct_add]\n      map_smul' := by intro c A; simp [Matrix.smul_mulVec, dotProduct_smul] }\n  let φ : Matrix ι ι ℝ →L[ℝ] ℝ := L.toContinuousLinearMap\n  have hfi : Integrable (fun ω => φ (f ω)) μ := φ.integrable_comp hf\n  have hstrict : ∀ᵐ ω ∂μ, 0 < φ (f ω) := by\n    filter_upwards [hpos] with ω hω\n    exact hω.dotProduct_mulVec_pos hx\n  have hnonneg : ∀ᵐ ω ∂μ, 0 ≤ φ (f ω) := hstrict.mono fun _ h => h.le\n  have hintpos : 0 < ∫ ω, φ (f ω) ∂μ := by\n    have hne : (∫ ω, φ (f ω) ∂μ) ≠ 0 := by\n      intro hz\n      have hzAE := (integral_eq_zero_iff_of_nonneg_ae hnonneg hfi).mp hz\n      obtain ⟨ω, hωpos, hωzero⟩ := (hstrict.and hzAE).exists\n      exact (ne_of_gt hωpos) hωzero\n    exact lt_of_le_of_ne (integral_nonneg_of_ae hnonneg) (Ne.symm hne)\n  rw [φ.integral_comp_comm hf] at hintpos\n  exact hintpos\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral\n",
+        "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+        "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+        "source": {
+          "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=8",
+          "edition": "Author preprint revised15June2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+          "anchor": "§2.4 matrix exponential/PD (p8); §2.7 expectation order (p9); §3.1 matrix-MGF definition and finite-domain caution (p9). Neither standalone generic P nor the literal four-family domain bridge is printed.",
+          "label": "Matrix-exponential and expectation-domain background",
+          "wording_status": "faithful paraphrase",
+          "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices. The cited background is paraphrased; the standalone PD-integral lemma is author-derived canonical infrastructure.",
+          "scope": "Finite real matrix probability means. No attribution of P as a printed Tropp theorem, no matrix-log identity or Bernstein theorem."
+        },
+        "statement": "Tropp gives matrix-exponential positivity, expectation-order background, and the matrix-MGF existence caution, but does not print this generic standalone lemma or the literal four-family bridge. The author-derived canonical statement is: on any probability space, an integrable finite real matrix field which is positive definite almost everywhere has a positive-definite true Bochner mean; empty finite indices are allowed. Its private literal Gaussian consumer establishes all-real matrix-exponential Bochner integrability, positive definiteness of the true full-law mean, trace/integral commutation, and a strictly positive ordinary trace bounded by r²exp(|s|dR*). This is domain infrastructure, not a matrix-log identity or the source Bernstein conclusion.",
+        "formulae": [
+          {
+            "label": "Canonical positive-definite true mean",
+            "tex": "f\\in L^1(\\mu;\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)),\\quad f(\\omega)\\succ0\\ \\mu\\text{-a.e.}\\quad\\Longrightarrow\\quad\\int f\\,d\\mu\\succ0."
+          }
+        ],
+        "assumptions": [
+          "Let \\(\\mathcal I\\) be any finite index type, including the empty type, and let \\(\\mu\\) be a probability measure on an arbitrary measurable space. Let \\(f:\\Omega\\to\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\) be Bochner integrable and positive definite \\(\\mu\\)-almost everywhere. These are the generic P data.",
+          "Positive definite means Hermitian with strictly positive quadratic form on every nonzero vector. The mean is the actual matrix-valued Bochner integral under the displayed law. No common positive spectral lower bound is assumed. Empty index types cause no nonzero-vector obligation; P does not add Nonempty."
+        ],
+        "obligations": [
+          {
+            "id": "true-probability-mean-positive-definite",
+            "label": "Author-derived canonical real probability mean is positive definite under integrable AE-PD data, with actual matrix-MGF consumer and omission boundary explicit."
+          }
+        ],
+        "lesson": {
+          "kind": "theorem",
+          "reading_layout": "progressive",
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef",
+          "title": "Positive definiteness of the true probability mean",
+          "statement": "The Bochner mean of an integrable finite real matrix field that is positive definite almost everywhere is positive definite.",
+          "formula": "f\\in L^1(\\mu;\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)),\\quad f(\\omega)\\succ0\\ \\mu\\text{-a.e.}\\quad\\Longrightarrow\\quad\\int f\\,d\\mu\\succ0.",
+          "assumptions": [
+            "Let \\(\\mathcal I\\) be any finite index type, including the empty type, and let \\(\\mu\\) be a probability measure on an arbitrary measurable space. Let \\(f:\\Omega\\to\\operatorname{Mat}_{\\mathcal I}(\\mathbb R)\\) be Bochner integrable and positive definite \\(\\mu\\)-almost everywhere.",
+            "Positive definite means Hermitian with strictly positive quadratic form on every nonzero vector. The mean is the actual matrix-valued Bochner integral under the displayed law. No common positive spectral lower bound is assumed. For an empty index type, the nonzero-vector condition is vacuous.",
+            "For the associated private consumer, \\(d,q\\in\\mathbb N\\), \\(2q+1<d\\), \\(r=q+1\\), \\(\\Omega=(\\mathbb R^d)^r\\), and \\(\\mu=\\gamma_d^{\\otimes r}\\). This is the original unconditional product Gaussian law; \\(q=0\\) is included.",
+            "For physical rows \\(i=1,\\ldots,d\\), let \\(\\alpha_i=(i-\\tfrac12)\\pi/d\\), \\(t_i=(1,\\sqrt2\\cos\\alpha_i,\\ldots,\\sqrt2\\cos(q\\alpha_i))\\), \\(\\Phi_i=(\\omega_b(i))_{b=0}^q\\), and \\(L=2r+3\\log(1000d)\\). Lean explicitly converts zero-based \\(i\\) using \\(i.val+1\\).",
+            "Let \\(Y_i=d^{-1}(\\Phi_i\\Phi_i^\\top\\otimes t_it_i^\\top)\\mathbf1_{\\{\\|\\Phi_i\\|^2\\le L\\}}\\), \\(m_i=\\int Y_i\\,d\\mu\\), and \\(Z_i=Y_i-m_i\\). The cutoff includes equality and uses the same physical row; the Gaussian factor comes first in the paired matrix index, of size \\(r^2\\).",
+            "Choose \\(w_i=1\\) or \\(w_i=\\cos((2q+1)\\alpha_i)\\), and one global \\(\\varepsilon\\in\\{-1,1\\}\\). Define \\(S=\\varepsilon\\sum_iw_i Z_i\\), \\(R_*=2r(L+1)/d\\), \\(G_s(\\omega)=e^{sS(\\omega)}\\), \\(M_s=\\int G_s\\,d\\mu\\), and \\(B_s=r^2e^{|s|dR_*}\\). For every real \\(s\\), the Gaussian application gives \\(G_s\\in L^1(\\mu)\\), \\(M_s\\succ0\\), \\(\\operatorname{tr}M_s=\\int\\operatorname{tr}G_s\\,d\\mu\\), and \\(0<\\operatorname{tr}M_s\\le B_s\\).",
+            "All Gaussian probability structure, measurability, Hermiticity, radius bounds, exponential norm bounds, integrability and positive definiteness needed here are obtained internally or through existing canonical source producers. They follow from the definitions and the proved bounds. The trace is ordinary and unnormalized; the exponential is matrix-algebra power-series exponential. The signs do not assert equality of signed laws or MGFs."
+          ],
+          "steps": [
+            {
+              "title": "Retain Hermiticity through the existing PSD-integral node",
+              "text": "An almost-everywhere positive-definite field is almost-everywhere positive semidefinite. Apply the existing canonical PSD-integral theorem to the same integrable f and probability law. Its conclusion supplies the Hermiticity of the true mean. Strict positivity will be established separately for each nonzero vector; this step alone is not a PD conclusion.",
+              "formula": "M=\\int f\\,d\\mu,\\qquad f\\succ0\\text{ a.e.}\\Longrightarrow f\\succeq0\\text{ a.e.}\\Longrightarrow M=M^\\top.",
+              "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral\nimport Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap\nimport Mathlib.Topology.Algebra.Module.FiniteDimension\n\n/-! Positive definiteness of the true probability mean. This author-derived\ncanonical background reuses the existing PSD integral node and proves strict\npositivity separately for every nonzero quadratic-form test vector. Generic\nintegrability and AE-PD data must be derived internally by source consumers.\nEmpty finite matrix indices are allowed. -/\n\nopen MeasureTheory\nopen scoped Matrix.Norms.L2Operator\nnoncomputable section\nuniverse u v\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral\n\ntheorem integral_posDef :\n∀ {ι : Type u} {Ω : Type v} [Fintype ι] [DecidableEq ι] [MeasurableSpace Ω]\n  {μ : Measure Ω} [IsProbabilityMeasure μ],\n  ∀ (f : Ω → Matrix ι ι ℝ), Integrable f μ →\n    (∀ᵐ ω ∂μ, (f ω).PosDef) → (∫ ω, f ω ∂μ).PosDef\n := by\n  classical\n  intro ι Ω _ _ _ μ _ f hf hpos\n  have hpsd :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef\n      f hf (hpos.mono fun _ h => h.posSemidef)\n  apply Matrix.PosDef.of_dotProduct_mulVec_pos hpsd.isHermitian\n",
+              "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+              "lean_source": {
+                "path": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+                "commit": "a8bb8ea5b4474be5214bd83ae380a612e2cecb78",
+                "file_sha256": "d3c6e5a194fecf1ae1abe45c70310f4f47d66e903b098019c326ee0d3018b024",
+                "LF_lines_1based": [
+                  1,
+                  28
+                ],
+                "decoded_char_span": [
+                  0,
+                  1249
+                ],
+                "raw_UTF8_byte_span": [
+                  0,
+                  1292
+                ],
+                "span_convention": "Lines inclusive1-based; character/raw UTF8-byte spans0-based half-open; exact newline bytes retained.",
+                "start_line_column0": [
+                  1,
+                  0
+                ],
+                "end_exclusive_line_column0": [
+                  29,
+                  0
+                ],
+                "span_sha256": "8b5af5c9f9d3d38b8a2a51e0cd5a4483995ebe02c8e1a87de646893eac3b3816",
+                "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+                "download_filename": "RealMatrixPositiveDefIntegral.lean"
+              },
+              "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+              "source_attribution": [
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_PREPROOF_GRAPH; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+                  "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+                  "printed_page": 9,
+                  "source_graph_nodes": [
+                    "TR-EXPECT-ORDER"
+                  ],
+                  "region": "§2.7 expectation preserves PSD order; using the existing canonical PSD-integral node is the derived-library step, not a printed strict-PD theorem.",
+                  "qualification": "Source background/author-derived bridge mapping, not a printed standalone proof or an implementation-review verdict.",
+                  "scope": "Source background for the author-derived step; implementation/source acceptance pending."
+                }
+              ],
+              "scope": "public P"
+            },
+            {
+              "title": "Test every nonzero direction and integrate strict scalar positivity",
+              "text": "Fix any nonzero x. The quadratic test φ_x(A)=xᵀAx is a continuous linear map on the finite real matrix space, so φ_x∘f is integrable and φ_x commutes with the Bochner integral. Almost-everywhere PD makes φ_x(f(ω)) strictly positive almost everywhere. A nonnegative integrable scalar function cannot have zero integral here: zero integral would make it zero almost everywhere, contradicting strict positivity on the probability space. Thus xᵀMx>0 for every nonzero x, which together with Hermiticity gives M positive definite. No lower bound uniform in x or ω is required.",
+              "formula": "\\varphi_x(M)=\\int\\varphi_x(f)\\,d\\mu>0\\quad(x\\ne0),\\qquad M\\succ0.",
+              "lean": "  intro x hx\n  let L : Matrix ι ι ℝ →ₗ[ℝ] ℝ :=\n    { toFun := fun A => dotProduct (star x) (A.mulVec x)\n      map_add' := by intro A B; simp [Matrix.add_mulVec, dotProduct_add]\n      map_smul' := by intro c A; simp [Matrix.smul_mulVec, dotProduct_smul] }\n  let φ : Matrix ι ι ℝ →L[ℝ] ℝ := L.toContinuousLinearMap\n  have hfi : Integrable (fun ω => φ (f ω)) μ := φ.integrable_comp hf\n  have hstrict : ∀ᵐ ω ∂μ, 0 < φ (f ω) := by\n    filter_upwards [hpos] with ω hω\n    exact hω.dotProduct_mulVec_pos hx\n  have hnonneg : ∀ᵐ ω ∂μ, 0 ≤ φ (f ω) := hstrict.mono fun _ h => h.le\n  have hintpos : 0 < ∫ ω, φ (f ω) ∂μ := by\n    have hne : (∫ ω, φ (f ω) ∂μ) ≠ 0 := by\n      intro hz\n      have hzAE := (integral_eq_zero_iff_of_nonneg_ae hnonneg hfi).mp hz\n      obtain ⟨ω, hωpos, hωzero⟩ := (hstrict.and hzAE).exists\n      exact (ne_of_gt hωpos) hωzero\n    exact lt_of_le_of_ne (integral_nonneg_of_ae hnonneg) (Ne.symm hne)\n  rw [φ.integral_comp_comm hf] at hintpos\n  exact hintpos\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral\n",
+              "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+              "lean_source": {
+                "path": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+                "commit": "a8bb8ea5b4474be5214bd83ae380a612e2cecb78",
+                "file_sha256": "d3c6e5a194fecf1ae1abe45c70310f4f47d66e903b098019c326ee0d3018b024",
+                "LF_lines_1based": [
+                  29,
+                  50
+                ],
+                "decoded_char_span": [
+                  1249,
+                  2301
+                ],
+                "raw_UTF8_byte_span": [
+                  1292,
+                  2425
+                ],
+                "span_convention": "Lines inclusive1-based; character/raw UTF8-byte spans0-based half-open; exact newline bytes retained.",
+                "start_line_column0": [
+                  29,
+                  0
+                ],
+                "end_exclusive_line_column0": [
+                  51,
+                  0
+                ],
+                "span_sha256": "8bdeaef3d0b84831af128215f3693b46f9994a47888b5aa145f73d038c31d980",
+                "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+                "download_filename": "RealMatrixPositiveDefIntegral.lean"
+              },
+              "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+              "source_attribution": [
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_PREPROOF_GRAPH; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+                  "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+                  "printed_page": 9,
+                  "source_graph_nodes": [
+                    "TR-EXPECT-ORDER",
+                    "TR-MGF-CAVEAT"
+                  ],
+                  "region": "Author-derived strictness argument beyond expectation order; it makes an omitted finite/positive mean-domain obligation explicit.",
+                  "qualification": "Source background/author-derived bridge mapping, not a printed standalone proof or an implementation-review verdict.",
+                  "scope": "Source background for the author-derived step; implementation/source acceptance pending."
+                }
+              ],
+              "scope": "public P"
+            },
+            {
+              "title": "Retain the literal experiment and bound all four source sums",
+              "text": "Keep the unconditional product Gaussian law, own-row inclusive cutoff, actual Y means, gamma-first paired index and q=0. Call the canonical Structure producer for measurable Z and pointwise Hermiticity, and Radius for the separate Y and actual-EY bounds. The triangle inequality gives ||Z_i(ω)||≤R*. The ordinary and cosine weights have norm at most1 and each global sign has norm1, so ||S(ω)||≤dR* at every ω. Finite sums give measurability and Hermiticity of the actual S. These are internal facts, not extra consumer premises.",
+              "formula": "\\|Y_i\\|\\le {2rL\\over d},\\quad\\|m_i\\|\\le {2r\\over d},\\quad\\|Z_i\\|\\le R_*,\\quad\\|S\\|\\le dR_*.",
+              "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\nimport Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap\n\n/-! True matrix-exponential expectations of the literal original Gaussian\nexperiment. Every real parameter and both signs of both source sums are\ncovered. Integrability, positive definiteness of the actual full-law mean,\ntrace commutation and its explicit finite envelope are proved internally.\nThis does not prove a matrix-log identity, Lieb, or a Bernstein tail. -/\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder ENNReal\nnoncomputable section\nnamespace AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain\n\nprivate theorem actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded :\n∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n := by\n  classical\n  intro d q hq\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let : MeasurableSpace M := borel M\n  let : BorelSpace M := ⟨rfl⟩\n  let : IsProbabilityMeasure μ := by\n    dsimp only [μ]\n    infer_instance\n  change ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n  have hstructure :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, Measurable (Z j)) ∧ iIndepFun Z μ ∧\n    (∀ j : Fin d, Integrable (Z j) μ) ∧\n    (∀ j : Fin d, (∫ ω, Z j ω ∂μ) = 0) ∧\n    (∀ j : Fin d, ∀ ω : Ω, (Z j ω).IsHermitian) at hstructure\n  rcases hstructure with ⟨hmeasZ, _, _, _, hhermZ⟩\n  have radius :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, ∀ ω : Ω, ‖Y j ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ j : Fin d, ‖mean j‖ ≤ 2 * r / (d : ℝ)) at radius\n  have hnormZ (j : Fin d) (ω : Ω) : ‖Z j ω‖ ≤ Rstar := by\n    change ‖Y j ω - mean j‖ ≤ Rstar\n    calc\n      _ ≤ ‖Y j ω‖ + ‖mean j‖ := norm_sub_le _ _\n      _ ≤ 2 * r * L / (d : ℝ) + 2 * r / (d : ℝ) :=\n        add_le_add (radius.1 j ω) (radius.2 j)\n      _ = Rstar := by dsimp only [Rstar]; ring\n  have hw (useCos : Bool) (j : Fin d) : ‖w useCos j‖ ≤ 1 := by\n    by_cases h : useCos = true\n    · simpa only [w, if_pos h, Real.norm_eq_abs] using Real.abs_cos_le_one\n        (((2 * q + 1 : ℕ) : ℝ) * α j)\n    · simp only [w, if_neg h, norm_one, le_refl]\n  have hnormS (useCos minus : Bool) (ω : Ω) : ‖S useCos minus ω‖ ≤ (d : ℝ) * Rstar := by\n    have hsign : ‖sign minus‖ = 1 := by cases minus <;> norm_num [sign]\n    change ‖sign minus • ∑ j : Fin d, w useCos j • Z j ω‖ ≤ _\n    rw [norm_smul, hsign, one_mul]\n    calc\n      _ ≤ ∑ j : Fin d, ‖w useCos j • Z j ω‖ := norm_sum_le _ _\n      _ ≤ ∑ _ : Fin d, Rstar := Finset.sum_le_sum fun j _ => by\n        rw [norm_smul]\n        exact (mul_le_mul (hw useCos j) (hnormZ j ω) (norm_nonneg _) (by norm_num)).trans_eq\n          (one_mul _)\n      _ = (d : ℝ) * Rstar := by simp\n  have hmeasS (useCos minus : Bool) : Measurable (S useCos minus) := by\n    exact (Finset.measurable_sum _ (fun j _ => (hmeasZ j).const_smul (w useCos j))).const_smul\n      (sign minus)\n  have hhermS (useCos minus : Bool) (ω : Ω) : (S useCos minus ω).IsHermitian := by\n    exact ((IsSelfAdjoint.all (sign minus)).smul\n      (isSelfAdjoint_sum _ fun j _ =>\n        (IsSelfAdjoint.all (w useCos j)).smul (hhermZ j ω).isSelfAdjoint)).isHermitian\n",
+              "lean_source_path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+              "lean_source": {
+                "path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+                "commit": "a8bb8ea5b4474be5214bd83ae380a612e2cecb78",
+                "file_sha256": "60e9f7b928ebc1b8a0d9efad93f39f1b172fe0a871893d67eb1015582c5d5c61",
+                "LF_lines_1based": [
+                  1,
+                  137
+                ],
+                "decoded_char_span": [
+                  0,
+                  6848
+                ],
+                "raw_UTF8_byte_span": [
+                  0,
+                  7340
+                ],
+                "span_convention": "Lines inclusive1-based; character/raw UTF8-byte spans0-based half-open; exact newline bytes retained.",
+                "start_line_column0": [
+                  1,
+                  0
+                ],
+                "end_exclusive_line_column0": [
+                  138,
+                  0
+                ],
+                "span_sha256": "aa299b03d8e7217afe230cfb4ca25999b0c4012cfc9b184597dbd865a2853f60",
+                "download_path": "downloads/lean/Tests/GaussianComplexityMatrixMgfDomain.lean",
+                "download_filename": "GaussianComplexityMatrixMgfDomain.lean"
+              },
+              "lean_download_path": "downloads/lean/Tests/GaussianComplexityMatrixMgfDomain.lean",
+              "source_attribution": [
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_LITERAL_SOURCE; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "url": "https://arxiv.org/html/2610.20492v1#A3.Ex107",
+                  "anchor": "A3.Ex107",
+                  "source_graph_nodes": [
+                    "GC-SETUP",
+                    "GC-Y",
+                    "GC-RADIAL-MEAN"
+                  ],
+                  "region": "Literal Y, original law and true means; the accepted two-edge overlay remains a separate unchanged preproof artifact.",
+                  "scope": "Literal source data/context for the associated private consumer; implementation/source acceptance pending."
+                },
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_LITERAL_SOURCE; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "url": "https://arxiv.org/html/2610.20492v1#A3.Ex111",
+                  "anchor": "A3.Ex111",
+                  "source_graph_nodes": [
+                    "GC-Y-MEAN-NORM"
+                  ],
+                  "region": "Separate Y and actual EY operator-norm bounds are the canonical Radius outputs.",
+                  "scope": "Literal source data/context for the associated private consumer; implementation/source acceptance pending."
+                },
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_LITERAL_SOURCE; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+                  "anchor": "A3.Ex112",
+                  "source_graph_nodes": [
+                    "GC-Z-NORM",
+                    "GC-WEIGHTED-NORM"
+                  ],
+                  "region": "Centered-Z radius R*; p13.3 gives the cosine-weighted context, with both signs retained in the private consumer.",
+                  "scope": "Literal source data/context for the associated private consumer; implementation/source acceptance pending."
+                }
+              ],
+              "scope": "associated private T"
+            },
+            {
+              "title": "Integrate the positive-definite matrix exponential",
+              "text": "For the same Hermitian S(ω), continuous functional calculus identifies exp(sx) with the matrix-algebra exponential exp(sS(ω)). The scalar exponential is strictly positive on the real spectrum, giving pointwise PD. The spectral bound |x|≤||S(ω)|| yields ||G_s(ω)||≤exp(|s|dR*) for every real s. Continuity of the matrix exponential and measurability of S give matrix measurability; the uniform bound under the probability law gives matrix Bochner integrability. Apply the shared lemma to this actual G_s and law to obtain positive definiteness of its true full-law mean. The route uses no uniform spectral lower-envelope theorem.",
+              "formula": "G_s=e^{sS},\\quad G_s(\\omega)\\succ0,\\quad\\|G_s(\\omega)\\|\\le e^{|s|dR_*},\\quad G_s\\in L^1(\\mu),\\quad M_s=\\int G_s\\,d\\mu\\succ0.",
+              "lean": "  intro s useCos minus\n  let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n  let MX : M := ∫ ω, G ω ∂μ\n  let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n  change Integrable G μ ∧ MX.PosDef ∧\n    Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n    0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n  have heq (ω : Ω) : cfc (fun x : ℝ => Real.exp (s * x)) (S useCos minus ω) = G ω := by\n    calc\n      _ = cfc Real.exp (s • S useCos minus ω) :=\n        cfc_comp_const_mul s Real.exp _ (by fun_prop) (hhermS useCos minus ω).isSelfAdjoint\n      _ = _ := CFC.real_exp_eq_normedSpace_exp\n        ((IsSelfAdjoint.all s).smul (hhermS useCos minus ω).isSelfAdjoint)\n  have hPD (ω : Ω) : (G ω).PosDef := by\n    have hstrict : IsStrictlyPositive\n        (cfc (fun x : ℝ => Real.exp (s * x)) (S useCos minus ω)) :=\n      (cfc_isStrictlyPositive_iff (fun x : ℝ => Real.exp (s * x)) _\n        (by fun_prop) (hhermS useCos minus ω).isSelfAdjoint).mpr\n          (fun x _ => Real.exp_pos (s * x))\n    rw [heq ω] at hstrict\n    exact Matrix.isStrictlyPositive_iff_posDef.mp hstrict\n  have hnormG (ω : Ω) : ‖G ω‖ ≤ Real.exp (|s| * ((d : ℝ) * Rstar)) := by\n    rw [← heq ω]\n    apply norm_cfc_le (Real.exp_nonneg _)\n    intro x hx\n    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n    apply Real.exp_le_exp.mpr\n    have hnormx : |x| ≤ ‖S useCos minus ω‖ := by\n      simpa only [Real.norm_eq_abs] using\n        IsometricContinuousFunctionalCalculus.norm_spectrum_le _ hx\n          (hhermS useCos minus ω).isSelfAdjoint\n    calc\n      s * x ≤ |s * x| := le_abs_self _\n      _ = |s| * |x| := abs_mul _ _\n      _ ≤ |s| * ‖S useCos minus ω‖ :=\n        mul_le_mul_of_nonneg_left hnormx (abs_nonneg s)\n      _ ≤ |s| * ((d : ℝ) * Rstar) :=\n        mul_le_mul_of_nonneg_left (hnormS useCos minus ω) (abs_nonneg s)\n  have hcontExp : Continuous (NormedSpace.exp : M → M) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hmeasG : Measurable G :=\n    hcontExp.measurable.comp ((hmeasS useCos minus).const_smul s)\n  have hintG : Integrable G μ :=\n    Integrable.of_bound hmeasG.aestronglyMeasurable\n      (Real.exp (|s| * ((d : ℝ) * Rstar))) (ae_of_all μ hnormG)\n  have hMX : MX.PosDef :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef\n      G hintG (ae_of_all μ hPD)\n",
+              "lean_source_path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+              "lean_source": {
+                "path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+                "commit": "a8bb8ea5b4474be5214bd83ae380a612e2cecb78",
+                "file_sha256": "60e9f7b928ebc1b8a0d9efad93f39f1b172fe0a871893d67eb1015582c5d5c61",
+                "LF_lines_1based": [
+                  138,
+                  186
+                ],
+                "decoded_char_span": [
+                  6848,
+                  9216
+                ],
+                "raw_UTF8_byte_span": [
+                  7340,
+                  9813
+                ],
+                "span_convention": "Lines inclusive1-based; character/raw UTF8-byte spans0-based half-open; exact newline bytes retained.",
+                "start_line_column0": [
+                  138,
+                  0
+                ],
+                "end_exclusive_line_column0": [
+                  187,
+                  0
+                ],
+                "span_sha256": "d66bff87c682e363c32767c73c419942ebaada0c8139d0fb51f18224431f316f",
+                "download_path": "downloads/lean/Tests/GaussianComplexityMatrixMgfDomain.lean",
+                "download_filename": "GaussianComplexityMatrixMgfDomain.lean"
+              },
+              "lean_download_path": "downloads/lean/Tests/GaussianComplexityMatrixMgfDomain.lean",
+              "source_attribution": [
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_PREPROOF_GRAPH; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+                  "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+                  "printed_page": 7,
+                  "source_graph_nodes": [
+                    "TR-FUNCTIONAL-CALCULUS",
+                    "TR-TRANSFER"
+                  ],
+                  "region": "§2.3 same-matrix functional calculus and transfer rule; scalar spectral norm estimate is the derived step.",
+                  "qualification": "Source background/author-derived bridge mapping, not a printed standalone proof or an implementation-review verdict.",
+                  "scope": "Source background for the author-derived step; implementation/source acceptance pending."
+                },
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_PREPROOF_GRAPH; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+                  "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+                  "printed_page": 8,
+                  "source_graph_nodes": [
+                    "TR-EXP",
+                    "TR-EXP-PD"
+                  ],
+                  "region": "§2.4 opening/second paragraph: matrix exponential and positive definiteness.",
+                  "qualification": "Source background/author-derived bridge mapping, not a printed standalone proof or an implementation-review verdict.",
+                  "scope": "Source background for the author-derived step; implementation/source acceptance pending."
+                },
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_PREPROOF_GRAPH; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+                  "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+                  "printed_page": 9,
+                  "source_graph_nodes": [
+                    "TR-MGF-CGF",
+                    "TR-MGF-CAVEAT"
+                  ],
+                  "region": "§3.1 matrix-MGF definition and existence caveat; the explicit Bochner-domain proof is author-derived.",
+                  "qualification": "Source background/author-derived bridge mapping, not a printed standalone proof or an implementation-review verdict.",
+                  "scope": "Source background for the author-derived step; implementation/source acceptance pending."
+                }
+              ],
+              "scope": "associated private T"
+            },
+            {
+              "title": "Commute ordinary trace with the mean and retain the exact cap",
+              "text": "Ordinary trace is a continuous linear map on this finite real matrix space, so it commutes with the integrable matrix mean and yields scalar trace integrability. Apply the existing canonical real trace-exponential envelope to each actual S(ω). The paired index has cardinal r² and ||S(ω)||≤dR*, giving tr G_s(ω)≤B_s. Integrate this pointwise cap under the probability law. Positive definiteness of M_s on the nonempty paired Fin(q+1) index gives its strictly positive ordinary trace. This emits neither a matrix-log identity nor a Bernstein tail.",
+              "formula": "\\operatorname{tr}M_s=\\int\\operatorname{tr}G_s\\,d\\mu,\\qquad 0<\\operatorname{tr}M_s\\le r^2e^{|s|dR_*}.",
+              "lean": "  let tr : M →L[ℝ] ℝ := (Matrix.traceLinearMap _ ℝ ℝ).toContinuousLinearMap\n  have htrace : Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) :=\n    (tr.integral_comp_comm hintG).symm\n  have hintTr : Integrable (fun ω => Matrix.trace (G ω)) μ := tr.integrable_comp hintG\n  have hcard : (Fintype.card (Fin (q + 1) × Fin (q + 1)) : ℝ) = r ^ 2 := by\n    simp [r, Fintype.card_prod, pow_two]\n  have hpointle (ω : Ω) : Matrix.trace (G ω) ≤ B := by\n    have hp :=\n      AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm\n        (S useCos minus ω) (hhermS useCos minus ω) s\n    calc\n      Matrix.trace (G ω) ≤ (Fintype.card (Fin (q + 1) × Fin (q + 1)) : ℝ) *\n          Real.exp (|s| * ‖S useCos minus ω‖) := hp.2\n      _ ≤ (Fintype.card (Fin (q + 1) × Fin (q + 1)) : ℝ) *\n          Real.exp (|s| * ((d : ℝ) * Rstar)) :=\n        mul_le_mul_of_nonneg_left\n          (Real.exp_le_exp.mpr\n            (mul_le_mul_of_nonneg_left (hnormS useCos minus ω) (abs_nonneg s)))\n          (by positivity)\n      _ = B := by rw [hcard]\n  have hbound : Matrix.trace MX ≤ B := by\n    rw [htrace]\n    simpa using integral_mono_ae hintTr (integrable_const B) (ae_of_all μ hpointle)\n  exact ⟨hintG, hMX, htrace, hMX.trace_pos, hbound⟩\n\nend AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain\n",
+              "lean_source_path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+              "lean_source": {
+                "path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+                "commit": "a8bb8ea5b4474be5214bd83ae380a612e2cecb78",
+                "file_sha256": "60e9f7b928ebc1b8a0d9efad93f39f1b172fe0a871893d67eb1015582c5d5c61",
+                "LF_lines_1based": [
+                  187,
+                  212
+                ],
+                "decoded_char_span": [
+                  9216,
+                  10554
+                ],
+                "raw_UTF8_byte_span": [
+                  9813,
+                  11207
+                ],
+                "span_convention": "Lines inclusive1-based; character/raw UTF8-byte spans0-based half-open; exact newline bytes retained.",
+                "start_line_column0": [
+                  187,
+                  0
+                ],
+                "end_exclusive_line_column0": [
+                  213,
+                  0
+                ],
+                "span_sha256": "a44a9eeff92f44b5626b17c37fb0a6fc6892a8a7149a2dc3758293bf7ddf745d",
+                "download_path": "downloads/lean/Tests/GaussianComplexityMatrixMgfDomain.lean",
+                "download_filename": "GaussianComplexityMatrixMgfDomain.lean"
+              },
+              "lean_download_path": "downloads/lean/Tests/GaussianComplexityMatrixMgfDomain.lean",
+              "source_attribution": [
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_PREPROOF_GRAPH; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/semantic-neutral-20261113/bernstein_raw_intake_74ab/Tro11-User-Friendly-preprint.pdf",
+                  "file_sha256": "f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+                  "printed_page": 8,
+                  "source_graph_nodes": [
+                    "TR-TRACE-EXP"
+                  ],
+                  "region": "§2.4 ordinary trace-exponential background; the actual integral commutation uses the trace continuous linear map.",
+                  "qualification": "Source background/author-derived bridge mapping, not a printed standalone proof or an implementation-review verdict.",
+                  "scope": "Source background for the author-derived step; implementation/source acceptance pending."
+                },
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_LITERAL_SOURCE; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+                  "anchor": "A3.Ex112",
+                  "source_graph_nodes": [
+                    "GC-Z-NORM",
+                    "GC-WEIGHTED-NORM"
+                  ],
+                  "region": "Radius input for the author-derived r² cap.",
+                  "scope": "Literal source data/context for the associated private consumer; implementation/source acceptance pending."
+                },
+                {
+                  "origin": "AUTHOR_LOCATOR_TO_LITERAL_SOURCE; IMPLEMENTATION_SOURCE_REVIEW_PENDING",
+                  "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+                  "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+                  "url": "https://arxiv.org/html/2610.20492v1#A3.Ex121",
+                  "anchor": "A3.Ex121",
+                  "source_graph_nodes": [
+                    "GC-BERNSTEIN-CALL"
+                  ],
+                  "region": "Downstream concentration context only; p15.2 repeats the application for a weighted sequence, not tail implication.",
+                  "scope": "Literal source data/context for the associated private consumer; implementation/source acceptance pending."
+                }
+              ],
+              "scope": "associated private T"
+            }
+          ],
+          "reader_note": "The first two steps prove the shared lemma. The remaining steps apply it to the original Gaussian experiment.",
+          "dependencies": [],
+          "astis_dependencies": [
+            "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveIntegral.integral_posSemidef"
+          ],
+          "mathlib_dependencies": [
+            "Matrix.PosDef.of_dotProduct_mulVec_pos",
+            "LinearMap.toContinuousLinearMap",
+            "ContinuousLinearMap.integrable_comp",
+            "integral_eq_zero_iff_of_nonneg_ae",
+            "integral_nonneg_of_ae",
+            "ContinuousLinearMap.integral_comp_comm"
+          ],
+          "dependency_notes": "The shared lemma uses the canonical PSD-integral theorem. The Gaussian application uses this shared lemma, the proved source structure and radius, and the canonical trace-exponential envelope. The exact calls and formal dependency audit are available with the Lean details.",
+          "lean_statement": "Exact sealed generic finite-real-matrix probability integral; integrability and AE-PD are natural data, with no Nonempty index binder.",
+          "lean_proof": "Five exact adjacent spans cover all50 P and212 privateT lines including imports and complete proofs, from frozen a8bb bytes.",
+          "sources": [
+            {
+              "url": "https://tropp.caltech.edu/papers/Tro11-User-Friendly-preprint.pdf#page=8",
+              "edition": "Author preprint revised15June2011; pinned PDF SHA256 f4c3cff8661011395e793972a1f8d9a199fae4ca0fd098535d7a42166cf8fc86",
+              "anchor": "§2.4 matrix exponential/PD (p8); §2.7 expectation order (p9); §3.1 matrix-MGF definition and finite-domain caution (p9). Neither standalone generic P nor the literal four-family domain bridge is printed.",
+              "label": "Matrix-exponential and expectation-domain background",
+              "wording_status": "faithful paraphrase",
+              "attribution": "Joel A. Tropp, User-Friendly Tail Bounds for Sums of Random Matrices. The cited background is paraphrased; the standalone PD-integral lemma is author-derived canonical infrastructure.",
+              "scope": "Finite real matrix probability means. No attribution of P as a printed Tropp theorem, no matrix-log identity or Bernstein theorem."
+            },
+            {
+              "path": "AutoSamplingTheory/TechnicalLemmas/Probability/RealMatrixPositiveDefIntegral.lean",
+              "line": 17,
+              "label": "Exact canonical PD-integral declaration",
+              "scope": "Exact canonical PD-integral declaration; source attribution only, not an independent implementation verdict."
+            },
+            {
+              "path": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+              "line": 18,
+              "label": "Associated private literal four-family matrix-MGF domain consumer",
+              "scope": "Associated private literal four-family matrix-MGF domain consumer; source attribution only, not an independent implementation verdict."
+            },
+            {
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex107",
+              "label": "Literal Y and original experiment",
+              "scope": "Literal Y and original experiment; source attribution only, not an independent implementation verdict."
+            },
+            {
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex111",
+              "label": "Separate Y/EY norm bounds",
+              "scope": "Separate Y/EY norm bounds; source attribution only, not an independent implementation verdict."
+            },
+            {
+              "url": "https://arxiv.org/html/2610.20492v1#A3.Ex112",
+              "label": "Centered-Z radius",
+              "scope": "Centered-Z radius; source attribution only, not an independent implementation verdict."
+            },
+            {
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS2.p15.2",
+              "label": "Weighted concentration continuation context, not a formal implication",
+              "scope": "Weighted concentration continuation context, not a formal implication; source attribution only, not an independent implementation verdict."
+            }
+          ],
+          "tests": [
+            "lake build AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral",
+            "lake build Tests.GaussianComplexityMatrixMgfDomain"
+          ]
+        },
+        "binding": {
+          "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef",
+          "role": "proof-edge",
+          "supports": [
+            "true-probability-mean-positive-definite"
+          ]
+        },
+        "candidate_assumptions": [
+          {
+            "source": "The original Gaussian use has a finite real matrix-exponential field and its true full-law mean; source §§2.4/2.7/3.1 supply exponential/expectation background.",
+            "lean": "P abstracts an arbitrary measurable probability space, any integrable finite real matrix field, and an AE-PD condition."
+          },
+          {
+            "source": "A genuine matrix MGF requires an existing finite mean; exponentials of the self-adjoint source matrices are pointwise positive definite.",
+            "lean": "P requires Bochner integrability and AE-PD; private T derives both internally for exp(sS) from literal source inputs, with no added T premise."
+          },
+          {
+            "source": "The concrete paired Gaussian matrix index has size r² with r=q+1>0.",
+            "lean": "Generic P allows any finite real index, including empty; T retains the nonempty paired Fin(q+1) carrier for strict ordinary trace."
+          },
+          {
+            "source": "Gaussian C.2 literal product law, own-row inclusive cutoff, true means, all four ordinary/cosine global-sign sums and r² dimension.",
+            "lean": "Private T retains sole hq with q=0, every real s, useCos/minus Bool, original μ, true Bochner MX, trace commutation and cap r²exp(|s|dRstar)."
+          },
+          {
+            "source": "The sources do not print the standalone generic PD-integral lemma or the complete four-family finite/PD matrix-MGF domain bridge.",
+            "lean": "A derived real canonical P and private source-experiment consumer make those domain facts explicit without log/Lieb/tail/Bernstein conclusions."
+          }
+        ]
+      },
+      "binding_status": "ACTUAL_INDEPENDENT_SOURCE_REVIEW_PROJECTED; EXACT_INPUTS_UNCHANGED",
+      "private_consumer": true,
+      "owner_public_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef",
+      "separate_public_node": false,
+      "private_module_context": {
+        "file": "Tests/GaussianComplexityMatrixMgfDomain.lean",
+        "commit": "a8bb8ea5b4474be5214bd83ae380a612e2cecb78",
+        "sha256": "60e9f7b928ebc1b8a0d9efad93f39f1b172fe0a871893d67eb1015582c5d5c61",
+        "text": "import AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure\nimport Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap\n\n/-! True matrix-exponential expectations of the literal original Gaussian\nexperiment. Every real parameter and both signs of both source sums are\ncovered. Integrability, positive definiteness of the actual full-law mean,\ntrace commutation and its explicit finite envelope are proved internally.\nThis does not prove a matrix-log identity, Lieb, or a Bernstein tail. -/\n\nopen MeasureTheory ProbabilityTheory\nopen scoped BigOperators Matrix.Norms.L2Operator MatrixOrder ENNReal\nnoncomputable section\nnamespace AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain\n\nprivate theorem actual_source_four_matrix_mgfs_integrable_posDef_and_trace_bounded :\n∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n := by\n  classical\n  intro d q hq\n  dsimp only\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  let : MeasurableSpace M := borel M\n  let : BorelSpace M := ⟨rfl⟩\n  let : IsProbabilityMeasure μ := by\n    dsimp only [μ]\n    infer_instance\n  change ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n  have hstructure :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, Measurable (Z j)) ∧ iIndepFun Z μ ∧\n    (∀ j : Fin d, Integrable (Z j) μ) ∧\n    (∀ j : Fin d, (∫ ω, Z j ω ∂μ) = 0) ∧\n    (∀ j : Fin d, ∀ ω : Ω, (Z j ω).IsHermitian) at hstructure\n  rcases hstructure with ⟨hmeasZ, _, _, _, hhermZ⟩\n  have radius :=\n    AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds\n      (d := d) (q := q) hq\n  change (∀ j : Fin d, ∀ ω : Ω, ‖Y j ω‖ ≤ 2 * r * L / (d : ℝ)) ∧\n    (∀ j : Fin d, ‖mean j‖ ≤ 2 * r / (d : ℝ)) at radius\n  have hnormZ (j : Fin d) (ω : Ω) : ‖Z j ω‖ ≤ Rstar := by\n    change ‖Y j ω - mean j‖ ≤ Rstar\n    calc\n      _ ≤ ‖Y j ω‖ + ‖mean j‖ := norm_sub_le _ _\n      _ ≤ 2 * r * L / (d : ℝ) + 2 * r / (d : ℝ) :=\n        add_le_add (radius.1 j ω) (radius.2 j)\n      _ = Rstar := by dsimp only [Rstar]; ring\n  have hw (useCos : Bool) (j : Fin d) : ‖w useCos j‖ ≤ 1 := by\n    by_cases h : useCos = true\n    · simpa only [w, if_pos h, Real.norm_eq_abs] using Real.abs_cos_le_one\n        (((2 * q + 1 : ℕ) : ℝ) * α j)\n    · simp only [w, if_neg h, norm_one, le_refl]\n  have hnormS (useCos minus : Bool) (ω : Ω) : ‖S useCos minus ω‖ ≤ (d : ℝ) * Rstar := by\n    have hsign : ‖sign minus‖ = 1 := by cases minus <;> norm_num [sign]\n    change ‖sign minus • ∑ j : Fin d, w useCos j • Z j ω‖ ≤ _\n    rw [norm_smul, hsign, one_mul]\n    calc\n      _ ≤ ∑ j : Fin d, ‖w useCos j • Z j ω‖ := norm_sum_le _ _\n      _ ≤ ∑ _ : Fin d, Rstar := Finset.sum_le_sum fun j _ => by\n        rw [norm_smul]\n        exact (mul_le_mul (hw useCos j) (hnormZ j ω) (norm_nonneg _) (by norm_num)).trans_eq\n          (one_mul _)\n      _ = (d : ℝ) * Rstar := by simp\n  have hmeasS (useCos minus : Bool) : Measurable (S useCos minus) := by\n    exact (Finset.measurable_sum _ (fun j _ => (hmeasZ j).const_smul (w useCos j))).const_smul\n      (sign minus)\n  have hhermS (useCos minus : Bool) (ω : Ω) : (S useCos minus ω).IsHermitian := by\n    exact ((IsSelfAdjoint.all (sign minus)).smul\n      (isSelfAdjoint_sum _ fun j _ =>\n        (IsSelfAdjoint.all (w useCos j)).smul (hhermZ j ω).isSelfAdjoint)).isHermitian\n  intro s useCos minus\n  let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n  let MX : M := ∫ ω, G ω ∂μ\n  let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n  change Integrable G μ ∧ MX.PosDef ∧\n    Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n    0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n  have heq (ω : Ω) : cfc (fun x : ℝ => Real.exp (s * x)) (S useCos minus ω) = G ω := by\n    calc\n      _ = cfc Real.exp (s • S useCos minus ω) :=\n        cfc_comp_const_mul s Real.exp _ (by fun_prop) (hhermS useCos minus ω).isSelfAdjoint\n      _ = _ := CFC.real_exp_eq_normedSpace_exp\n        ((IsSelfAdjoint.all s).smul (hhermS useCos minus ω).isSelfAdjoint)\n  have hPD (ω : Ω) : (G ω).PosDef := by\n    have hstrict : IsStrictlyPositive\n        (cfc (fun x : ℝ => Real.exp (s * x)) (S useCos minus ω)) :=\n      (cfc_isStrictlyPositive_iff (fun x : ℝ => Real.exp (s * x)) _\n        (by fun_prop) (hhermS useCos minus ω).isSelfAdjoint).mpr\n          (fun x _ => Real.exp_pos (s * x))\n    rw [heq ω] at hstrict\n    exact Matrix.isStrictlyPositive_iff_posDef.mp hstrict\n  have hnormG (ω : Ω) : ‖G ω‖ ≤ Real.exp (|s| * ((d : ℝ) * Rstar)) := by\n    rw [← heq ω]\n    apply norm_cfc_le (Real.exp_nonneg _)\n    intro x hx\n    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]\n    apply Real.exp_le_exp.mpr\n    have hnormx : |x| ≤ ‖S useCos minus ω‖ := by\n      simpa only [Real.norm_eq_abs] using\n        IsometricContinuousFunctionalCalculus.norm_spectrum_le _ hx\n          (hhermS useCos minus ω).isSelfAdjoint\n    calc\n      s * x ≤ |s * x| := le_abs_self _\n      _ = |s| * |x| := abs_mul _ _\n      _ ≤ |s| * ‖S useCos minus ω‖ :=\n        mul_le_mul_of_nonneg_left hnormx (abs_nonneg s)\n      _ ≤ |s| * ((d : ℝ) * Rstar) :=\n        mul_le_mul_of_nonneg_left (hnormS useCos minus ω) (abs_nonneg s)\n  have hcontExp : Continuous (NormedSpace.exp : M → M) :=\n    continuous_iff_continuousAt.mpr fun A =>\n      (NormedSpace.exp_analytic (𝕂 := ℝ) A).continuousAt\n  have hmeasG : Measurable G :=\n    hcontExp.measurable.comp ((hmeasS useCos minus).const_smul s)\n  have hintG : Integrable G μ :=\n    Integrable.of_bound hmeasG.aestronglyMeasurable\n      (Real.exp (|s| * ((d : ℝ) * Rstar))) (ae_of_all μ hnormG)\n  have hMX : MX.PosDef :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef\n      G hintG (ae_of_all μ hPD)\n  let tr : M →L[ℝ] ℝ := (Matrix.traceLinearMap _ ℝ ℝ).toContinuousLinearMap\n  have htrace : Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) :=\n    (tr.integral_comp_comm hintG).symm\n  have hintTr : Integrable (fun ω => Matrix.trace (G ω)) μ := tr.integrable_comp hintG\n  have hcard : (Fintype.card (Fin (q + 1) × Fin (q + 1)) : ℝ) = r ^ 2 := by\n    simp [r, Fintype.card_prod, pow_two]\n  have hpointle (ω : Ω) : Matrix.trace (G ω) ≤ B := by\n    have hp :=\n      AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm\n        (S useCos minus ω) (hhermS useCos minus ω) s\n    calc\n      Matrix.trace (G ω) ≤ (Fintype.card (Fin (q + 1) × Fin (q + 1)) : ℝ) *\n          Real.exp (|s| * ‖S useCos minus ω‖) := hp.2\n      _ ≤ (Fintype.card (Fin (q + 1) × Fin (q + 1)) : ℝ) *\n          Real.exp (|s| * ((d : ℝ) * Rstar)) :=\n        mul_le_mul_of_nonneg_left\n          (Real.exp_le_exp.mpr\n            (mul_le_mul_of_nonneg_left (hnormS useCos minus ω) (abs_nonneg s)))\n          (by positivity)\n      _ = B := by rw [hcard]\n  have hbound : Matrix.trace MX ≤ B := by\n    rw [htrace]\n    simpa using integral_mono_ae hintTr (integrable_const B) (ae_of_all μ hpointle)\n  exact ⟨hintG, hMX, htrace, hMX.trace_pos, hbound⟩\n\nend AutoSamplingTheory.Tests.GaussianComplexityMatrixMgfDomain\n"
+      },
+      "source_observed_direct_ASTIS_calls": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.RealMatrixPositiveDefIntegral.integral_posDef",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.MatrixTraceExponentialBounds.trace_exp_pos_and_le_card_mul_exp_abs_mul_norm",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixRadius.actual_source_truncated_matrix_norm_bounds",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumSourceMatrixStructure.actual_source_centered_matrix_structure"
+      ],
+      "native_value_call_audit": "pending independent native elaborated-value review; literal source calls only"
+    }
+  ]
+}

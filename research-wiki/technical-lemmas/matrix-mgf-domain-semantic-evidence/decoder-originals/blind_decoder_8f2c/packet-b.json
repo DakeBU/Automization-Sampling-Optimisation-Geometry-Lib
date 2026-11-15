@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-6945dce6a782eda6",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  let Rstar : ℝ := 2 * r * (L + 1) / (d : ℝ)\n  ∀ s : ℝ, ∀ useCos minus : Bool,\n    let G : Ω → M := fun ω => NormedSpace.exp (s • S useCos minus ω)\n    let MX : M := ∫ ω, G ω ∂μ\n    let B : ℝ := r ^ 2 * Real.exp (|s| * ((d : ℝ) * Rstar))\n    Integrable G μ ∧ MX.PosDef ∧\n      Matrix.trace MX = (∫ ω, Matrix.trace (G ω) ∂μ) ∧\n      0 < Matrix.trace MX ∧ Matrix.trace MX ≤ B\n",
+    "statement_sha256": "6945dce6a782eda6241c692777a8aa2fa5c98718af31106e0b6e046842deaf38",
+    "compiled": true,
+    "approved_definition_context": [
+      "Matrix ι ι ℝ is the finite real square-matrix algebra; Fintype supplies a finite enumeration and DecidableEq equality decisions. No Nonempty typeclass is present.",
+      "A.PosDef denotes a Hermitian real matrix whose quadratic form is strictly positive on each nonzero vector. Over ℝ Hermitian means transpose equality.",
+      "Measure Ω is a measure on the given measurable space. IsProbabilityMeasure means total mass one. Integrable f μ is Bochner integrability of the displayed matrix-valued function, and ∫ω,f ω∂μ is its Bochner integral under precisely μ.",
+      "∀ᵐω∂μ means for μ-almost every ω. Type universes u and v permit independent index and outcome types.",
+      "EuclideanSpace ℝ (Fin n) is the n-dimensional real Euclidean space. WithLp.toLp 2 and WithLp.ofLp change coordinate representation without changing coordinates.",
+      "stdGaussian denotes the centered standard Gaussian law and Measure.pi forms the displayed finite product measure.",
+      "Matrix.vecMulVec is the displayed outer product; Matrix.kronecker has paired indices in the displayed factor order. An if expression uses its literal inclusive comparison and zero-matrix branch.",
+      "Fin d enumerates zero through d−1; the angle adds one explicitly. The universally quantified Booleans select the displayed deterministic weight and one global scalar sign.",
+      "NormedSpace.exp is the power-series exponential in the matrix algebra, not entrywise exponentiation. Real.exp is scalar exponential. Matrix.trace is the ordinary unnormalized diagonal sum. The scoped matrix norm is the Euclidean/L2 operator norm."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "9ac9e263ab4da427e7721edad1f208be903b5f283e9278ae2e87d1db1798cc54"
+}

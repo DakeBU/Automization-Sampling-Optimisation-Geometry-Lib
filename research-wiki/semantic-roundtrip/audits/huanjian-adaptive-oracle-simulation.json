@@ -1,0 +1,588 @@
+{
+  "id": "huanjian-adaptive-oracle-simulation",
+  "state": "source-reviewed",
+  "base_commit": "e6bff1539c1c00c623ede51e1780da9427c58d63",
+  "candidate_commit": "57016008083947405bc7d430838537014a40f987",
+  "source": {
+    "source_id": "author-derived-seeded-exact-oracle-simulation",
+    "anchor": "Section2 Equation1 and Borel-policy/cap conventions; Section4.1 Equation11; B.1 absorbing/common-seed context; C.1 Borel finite-horizon context; C.4 quadratic-calculus context only",
+    "original_text": "The source prints the exact quadratic first-order reply and the two single-reply conversions in Section2 Equation1, and uses Borel adaptive policies, input-independent private randomness and a deterministic per-input/per-seed query cap. The author-derived bridge makes finite-fuel execution explicit: exact decoder commutation preserves every seeded terminal state, tagged some/none outcome and actual query count, both measurable joint execution laws, and ordinary expected actual count bounded by fuel. The private application carries this out in both directions for the literal Section4.1 Equation11 fixed-spectrum family, obtaining the genuine gradient reply internally. The source does not print this generic interpreter/probability theorem, and this bridge alone does not establish source-class representation, successful sampling or class-uniform query complexity.",
+    "text_sha256": "6c71968e597a243f6e546eb89e7cc98aa0d4765c78259ce9bdddf0f87b7cba6d",
+    "original_text_status": "Author-formulated correspondence, not a verbatim printed generic theorem."
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+    "statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {Ω : Type uΩ}\n    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n    [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],\n    letI : MeasurableSpace (Option X) := MeasurableSpace.comap\n      (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n    ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n    (initial : Ω → S),\n    Measurable next →\n    Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →\n    Measurable oracle →\n    Measurable (fun p : Q × A => decode p.1 p.2) →\n    Measurable initial →\n    (∀ q, decode q (oracle q) = target q) →\n    ∀ fuel : ℕ,\n      let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n      let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next update target fuel (initial ω)\n      Measurable baseRun ∧ Measurable targetRun ∧\n      (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧\n      μ.map baseRun = μ.map targetRun ∧\n      IsProbabilityMeasure (μ.map baseRun) ∧\n      Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)\n",
+    "statement_sha256": "fa8dd3a6197eb4678d1ced0f6b9057b194b9bf005c8398d122c688bfa2a51902",
+    "compiled": true,
+    "formalizer": "huanjian_20261116_adaptive_oracle_simulation",
+    "decoder_context": [
+      "def run {S Q A X : Type*} (next : S → Sum X Q) (update : S → Q → A → S)\n    (oracle : Q → A) : ℕ → S → (S × Option X) × ℕ\n  | fuel, s => match next s with\n    | .inl x => ((s, some x), 0)\n    | .inr q => match fuel with\n      | 0 => ((s, none), 0)\n      | n+1 =>\n        let answer := oracle q\n        let tail := run next update oracle n (update s q answer)\n        (tail.1, tail.2+1)",
+      "MeasurableSpace specifies a sigma algebra. Products and Sum carry their standard product and disjoint-sum sigma algebras; MeasurableSpace.comap g m is the pullback sigma algebra along g. Option has constructors none and some; its sigma algebra here is exactly the displayed pullback along none ↦ Sum.inl () and some x ↦ Sum.inr x.",
+      "Measure Ω is a measure on the displayed measurable space. IsProbabilityMeasure μ means μ has total mass one. μ.map h is the pushforward measure under h. Integrable g μ and ∫ ω, g ω ∂μ refer to Bochner integrability and the ordinary integral under precisely μ. Natural-number counts are coerced to real numbers in those integrals."
+    ],
+    "compiler_evidence": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/first-local-math-build.snapshot.v1.json",
+    "compiler_evidence_sha256": "6d86ced9dc52fbff319af3cf6c7118307cfc82d3a725842f38afaeda324c59c6",
+    "compilation_scope": "Actual ROOT combined build at e6bff worktree with exact new P/T bytes, exit0; then immutable570 freeze. Independent immutable native check and future metadata/public-tree builds not asserted."
+  },
+  "reconstruction": {
+    "text": "Let S, Q, A, B, X, and Ω be arbitrary types, each with an arbitrary\nspecified sigma algebra (and possibly different type universes).\nProducts have the standard product sigma algebras and sums the standard\ndisjoint-sum sigma algebras. Give Option X precisely the pullback sigma\nalgebra under the map to Unit ⊕ X that sends none to inl(()) and some(x)\nto inr(x).\n\nFor every probability measure μ on Ω, every next : S → X ⊕ Q,\nupdate : S → Q → B → S, oracle : Q → A, target : Q → B,\ndecode : Q → A → B, and initial : Ω → S, assume that next is\nmeasurable, (s,q,b) ↦ update(s,q,b) is measurable, oracle is measurable,\n(q,a) ↦ decode(q,a) is measurable, and initial is measurable. Assume\nalso that decode(q, oracle(q)) = target(q) for every q in Q.\nThere is no separate measurability hypothesis on target.\n\nUse the run recursion specified below, with the answer type instantiated\nas appropriate. For every natural number N, define maps\nR,T : Ω → (S × Option X) × ℕ by\n  R(ω) = run(next, (s,q,a) ↦ update(s,q,decode(q,a)), oracle,\n             N, initial(ω)),\n  T(ω) = run(next, update, target, N, initial(ω)).\nWrite c_R(ω) and c_T(ω) for their outer natural-number components.\nThen all the following hold together:\n  1. R and T are measurable.\n  2. For every ω in Ω, R(ω) = T(ω) and c_R(ω) ≤ N.\n     This equality is of the entire returned record: the final state,\n     the optional terminal result, and the count.\n  3. The pushforward measures μ.map R and μ.map T are equal.\n  4. μ.map R is a probability measure.\n  5. The real-valued map ω ↦ (c_R(ω) : ℝ) is Bochner integrable under μ.\n  6. ∫ (c_R(ω) : ℝ) dμ(ω) = ∫ (c_T(ω) : ℝ) dμ(ω).\n  7. ∫ (c_R(ω) : ℝ) dμ(ω) ≤ (N : ℝ).\nBoth integrals use this same μ; the counts and N are coerced from ℕ\nto ℝ for these real-valued integral assertions.\n\nThe generic run(next, update, oracle, N, s) returns ((s_final, r), c),\nwhere r is in Option X and c is a natural number. Its exact recursion is:\nfirst inspect next(s), even when N = 0. If next(s) = inl(x), return\n((s, some(x)), 0). If next(s) = inr(q) and N = 0, return ((s, none), 0).\nIf next(s) = inr(q) and N = n + 1, let a = oracle(q), evaluate\nrun(next, update, oracle, n, update(s, q, a)) = (t, c), and return\n(t, c + 1). Thus the state/result pair in a recursive return is the\ntail's entire pair, and the count increases by one only in this last\nbranch. A terminal result can be returned at zero fuel. A none result\noccurs when a query is requested with zero fuel; it is not a terminal\nresult value. No count is charged by either nonrecursive branch.",
+    "text_sha256": "ad9c01be09699fb20afb9d64b61969e55ee7e79694b74af7dec04789e656f64a",
+    "decoder": "Codex source-blind mathematical decoder; agent=/root/blind_decoder_4d87; run_id=blind_decoder_4d87; no unobserved model-version claim",
+    "decoder_run_sha256": "f2147d733a7710ca351e1e7a5520077c37290f466b828577955a89c96360b1eb",
+    "decoder_packet_sha256": "0b9a3a3c532614f50fa91a6d47a9304751764c6af0a9f86962c97c0c4dc7c3b4",
+    "source_text_visible": false,
+    "lean_statement_sha256": "fa8dd3a6197eb4678d1ced0f6b9057b194b9bf005c8398d122c688bfa2a51902",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ],
+    "run_artifact": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/blind-decoder-originals/result-a.json",
+    "original_result_sha256": "36250c6afef044e347fd4d0169f79a8177b7845a39161d00c48645fc412f21bf",
+    "original_run_capsule": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/blind-decoder-originals/run-capsule.json"
+  },
+  "source_review": {
+    "state": "accepted",
+    "reviewer": "Independent anti-anchored source reviewer; agent=/root/adaptive_oracle_fresh_source_r18; run_id=adaptive_oracle_fresh_source_r18-phase2-actual-v1; no unobserved model-version claim",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "reviewer_packet_sha256": "7b8f533ba7ce6290d75d0cd15bd163ad13a09f4659fc75b9057d25b7f936dd64",
+    "review_run_sha256": "110238af0a88555cedaf9ff6400023ba061b8c46d254bd4358fed16e43b1bef0",
+    "evidence": "Independent source-first receipt retained unchanged; exact fresh canonical packet and anonymous reconstruction; all embedded P170/T118 lines; registered run and genuine-gradient meaning context; five exact adjacent spans and proof/source correspondences checked. Verdict is only for the declared author-derived finite-fuel contract and its private actual application, not for full source-class representation or Q_G equivalence.",
+    "run_artifact": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/fresh-source-originals/phase2_actual_v1/P.canonical-contract-review.json",
+    "original_review_result_sha256": "da5d2f27689be21fea2df09728098c15444b71425ea1e84d740fc38b37fd4a42"
+  },
+  "semantic_slots": {
+    "objects": {
+      "original": "The declared author-derived bridge uses seeded state programs, exact reply conversion and the complete finite execution record; the printed source supplies exact quadratic replies and Borel adaptive algorithms.",
+      "reconstructed": "Arbitrary measurable S,Q,A,B,X,Omega; next, update, oracle, target, decode, initial; a returned (final state, Option X, natural count).",
+      "relation": "explicit-elaboration",
+      "evidence": "P:94-114 and run:18-27 agree with the anonymous reconstruction. The generic state interpreter is explicitly author-derived, not attributed as a printed source definition."
+    },
+    "domains": {
+      "original": "The bridge abstracts the source Euclidean setting to arbitrary measurable carriers, with an explicit tagged partial-execution result; the concrete application restores the literal Borel Euclidean family.",
+      "reconstructed": "Each carrier has its given sigma algebra. Option X has exactly the pullback sigma algebra under none->inl(), some x->inr x. No StandardBorel assumption is imposed.",
+      "relation": "explicit-elaboration",
+      "evidence": "P:94-109,123-134; lesson assumptions 1-4. The arbitrary measurable generalization is deliberate and does not substitute Option X for the paper's successful R^d output law."
+    },
+    "quantifiers": {
+      "original": "A common probability seed law and fixed measurable program data with exact decoder commutation are followed by every finite fuel and every seed realization.",
+      "reconstructed": "For every probability mu and all displayed program data satisfying the displayed conditions, for every natural fuel, both run maps are measurable, equal for every omega and pointwise count bounded.",
+      "relation": "same",
+      "evidence": "P:100-121. Every-seed equality is literal, not merely almost sure; fuel includes zero. No source-class representation quantifier has been silently claimed."
+    },
+    "assumptions": {
+      "original": "Measurable next/update/oracle/decoder/initial, a probability seed law and pointwise exact reply conversion are the declared abstract bridge assumptions.",
+      "reconstructed": "Exactly these hypotheses appear; target measurability, full-run measurability and count integrability are not premises.",
+      "relation": "same",
+      "evidence": "P:104-109; internal hcorrected, hb, ht and hint at P:139-161 discharge the required proof ingredients. No EXCESS source-facing condition is added to the declared bridge."
+    },
+    "conclusion": {
+      "original": "Finite-fuel exact simulation preserves the entire seeded terminal/Option/count record, both execution laws and ordinary expected actual count bounded by fuel.",
+      "reconstructed": "The exact seven combined assertions give two measurable maps; all-seed record equality and count cap; equality of pushforwards; probability; real count integrability; equal real integrals; expected count <= fuel.",
+      "relation": "equivalent",
+      "evidence": "P:115-121,146-168. Target count integrability and target-law probability follow from the proven equalities, though explicitly written for the base side. This is the author-derived contract rather than the stronger source-class Q_G assertion."
+    },
+    "scopes": {
+      "original": "The source uses a deterministic cap; the derived bridge uses partial tagged executions, common-seed pushforwards and an ordinary expected-cost consequence, without success, Haar or TV claims.",
+      "reconstructed": "run inspects halt even at zero fuel, charges one only on a funded request, returns none on an unfunded request and preserves early-halt actual count. The mapped random variable is (S x Option X) x Nat under mu.",
+      "relation": "same",
+      "evidence": "run:18-27; P:6-14,111-121; lesson steps 1,3,4. The full joint execution law does not contain Omega as an explicit output coordinate and is not a Haar-joint input law."
+    },
+    "constant_dependencies": {
+      "original": "Fuel is an arbitrary nonnegative integer and bounds the actual count at every seed before bounding its ordinary expectation; the same mu is used for both executions.",
+      "reconstructed": "For each fuel, count <= fuel and both real integrals are under that one mu; no d,kappa,epsilon or source lower-bound constants occur in P.",
+      "relation": "same",
+      "evidence": "P:110-121,153-167. Probability makes the constant bound integrable; there is no expected-budget replacement, positive-fuel restriction or hidden constant."
+    }
+  },
+  "deltas": [],
+  "verdict": "equivalent-after-elaboration",
+  "repairs": [],
+  "scope_boundary": "P is author-derived Level B measurable finite-fuel simulation infrastructure, not a standalone generic theorem printed in the source. The exact reused run retains final state, some-output or none-exhaustion, and actual query count. It inspects next even at zero fuel, and does not pad counts or turn none into a successful sample. P has natural measurable-program data, exact reply-decoder commutation, a common probability seed law and arbitrary fuel. Target measurability, run measurability, count integrability and expected-cost statements are conclusions/internal steps, not added T premises. T uses the literal fixed-spectrum full orthogonal family for d≥2 and κ≥2, the Borel Euclidean carrier and exact Option pullback sigma, with μ and program policies before O. It compares foViaMV with foRun under updateFO and mvViaFO with mvRun under updateMV separately; it does not equate runs of unrelated update policies. The genuine value/gradient reply is obtained internally from the existing producer. One public P node has this associated private T with two material P applications and no extra public-node credit. No representation of every source adaptive algorithm, guaranteed successful output, class-uniform Q_G equivalence, approximate oracle, Gaussian sampling/TV accuracy, 2T hidden-block reduction, Haar/posterior law, C6 or main lower bound is claimed. ROOT actually compiled the exact new P/T working bytes at e6bff before freezing570; this is not a retrospective build of bare e6bff or a future metadata/public tree. Independent native, blind/source implementation fidelity, reader and normal PL/V remain pending. The preproof SG/TC admission is not a new-proof source verdict. Main/shared graph/site integration, purification and Goal completion remain pending.",
+  "publication_binding_sha256": "38ae6f3bf655bb00e7b6054b55d2936fc06d254393ff607d4336cdbfb85201f6",
+  "binding_status": "ACTUAL_CURRENT_CONTEXT_AND_INDEPENDENT_SOURCE_REVIEW_BOUND",
+  "publication_context": {
+    "file": "9c0f0c9134aa4360f8bc8384d73f311826224dbe056adb56658d4c393cd33e25",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\nimport Mathlib.MeasureTheory.MeasurableSpace.Embedding\nimport Mathlib.MeasureTheory.Measure.ProbabilityMeasure\nimport Mathlib.MeasureTheory.Integral.Bochner.Basic\n\n/-!\n# Measurable adaptive oracle simulation\n\nAuthor-derived probability interface for the exact oracle equivalence in\nZhou--Suzuki arXiv:2610.20492v1 Section2 Equation1. We reuse the canonical\nfinite-fuel interpreter without padding actual query counts. A missing output\nis exhaustion, not a successful sample. This theorem does not assert source\nalgorithm representation or a class-uniform query-complexity bound.\n-/\nopen MeasureTheory\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\nset_option autoImplicit false\nuniverse uS uQ uA uB uX uΩ\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation\n\nprivate theorem run_simulation_and_cap\n    {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB} {X : Type uX}\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n    (hdecode : ∀ q, decode q (oracle q) = target q) (fuel : ℕ) :\n    ∀ s, run next (fun s q a => update s q (decode q a)) oracle fuel s =\n      run next update target fuel s ∧\n      (run next (fun s q a => update s q (decode q a)) oracle fuel s).2 ≤ fuel := by\n  induction fuel with\n  | zero =>\n      intro s\n      cases h : next s <;> simp [run, h]\n  | succ n ih =>\n      intro s\n      cases h : next s with\n      | inl x => simp [run, h]\n      | inr q =>\n          have step (upd : S → Q → B → S) (O : Q → B) :\n              run next upd O (n+1) s =\n                let tail := run next upd O n (upd s q (O q))\n                (tail.1, tail.2+1) := by rw [run, h]\n          have stepA (upd : S → Q → A → S) (O : Q → A) :\n              run next upd O (n+1) s =\n                let tail := run next upd O n (upd s q (O q))\n                (tail.1, tail.2+1) := by rw [run, h]\n          have hr := ih (update s q (target q))\n          constructor\n          · simpa only [stepA, step, hdecode] using\n              congrArg (fun r : (S × Option X) × ℕ => (r.1, r.2+1)) hr.1\n          · simpa only [stepA, hdecode] using Nat.succ_le_succ hr.2\n\nprivate theorem measurable_run\n    {S : Type uS} {Q : Type uQ} {A : Type uA} {X : Type uX}\n    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n    [MeasurableSpace X] [MeasurableSpace (Option X)]\n    (next : S → Sum X Q) (update : S → Q → A → S) (oracle : Q → A)\n    (hnext : Measurable next)\n    (hupdate : Measurable (fun p : S × Q × A => update p.1 p.2.1 p.2.2))\n    (horacle : Measurable oracle) (hsome : Measurable (@Option.some X))\n    (fuel : ℕ) : Measurable (run next update oracle fuel) := by\n  have hl : Measurable (fun p : S × X => ((p.1, some p.2), (0 : ℕ))) :=\n    (measurable_fst.prodMk (hsome.comp measurable_snd)).prodMk measurable_const\n  have hdist : Measurable (fun s : S =>\n      (MeasurableEquiv.prodSumDistrib S X Q) (s, next s)) :=\n    (MeasurableEquiv.prodSumDistrib S X Q).measurable.comp\n      (measurable_id.prodMk hnext)\n  induction fuel with\n  | zero =>\n      have hr : Measurable (fun p : S × Q => ((p.1, (none : Option X)), (0 : ℕ))) :=\n        (measurable_fst.prodMk measurable_const).prodMk measurable_const\n      convert (hl.sumElim hr).comp hdist using 1\n      funext s\n      cases h : next s <;> rw [run, h] <;>\n        simp only [Function.comp_apply, h] <;> rfl\n  | succ n ih =>\n      have hstep : Measurable (fun p : S × Q => update p.1 p.2 (oracle p.2)) :=\n        hupdate.comp (measurable_fst.prodMk\n          (measurable_snd.prodMk (horacle.comp measurable_snd)))\n      have htail := ih.comp hstep\n      have hadd : Measurable (fun n : ℕ => n+1) := measurable_of_countable _\n      have hr : Measurable (fun p : S × Q =>\n          let tail := run next update oracle n (update p.1 p.2 (oracle p.2))\n          (tail.1, tail.2+1)) :=\n        (measurable_fst.comp htail).prodMk (hadd.comp (measurable_snd.comp htail))\n      convert (hl.sumElim hr).comp hdist using 1\n      funext s\n      cases h : next s <;> rw [run, h] <;>\n        simp only [Function.comp_apply, h] <;> rfl\n\n/-- Exact reply simulation preserves the measurable seeded joint execution\nlaw and the actual, pointwise bounded query cost and its ordinary expectation. -/\ntheorem measurable_simulation_joint_law_and_cost :\n  ∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n      {X : Type uX} {Ω : Type uΩ}\n      [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n      [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],\n      letI : MeasurableSpace (Option X) := MeasurableSpace.comap\n        (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n      ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]\n      (next : S → Sum X Q) (update : S → Q → B → S)\n      (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n      (initial : Ω → S),\n      Measurable next →\n      Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →\n      Measurable oracle →\n      Measurable (fun p : Q × A => decode p.1 p.2) →\n      Measurable initial →\n      (∀ q, decode q (oracle q) = target q) →\n      ∀ fuel : ℕ,\n        let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n          run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n        let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n          run next update target fuel (initial ω)\n        Measurable baseRun ∧ Measurable targetRun ∧\n        (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧\n        μ.map baseRun = μ.map targetRun ∧\n        IsProbabilityMeasure (μ.map baseRun) ∧\n        Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧\n        (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧\n        (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) := by\n  intro S Q A B X Ω mS mQ mA mB mX mΩ\n  let : MeasurableSpace (Option X) := MeasurableSpace.comap\n    (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n  dsimp only\n  intro μ hμ next update oracle target decode initial hnext hupdate horacle hdecodeMeas\n    hinitial hdecode fuel\n  have hsome : Measurable (@Option.some X) := by\n    apply Measurable.of_comap_le\n    change MeasurableSpace.comap Option.some\n      (MeasurableSpace.comap\n        (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance) ≤ _\n    rw [MeasurableSpace.comap_comp]\n    exact (measurable_inr : Measurable (Sum.inr : X → Unit ⊕ X)).comap_le\n  let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n    run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n  let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n    run next update target fuel (initial ω)\n  have hcorrected : Measurable (fun p : S × Q × A =>\n      update p.1 p.2.1 (decode p.2.1 p.2.2)) :=\n    hupdate.comp (measurable_fst.prodMk\n      (measurable_snd.fst.prodMk (hdecodeMeas.comp measurable_snd)))\n  have hb : Measurable baseRun :=\n    (measurable_run next (fun s q a => update s q (decode q a)) oracle\n      hnext hcorrected horacle hsome fuel).comp hinitial\n  have he (ω : Ω) : baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel :=\n    run_simulation_and_cap next update oracle target decode hdecode fuel (initial ω)\n  have heq : baseRun = targetRun := funext fun ω => (he ω).1\n  have ht : Measurable targetRun := by rw [← heq]; exact hb\n  have hlaw : μ.map baseRun = μ.map targetRun := congrArg (fun f => μ.map f) heq\n  have hprob : IsProbabilityMeasure (μ.map baseRun) :=\n    Measure.isProbabilityMeasure_map hb.aemeasurable\n  have hcount : Measurable (fun ω => ((baseRun ω).2 : ℝ)) :=\n    (measurable_of_countable (fun n : ℕ => (n : ℝ))).comp (measurable_snd.comp hb)\n  have hbound (ω : Ω) : ((baseRun ω).2 : ℝ) ≤ (fuel : ℝ) :=\n    Nat.cast_le.mpr (he ω).2\n  have hint : Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ :=\n    (integrable_const (fuel : ℝ)).mono' hcount.aestronglyMeasurable\n      (ae_of_all _ fun ω => by\n        rw [Real.norm_eq_abs, abs_of_nonneg (Nat.cast_nonneg _)]\n        exact hbound ω)\n  have hcost : (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) =\n      (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) :=\n    integral_congr_ae (ae_of_all _ fun ω =>\n      congrArg (fun r : (S × Option X) × ℕ => (r.2 : ℝ)) (he ω).1)\n  have hmean : (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) := by\n    simpa using integral_mono hint (integrable_const (fuel : ℝ)) hbound\n  exact ⟨hb, ht, he, hlaw, hprob, hint, hcost, hmean⟩\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://arxiv.org/html/2610.20492v1#S2.E1",
+      "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+      "anchor": "Section2 Equation1 and exact-oracle paragraph; randomized Borel-policy/seed/cap conventions; Section4.1 Equation11. B.1 and C.1 are finite-history/Borel context; C.4 supplies only admissibility/quadratic-calculus context.",
+      "label": "Exact quadratic oracle replies and finite adaptive-program context",
+      "wording_status": "faithful paraphrase",
+      "attribution": "The source prints the quadratic reply conversions. The generic measurable seeded finite-fuel theorem is explicitly author-derived Level B background, not a printed theorem or a proof of class-uniform complexity equivalence.",
+      "scope": "Source context and literal private application; implementation/source review remains pending. No universal source algorithm representation or successful-sampling claim."
+    },
+    "statement": "The source prints the exact quadratic first-order reply and the two single-reply conversions in Section2 Equation1, and uses Borel adaptive policies, input-independent private randomness and a deterministic per-input/per-seed query cap. The author-derived bridge makes finite-fuel execution explicit: exact decoder commutation preserves every seeded terminal state, tagged some/none outcome and actual query count, both measurable joint execution laws, and ordinary expected actual count bounded by fuel. The private application carries this out in both directions for the literal Section4.1 Equation11 fixed-spectrum family, obtaining the genuine gradient reply internally. The source does not print this generic interpreter/probability theorem, and this bridge alone does not establish source-class representation, successful sampling or class-uniform query complexity.",
+    "formulae": [
+      {
+        "label": "Seeded joint execution and actual cost",
+        "tex": "R_{\\delta}(\\omega)=R_t(\\omega),\\quad (R_{\\delta})_{\\#}\\mu=(R_t)_{\\#}\\mu,\\quad C_{\\delta}(\\omega)\\le n,\\quad \\mathbb E_{\\mu}C_{\\delta}=\\mathbb E_{\\mu}C_t\\le n."
+      }
+    ],
+    "assumptions": [
+      "Let \\(S,Q,A,B,X,\\Omega\\) be measurable spaces and \\(\\mu\\) a probability measure on \\(\\Omega\\). Use the standard product and disjoint-sum sigma algebras. Give \\(\\operatorname{Option}X\\) exactly the pullback sigma algebra along \\(\\mathrm{none}\\mapsto\\mathrm{inl}()\\), \\(\\mathrm{some}(x)\\mapsto\\mathrm{inr}(x)\\); no StandardBorel hypothesis is imposed on \\(X\\).",
+      "The program data are \\(\\mathrm{next}:S\\to X\\sqcup Q\\), \\(\\mathrm{update}:S\\to Q\\to B\\to S\\), an oracle \\(o:Q\\to A\\), a target reply \\(t:Q\\to B\\), a decoder \\(\\delta:Q\\to A\\to B\\), and an initialization \\(i:\\Omega\\to S\\). Assume the displayed next, update, oracle, decoder and initialization maps measurable, and exact commutation \\(\\delta(q,o(q))=t(q)\\) for every \\(q\\). No separate target-reply measurability premise is required.",
+      "For arbitrary fuel \\(n\\in\\mathbb N\\), \\(R_\\delta(\\omega)\\) runs the existing interpreter from \\(i(\\omega)\\) with update \\(\\mathrm{update}(s,q,\\delta(q,a))\\) and oracle \\(o\\); \\(R_t(\\omega)\\) uses update and target \\(t\\). Each result is \\(((s_{\\mathrm{final}},\\operatorname{Option}X),C)\\), including the actual number \\(C\\) of oracle interactions.",
+      "The interpreter checks next even at zero fuel. An immediate halt returns some-output and count zero. An outstanding request with zero fuel returns none and count zero. A funded request makes one oracle call and recurses with one less fuel. Early halts keep their smaller actual cost; none is fuel exhaustion and is never a successful sample."
+    ],
+    "obligations": [
+      {
+        "id": "finite-fuel-seeded-exact-simulation",
+        "label": "Author-derived exact measurable seeded-program bridge, including tagged exhaustion, joint law and bounded expected actual cost; actual quadratic two-direction private consumer."
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+      "title": "Exact adaptive simulation preserves joint law and actual cost",
+      "statement": "An exact measurable reply decoder preserves every finite-fuel seeded execution, its full joint probability law and its ordinary expected actual query count. Halted outputs remain some; an unfunded request remains none, and early halts retain their smaller count.",
+      "formula": "R_{\\delta}(\\omega)=R_t(\\omega),\\quad (R_{\\delta})_{\\#}\\mu=(R_t)_{\\#}\\mu,\\quad C_{\\delta}(\\omega)\\le n,\\quad \\mathbb E_{\\mu}C_{\\delta}=\\mathbb E_{\\mu}C_t\\le n.",
+      "assumptions": [
+        "Let \\(S,Q,A,B,X,\\Omega\\) be measurable spaces and \\(\\mu\\) a probability measure on \\(\\Omega\\). Use the standard product and disjoint-sum sigma algebras. Give \\(\\operatorname{Option}X\\) exactly the pullback sigma algebra along \\(\\mathrm{none}\\mapsto\\mathrm{inl}()\\), \\(\\mathrm{some}(x)\\mapsto\\mathrm{inr}(x)\\); no StandardBorel hypothesis is imposed on \\(X\\).",
+        "The program data are \\(\\mathrm{next}:S\\to X\\sqcup Q\\), \\(\\mathrm{update}:S\\to Q\\to B\\to S\\), an oracle \\(o:Q\\to A\\), a target reply \\(t:Q\\to B\\), a decoder \\(\\delta:Q\\to A\\to B\\), and an initialization \\(i:\\Omega\\to S\\). Assume the displayed next, update, oracle, decoder and initialization maps measurable, and exact commutation \\(\\delta(q,o(q))=t(q)\\) for every \\(q\\). No separate target-reply measurability premise is required.",
+        "For arbitrary fuel \\(n\\in\\mathbb N\\), \\(R_\\delta(\\omega)\\) runs the existing interpreter from \\(i(\\omega)\\) with update \\(\\mathrm{update}(s,q,\\delta(q,a))\\) and oracle \\(o\\); \\(R_t(\\omega)\\) uses update and target \\(t\\). Each result is \\(((s_{\\mathrm{final}},\\operatorname{Option}X),C)\\), including the actual number \\(C\\) of oracle interactions.",
+        "The interpreter checks next even at zero fuel. An immediate halt returns some-output and count zero. An outstanding request with zero fuel returns none and count zero. A funded request makes one oracle call and recurses with one less fuel. Early halts keep their smaller actual cost; none is fuel exhaustion and is never a successful sample.",
+        "The associated private application fixes \\(d\\ge2\\), \\(\\kappa\\ge2\\), \\(E=\\mathbb R^d\\) with its literal Borel sigma algebra, and the same Option pullback sigma algebra. The common seed law, next, updateFO, updateMV and initial state are quantified before every full orthogonal \\(O\\). For \\(\\theta_i=(i+\\tfrac12)\\pi/d\\), \\(A=O\\operatorname{diag}((\\kappa+1)/2+(\\kappa-1)\\cos\\theta_i/2)O^\\top\\), use \\(f(x)=x^\\top Ax/2\\), \\(\\mathrm{mv}(x)=Ax\\), and the genuine \\(\\mathrm{fo}(x)=(f(x),\\nabla f(x))\\). Lean indices \\(i=0,\\ldots,d-1\\) reproduce the source midpoint grid.",
+        "T compares two program-specific pairs: foViaMV with foRun under updateFO, decoding \\((x,y)\\mapsto(\\langle x,y\\rangle/2,y)\\); and mvViaFO with mvRun under updateMV, projecting the gradient coordinate. It does not equate runs of unrelated update policies. Measurability of the actual oracles, the genuine gradient identity, run measurability and count integrability are established internally rather than appended as T premises."
+      ],
+      "steps": [
+        {
+          "title": "Preserve the exact execution and actual count recursively",
+          "text": "Reuse the existing finite-fuel interpreter unchanged. At zero fuel, inspect next: a halt yields some-output, while a request yields none, both with zero interactions. A funded request decodes the actual answer to exactly the target answer, so both executions enter the identical updated state. Induction therefore preserves the entire terminal state/output/count tuple and bounds its actual count by fuel. This does not pad a short execution to the budget.",
+          "formula": "\\delta(q,o(q))=t(q)\\ \\Longrightarrow\\ R_\\delta(s)=R_t(s),\\qquad C_\\delta(s)\\le n.",
+          "lean": "import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\nimport Mathlib.MeasureTheory.MeasurableSpace.Embedding\nimport Mathlib.MeasureTheory.Measure.ProbabilityMeasure\nimport Mathlib.MeasureTheory.Integral.Bochner.Basic\n\n/-!\n# Measurable adaptive oracle simulation\n\nAuthor-derived probability interface for the exact oracle equivalence in\nZhou--Suzuki arXiv:2610.20492v1 Section2 Equation1. We reuse the canonical\nfinite-fuel interpreter without padding actual query counts. A missing output\nis exhaustion, not a successful sample. This theorem does not assert source\nalgorithm representation or a class-uniform query-complexity bound.\n-/\nopen MeasureTheory\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\nset_option autoImplicit false\nuniverse uS uQ uA uB uX uΩ\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation\n\nprivate theorem run_simulation_and_cap\n    {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB} {X : Type uX}\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n    (hdecode : ∀ q, decode q (oracle q) = target q) (fuel : ℕ) :\n    ∀ s, run next (fun s q a => update s q (decode q a)) oracle fuel s =\n      run next update target fuel s ∧\n      (run next (fun s q a => update s q (decode q a)) oracle fuel s).2 ≤ fuel := by\n  induction fuel with\n  | zero =>\n      intro s\n      cases h : next s <;> simp [run, h]\n  | succ n ih =>\n      intro s\n      cases h : next s with\n      | inl x => simp [run, h]\n      | inr q =>\n          have step (upd : S → Q → B → S) (O : Q → B) :\n              run next upd O (n+1) s =\n                let tail := run next upd O n (upd s q (O q))\n                (tail.1, tail.2+1) := by rw [run, h]\n          have stepA (upd : S → Q → A → S) (O : Q → A) :\n              run next upd O (n+1) s =\n                let tail := run next upd O n (upd s q (O q))\n                (tail.1, tail.2+1) := by rw [run, h]\n          have hr := ih (update s q (target q))\n          constructor\n          · simpa only [stepA, step, hdecode] using\n              congrArg (fun r : (S × Option X) × ℕ => (r.1, r.2+1)) hr.1\n          · simpa only [stepA, hdecode] using Nat.succ_le_succ hr.2\n\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "commit": "57016008083947405bc7d430838537014a40f987",
+            "file_sha256": "9c0f0c9134aa4360f8bc8384d73f311826224dbe056adb56658d4c393cd33e25",
+            "LF_lines_1based": [
+              1,
+              52
+            ],
+            "decoded_char_span": [
+              0,
+              2264
+            ],
+            "raw_UTF8_byte_span": [
+              0,
+              2313
+            ],
+            "span_convention": "Lines inclusive 1-based; character/raw UTF8 byte spans 0-based half-open; exact newline bytes retained.",
+            "start_line_column0": [
+              1,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              53,
+              0
+            ],
+            "span_sha256": "173c742b2003e364559a2e5b61eb1fa061ce274b00cbed2d77529587e3b6d2f1",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "download_filename": "AdaptiveOracleSimulation.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "source_attribution": [
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#S2.E1",
+              "anchor": "S2.E1",
+              "source_graph_nodes": [
+                "SRC.MV_TO_FO",
+                "SRC.FO_TO_MV",
+                "GAP.CANONICAL_RUN"
+              ],
+              "region": "Exact single-reply conversions; the generic run induction is an author-derived bridge.",
+              "scope": "P author-derived execution proof; no printed generic interpreter theorem."
+            },
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A2.SS1.SSS0.Px3.p6.1",
+              "anchor": "A2.SS1.SSS0.Px3.p6.1",
+              "source_graph_nodes": [
+                "SRC.ABSORB"
+              ],
+              "region": "B.1 absorbing histories are contextual; actual counts are not dummy-padded.",
+              "scope": "Finite-history context only, not a hidden-block or posterior argument."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Use the tagged outcome sigma algebra and prove run measurability",
+          "text": "The Option sigma algebra is the literal pullback of Unit⊕X, so some is measurable without changing the output carrier. The private measurability induction splits the halt/request branches through the standard product–sum measurable equivalence. The request branch composes the measurable oracle and state update, and the count increment is measurable. These are internal ingredients of P rather than hypotheses demanding an already measurable full run.",
+          "formula": "\\mathcal M_{\\operatorname{Option}X}=j^{-1}(\\mathcal M_{\\mathbf1\\sqcup X}),\\quad j(\\mathrm{none})=\\mathrm{inl}(),\\ j(\\mathrm{some}\\,x)=\\mathrm{inr}\\,x.",
+          "lean": "private theorem measurable_run\n    {S : Type uS} {Q : Type uQ} {A : Type uA} {X : Type uX}\n    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n    [MeasurableSpace X] [MeasurableSpace (Option X)]\n    (next : S → Sum X Q) (update : S → Q → A → S) (oracle : Q → A)\n    (hnext : Measurable next)\n    (hupdate : Measurable (fun p : S × Q × A => update p.1 p.2.1 p.2.2))\n    (horacle : Measurable oracle) (hsome : Measurable (@Option.some X))\n    (fuel : ℕ) : Measurable (run next update oracle fuel) := by\n  have hl : Measurable (fun p : S × X => ((p.1, some p.2), (0 : ℕ))) :=\n    (measurable_fst.prodMk (hsome.comp measurable_snd)).prodMk measurable_const\n  have hdist : Measurable (fun s : S =>\n      (MeasurableEquiv.prodSumDistrib S X Q) (s, next s)) :=\n    (MeasurableEquiv.prodSumDistrib S X Q).measurable.comp\n      (measurable_id.prodMk hnext)\n  induction fuel with\n  | zero =>\n      have hr : Measurable (fun p : S × Q => ((p.1, (none : Option X)), (0 : ℕ))) :=\n        (measurable_fst.prodMk measurable_const).prodMk measurable_const\n      convert (hl.sumElim hr).comp hdist using 1\n      funext s\n      cases h : next s <;> rw [run, h] <;>\n        simp only [Function.comp_apply, h] <;> rfl\n  | succ n ih =>\n      have hstep : Measurable (fun p : S × Q => update p.1 p.2 (oracle p.2)) :=\n        hupdate.comp (measurable_fst.prodMk\n          (measurable_snd.prodMk (horacle.comp measurable_snd)))\n      have htail := ih.comp hstep\n      have hadd : Measurable (fun n : ℕ => n+1) := measurable_of_countable _\n      have hr : Measurable (fun p : S × Q =>\n          let tail := run next update oracle n (update p.1 p.2 (oracle p.2))\n          (tail.1, tail.2+1)) :=\n        (measurable_fst.comp htail).prodMk (hadd.comp (measurable_snd.comp htail))\n      convert (hl.sumElim hr).comp hdist using 1\n      funext s\n      cases h : next s <;> rw [run, h] <;>\n        simp only [Function.comp_apply, h] <;> rfl\n\n/-- Exact reply simulation preserves the measurable seeded joint execution\nlaw and the actual, pointwise bounded query cost and its ordinary expectation. -/\ntheorem measurable_simulation_joint_law_and_cost :\n  ∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n      {X : Type uX} {Ω : Type uΩ}\n      [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n      [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],\n      letI : MeasurableSpace (Option X) := MeasurableSpace.comap\n        (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n      ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]\n      (next : S → Sum X Q) (update : S → Q → B → S)\n      (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n      (initial : Ω → S),\n      Measurable next →\n      Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →\n      Measurable oracle →\n      Measurable (fun p : Q × A => decode p.1 p.2) →\n      Measurable initial →\n      (∀ q, decode q (oracle q) = target q) →\n      ∀ fuel : ℕ,\n        let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n          run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n        let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n          run next update target fuel (initial ω)\n        Measurable baseRun ∧ Measurable targetRun ∧\n        (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧\n        μ.map baseRun = μ.map targetRun ∧\n        IsProbabilityMeasure (μ.map baseRun) ∧\n        Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧\n        (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧\n        (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) := by\n  intro S Q A B X Ω mS mQ mA mB mX mΩ\n  let : MeasurableSpace (Option X) := MeasurableSpace.comap\n    (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n  dsimp only\n  intro μ hμ next update oracle target decode initial hnext hupdate horacle hdecodeMeas\n    hinitial hdecode fuel\n  have hsome : Measurable (@Option.some X) := by\n    apply Measurable.of_comap_le\n    change MeasurableSpace.comap Option.some\n      (MeasurableSpace.comap\n        (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance) ≤ _\n    rw [MeasurableSpace.comap_comp]\n    exact (measurable_inr : Measurable (Sum.inr : X → Unit ⊕ X)).comap_le\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "commit": "57016008083947405bc7d430838537014a40f987",
+            "file_sha256": "9c0f0c9134aa4360f8bc8384d73f311826224dbe056adb56658d4c393cd33e25",
+            "LF_lines_1based": [
+              53,
+              134
+            ],
+            "decoded_char_span": [
+              2264,
+              6514
+            ],
+            "raw_UTF8_byte_span": [
+              2313,
+              6734
+            ],
+            "span_convention": "Lines inclusive 1-based; character/raw UTF8 byte spans 0-based half-open; exact newline bytes retained.",
+            "start_line_column0": [
+              53,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              135,
+              0
+            ],
+            "span_sha256": "bb7a6614d2c84c105277f4f6fa989af875259d7071ac52baa249886201bbfae6",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "download_filename": "AdaptiveOracleSimulation.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "source_attribution": [
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#S2.SS0.SSS0.Px2.p1.1",
+              "anchor": "S2.SS0.SSS0.Px2.p1.1",
+              "source_graph_nodes": [
+                "SRC.ADAPTIVE_RULES",
+                "GAP.MEASURABLE_JOINT_LAW"
+              ],
+              "region": "Borel adaptive policies motivate explicit measurable program data; the generic sigma/interpreter theorem is author-derived.",
+              "scope": "P measurable-program generalization, not universal source-algorithm encoding."
+            },
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS1.SSS0.Px1.p7.1",
+              "anchor": "A3.SS1.SSS0.Px1.p7.1",
+              "source_graph_nodes": [
+                "SRC.FINITE_PAD"
+              ],
+              "region": "C.1 finite-horizon measurable-query/readout context.",
+              "scope": "Context only: dummy zero queries do not redefine actual cost."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Initialize from a common seed and preserve the full joint probability law",
+          "text": "Compose the measurable run with the measurable initial state under the same probability law μ. Exact seeded execution equality transfers measurability to targetRun and makes the two pushforward measures equal. The mapped measure is a probability measure. The mapped value retains final state, tagged output and actual count together; it is not automatically an E-valued successful-sampling law.",
+          "formula": "\\forall\\omega,\\ R_\\delta(\\omega)=R_t(\\omega),\\qquad (R_\\delta)_\\#\\mu=(R_t)_\\#\\mu,\\qquad (R_\\delta)_\\#\\mu(\\mathrm{univ})=1.",
+          "lean": "  let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n    run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n  let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n    run next update target fuel (initial ω)\n  have hcorrected : Measurable (fun p : S × Q × A =>\n      update p.1 p.2.1 (decode p.2.1 p.2.2)) :=\n    hupdate.comp (measurable_fst.prodMk\n      (measurable_snd.fst.prodMk (hdecodeMeas.comp measurable_snd)))\n  have hb : Measurable baseRun :=\n    (measurable_run next (fun s q a => update s q (decode q a)) oracle\n      hnext hcorrected horacle hsome fuel).comp hinitial\n  have he (ω : Ω) : baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel :=\n    run_simulation_and_cap next update oracle target decode hdecode fuel (initial ω)\n  have heq : baseRun = targetRun := funext fun ω => (he ω).1\n  have ht : Measurable targetRun := by rw [← heq]; exact hb\n  have hlaw : μ.map baseRun = μ.map targetRun := congrArg (fun f => μ.map f) heq\n  have hprob : IsProbabilityMeasure (μ.map baseRun) :=\n    Measure.isProbabilityMeasure_map hb.aemeasurable\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "commit": "57016008083947405bc7d430838537014a40f987",
+            "file_sha256": "9c0f0c9134aa4360f8bc8384d73f311826224dbe056adb56658d4c393cd33e25",
+            "LF_lines_1based": [
+              135,
+              152
+            ],
+            "decoded_char_span": [
+              6514,
+              7575
+            ],
+            "raw_UTF8_byte_span": [
+              6734,
+              7833
+            ],
+            "span_convention": "Lines inclusive 1-based; character/raw UTF8 byte spans 0-based half-open; exact newline bytes retained.",
+            "start_line_column0": [
+              135,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              153,
+              0
+            ],
+            "span_sha256": "4f019f9913bfbcd31a02ea93320a2113f62e6121bd99115a58f024fe2fcb0c6a",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "download_filename": "AdaptiveOracleSimulation.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "source_attribution": [
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#S2.SS0.SSS0.Px2.p1.1",
+              "anchor": "S2.SS0.SSS0.Px2.p1.1",
+              "source_graph_nodes": [
+                "SRC.SEED",
+                "SRC.ADAPTIVE_RULES"
+              ],
+              "region": "Input-independent private randomness and adaptive program data.",
+              "scope": "Common-seed context; no Haar joint law."
+            },
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A2.SS1.SSS0.Px4.p4.1",
+              "anchor": "A2.SS1.SSS0.Px4.p4.1",
+              "source_graph_nodes": [
+                "SRC.WHOLE_SEED",
+                "GAP.MEASURABLE_JOINT_LAW"
+              ],
+              "region": "B.1 fixing the whole seed and integrating over it.",
+              "scope": "Author-derived full tagged execution law, without surrounding sign/hidden-block assertions."
+            },
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#S2.SS0.SSS0.Px4.p1.1",
+              "anchor": "S2.SS0.SSS0.Px4.p1.1",
+              "source_graph_nodes": [
+                "SRC.OUTPUT_LAW"
+              ],
+              "region": "Source output law averages private randomness.",
+              "scope": "Tagged partial-execution law is explicit; successful output representation is deferred."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Integrate the bounded actual query count",
+          "text": "The real-valued count is measurable and lies between zero and fuel at every seed. The probability space makes the constant fuel bound integrable, hence the actual count is Bochner integrable. Pointwise execution equality gives equality of ordinary expected actual counts; integrating the pointwise cap gives their common upper bound. An early halt can have expected cost strictly below the budget, and no expectation-budget definition replaces the source deterministic cap.",
+          "formula": "0\\le C_\\delta\\le n,\\qquad C_\\delta\\in L^1(\\mu),\\qquad \\int C_\\delta\\,d\\mu=\\int C_t\\,d\\mu\\le n.",
+          "lean": "  have hcount : Measurable (fun ω => ((baseRun ω).2 : ℝ)) :=\n    (measurable_of_countable (fun n : ℕ => (n : ℝ))).comp (measurable_snd.comp hb)\n  have hbound (ω : Ω) : ((baseRun ω).2 : ℝ) ≤ (fuel : ℝ) :=\n    Nat.cast_le.mpr (he ω).2\n  have hint : Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ :=\n    (integrable_const (fuel : ℝ)).mono' hcount.aestronglyMeasurable\n      (ae_of_all _ fun ω => by\n        rw [Real.norm_eq_abs, abs_of_nonneg (Nat.cast_nonneg _)]\n        exact hbound ω)\n  have hcost : (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) =\n      (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) :=\n    integral_congr_ae (ae_of_all _ fun ω =>\n      congrArg (fun r : (S × Option X) × ℕ => (r.2 : ℝ)) (he ω).1)\n  have hmean : (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) := by\n    simpa using integral_mono hint (integrable_const (fuel : ℝ)) hbound\n  exact ⟨hb, ht, he, hlaw, hprob, hint, hcost, hmean⟩\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation\n",
+          "lean_source_path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "lean_source": {
+            "path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "commit": "57016008083947405bc7d430838537014a40f987",
+            "file_sha256": "9c0f0c9134aa4360f8bc8384d73f311826224dbe056adb56658d4c393cd33e25",
+            "LF_lines_1based": [
+              153,
+              170
+            ],
+            "decoded_char_span": [
+              7575,
+              8523
+            ],
+            "raw_UTF8_byte_span": [
+              7833,
+              8853
+            ],
+            "span_convention": "Lines inclusive 1-based; character/raw UTF8 byte spans 0-based half-open; exact newline bytes retained.",
+            "start_line_column0": [
+              153,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              171,
+              0
+            ],
+            "span_sha256": "bb23f0d7a0bb1b030ca759cb6dbc1135f504304a154483cf825fc212a94f1800",
+            "download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+            "download_filename": "AdaptiveOracleSimulation.lean"
+          },
+          "lean_download_path": "downloads/lean/AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "source_attribution": [
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#S2.SS0.SSS0.Px2.p1.1",
+              "anchor": "S2.SS0.SSS0.Px2.p1.1",
+              "source_graph_nodes": [
+                "SRC.CAP",
+                "GAP.BOUNDED_EXPECTATION"
+              ],
+              "region": "Deterministic query cap for each input and each seed; ordinary expected-cost consequence is derived.",
+              "scope": "Expected actual-count infrastructure, not a new source worst-case complexity theorem."
+            }
+          ],
+          "scope": "public P"
+        },
+        {
+          "title": "Apply P in both actual first-order/matvec directions",
+          "text": "Keep the literal full orthogonal midpoint-cosine family, the Borel Euclidean carrier, common seed law and all fuel values. The existing first-order producer supplies the genuine value/gradient identity internally. Matvec continuity and the continuous scalar/vector decoder establish the actual oracle measurability. Apply P once to the FO policy decoded from matvec replies and once to the MV policy using the gradient projection. Each pair preserves its full joint execution law and actual expected cost. The two unrelated update policies are never identified.",
+          "formula": "\\mathrm{FO}_A(x)=(\\langle x,Ax\\rangle/2,Ax),\\quad (x,y)\\mapsto(\\langle x,y\\rangle/2,y),\\quad (x,(r,y))\\mapsto y.",
+          "lean": "import AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation\nimport AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder\n\nopen Matrix MeasureTheory ProbabilityTheory\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle\nopen AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation\nset_option autoImplicit false\nuniverse uS uΩ\n\n/-!\nActual two-direction seeded adaptive simulation for the literal fixed-spectrum\nprecision family. Every seed retains its terminal state, some-output or none\nexhaustion, and actual query count; both full joint laws and ordinary expected\nquery costs are preserved. The genuine source gradient is supplied internally\nby the canonical producer. No source-class representation, successful-sampling,\nHaar-joint law, TV accuracy, approximate oracle or main lower bound is asserted.\n-/\nnamespace AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation\n\nset_option backward.isDefEq.respectTransparency false in\nprivate theorem actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs :\n  ∀ {d : ℕ}, 2 ≤ d →\n      ∀ {κ : ℝ}, 2 ≤ κ →\n      letI : MeasurableSpace (EuclideanSpace ℝ (Fin d)) := borel _\n      letI : MeasurableSpace (Option (EuclideanSpace ℝ (Fin d))) := MeasurableSpace.comap\n        (fun x : Option (EuclideanSpace ℝ (Fin d)) =>\n          x.elim (Sum.inl () : Unit ⊕ EuclideanSpace ℝ (Fin d)) Sum.inr) inferInstance\n      ∀ {S : Type uS} {Ω : Type uΩ} [MeasurableSpace S] [MeasurableSpace Ω]\n        (μ : Measure Ω) [IsProbabilityMeasure μ]\n        (next : S → Sum (EuclideanSpace ℝ (Fin d)) (EuclideanSpace ℝ (Fin d)))\n        (updateFO : S → EuclideanSpace ℝ (Fin d) →\n          (ℝ × EuclideanSpace ℝ (Fin d)) → S)\n        (updateMV : S → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) → S)\n        (initial : Ω → S),\n        Measurable next →\n        Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n          (ℝ × EuclideanSpace ℝ (Fin d)) => updateFO p.1 p.2.1 p.2.2) →\n        Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n          EuclideanSpace ℝ (Fin d) => updateMV p.1 p.2.1 p.2.2) →\n        Measurable initial →\n        ∀ (fuel : ℕ) (O : Matrix.orthogonalGroup (Fin d) ℝ),\n          let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n          let A : Matrix (Fin d) (Fin d) ℝ :=\n            (O : Matrix (Fin d) (Fin d) ℝ) *\n            Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n            (O : Matrix (Fin d) (Fin d) ℝ).transpose\n          let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n            (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n          let mv : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n            WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n          let fo := fun x => (f x, gradient f x)\n          let foRun := fun ω => run next updateFO fo fuel (initial ω)\n          let foViaMV := fun ω => run next\n            (fun s x y => updateFO s x (inner ℝ x y / 2, y)) mv fuel (initial ω)\n          let mvRun := fun ω => run next updateMV mv fuel (initial ω)\n          let mvViaFO := fun ω => run next\n            (fun s x (y : ℝ × EuclideanSpace ℝ (Fin d)) => updateMV s x y.2)\n            fo fuel (initial ω)\n          Measurable foViaMV ∧ Measurable foRun ∧\n          (∀ ω, foViaMV ω = foRun ω ∧ (foViaMV ω).2 ≤ fuel) ∧\n          μ.map foViaMV = μ.map foRun ∧ IsProbabilityMeasure (μ.map foViaMV) ∧\n          Integrable (fun ω => ((foViaMV ω).2 : ℝ)) μ ∧\n          (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) = (∫ ω, ((foRun ω).2 : ℝ) ∂μ) ∧\n          (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) ∧\n          Measurable mvViaFO ∧ Measurable mvRun ∧\n          (∀ ω, mvViaFO ω = mvRun ω ∧ (mvViaFO ω).2 ≤ fuel) ∧\n          μ.map mvViaFO = μ.map mvRun ∧ IsProbabilityMeasure (μ.map mvViaFO) ∧\n          Integrable (fun ω => ((mvViaFO ω).2 : ℝ)) μ ∧\n          (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) = (∫ ω, ((mvRun ω).2 : ℝ) ∂μ) ∧\n          (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) := by\n  intro d hd κ hκ\n  let E := EuclideanSpace ℝ (Fin d)\n  let : MeasurableSpace E := borel E\n  let : BorelSpace E := ⟨rfl⟩\n  let : MeasurableSpace (Option E) := MeasurableSpace.comap\n    (fun x : Option E => x.elim (Sum.inl () : Unit ⊕ E) Sum.inr) inferInstance\n  dsimp only\n  intro S Ω mS mΩ μ hμ next updateFO updateMV initial hnext hupdateFO hupdateMV\n    hinitial fuel O\n  let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n  let A : Matrix (Fin d) (Fin d) ℝ :=\n    (O : Matrix (Fin d) (Fin d) ℝ) *\n    Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n    (O : Matrix (Fin d) (Fin d) ℝ).transpose\n  let f : E → ℝ := fun x => (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n  let mv : E → E := fun x => WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n  let fo : E → ℝ × E := fun x => (f x, gradient f x)\n  let H : E →L[ℝ] E := Matrix.toEuclideanCLM (𝕜 := ℝ) (n := Fin d) A\n  have hmv : Measurable mv := by\n    change Measurable H\n    exact H.continuous.measurable\n  have hactual (x : E) : fo x = (inner ℝ x (mv x) / 2, mv x) :=\n    (AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query\n      hd hκ O x).2\n  have hdecoder : Measurable (fun p : E × E => (inner ℝ p.1 p.2 / 2, p.2)) :=\n    (show Continuous (fun p : E × E => (inner ℝ p.1 p.2 / 2, p.2)) by fun_prop).measurable\n  have hfo : Measurable fo := by\n    have heq : fo = fun x => (inner ℝ x (mv x) / 2, mv x) := funext hactual\n    have hpair : Measurable (fun x : E => (x, mv x)) := measurable_id.prodMk hmv\n    have hcomp := hdecoder.comp hpair\n    exact heq.symm ▸ hcomp\n  have hfwd := measurable_simulation_joint_law_and_cost\n    (S := S) (Q := E) (A := E) (B := ℝ × E) (X := E) (Ω := Ω)\n    μ next updateFO mv fo\n    (fun x y => (inner ℝ x y / 2, y)) initial hnext hupdateFO hmv hdecoder\n    hinitial (fun x => (hactual x).symm) fuel\n  have hprojection : Measurable (fun p : E × (ℝ × E) => p.2.2) := measurable_snd.snd\n  have hrev := measurable_simulation_joint_law_and_cost\n    (S := S) (Q := E) (A := ℝ × E) (B := E) (X := E) (Ω := Ω)\n    μ next updateMV fo mv\n    (fun _ y => y.2) initial hnext hupdateMV hfo hprojection hinitial\n    (fun x => congrArg Prod.snd (hactual x)) fuel\n  rcases hfwd with ⟨hf1, hf2, hf3, hf4, hf5, hf6, hf7, hf8⟩\n  rcases hrev with ⟨hr1, hr2, hr3, hr4, hr5, hr6, hr7, hr8⟩\n  exact ⟨hf1, hf2, hf3, hf4, hf5, hf6, hf7, hf8,\n    hr1, hr2, hr3, hr4, hr5, hr6, hr7, hr8⟩\n\nend AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation\n",
+          "lean_source_path": "Tests/GaussianComplexityAdaptiveFirstOrderSimulation.lean",
+          "lean_source": {
+            "path": "Tests/GaussianComplexityAdaptiveFirstOrderSimulation.lean",
+            "commit": "57016008083947405bc7d430838537014a40f987",
+            "file_sha256": "9c28703d8adcc9e33b187371b021c3d1cea902172ce7ba89f1d257d80f7ef6ae",
+            "LF_lines_1based": [
+              1,
+              118
+            ],
+            "decoded_char_span": [
+              0,
+              6514
+            ],
+            "raw_UTF8_byte_span": [
+              0,
+              6896
+            ],
+            "span_convention": "Lines inclusive 1-based; character/raw UTF8 byte spans 0-based half-open; exact newline bytes retained.",
+            "start_line_column0": [
+              1,
+              0
+            ],
+            "end_exclusive_line_column0": [
+              119,
+              0
+            ],
+            "span_sha256": "9c28703d8adcc9e33b187371b021c3d1cea902172ce7ba89f1d257d80f7ef6ae",
+            "download_path": "downloads/lean/Tests/GaussianComplexityAdaptiveFirstOrderSimulation.lean",
+            "download_filename": "GaussianComplexityAdaptiveFirstOrderSimulation.lean"
+          },
+          "lean_download_path": "downloads/lean/Tests/GaussianComplexityAdaptiveFirstOrderSimulation.lean",
+          "source_attribution": [
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#S2.E1",
+              "anchor": "S2.E1",
+              "source_graph_nodes": [
+                "SRC.FO",
+                "SRC.MV_TO_FO",
+                "SRC.FO_TO_MV"
+              ],
+              "region": "Printed genuine quadratic reply and both exact reply conversions.",
+              "scope": "Two actual private program comparisons; no class-uniform complexity equivalence."
+            },
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#S4.E11",
+              "anchor": "S4.E11",
+              "source_graph_nodes": [
+                "SRC.GRID",
+                "SRC.ROTATION",
+                "SRC.PUBLIC_SPECTRUM"
+              ],
+              "region": "Literal fixed-spectrum family in Section4.1.",
+              "scope": "Pointwise every full O; no Haar/posterior or hard-input law."
+            },
+            {
+              "origin": "AUTHOR_SOURCE_FIRST_LOCATOR; IMPLEMENTATION_REVIEW_PENDING",
+              "file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+              "file_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+              "url": "https://arxiv.org/html/2610.20492v1#A3.SS4.p2.1",
+              "anchor": "A3.SS4.p2.1",
+              "source_graph_nodes": [
+                "SRC.C4_CALCULUS"
+              ],
+              "region": "C.4 quadratic-calculus background for the existing genuine-gradient producer.",
+              "scope": "Calculus context only; FO/matvec equivalence is Section2 Equation1, not C.4."
+            }
+          ],
+          "scope": "associated private T"
+        }
+      ],
+      "reader_note": "R records terminal state, tagged output and actual count. Steps 1–4 prove the shared generic theorem; step 5 is its associated private application in the two actual quadratic-oracle directions. Conditions, proof details and exact Lean are folded below.",
+      "dependencies": [],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+      ],
+      "mathlib_dependencies": [
+        "MeasurableEquiv.prodSumDistrib",
+        "MeasurableSpace.comap_comp",
+        "Measure.isProbabilityMeasure_map",
+        "integrable_const",
+        "Integrable.mono'",
+        "integral_congr_ae",
+        "integral_mono"
+      ],
+      "dependency_notes": "P literally reuses the existing canonical run definition. T literally calls new P twice and the existing genuine first-order producer. These are source observations only; independently elaborated value/kernel dependency review is pending. T is one private material consumer, with no second public node.",
+      "lean_statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {Ω : Type uΩ}\n    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n    [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],\n    letI : MeasurableSpace (Option X) := MeasurableSpace.comap\n      (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n    ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n    (initial : Ω → S),\n    Measurable next →\n    Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →\n    Measurable oracle →\n    Measurable (fun p : Q × A => decode p.1 p.2) →\n    Measurable initial →\n    (∀ q, decode q (oracle q) = target q) →\n    ∀ fuel : ℕ,\n      let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n      let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next update target fuel (initial ω)\n      Measurable baseRun ∧ Measurable targetRun ∧\n      (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧\n      μ.map baseRun = μ.map targetRun ∧\n      IsProbabilityMeasure (μ.map baseRun) ∧\n      Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)\n",
+      "lean_proof": "The five exact adjacent spans partition all 170 public P and 118 private T lines, including imports, typing context and complete proofs, from immutable math570.",
+      "sources": [
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#S2.E1",
+          "edition": "arXiv:2610.20492v1; pinned HTML SHA256 6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+          "anchor": "Section2 Equation1 and exact-oracle paragraph; randomized Borel-policy/seed/cap conventions; Section4.1 Equation11. B.1 and C.1 are finite-history/Borel context; C.4 supplies only admissibility/quadratic-calculus context.",
+          "label": "Exact quadratic oracle replies and finite adaptive-program context",
+          "wording_status": "faithful paraphrase",
+          "attribution": "The source prints the quadratic reply conversions. The generic measurable seeded finite-fuel theorem is explicitly author-derived Level B background, not a printed theorem or a proof of class-uniform complexity equivalence.",
+          "scope": "Source context and literal private application; implementation/source review remains pending. No universal source algorithm representation or successful-sampling claim."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+          "line": 93,
+          "label": "Canonical public declaration",
+          "scope": "Exact P source; author build evidence only, independent reviews pending."
+        },
+        {
+          "path": "Tests/GaussianComplexityAdaptiveFirstOrderSimulation.lean",
+          "line": 21,
+          "label": "Associated private two-direction actual consumer",
+          "scope": "Private T whole module; no extra publication edge."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularizationOracle.lean",
+          "line": 18,
+          "label": "Unchanged canonical finite-fuel run",
+          "scope": "Existing definition reused literally; none means exhaustion and counts are actual."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A2.SS1.SSS0.Px3.p6.1",
+          "label": "B.1 absorbing finite histories",
+          "scope": "Context only; no hidden-block or sign/posterior conclusion."
+        },
+        {
+          "url": "https://arxiv.org/html/2610.20492v1#A3.SS1.SSS0.Px1.p7.1",
+          "label": "C.1 measurable finite-horizon context",
+          "scope": "Context only; no generic source algorithm representation theorem."
+        }
+      ],
+      "tests": [
+        "lake build AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation Tests.GaussianComplexityAdaptiveFirstOrderSimulation"
+      ]
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+      "role": "proof-edge",
+      "supports": [
+        "finite-fuel-seeded-exact-simulation"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The source uses Borel adaptive policies, a private input-independent seed, and exact reply conversions for Euclidean quadratic oracles.",
+        "lean": "P abstracts arbitrary measurable carriers and a probability seed law, measurable next/update/oracle/decoder/initial maps and exact pointwise decoder commutation."
+      },
+      {
+        "source": "Section2 Equation1 computes each exact quadratic reply from one reply of the other oracle; Section2 uses a deterministic cap for every input and seed.",
+        "lean": "P explicitly preserves the full terminal state/Option-output/actual-count result for all fuel, including zero, then both pushforward laws and ordinary expected actual count ≤ fuel."
+      },
+      {
+        "source": "Source successful outputs are Euclidean-valued; B.1/C.1 absorbing/padded histories are contextual conventions.",
+        "lean": "The reused finite-fuel run tags a halted output with some and an unfunded request with none, under the literal Unit⊕X pullback sigma algebra; it never pads actual query counts."
+      },
+      {
+        "source": "Section4.1 Equation11 gives the midpoint-cosine fixed-spectrum family; Section2 Equation1 gives the genuine reply identity and conversions. C.4 is only spectral/quadratic-calculus context.",
+        "lean": "T retains d≥2, κ≥2, every full orthogonal O, literal Borel E and Option sigma, common μ/program data before O, every fuel, and both actual program-specific comparisons. The genuine gradient and oracle measurability are derived internally."
+      },
+      {
+        "source": "The source asserts equivalence of query-complexity classes and defines class-uniform successful-sampling complexity Q_G.",
+        "lean": "P/T only establish finite-fuel exact-program execution/law/cost preservation; universal source representation, successful outputs and class-uniform Q_G equivalence remain outside the target."
+      }
+    ]
+  }
+}

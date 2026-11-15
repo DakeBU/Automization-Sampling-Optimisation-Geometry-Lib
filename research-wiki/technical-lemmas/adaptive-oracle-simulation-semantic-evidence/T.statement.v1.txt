@@ -1,0 +1,49 @@
+∀ {d : ℕ}, 2 ≤ d →
+    ∀ {κ : ℝ}, 2 ≤ κ →
+    letI : MeasurableSpace (EuclideanSpace ℝ (Fin d)) := borel _
+    letI : MeasurableSpace (Option (EuclideanSpace ℝ (Fin d))) := MeasurableSpace.comap
+      (fun x : Option (EuclideanSpace ℝ (Fin d)) =>
+        x.elim (Sum.inl () : Unit ⊕ EuclideanSpace ℝ (Fin d)) Sum.inr) inferInstance
+    ∀ {S : Type uS} {Ω : Type uΩ} [MeasurableSpace S] [MeasurableSpace Ω]
+      (μ : Measure Ω) [IsProbabilityMeasure μ]
+      (next : S → Sum (EuclideanSpace ℝ (Fin d)) (EuclideanSpace ℝ (Fin d)))
+      (updateFO : S → EuclideanSpace ℝ (Fin d) →
+        (ℝ × EuclideanSpace ℝ (Fin d)) → S)
+      (updateMV : S → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) → S)
+      (initial : Ω → S),
+      Measurable next →
+      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×
+        (ℝ × EuclideanSpace ℝ (Fin d)) => updateFO p.1 p.2.1 p.2.2) →
+      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×
+        EuclideanSpace ℝ (Fin d) => updateMV p.1 p.2.1 p.2.2) →
+      Measurable initial →
+      ∀ (fuel : ℕ) (O : Matrix.orthogonalGroup (Fin d) ℝ),
+        let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)
+        let A : Matrix (Fin d) (Fin d) ℝ :=
+          (O : Matrix (Fin d) (Fin d) ℝ) *
+          Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *
+          (O : Matrix (Fin d) (Fin d) ℝ).transpose
+        let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>
+          (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2
+        let mv : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>
+          WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)
+        let fo := fun x => (f x, gradient f x)
+        let foRun := fun ω => run next updateFO fo fuel (initial ω)
+        let foViaMV := fun ω => run next
+          (fun s x y => updateFO s x (inner ℝ x y / 2, y)) mv fuel (initial ω)
+        let mvRun := fun ω => run next updateMV mv fuel (initial ω)
+        let mvViaFO := fun ω => run next
+          (fun s x (y : ℝ × EuclideanSpace ℝ (Fin d)) => updateMV s x y.2)
+          fo fuel (initial ω)
+        Measurable foViaMV ∧ Measurable foRun ∧
+        (∀ ω, foViaMV ω = foRun ω ∧ (foViaMV ω).2 ≤ fuel) ∧
+        μ.map foViaMV = μ.map foRun ∧ IsProbabilityMeasure (μ.map foViaMV) ∧
+        Integrable (fun ω => ((foViaMV ω).2 : ℝ)) μ ∧
+        (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) = (∫ ω, ((foRun ω).2 : ℝ) ∂μ) ∧
+        (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) ∧
+        Measurable mvViaFO ∧ Measurable mvRun ∧
+        (∀ ω, mvViaFO ω = mvRun ω ∧ (mvViaFO ω).2 ≤ fuel) ∧
+        μ.map mvViaFO = μ.map mvRun ∧ IsProbabilityMeasure (μ.map mvViaFO) ∧
+        Integrable (fun ω => ((mvViaFO ω).2 : ℝ)) μ ∧
+        (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) = (∫ ω, ((mvRun ω).2 : ℝ) ∂μ) ∧
+        (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)

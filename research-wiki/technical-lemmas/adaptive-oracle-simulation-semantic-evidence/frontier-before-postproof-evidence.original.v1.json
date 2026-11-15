@@ -1,0 +1,393 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SHARED-ADAPTIVE-ORACLE-SIMULATION",
+  "route": "shared",
+  "mode": "faithfulPaper",
+  "title": "Measurable adaptive oracle simulation with joint laws and actual query cost",
+  "source_anchor": "arXiv2610.20492v1 Section2 Eq1 printed exact FO/matvec equivalence; randomized algorithm/cap context and Eq2; Section4.1 Eq11 full orthogonal fixed-spectrum family. Distinct-reviewed current context: AppendixB.1 histories/common seeds, AppendixC.1 finite horizon encoding, AppendixC.4 admissibility/quadratic calculus only, not oracle-equivalence attribution.",
+  "target_statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {Ω : Type uΩ}\n    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n    [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],\n    letI : MeasurableSpace (Option X) := MeasurableSpace.comap\n      (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n    ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n    (initial : Ω → S),\n    Measurable next →\n    Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →\n    Measurable oracle →\n    Measurable (fun p : Q × A => decode p.1 p.2) →\n    Measurable initial →\n    (∀ q, decode q (oracle q) = target q) →\n    ∀ fuel : ℕ,\n      let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n      let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next update target fuel (initial ω)\n      Measurable baseRun ∧ Measurable targetRun ∧\n      (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧\n      μ.map baseRun = μ.map targetRun ∧\n      IsProbabilityMeasure (μ.map baseRun) ∧\n      Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)",
+  "private_consumer_statement": "∀ {d : ℕ}, 2 ≤ d →\n    ∀ {κ : ℝ}, 2 ≤ κ →\n    letI : MeasurableSpace (EuclideanSpace ℝ (Fin d)) := borel _\n    letI : MeasurableSpace (Option (EuclideanSpace ℝ (Fin d))) := MeasurableSpace.comap\n      (fun x : Option (EuclideanSpace ℝ (Fin d)) =>\n        x.elim (Sum.inl () : Unit ⊕ EuclideanSpace ℝ (Fin d)) Sum.inr) inferInstance\n    ∀ {S : Type uS} {Ω : Type uΩ} [MeasurableSpace S] [MeasurableSpace Ω]\n      (μ : Measure Ω) [IsProbabilityMeasure μ]\n      (next : S → Sum (EuclideanSpace ℝ (Fin d)) (EuclideanSpace ℝ (Fin d)))\n      (updateFO : S → EuclideanSpace ℝ (Fin d) →\n        (ℝ × EuclideanSpace ℝ (Fin d)) → S)\n      (updateMV : S → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) → S)\n      (initial : Ω → S),\n      Measurable next →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        (ℝ × EuclideanSpace ℝ (Fin d)) => updateFO p.1 p.2.1 p.2.2) →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        EuclideanSpace ℝ (Fin d) => updateMV p.1 p.2.1 p.2.2) →\n      Measurable initial →\n      ∀ (fuel : ℕ) (O : Matrix.orthogonalGroup (Fin d) ℝ),\n        let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n        let A : Matrix (Fin d) (Fin d) ℝ :=\n          (O : Matrix (Fin d) (Fin d) ℝ) *\n          Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n          (O : Matrix (Fin d) (Fin d) ℝ).transpose\n        let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n          (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n        let mv : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n          WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n        let fo := fun x => (f x, gradient f x)\n        let foRun := fun ω => run next updateFO fo fuel (initial ω)\n        let foViaMV := fun ω => run next\n          (fun s x y => updateFO s x (inner ℝ x y / 2, y)) mv fuel (initial ω)\n        let mvRun := fun ω => run next updateMV mv fuel (initial ω)\n        let mvViaFO := fun ω => run next\n          (fun s x (y : ℝ × EuclideanSpace ℝ (Fin d)) => updateMV s x y.2)\n          fo fuel (initial ω)\n        Measurable foViaMV ∧ Measurable foRun ∧\n        (∀ ω, foViaMV ω = foRun ω ∧ (foViaMV ω).2 ≤ fuel) ∧\n        μ.map foViaMV = μ.map foRun ∧ IsProbabilityMeasure (μ.map foViaMV) ∧\n        Integrable (fun ω => ((foViaMV ω).2 : ℝ)) μ ∧\n        (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) = (∫ ω, ((foRun ω).2 : ℝ) ∂μ) ∧\n        (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) ∧\n        Measurable mvViaFO ∧ Measurable mvRun ∧\n        (∀ ω, mvViaFO ω = mvRun ω ∧ (mvViaFO ω).2 ≤ fuel) ∧\n        μ.map mvViaFO = μ.map mvRun ∧ IsProbabilityMeasure (μ.map mvViaFO) ∧\n        Integrable (fun ω => ((mvViaFO ω).2 : ℝ)) μ ∧\n        (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) = (∫ ω, ((mvRun ω).2 : ℝ) ∂μ) ∧\n        (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)",
+  "status": "claimed",
+  "owner_id": "huanjian_20261116_adaptive_oracle_simulation",
+  "advance_id": "ASTIS-SA-20261116-AdaptiveOracleSimulation",
+  "base_commit": "e6bff1539c1c00c623ede51e1780da9427c58d63",
+  "parents": [
+    "ASTIS-SHARED-regularization-oracle",
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-first-order"
+  ],
+  "parent_scope": {
+    "public_P_planned_existing_cell": [
+      "ASTIS-SHARED-regularization-oracle"
+    ],
+    "public_P_literal_reused_definition": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+    "private_T_planned_source_cell": [
+      "ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-first-order"
+    ],
+    "private_T_planned_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query"
+    ],
+    "not_public_P_mathematical_parent": "ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-first-order",
+    "compiled_value_dependency_status": "pending"
+  },
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation.actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs [simulate actual FO execution using MV replies; planned material P instance]",
+    "AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation.actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs [simulate actual MV execution using FO replies; planned material P instance]"
+  ],
+  "consumer_scope": "Two literal directions within one private T, planned to instantiate P twice with the genuine existing first-order producer; no extra public node or compiled-call credit yet.",
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS bounded actual inputs: sealed canonical QuadraticRegularizationOracle.run definition and the existing regularization-oracle/fixed-spectrum-first-order cells read; exact existing files match the seal hashes. No new run/interpreter is proposed.",
+      "Mathlib target-specific retrieval is pending ROOT after final source admission; metadata author did not perform a target proof/API search or infer global absence. The old parent search claims are not rerun or promoted for R18.",
+      "ROOT actual pinned Mathlib retrieval: MeasurableEquiv.prodSumDistrib, Measurable.sumElim, comap_comp/Measurable.of_comap_le, Measure.isProbabilityMeasure_map, Integrable.mono', integral_mono/integral_const/integral_congr_ae. Unknown guessed name measurable_from_countable diagnosed; actual source declares measurable_of_countable. No theorem proof attempt yet."
+    ],
+    "classification": "adapt",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+    "canonical_shared_cell": "ASTIS-SHARED-ADAPTIVE-ORACLE-SIMULATION",
+    "status": "Author reuse/delta plan, target proof and value audit pending"
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS bounded actual inputs: sealed canonical QuadraticRegularizationOracle.run definition and the existing regularization-oracle/fixed-spectrum-first-order cells read; exact existing files match the seal hashes. No new run/interpreter is proposed.",
+      "Mathlib target-specific retrieval is pending ROOT after final source admission; metadata author did not perform a target proof/API search or infer global absence. The old parent search claims are not rerun or promoted for R18.",
+      "ROOT actual pinned Mathlib retrieval: MeasurableEquiv.prodSumDistrib, Measurable.sumElim, comap_comp/Measurable.of_comap_le, Measure.isProbabilityMeasure_map, Integrable.mono', integral_mono/integral_const/integral_congr_ae. Unknown guessed name measurable_from_countable diagnosed; actual source declares measurable_of_countable. No theorem proof attempt yet."
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+    ],
+    "literal_reuse_scope": "Exact existing run in sealed definitions, not new compiled proof-parent evidence.",
+    "planned_public_P_ASTIS_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+    ],
+    "planned_private_T_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost"
+    ],
+    "known_consumers": [],
+    "planned_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation.actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs [simulate actual FO execution using MV replies; planned material P instance]",
+      "AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation.actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs [simulate actual MV execution using FO replies; planned material P instance]"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "The proposed new delta is measurability of actual seeded final-state/Option/count runs, full joint law and genuine bounded expected querycost. It is not the old pointwise/count-only interface, a reply identity wrapper or a new interpreter.",
+    "actual_proof_value_dependencies": "pending"
+  },
+  "reader_contract": {
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true,
+    "status": "Contract only; no R18 proof or reader exposition authored."
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost"
+    ],
+    "visual_review": "Preproof source topology/coverage accepted by distinct TC. No target compiled Lean graph, reader or implementation-source fidelity yet.",
+    "qualification": "One actual new P node, canonical existing run parent, private T invokes P twice and genuine existing fixed-spectrum gradient producer. Existing conceptual mechanisms referenced only; no new bridge or Lean implication to other source reductions."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "evidence": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/reuse-and-conceptual-mirror-audit.root.v1.json",
+    "sha256": "5eaf3d7b54034883279bb2157ae7d9742e6550e2f8386f426c573fc2e7760110",
+    "scope": "No NEW cross-domain bridge/discovery. This packet supplies one formal canonical exact-simulation node and its two actual same-node consumers. Existing source-level oracle-reduction/factorization mechanisms are retained by reference; no analogous mechanism is promoted to a Lean implication."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES",
+      "ASTIS-NK-GRADIENT-FLOW-ZERO-TIME",
+      "ASTIS-NK-GD-INVERSE-DOMAIN"
+    ],
+    "process_memory_scope": "Bounded current three-entry registry identities inspected; process-only, none supplies an R18 mathematical conclusion.",
+    "failure_class": "NONE",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "All actual formation/metadata/implementation/API-diagnostic predecessors remain preserved. Same sealed P/T now compile and reply-sensitive law/fuel0/earlyhalt/exhaustion/expectedcost checks pass. No discarded mathematical fragment or changed target; native and source acceptance separate.",
+      "promoted_fragments": [],
+      "discarded_fragments": []
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "ROOT is the sole future prover. Independent raw-source graph and distinct topology challenge address preproof source uncertainty, not competing mathematical proof searches.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No target proof route has begun; source review actors are distinct preproof uncertainties."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 pinnedHTML SHA6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "arXiv2610.20492v1 Section2 Eq1 printed exact FO/matvec equivalence; randomized algorithm/cap context and Eq2; Section4.1 Eq11 full orthogonal fixed-spectrum family. Distinct-reviewed current context: AppendixB.1 histories/common seeds, AppendixC.1 finite horizon encoding, AppendixC.4 admissibility/quadratic calculus only, not oracle-equivalence attribution.",
+    "detail_status": "omitted",
+    "gap": "Generic P is LevelB author-derived well-formed finite-fuel seeded execution/law/cost infrastructure, not a printed paper theorem. The source universal-algorithm encoding, successful halting under cap and class-uniform complexity adapters are not targets.",
+    "consulted": [
+      {
+        "source": "Existing canonical QuadraticRegularizationOracle.run",
+        "anchor": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+        "hypothesis_adapter": "Literal fixed interpreter semantics only; no new target law/proof claim."
+      },
+      {
+        "source": "Existing actual fixed-spectrum first-order producer",
+        "anchor": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query",
+        "hypothesis_adapter": "Genuine derivative/reply identity must be consumed internally by T; not a new gradient assumption."
+      }
+    ],
+    "fidelity_boundary": "Proposed shared finite-fuel deterministic reply simulation with Borel/measurable seeded execution, full final-state/Option-output/querycount joint law and explicit bounded expected querycost; private actual fixed-spectrum forward FO→MV and reverse MV→FO calls use genuine canonical gradient producer, every full O, d≥2 κ≥2, all fuel including0 and sharedμ beforeO. Stops and none exhaustion retained; no alwaysfuel padding. No successful-halting theorem, universal source-algorithm representation, Q_G/class-uniform complexity equivalence, 2T-per-hidden-block reduction, strict2T<n adaptive indistinguishability, Haar/posterior/output hard distribution, approximate/finite-precision oracle, TV sampling accuracy, C6/L44/main lower bound, production/main integration, purification or Goal closure. Exact Option sigma is the sealed sum-pullback comap; Euclidean E uses literal borel, none is exhaustion and not a successful sample. Existing canonical run is reused unchanged. All target proof, normal intake/PL/V, native/value audit, source implementation review, blind decoding, reader and purification remain pending. Distinct TC accepted the exact original interface and bounded source topology/coverage. ROOT applied only the two accepted locator strings into current canonical seal b27a020b5ef5d54fd422a7e98307790eda64b9beca85b7a15d90405743862465, with separate current admission d4dbae132d961edea1145fbd615261222731d83a81d1459fd098e0489ac216a2. This is preproof admission only; target proof/native/implementation-source-fidelity/reader/PL/V remain pending."
+  },
+  "statement_seal": {
+    "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-statement-seal.json",
+    "sha256": "b27a020b5ef5d54fd422a7e98307790eda64b9beca85b7a15d90405743862465",
+    "binder_audit": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/binder-definition-audit.original.v1.json",
+    "binder_audit_sha256": "0a2b97c0661c0d3f1a2bb0890e97ae2d48a441f95c734e0fe70032da9dc380bb",
+    "signature_sha256": "fa8dd3a6197eb4678d1ced0f6b9057b194b9bf005c8398d122c688bfa2a51902",
+    "private_consumer_signature_sha256": "852339e58da3c60cfaedc3a1cab1ad4964d30c021919ac085a43670e1faff0f5",
+    "status": "STATEMENT_SEALED_AND_DISTINCT_PREPROOF_SOURCE_TOPOLOGY_ADMITTED",
+    "source_anchors_original_unchanged": [
+      "Section2 Equation1 and exact oracle equivalence paragraph",
+      "Section2 randomized algorithms/fixed per-input per-seed cap and Equation2",
+      "Section4.1 Equation11 actual full orthogonal fixed-spectrum family",
+      "AppendixB.3 absorbing finite histories and common seed law (source context, not claimed posterior theorem)",
+      "AppendixC.4 finite-horizon algorithm encoding context (not claimed universal encoding theorem)"
+    ],
+    "original_seal_file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/statement-seal.original.v1.json",
+    "original_seal_sha256": "ed0b335aec87697d8c5ab227edd3899527c573ed0986c7efc0d51163da615766",
+    "current_admission_record": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/seal-status-and-preproof-admission.v1.json",
+    "current_admission_sha256": "d4dbae132d961edea1145fbd615261222731d83a81d1459fd098e0489ac216a2",
+    "source_anchors_current": [
+      "Section2 Equation1 and exact oracle equivalence paragraph",
+      "Section2 randomized algorithms/fixed per-input per-seed cap and Equation2",
+      "Section4.1 Equation11 actual full orthogonal fixed-spectrum family",
+      "Appendix B.1 absorbing finite histories and common seed law (source context, not claimed posterior theorem)",
+      "Appendix C.1 finite-horizon algorithm encoding context (not claimed universal encoding theorem); Appendix C.4 admissibility and quadratic-calculus context for the existing fixed-spectrum first-order parent. The printed FO/matvec equivalence is Section2 Equation1, not AppendixC.4."
+    ],
+    "status_field_qualification": "Current canonical seal retains construction-stage pending text as historical bytes; the separate exact admission record states the current preproof status."
+  },
+  "source_context_locator_proposal": {
+    "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/source-context-locators.proposed-v3.json",
+    "sha256": "8c1e1090a8a556d6289f0dd5095beaddadb3d142a1d51211b54f6cbcdc37b805",
+    "status": "DISTINCT_TC_ACCEPTED_AND_ROOT_APPLIED_EXACT_TWO_LOCATOR_FIELDS",
+    "applied": true,
+    "two_fields_only": [
+      "/source_anchors/3",
+      "/source_anchors/4"
+    ],
+    "superseded_unapplied_proposal_sha256": "68151517438a5c895d6ff152e1fa2588a72caa6723739268394bdce1a63bdde8",
+    "boundary": "Only /source_anchors/3 and /source_anchors/4 changed by ROOT after distinct review. P/T/binders/definitions/type-formation unchanged. Supersededv2 C4-equivalence over-attribution was not accepted.",
+    "accepted_applied_values": [
+      "Appendix B.1 absorbing finite histories and common seed law (source context, not claimed posterior theorem)",
+      "Appendix C.1 finite-horizon algorithm encoding context (not claimed universal encoding theorem); Appendix C.4 admissibility and quadratic-calculus context for the existing fixed-spectrum first-order parent. The printed FO/matvec equivalence is Section2 Equation1, not AppendixC.4."
+    ],
+    "original_proposal_bytes": "Original proposal remains unchanged with its historical unapplied status; this field records the subsequent outer application.",
+    "independent_acceptance": {
+      "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/topology-challenge.report.frozen.v1.json",
+      "sha256": "c5d7e4513bf0aa91422fd67354e12e4bc84223f378a350d6f11437c78647104e",
+      "actual_verdict": "ACCEPTED_FOR_LOCATOR_ONLY_SUCCESSOR_NOT_APPLIED"
+    }
+  },
+  "source_proof_coverage": {
+    "state": "distinct-preproof-source-topology-and-bounded-coverage-accepted",
+    "source_graph_exact_files": [
+      {
+        "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/source-proof-graph.frozen.v1.json",
+        "bytes": 19664,
+        "sha256": "ca60b066d7f9e47c079daf1b8351502f38bbd99039c4e4a143a406967813d58c"
+      },
+      {
+        "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/source-coverage.frozen.v1.json",
+        "bytes": 28802,
+        "sha256": "005a7aed78d43ed726702213629a6fac5080d503379bf458701a9099d070082a"
+      },
+      {
+        "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/source-to-seal-bridge.frozen.v1.md",
+        "bytes": 8468,
+        "sha256": "994b0ba15fdbf63b606ff16bbd2996aef5c889e5bae80c21b06dcb2c1e98ea69"
+      },
+      {
+        "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/hash-manifest.frozen.v1.json",
+        "bytes": 6167,
+        "sha256": "acaee8710bdf06b4b4f96e782165291fe29da1db07bf0522370892cfbb363046"
+      }
+    ],
+    "independent_report": {
+      "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/topology-challenge.report.frozen.v1.json",
+      "sha256": "c5d7e4513bf0aa91422fd67354e12e4bc84223f378a350d6f11437c78647104e",
+      "actual_verdict": "ACCEPTED_PREPROOF_SOURCE_TOPOLOGY_AND_BOUNDED_COVERAGE"
+    },
+    "independent_run_manifest": {
+      "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/topology-challenge.run-manifest.frozen.v1.json",
+      "sha256": "3a8b59c4db8b46494a30f158362e70b8231404aea08caa0be30b32bf8c06efa9"
+    },
+    "review_files": [
+      "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/source-proof-graph.frozen.v1.json",
+      "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/source-coverage.frozen.v1.json",
+      "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/source-to-seal-bridge.frozen.v1.md",
+      "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/hash-manifest.frozen.v1.json",
+      "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/topology-challenge.report.frozen.v1.json"
+    ],
+    "source_gap_status": "GAP.CANONICAL_RUN/GAP.MEASURABLE_JOINT_LAW/GAP.BOUNDED_EXPECTATION are still unproved target obligations; representation/success/class complexity remain outside P/T.",
+    "not_math_VERIFIED": true,
+    "implementation_source_fidelity": "pending after target proof"
+  },
+  "semantic_roundtrip": {
+    "required": true,
+    "audit_id": "huanjian-adaptive-oracle-simulation",
+    "state": "draft",
+    "qualification": "Planned ID only; no audit, decoder packet, source implementation acceptance or reader exists."
+  },
+  "evidence": {
+    "focused_checks": [
+      {
+        "receipt": ".astis/huanjian-resume-20261103/20261115T175403625985Z-gc-adaptive-oracle-actual-P-and-two-direction-T-module-build.receipt.json",
+        "sha256": "acdf9349a3293afb39185f5773bab33103a525ce0988c66a983e9134c62703cc",
+        "actual_exit_code": 0,
+        "log_sha256": "73a0dde4a042a89624ca927d5c50b438b16be25913b8ce3d50ba651fdcb0b663"
+      },
+      {
+        "source": ".astis/huanjian-gc-adaptive-oracle-simulation-20261116/BoundaryChecks.v2.lean",
+        "sha256": "1deaac151b4a31e74d1ced6ddf3dd8a899d733c71d91a94c2764ba0d2bd261d5",
+        "actual_receipt": ".astis/huanjian-resume-20261103/20261115T175657921652Z-gc-adaptive-oracle-material-boundary-checks-after-unfolding-local-test-maps.receipt.json",
+        "actual_exit_code": 0,
+        "cases": [
+          "actual new-producer full joint-law comparison with reply-sensitive state/output",
+          "fuel0 outstanding request→none/count0",
+          "fuel7 execution actuallyhaltsafter1 withoutput6",
+          "initialhalt consumes0 evenfuel7",
+          "ordinaryseedcost1underactualDirac2probability, not7"
+        ]
+      }
+    ],
+    "independent_verification": "",
+    "root_build": "",
+    "graph_regeneration": "",
+    "pr": "",
+    "actual_type_formation_only": {
+      "receipt": ".astis/huanjian-resume-20261103/20261115T171534965867Z-gc-adaptive-oracle-P-T-proposition-formation-v2-explicit-measurable-carriers-only.receipt.json",
+      "sha256": "f6946449b4c117fcd1dc410370b2b9f14997861b531a10a9c11ae86bcf6acd9c",
+      "exit_code": 0,
+      "target_theorems_proved": false
+    },
+    "preserved_failed_formation": {
+      "file": ".astis/huanjian-gc-adaptive-oracle-simulation-20261116/StatementCandidates.lean",
+      "receipt": ".astis/huanjian-resume-20261103/20261115T171322944947Z-gc-adaptive-oracle-P-T-proposition-formation-only.receipt.json",
+      "failure_class": "IMPLEMENTATION_FAILED",
+      "reason": "Initial context lacked explicit canonical Option and Euclidean measurable carriers; missing Matrix notation opening and stale printer option. Failed compiler-generated sorry in printed candidate Prop is never proof evidence. v2 actual formation passes; no sealed mathematical target was changed after admission."
+    },
+    "target_proof": {
+      "status": "actual_LOCAL_COMPILED_working_bytes",
+      "snapshot": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/first-local-math-build.snapshot.v1.json",
+      "sha256": "6d86ced9dc52fbff319af3cf6c7118307cfc82d3a725842f38afaeda324c59c6",
+      "immutable_math_commit_pending": false,
+      "immutable_math_commit": "57016008083947405bc7d430838537014a40f987"
+    },
+    "normal_intake": {
+      "actual_calls": 3,
+      "normal_state": "EXPLORING",
+      "actual_receipt": ".astis/huanjian-resume-20261103/20261115T173822564111Z-gc-adaptive-oracle-one-normal-intake-after-distinct-preproof-admission.receipt.json",
+      "oldA_D_foreignstates_frontiers_HEAD_index_bytes_modes_preserved": true,
+      "PL_V_Discovery_calls": 0
+    },
+    "normal_PL": "pending",
+    "normal_V": "pending",
+    "native_review": "pending",
+    "independent_source_review": "pending",
+    "reader_review": "pending",
+    "purification": "pending",
+    "planned_evidence_prefix": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/",
+    "preproof_admission": {
+      "file": "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/seal-status-and-preproof-admission.v1.json",
+      "sha256": "d4dbae132d961edea1145fbd615261222731d83a81d1459fd098e0489ac216a2",
+      "scope": "Preproof topology/locator application only; no math/native/source-implementation/reader/PL/V verdict."
+    }
+  },
+  "purification": {
+    "status": "pending",
+    "qualification": "No implementation or Exposition Seal."
+  },
+  "blocked": {
+    "reason": ""
+  },
+  "truth_boundary": "Actual new canonical measurable finite-fuel exact-reply simulation and private two-direction literal fixed-spectrum FO/MV seeded executions compile locally with unchanged exact statements. Both full final-state/tagged-Option/count laws and actual every-seed cap/ordinary expectedcount equality are proved, including fuel0/earlyhalt/exhaustion. Genuine gradient and oracle measurability produced internally from canonical parent. Bare sourceHEADe6 didnotcontain newworkingbytes; immutable candidate stillpending. Distinct preproof topology/locator review only; no independent postproof native/sourceblind/source-implementation/reader, normalPL/V, successful sampler/sourceclassrepresentation/Q_G, hiddenHaar/adaptive indistinguishability/2Tblock/C6/L44/main lower bound, approximateoracle/TV, production/main/purification/Goal closure.",
+  "owned_files": [
+    "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+    "Tests/GaussianComplexityAdaptiveFirstOrderSimulation.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-ADAPTIVE-ORACLE-SIMULATION.json",
+    "research-wiki/technical-lemmas/adaptive-oracle-simulation-statement-seal.json",
+    "research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-adaptive-oracle-simulation.json",
+    "website/content/publications/huanjian-adaptive-oracle-simulation.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-adaptive-oracle-simulation.json"
+  ],
+  "forbidden_shared_files": [
+    "AutoSamplingTheory.lean",
+    "Tests.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Registry.lean",
+    "AutoSamplingTheory/TechnicalLemmas/Probability.lean",
+    "research-wiki/source-index/",
+    "website/content/source_correspondence.json",
+    "website/content/graph_memory_index.json",
+    "website/content/functor_hypergraph.json",
+    "website/static/",
+    "website/scripts/",
+    "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularizationOracle.lean",
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumFirstOrder.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-regularization-oracle.json",
+    "research-wiki/frontier-cells/ASTIS-SW-GAUSSIAN-COMPLEXITY-fixed-spectrum-first-order.json"
+  ],
+  "integration_notes": {
+    "public_imports_needed": [],
+    "registry_or_site_updates": [],
+    "downstream_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation.actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs [simulate actual FO execution using MV replies; planned material P instance]",
+      "AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation.actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs [simulate actual MV execution using FO replies; planned material P instance]"
+    ],
+    "preserve_all_existing_A_D_and_foreign_frontiers": true,
+    "main_and_other_queues_held": [
+      "ASTIS-SA-20261110-SlcLsiWeightedRadialMGF:/root",
+      "ASTIS-SA-20261109-StatOTGaussianMixtureWasserstein:root_statot_gaussian_mixture_wasserstein_20261109"
+    ],
+    "PBPS_SPHMC_and_other_ASTIS_queues": "preserve; this metadata task has no scheduling/ownership authority",
+    "source_baseline": {
+      "private_source_HEAD": "e6bff1539c1c00c623ede51e1780da9427c58d63",
+      "remote_main": "9448a8b6692ec17408e99f5aadafcd321d0daedf",
+      "public_progress": "866c8a4f9e84acfa91a36e78e60604735d901127",
+      "held_main_owners": [
+        "ASTIS-SA-20261110-SlcLsiWeightedRadialMGF:/root",
+        "ASTIS-SA-20261109-StatOTGaussianMixtureWasserstein:root_statot_gaussian_mixture_wasserstein_20261109"
+      ]
+    }
+  },
+  "phase_snapshot": "Actual target P/T math and boundary tests compiled after one guardednormalintake3calls preservingothers; candidate freeze next. Still frontierclaimed/AEXPLORING, normalPL/V0. No futuremetadata/publicbuildclaim.",
+  "initial_author_draft_status_qualification": "Uninstalled current initial-cell DRAFTv2; ROOT separately installs after review. Preproof admission is actual; no owner claim/intake API or target theorem proof by this metadata author.",
+  "installation_qualification": "ROOT reviewed and installed own initial claimed cell after exact distinct preproof admission; normal ledger intake pending, target mathematical proof/native/source-implementation/reader/PL/V all pending.",
+  "initial_author_truth_boundary_preserved": "Proposed shared finite-fuel deterministic reply simulation with Borel/measurable seeded execution, full final-state/Option-output/querycount joint law and explicit bounded expected querycost; private actual fixed-spectrum forward FO→MV and reverse MV→FO calls use genuine canonical gradient producer, every full O, d≥2 κ≥2, all fuel including0 and sharedμ beforeO. Stops and none exhaustion retained; no alwaysfuel padding. No successful-halting theorem, universal source-algorithm representation, Q_G/class-uniform complexity equivalence, 2T-per-hidden-block reduction, strict2T<n adaptive indistinguishability, Haar/posterior/output hard distribution, approximate/finite-precision oracle, TV sampling accuracy, C6/L44/main lower bound, production/main integration, purification or Goal closure. Exact Option sigma is the sealed sum-pullback comap; Euclidean E uses literal borel, none is exhaustion and not a successful sample. Existing canonical run is reused unchanged. All target proof, normal intake/PL/V, native/value audit, source implementation review, blind decoding, reader and purification remain pending. Distinct TC accepted the exact original interface and bounded source topology/coverage. ROOT applied only the two accepted locator strings into current canonical seal b27a020b5ef5d54fd422a7e98307790eda64b9beca85b7a15d90405743862465, with separate current admission d4dbae132d961edea1145fbd615261222731d83a81d1459fd098e0489ac216a2. This is preproof admission only; target proof/native/implementation-source-fidelity/reader/PL/V remain pending."
+}

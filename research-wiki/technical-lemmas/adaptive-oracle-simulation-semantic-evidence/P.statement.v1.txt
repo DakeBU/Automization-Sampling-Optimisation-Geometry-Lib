@@ -1,0 +1,28 @@
+∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}
+    {X : Type uX} {Ω : Type uΩ}
+    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]
+    [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],
+    letI : MeasurableSpace (Option X) := MeasurableSpace.comap
+      (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance
+    ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]
+    (next : S → Sum X Q) (update : S → Q → B → S)
+    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)
+    (initial : Ω → S),
+    Measurable next →
+    Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →
+    Measurable oracle →
+    Measurable (fun p : Q × A => decode p.1 p.2) →
+    Measurable initial →
+    (∀ q, decode q (oracle q) = target q) →
+    ∀ fuel : ℕ,
+      let baseRun : Ω → (S × Option X) × ℕ := fun ω =>
+        run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)
+      let targetRun : Ω → (S × Option X) × ℕ := fun ω =>
+        run next update target fuel (initial ω)
+      Measurable baseRun ∧ Measurable targetRun ∧
+      (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧
+      μ.map baseRun = μ.map targetRun ∧
+      IsProbabilityMeasure (μ.map baseRun) ∧
+      Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧
+      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧
+      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)

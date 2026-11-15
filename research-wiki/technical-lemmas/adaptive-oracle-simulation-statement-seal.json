@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "seal_version": "R18-v1",
+  "status": "STATEMENT_SEALED_TYPE_FORMED_ONLY_SOURCE_TOPOLOGY_PENDING",
+  "source_version": "arXiv:2610.20492v1",
+  "source_file": ".astis/huanjian-handoff-20261019/2610.20492v1.html",
+  "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "source_anchors": [
+    "Section2 Equation1 and exact oracle equivalence paragraph",
+    "Section2 randomized algorithms/fixed per-input per-seed cap and Equation2",
+    "Section4.1 Equation11 actual full orthogonal fixed-spectrum family",
+    "Appendix B.1 absorbing finite histories and common seed law (source context, not claimed posterior theorem)",
+    "Appendix C.1 finite-horizon algorithm encoding context (not claimed universal encoding theorem); Appendix C.4 admissibility and quadratic-calculus context for the existing fixed-spectrum first-order parent. The printed FO/matvec equivalence is Section2 Equation1, not AppendixC.4."
+  ],
+  "P": {
+    "level": "B canonical library infrastructure; author-derived, no printed generic source theorem",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean",
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+    "statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {Ω : Type uΩ}\n    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n    [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],\n    letI : MeasurableSpace (Option X) := MeasurableSpace.comap\n      (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n    ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n    (initial : Ω → S),\n    Measurable next →\n    Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →\n    Measurable oracle →\n    Measurable (fun p : Q × A => decode p.1 p.2) →\n    Measurable initial →\n    (∀ q, decode q (oracle q) = target q) →\n    ∀ fuel : ℕ,\n      let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n      let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next update target fuel (initial ω)\n      Measurable baseRun ∧ Measurable targetRun ∧\n      (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧\n      μ.map baseRun = μ.map targetRun ∧\n      IsProbabilityMeasure (μ.map baseRun) ∧\n      Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)",
+    "statement_sha256": "fa8dd3a6197eb4678d1ced0f6b9057b194b9bf005c8398d122c688bfa2a51902"
+  },
+  "T": {
+    "level": "private actual two-direction material consumer, no new public theorem node",
+    "file": "Tests/GaussianComplexityAdaptiveFirstOrderSimulation.lean",
+    "declaration": "AutoSamplingTheory.Tests.GaussianComplexityAdaptiveFirstOrderSimulation.actual_fixed_spectrum_first_order_matvec_joint_laws_and_costs",
+    "statement": "∀ {d : ℕ}, 2 ≤ d →\n    ∀ {κ : ℝ}, 2 ≤ κ →\n    letI : MeasurableSpace (EuclideanSpace ℝ (Fin d)) := borel _\n    letI : MeasurableSpace (Option (EuclideanSpace ℝ (Fin d))) := MeasurableSpace.comap\n      (fun x : Option (EuclideanSpace ℝ (Fin d)) =>\n        x.elim (Sum.inl () : Unit ⊕ EuclideanSpace ℝ (Fin d)) Sum.inr) inferInstance\n    ∀ {S : Type uS} {Ω : Type uΩ} [MeasurableSpace S] [MeasurableSpace Ω]\n      (μ : Measure Ω) [IsProbabilityMeasure μ]\n      (next : S → Sum (EuclideanSpace ℝ (Fin d)) (EuclideanSpace ℝ (Fin d)))\n      (updateFO : S → EuclideanSpace ℝ (Fin d) →\n        (ℝ × EuclideanSpace ℝ (Fin d)) → S)\n      (updateMV : S → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) → S)\n      (initial : Ω → S),\n      Measurable next →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        (ℝ × EuclideanSpace ℝ (Fin d)) => updateFO p.1 p.2.1 p.2.2) →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        EuclideanSpace ℝ (Fin d) => updateMV p.1 p.2.1 p.2.2) →\n      Measurable initial →\n      ∀ (fuel : ℕ) (O : Matrix.orthogonalGroup (Fin d) ℝ),\n        let θ : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 / 2) * Real.pi / (d : ℝ)\n        let A : Matrix (Fin d) (Fin d) ℝ :=\n          (O : Matrix (Fin d) (Fin d) ℝ) *\n          Matrix.diagonal (fun i => (κ + 1) / 2 + (κ - 1) / 2 * Real.cos (θ i)) *\n          (O : Matrix (Fin d) (Fin d) ℝ).transpose\n        let f : EuclideanSpace ℝ (Fin d) → ℝ := fun x =>\n          (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n        let mv : EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) := fun x =>\n          WithLp.toLp 2 (A *ᵥ WithLp.ofLp x)\n        let fo := fun x => (f x, gradient f x)\n        let foRun := fun ω => run next updateFO fo fuel (initial ω)\n        let foViaMV := fun ω => run next\n          (fun s x y => updateFO s x (inner ℝ x y / 2, y)) mv fuel (initial ω)\n        let mvRun := fun ω => run next updateMV mv fuel (initial ω)\n        let mvViaFO := fun ω => run next\n          (fun s x (y : ℝ × EuclideanSpace ℝ (Fin d)) => updateMV s x y.2)\n          fo fuel (initial ω)\n        Measurable foViaMV ∧ Measurable foRun ∧\n        (∀ ω, foViaMV ω = foRun ω ∧ (foViaMV ω).2 ≤ fuel) ∧\n        μ.map foViaMV = μ.map foRun ∧ IsProbabilityMeasure (μ.map foViaMV) ∧\n        Integrable (fun ω => ((foViaMV ω).2 : ℝ)) μ ∧\n        (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) = (∫ ω, ((foRun ω).2 : ℝ) ∂μ) ∧\n        (∫ ω, ((foViaMV ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ) ∧\n        Measurable mvViaFO ∧ Measurable mvRun ∧\n        (∀ ω, mvViaFO ω = mvRun ω ∧ (mvViaFO ω).2 ≤ fuel) ∧\n        μ.map mvViaFO = μ.map mvRun ∧ IsProbabilityMeasure (μ.map mvViaFO) ∧\n        Integrable (fun ω => ((mvViaFO ω).2 : ℝ)) μ ∧\n        (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) = (∫ ω, ((mvRun ω).2 : ℝ) ∂μ) ∧\n        (∫ ω, ((mvViaFO ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)",
+    "statement_sha256": "852339e58da3c60cfaedc3a1cab1ad4964d30c021919ac085a43670e1faff0f5"
+  },
+  "frozen_definition_context": [
+    {
+      "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularizationOracle.lean",
+      "sha256": "90f4fd2b792fe585b1e8a2c7adfac2295cb20f8fc9a46f46db27e43238eaa729",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+      "body_unchanged": true,
+      "semantics": "Check next even with zero fuel; halt returns some output/query0; request with fuel0 returns none/query0; request withfueln+1 calls oracle once, updates state, recursesn and increments actualcount. none is exhaustion, never successful output."
+    },
+    {
+      "file": "AutoSamplingTheory/ExampleCases/GaussianComplexity/FixedSpectrumFirstOrder.lean",
+      "sha256": "1af1a71edf059edfe10a2b5069002fe703b6f2d1a30c153951e06afd3b8e6423",
+      "declaration": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumFirstOrder.actual_first_order_query",
+      "role": "Existing real derivative existence and literal value/gradient identity; must be consumed internally, not assumed as a new T premise."
+    }
+  ],
+  "typing_definitions": {
+    "Option_sigma": "Pullback of standard Unit ⊕ X sum sigma algebra along none↦inl(), some x↦inr x; written literally in sealed statements, no arbitrary Option-measurability premise.",
+    "Euclidean_sigma": "borel(EuclideanSpace ℝ (Fin d)) explicitly; no hidden imported instance or discrete replacement.",
+    "Seed_and_state": "Arbitrary measurable Ω/S is a stated generalization including Borel carriers; no canonical-uniform-seed or Polish representation assumption.",
+    "cost": "Actual oracle-interaction Nat from canonical run, coerced toℝ for ordinary Bochner expectation under input-independent common probability μ."
+  },
+  "source_baseline": {
+    "private_source_HEAD": "e6bff1539c1c00c623ede51e1780da9427c58d63",
+    "remote_main": "9448a8b6692ec17408e99f5aadafcd321d0daedf",
+    "public_progress": "866c8a4f9e84acfa91a36e78e60604735d901127",
+    "held_main_owners": [
+      "ASTIS-SA-20261110-SlcLsiWeightedRadialMGF:/root",
+      "ASTIS-SA-20261109-StatOTGaussianMixtureWasserstein:root_statot_gaussian_mixture_wasserstein_20261109"
+    ]
+  },
+  "actual_formation_only": {
+    "receipt": ".astis/huanjian-resume-20261103/20261115T171534965867Z-gc-adaptive-oracle-P-T-proposition-formation-v2-explicit-measurable-carriers-only.receipt.json",
+    "sha256": "f6946449b4c117fcd1dc410370b2b9f14997861b531a10a9c11ae86bcf6acd9c",
+    "exit_code": 0,
+    "target_theorems_proved": false
+  },
+  "preserved_failed_formation": {
+    "file": ".astis/huanjian-gc-adaptive-oracle-simulation-20261116/StatementCandidates.lean",
+    "receipt": ".astis/huanjian-resume-20261103/20261115T171322944947Z-gc-adaptive-oracle-P-T-proposition-formation-only.receipt.json",
+    "failure_class": "IMPLEMENTATION_FAILED",
+    "reason": "Initial context lacked explicit canonical Option and Euclidean measurable carriers; missing Matrix notation opening and stale printer option. Failed compiler-generated sorry in printed candidate Prop is never proof evidence. v2 actual formation passes; no sealed mathematical target was changed after admission."
+  },
+  "truth_boundary": "Proposed shared finite-fuel deterministic reply simulation with Borel/measurable seeded execution, full final-state/Option-output/querycount joint law and explicit bounded expected querycost; private actual fixed-spectrum forward FO→MV and reverse MV→FO calls use genuine canonical gradient producer, every full O, d≥2 κ≥2, all fuel including0 and sharedμ beforeO. Stops and none exhaustion retained; no alwaysfuel padding. No successful-halting theorem, universal source-algorithm representation, Q_G/class-uniform complexity equivalence, 2T-per-hidden-block reduction, strict2T<n adaptive indistinguishability, Haar/posterior/output hard distribution, approximate/finite-precision oracle, TV sampling accuracy, C6/L44/main lower bound, production/main integration, purification or Goal closure."
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-fa8dd3a6197eb467",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {Ω : Type uΩ}\n    [MeasurableSpace S] [MeasurableSpace Q] [MeasurableSpace A]\n    [MeasurableSpace B] [MeasurableSpace X] [MeasurableSpace Ω],\n    letI : MeasurableSpace (Option X) := MeasurableSpace.comap\n      (fun x : Option X => x.elim (Sum.inl () : Unit ⊕ X) Sum.inr) inferInstance\n    ∀ (μ : Measure Ω) [IsProbabilityMeasure μ]\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (oracle : Q → A) (target : Q → B) (decode : Q → A → B)\n    (initial : Ω → S),\n    Measurable next →\n    Measurable (fun p : S × Q × B => update p.1 p.2.1 p.2.2) →\n    Measurable oracle →\n    Measurable (fun p : Q × A => decode p.1 p.2) →\n    Measurable initial →\n    (∀ q, decode q (oracle q) = target q) →\n    ∀ fuel : ℕ,\n      let baseRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next (fun s q a => update s q (decode q a)) oracle fuel (initial ω)\n      let targetRun : Ω → (S × Option X) × ℕ := fun ω =>\n        run next update target fuel (initial ω)\n      Measurable baseRun ∧ Measurable targetRun ∧\n      (∀ ω, baseRun ω = targetRun ω ∧ (baseRun ω).2 ≤ fuel) ∧\n      μ.map baseRun = μ.map targetRun ∧\n      IsProbabilityMeasure (μ.map baseRun) ∧\n      Integrable (fun ω => ((baseRun ω).2 : ℝ)) μ ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) = (∫ ω, ((targetRun ω).2 : ℝ) ∂μ) ∧\n      (∫ ω, ((baseRun ω).2 : ℝ) ∂μ) ≤ (fuel : ℝ)\n",
+    "statement_sha256": "fa8dd3a6197eb4678d1ced0f6b9057b194b9bf005c8398d122c688bfa2a51902",
+    "compiled": true,
+    "approved_definition_context": [
+      "def run {S Q A X : Type*} (next : S → Sum X Q) (update : S → Q → A → S)\n    (oracle : Q → A) : ℕ → S → (S × Option X) × ℕ\n  | fuel, s => match next s with\n    | .inl x => ((s, some x), 0)\n    | .inr q => match fuel with\n      | 0 => ((s, none), 0)\n      | n+1 =>\n        let answer := oracle q\n        let tail := run next update oracle n (update s q answer)\n        (tail.1, tail.2+1)",
+      "MeasurableSpace specifies a sigma algebra. Products and Sum carry their standard product and disjoint-sum sigma algebras; MeasurableSpace.comap g m is the pullback sigma algebra along g. Option has constructors none and some; its sigma algebra here is exactly the displayed pullback along none ↦ Sum.inl () and some x ↦ Sum.inr x.",
+      "Measure Ω is a measure on the displayed measurable space. IsProbabilityMeasure μ means μ has total mass one. μ.map h is the pushforward measure under h. Integrable g μ and ∫ ω, g ω ∂μ refer to Bochner integrability and the ordinary integral under precisely μ. Natural-number counts are coerced to real numbers in those integrals."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "0b9a3a3c532614f50fa91a6d47a9304751764c6af0a9f86962c97c0c4dc7c3b4"
+}

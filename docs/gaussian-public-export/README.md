@@ -260,3 +260,81 @@ Matrix logarithm identities, Lieb/master-tail/Bernstein, C.6/Lemma4.4,
 adaptive transcript/output laws, both complete main lower bounds, exact-matvec,
 TV/precision/deterministic-cap/expected-cost adapters and final purification and
 whole-Goal acceptance remain unfinished.
+
+
+## Exact adaptive oracle simulation — 2026-11-16
+
+The canonical measurable finite-fuel bridge reuses the existing interpreter:
+an exact reply decoder preserves each seeded terminal state, tagged output and
+actual oracle-query count. Both seeded runs are measurable; their full joint
+probability laws agree, and the ordinary expected actual query counts agree and
+are bounded by the supplied fuel. Writing the full execution result as
+\(R=((s_{\rm final},\operatorname{Option}X),C)\),
+
+$$
+R_\delta(\omega)=R_t(\omega),\qquad
+(R_\delta)_\#\mu=(R_t)_\#\mu,\qquad
+C_\delta(\omega)\le n,\qquad
+\mathbb E_\mu C_\delta=\mathbb E_\mu C_t\le n.
+$$
+
+An immediate halt returns `some` with count zero, including at zero fuel. An
+unfunded request returns `none` with count zero. Early stopping retains its
+smaller actual count; counts are not padded, and `none` is not a successful
+sample. The generic theorem uses natural measurable-program data and exact
+decoder commutation. Run measurability and count integrability are proved
+internally.
+
+The private material consumer uses the literal midpoint-cosine fixed-spectrum
+family for every full orthogonal matrix, with \(d\ge2\), \(\kappa\ge2\), every
+fuel and one common seed law/program data quantified before the matrix. It
+compares an FO program with its matvec simulation, and an MV program with its
+first-order simulation, each under its own update policy. It does not identify
+unrelated FO/MV policies. The genuine gradient reply and actual-oracle
+measurability are supplied internally by the canonical producer. The private
+consumer adds no public theorem node.
+
+The immutable mathematical source is
+`57016008083947405bc7d430838537014a40f987`. ROOT first compiled the exact new
+working bytes while HEAD was `e6bff1539c1c00c623ede51e1780da9427c58d63`, then
+froze that mathematics. Independent native execution freshly built the six
+selected ASTIS/Tests modules and retained the three toolchain/manifest/lakefile
+pins. The recursive type/value closure contains 34,481 declarations and only
+`Classical.choice`, `Quot.sound` and `propext`, with zero unsafe/partial
+declarations in the target logical closure. Upstream caches were read-only;
+this is not a fresh rebuild of every upstream dependency. The raw audit retains
+the compiler-generated partial `run._unsafe_rec` artifact without labelling it
+safe-value kernel checked. Its classification and earlier failed probes remain
+explicit rather than being relabelled successes.
+
+Separate source-blind reconstruction and fresh source-first whole-module review
+bound P and T as equivalent after elaboration. The isolated successor reader
+recorded 514 checks with zero false checks and 50 actual screenshots; independent
+review viewed all 50 and performed 220 recomputations with no required residual.
+Its only served-byte change is one scoped inline-math CSS rule providing a local
+scroll box for overflowing assumption formulas. Source, Lean, lesson,
+publication and MathJax bytes are unchanged. The original 485/1 failed reader
+and the separate measured diagnosis remain preserved. Acceptance covers only
+the exact 104-leaf isolated desktop/mobile fixture.
+
+Normal proof admission recorded one PL against metadata
+`dc8e8f82b8b04cdce5703cbb8a242d9977dea95c` and one independent V on carrier
+`45618f04aadca61dbf235becfc5583d1735c7ead`, with ROOT V calls zero and all 24
+original PL fields retained inline. Later metadata, verification-carrier and
+public-export identities are not retroactively called Lean-built.
+
+The final owned export source is `73d9cc4d25c5fa258412296126a190f754ba2f25`. The independent target-cell
+projection completed with exit 0 and no additional verification call; its exact
+original is `research-wiki/technical-lemmas/adaptive-oracle-simulation-semantic-evidence/actual-independent-V/target-cell-outcome.public.json`
+(SHA-256 `85f67d36186fd58ac433d4a04ebef4829f43d86d202658ae45464f26076ba10d`). The final provenance increment binds
+all 181 exact source delta rows, five lossless original containers, and their
+explicit custody selectors. The public commit identity, independent object audit
+and push/readback receipts are recorded separately after construction.
+
+The generic bridge is author-derived support for the printed exact reply
+conversions, not the source's full query-complexity theorem. Source-class
+representation, successful output, class-uniform \(Q_G\), Haar/seed joint or
+posterior laws, TV/approximate-oracle sampling, the \(2T\) hidden-block bridge,
+C.6/Lemma 4.4 and both complete main lower bounds remain open (0/2). Shared
+main/Registry/global graph and production-site integration, final purification
+and whole-Goal acceptance remain with the held stabilization work.

@@ -7,7 +7,7 @@
   "source_anchor": "Tropp, User-Friendly Tail Bounds for Sums of Random Matrices, author preprint last revised 15 June 2011: Proposition 3.1 statement p9 and proof pp9-10; standing conventions and regularity §§2.1-2.4 pp7-8 and §3.1 expectation-domain caveat p9. Independently matched external background for the uncited Gaussian arXiv:2610.20492v1 Appendix C.2 Bernstein use: original experiment/angles A3.SS2.p1/p4.1; Ex85, Ex107, p10, p13, Ex112, Ex121 and p15/p15.2 define the literal four-sum consumer boundary.",
   "target_statement": "∀ {Ω : Type v} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]\n    {ι : Type u} [Fintype ι] [DecidableEq ι] [Nonempty ι]\n    (X : Ω → Matrix ι ι ℝ)\n    (hX : AEStronglyMeasurable X μ)\n    (hherm : ∀ᵐ ω ∂μ, (X ω).IsHermitian)\n    (t : ℝ),\n    μ {ω | t ≤ sSup (spectrum ℝ (X ω))} ≤\n      ⨅ s : {s : ℝ // 0 < s},\n        ENNReal.ofReal (Real.exp (-(s.val * t))) *\n          ∫⁻ ω, ENNReal.ofReal (Matrix.trace (NormedSpace.exp (s.val • X ω))) ∂μ\n",
   "private_consumer_statement": "∀ {d q : ℕ} (hq : 2 * q + 1 < d),\n  let D := EuclideanSpace ℝ (Fin d)\n  let E := EuclideanSpace ℝ (Fin (q + 1))\n  let Ω := Fin (q + 1) → D\n  let μ : Measure Ω := Measure.pi (fun _ : Fin (q + 1) => stdGaussian D)\n  let M := Matrix (Fin (q + 1) × Fin (q + 1)) (Fin (q + 1) × Fin (q + 1)) ℝ\n  let r : ℝ := ((q + 1 : ℕ) : ℝ)\n  let L : ℝ := 2 * r + 3 * Real.log (1000 * (d : ℝ))\n  let α : Fin d → ℝ := fun i => ((i.val : ℝ) + 1 - 1 / 2) * Real.pi / (d : ℝ)\n  let tvec : Fin d → Fin (q + 1) → ℝ := fun i k =>\n    if k.val = 0 then 1 else Real.sqrt 2 * Real.cos ((k.val : ℝ) * α i)\n  let row : Fin d → Ω → E := fun i ω =>\n    WithLp.toLp 2 (fun b : Fin (q + 1) => ω b i)\n  let Y : Fin d → Ω → M := fun i ω =>\n    if ‖row i ω‖ ^ 2 ≤ L then\n      (d : ℝ)⁻¹ • Matrix.kronecker\n        (Matrix.vecMulVec (WithLp.ofLp (row i ω)) (WithLp.ofLp (row i ω)))\n        (Matrix.vecMulVec (tvec i) (tvec i))\n    else 0\n  let mean : Fin d → M := fun i => ∫ ω, Y i ω ∂μ\n  let Z : Fin d → Ω → M := fun i ω => Y i ω - mean i\n  let w : Bool → Fin d → ℝ := fun useCos i =>\n    if useCos = true then Real.cos (((2 * q + 1 : ℕ) : ℝ) * α i) else 1\n  let sign : Bool → ℝ := fun minus => if minus = true then -1 else 1\n  let S : Bool → Bool → Ω → M := fun useCos minus ω =>\n    sign minus • ∑ i : Fin d, w useCos i • Z i ω\n  ∀ s : ℝ, 0 < s → ∀ a : ℝ, ∀ useCos minus : Bool,\n    μ {ω | a ≤ sSup (spectrum ℝ (S useCos minus ω))} ≤\n      ENNReal.ofReal\n        (Real.exp (-(s * a)) *\n          ∫ ω, Matrix.trace (NormedSpace.exp (s • S useCos minus ω)) ∂μ)\n",
-  "status": "proved_locally",
+  "status": "independently_verified",
   "owner_id": "huanjian_20261114_matrix_laplace_tail",
   "advance_id": "ASTIS-SA-20261114-MatrixLaplaceTail",
   "base_commit": "2da2ccccfd1429aab18007e06895a1eb7cc58066",
@@ -20,7 +20,7 @@
   "consumer_scope": {
     "first_realistic_consumer": {
       "name": "AutoSamplingTheory.Tests.GaussianComplexityLaplaceTail.actual_source_four_sums_laplace_tail",
-      "state": "ACTUAL_PRIVATE_COMPILED; immutable native and current v4 source accepted; one normal PROVED_LOCAL; proof V and reader acceptance pending",
+      "state": "ACTUAL_PRIVATE_COMPILED; immutable native/current v4 source and bounded isolated reader independently accepted; material four-family consumer checked within one normal independent proof VERIFIED. No separate public T node or independent T declaration V; stabilization remains pending.",
       "public_node": false
     },
     "second_realistic_consumer": {
@@ -39,7 +39,7 @@
     "decision": "new_canonical_shared",
     "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail.max_eigenvalue_tail_le_iInf_trace_exp",
     "canonical_shared_cell": "ASTIS-SHARED-REAL-MATRIX-LAPLACE-TAIL",
-    "status": "One actual compiled shared P; immutable native call evidence and current v4 source reviews accepted. Canonical stabilization remains held; no duplicate ASTIS P parent."
+    "status": "One actual compiled shared P with immutable native/current v4 source acceptance and one normal PROVED_LOCAL. No external ASTIS mathematical parent for P; canonical stabilization, presentation acceptance and proof V remain pending."
   },
   "reuse_plan": {
     "searched_existing": [
@@ -50,7 +50,7 @@
     "new_shared_declarations": [
       "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail.max_eigenvalue_tail_le_iInf_trace_exp"
     ],
-    "new_shared_declarations_status": "ACTUAL_COMPILED_IMMUTABLE1d110; native/source accepted and one normal PROVED_LOCAL; normal V/stabilization pending",
+    "new_shared_declarations_status": "ACTUAL_COMPILED_IMMUTABLE1d110; independent native/source/bounded isolated reader accepted; normalPL1 and independent normal proofV1 at metadata carrier999b; stabilization/purification remain pending.",
     "known_consumers": [
       "AutoSamplingTheory.Tests.GaussianComplexityLaplaceTail.actual_source_four_sums_laplace_tail"
     ],
@@ -93,7 +93,7 @@
     "hidden_assumptions_visible": true,
     "lean_collapsed": true,
     "external_dependencies_visible": true,
-    "status": "Authored-v4 source/proof context159708 accepted. Exact v4 served bytes equalv3. Current reader acceptance requires the actual v3 runtime plus independent visual review; no current receipt/acceptance is attached here and no new v4 browser run is claimed. Older-v2 runtime is separate historical observation only.",
+    "status": "Independent bounded isolated reader accepted by fresh8d2a; exact original v3 plus genuine targeted-v2 complete viewport correction. Native supplemental contract remains FAIL, optional v3 not executed; proofV and production acceptance remain separate.",
     "current_authored_revision": "v4",
     "current_binding_sha256": "159708e68a0601d85a6081464aa654ea80b7b58cbf0fa41ac697a03fcd8e4346",
     "v4_rendered_identity_receipt": {
@@ -106,7 +106,17 @@
       "candidate_files": 104,
       "total_files": 207,
       "actual_v4_browser_execution": false,
-      "reader_acceptance": "pending"
+      "reader_acceptance": "bounded isolated acceptance recorded separately; no new v4 browser run"
+    },
+    "current_runtime_state": {
+      "actual_browser_run": "original reader-runtime-v3 plus targeted parent-supplement-v2",
+      "new_v4_browser_run": false,
+      "raw_automated_result_scope": "Original398/0false preserved; supplemental167/2false/exit1 preserved, never relabelled PASS.",
+      "original356_preserved": true,
+      "independent_visual_finding": "R15-VIS-GRAPH-PARENT-SVG-CLIP closed by four actual complete viewport states plus unchanged prior source/nav; wrong crops excluded.",
+      "reader_acceptance": "ACCEPTED_BOUNDED_ISOLATED_SCOPE_NECESSARY_RESIDUAL0",
+      "portable_evidence_binding": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/post-PL-current-reader-acceptance.v1.json",
+      "optional_corrected_crop_repeat": "v3 cancelled before execution; no runtime evidence"
     }
   },
   "graph_contribution": {
@@ -118,7 +128,7 @@
     "focus_targets": [
       "AutoSamplingTheory.TechnicalLemmas.Probability.MatrixLaplaceTail.max_eigenvalue_tail_le_iInf_trace_exp"
     ],
-    "visual_review": "Isolated graph/reader authored; actual browser run only v3 and independent visual acceptance pending. Global graph and production integration remain held.",
+    "visual_review": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/post-PL-current-reader-acceptance.v1.json; independent four viewport correction closes the parent clip gap while preserving raw FAIL and graph/detail limits; no global graph stabilization.",
     "classification_qualification": "Typed conceptual mechanism independently source/math reviewed and normally raw→validated once; functor_view remains candidate-published until serialized global graph stabilization. No certified formal transport or theorem V follows."
   },
   "conceptual_mirror_audit": {
@@ -218,10 +228,11 @@
         "hypothesis_adapter": "Real self-adjoint specialization; disclosed nonnegative scalar extended-expectation completion. T keeps literal unconditional law, own-row inclusive cutoff, gamma-first tensor, actual means, q=0, r² matrix dimension, all four cases and sole hq; integrability is internal, never an added premise."
       }
     ],
-    "fidelity_boundary": "The sealed public P and literal private four-family T are compiled at immutable mathematical commit1d110; independent native/type/value/kernel checks and current P/T v4 source reviews at binding159708 are accepted. This accepts the disclosed finite real specialization and nonnegative scalar extended-expectation completion, not literal identity with the full complex source or all-parameter finite matrix MGFs. The exact v2 source-to-Lean map is accepted as a bounded sufficient route and partial-node correspondence. GC.FINITE.MGF remains open as a full node beyond T: all-real parameters, strict trace positivity and an explicit r²-scaled cap are not separately closed. BG.MEAS and BG.HOMOG intermediaries are absorbed in the sufficient route rather than separately emitted. No independent-sum/Lieb/master-tail trace-MGF bound, Bernstein, strict-norm union adapter, C6/Lemma4.4, either main lower bound or oracle/TV/precision/query-cap/expected-cost adapter is completed. One normal PROVED_LOCAL is recorded; proof VERIFIED and current reader/browser/visual acceptance remain pending. Authored-v4 served bytes equal v3 for207 files; current reader acceptance must cite a genuine v3 runtime and independent visual review, with no new v4 browser run claimed. Main/shared graph/site integration, purification and whole-Goal acceptance remain held/separate. The independently validated conceptual mechanism supplies no proof V or certified formal transport."
+    "fidelity_boundary": "The sealed public P and literal private four-family T are compiled at immutable mathematical commit1d110; independent native/type/value/kernel checks and current P/T v4 source reviews at binding159708 are accepted. This accepts the disclosed finite real specialization and nonnegative scalar extended-expectation completion, not literal identity with the full complex source or all-parameter finite matrix MGFs. The exact v2 source-to-Lean map is accepted as a bounded sufficient route and partial-node correspondence. GC.FINITE.MGF remains open as a full node beyond T: all-real parameters, strict trace positivity and an explicit r²-scaled cap are not separately closed. BG.MEAS and BG.HOMOG intermediaries are absorbed in the sufficient route rather than separately emitted. No independent-sum/Lieb/master-tail trace-MGF bound, Bernstein, strict-norm union adapter, C6/Lemma4.4, either main lower bound or oracle/TV/precision/query-cap/expected-cost adapter is completed. One normal PROVED_LOCAL is recorded. Independent current isolated reader acceptance combines the original genuine v3 run/source/navigation observations with four actual supplemental desktop/mobile parent viewport states and independent SVG geometry/PNG review. The supplemental process remains exit1 with2false crop/completion checks: wrong desktop crops are excluded as SVG evidence and later repeated mobile steps did not execute. All original failures/PNGs remain preserved; independent necessary isolated-reader residual is0. Optional corrected-crop v3 was cancelled before execution and supplies no evidence. Proof VERIFIED remains pending. Authored-v4 served bytes equal v3 for207 files; no new v4 browser run is claimed. Main/shared graph/site integration, purification and whole-Goal acceptance remain held/separate. The independently validated conceptual mechanism supplies no proof V or certified formal transport.",
+    "current_reader_qualification": "Independent v1+targeted-v2 full-viewport evidence closes the bounded isolated reader scope; v2 remains native FAIL and optional v3 was not executed. See post-PL-current-reader-acceptance.v1.json. No physical touch, full graph fit, production/post-status pixel or integration acceptance."
   },
   "statement_seal": {
-    "status": "EXACT_UNCHANGED_P_T; COMPILED_IMMUTABLE1d110; NATIVE_AND_CURRENT_V4_SOURCE_REVIEWED; NORMAL_PL_RECORDED; READER_V_PENDING",
+    "status": "EXACT_UNCHANGED_P_T; COMPILED_IMMUTABLE1d110; NATIVE_CURRENT_V4_SOURCE_AND_BOUNDED_READER_ACCEPTED; NORMAL_PL1; INDEPENDENT_PROOF_V_PENDING",
     "file": "research-wiki/technical-lemmas/matrix-laplace-tail-statement-seal.json",
     "sha256": "747e5ddef4f51857c1d240add0313b1bfe498538f8d251d9bd126f3027a0db77",
     "signature_sha256": "2555d44b4290cf066eb5231d86dcc61a3fcb9a5c0eda0b3c5cd808bc540c7a70",
@@ -290,7 +301,7 @@
     }
   },
   "proof_digestion": {
-    "status": "Actual immutable compiled proof and native audit accepted; current v4 source and exact-v2 partial correspondence accepted. Reader, normal PL/V and purification remain pending.",
+    "status": "Immutable compiled/native/current source acceptance and one normal PROVED_LOCAL complete. Current-v3 actual Chrome execution complete; targeted graph supplement and independent presentation/visual, proof V and purification pending.",
     "existing_substrate": [
       "MeasureTheory.meas_ge_le_lintegral_div",
       "Matrix.IsHermitian.cfc_eq",
@@ -340,7 +351,7 @@
       "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/local-math-originals/20261114T121225753642Z-matrix-laplace-P-production-AE-strong-measurability-import.receipt.json",
       "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/local-math-originals/20261114T121442230413Z-matrix-laplace-T-confirmed-global-selfadjoint-sum-API.receipt.json"
     ],
-    "independent_verification": "",
+    "independent_verification": ".astis/semantic-neutral-20261114/laplace_native_61e4/verification-execution-999b/normal-V-outcome.public-summary.json",
     "root_build": "",
     "graph_regeneration": "",
     "pr": "",
@@ -397,7 +408,7 @@
     },
     "reuse_search_receipt": ".astis/huanjian-resume-20261103/20261114T102932351760Z-matrix-laplace-bounded-existing-declaration-head-reuse-intake.receipt.json",
     "native_type_value_review": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/native-originals/laplace_native_61e4/ROOT-public238-container-custody.v2.json",
-    "reader_review": "PENDING: authored-v4;207 served bytes equal v3. Actual browser execution only v3; no independent current reader/browser/visual acceptance.",
+    "reader_review": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/post-PL-current-reader-acceptance.v1.json",
     "source_semantic_review": "research-wiki/semantic-roundtrip/audits/huanjian-matrix-laplace-tail.json",
     "actual_local_mathematics": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/local-mathematics-checkpoint.v1.json",
     "actual_intake_result": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/normal-intake-result.json",
@@ -507,13 +518,16 @@
       }
     ],
     "current_normal_stage": {
-      "advance_state": "EXPLORING",
+      "advance_state": "VERIFIED",
       "owner_id": "huanjian_20261114_matrix_laplace_tail",
-      "cell_status": "claimed",
-      "theorem_PROVED_LOCAL": false,
-      "theorem_VERIFIED": false,
+      "cell_status": "independently_verified",
+      "theorem_PROVED_LOCAL": true,
+      "theorem_VERIFIED": true,
       "conceptual_discovery_state": "validated",
-      "conceptual_validation_is_not_proof_V": true
+      "conceptual_validation_is_not_proof_V": true,
+      "verifier_id": "laplace_native_61e4_independent_verifier",
+      "verified_metadata_carrier": "999b89925e95e463e0269148010f794dc27bb26a",
+      "actual_math_build_identity": "1d1103af694b9663a72b0d610004ed85c7c6b527"
     },
     "normal_PROVED_LOCAL": {
       "full_evidence": {
@@ -534,16 +548,126 @@
       "CLAIMED": 1,
       "EXPLORING": 1,
       "PROVED_LOCAL": 1,
-      "proof_VERIFIED": 0,
+      "proof_VERIFIED": 1,
       "raw_conceptual_Discovery": 1,
       "independent_conceptual_validation": 1
+    },
+    "current_presentation_evidence_binding": {
+      "state": "ACCEPTED_BOUNDED_ISOLATED_READER_WITH_PRESERVED_PARENT_CLIP_CORRECTION",
+      "original_presentation_manifest_sha256": "3cea83cd0e61df11cba9ab36dca51f1f64c79b18df1238b836d8f9c05f301451",
+      "original_actual_checks_sha256": "591b27fa052af6bfcfd65f1de388a3b866b1442ec129120c9f08ea86c3b051be",
+      "original_execution_receipt_sha256": "8e76c6556cc64e59f5ddf99ff2c4823708fa21b52b03bbfcf57ef5c554046045",
+      "v3_v4_site_identity_sha256": "a2296200cb7e3217d3d3269a837f7930a05ce05af5d44d5cdddc13e261daf443",
+      "binding_hashes_only_are_not_acceptance": true,
+      "privacy356_selection_acceptance_is_not_presentation_acceptance": true,
+      "targeted_supplement": {
+        "archive": {
+          "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/reader-originals/laplace_native_61e4/parent-supplement-v2/selected-native-parent-supplement-originals36.v1.tar.gz",
+          "bytes": 5927263,
+          "sha256": "a0f2086928a81a4a9a6533b68f425588317ba4cf488619a28b7fc27b49392b06"
+        },
+        "actor_manifest": {
+          "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/reader-originals/laplace_native_61e4/parent-supplement-v2/public-safe-selected-originals.manifest.v1.json",
+          "bytes": 9362,
+          "sha256": "18bdb58835b1fc79d7f00789527ebb4cdefca862178d23a6bff66d5166173b63"
+        },
+        "native_outcome": {
+          "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/reader-originals/laplace_native_61e4/parent-supplement-v2/native-supplemental-outcome.v1.json",
+          "bytes": 7790,
+          "sha256": "08684f7ecd8c904cdcaec416af3b1f60e14335fef046d04729ed1f9db65a5894"
+        },
+        "actual_exit_code": 1,
+        "raw_checks": 167,
+        "raw_false_checks": 2,
+        "actual_PNGs": 24,
+        "original_contract_all_PASS": false,
+        "usable_observations": "Four complete desktop/mobile parent viewport PNGs and independently recomputed actual SVG/node/core-label geometry. All four visible fractions1; effective fonts14.367px/13.262px.",
+        "preserved_failure": "Crop helper added scroll offsets to viewport clip coordinates: two desktop crops show detail rather than SVG and are excluded as SVG evidence; two mobile crop calls failed, and their subsequent repeated detail/source steps did not execute.",
+        "no_unexecuted_actions_claimed": true
+      },
+      "independent_visual_presentation": {
+        "freeze": {
+          "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/reader-review/laplace_fresh_source_8d2a/supplement-v2/READER_VISUAL_SUPPLEMENT_V2_FROZEN.json",
+          "bytes": 3037,
+          "sha256": "865a0b70989c1cbd5521e91dfe5a4a56e2b83f2b19d3646bf6e8d08ce0034738"
+        },
+        "run": {
+          "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/reader-review/laplace_fresh_source_8d2a/supplement-v2/reader-visual-supplement.review-run.json",
+          "bytes": 3958,
+          "sha256": "4a5f9009b482188e81639395d870e5d3b5a944aad26eef6d25af249fd08c6713"
+        },
+        "result": {
+          "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/reader-review/laplace_fresh_source_8d2a/supplement-v2/reader-visual-supplement.review.json",
+          "bytes": 1884,
+          "sha256": "ab8bcaf035826329ebcc3cf92cf11e301f95f0a18bdbb72e5f90fa0a0b356e9f"
+        },
+        "archive": {
+          "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/reader-review/laplace_fresh_source_8d2a/supplement-v2/selected-reader-visual-supplement-originals15.v1.tar.gz",
+          "bytes": 14880,
+          "sha256": "4c15b0107d5144f37b3ad083e6118022da9598851770ae9fef668e565c5d2c25"
+        },
+        "actually_viewed_new_PNGs": 10,
+        "finding": "R15-VIS-GRAPH-PARENT-SVG-CLIP",
+        "disposition": "CLOSED_BY_ACTUAL_VIEWPORT_EVIDENCE_BOUNDED",
+        "composition": "The independent reviewer matched unchanged v1 same-fixture complete mobile source/detail/exact-link/navigation/copy/download observations with the four new complete viewport states. This closes the required isolated reader scope without converting the failed supplemental contract to PASS.",
+        "necessary_reader_residual": 0
+      },
+      "current_reader_acceptance": {
+        "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/post-PL-current-reader-acceptance.v1.json",
+        "bytes": 11878,
+        "sha256": "f9587b8bb5d30642913ed8a072d366d10deb1f65325f5192d2974a99425063d5"
+      },
+      "raw_original398_clip_limitation_and_supplement_FAIL_retained": true,
+      "optional_v3_executed": false
+    },
+    "current_reader_acceptance": {
+      "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/post-PL-current-reader-acceptance.v1.json",
+      "bytes": 11878,
+      "sha256": "f9587b8bb5d30642913ed8a072d366d10deb1f65325f5192d2974a99425063d5"
+    },
+    "latest_main_original_owner_observation": {
+      "file": "research-wiki/technical-lemmas/matrix-laplace-tail-semantic-evidence/latest-main-original-owners.before-independent-V.20261115.json",
+      "bytes": 618,
+      "sha256": "920dfb8255bdabdd7a5fc81288a7f66172b96adfeffe2886df071bf677b4a886"
+    },
+    "normal_VERIFIED": {
+      "advance_id": "ASTIS-SA-20261114-MatrixLaplaceTail",
+      "verified_carrier": "999b89925e95e463e0269148010f794dc27bb26a",
+      "verifier_id": "laplace_native_61e4_independent_verifier",
+      "normal_API_calls": 1,
+      "actual_exit_code": 0,
+      "full_inline_V_evidence": {
+        "file": ".astis/semantic-neutral-20261114/laplace_native_61e4/verification-execution-999b/normal-V-final-payload.full.json",
+        "bytes": 41843,
+        "sha256": "e0a764b4a967355d9b747b0c66e8083677cfb3a839efa95673f15df97d8a2bbd"
+      },
+      "actual_exact_append": {
+        "file": ".astis/semantic-neutral-20261114/laplace_native_61e4/verification-execution-999b/normal-V-exact-target-append.jsonl",
+        "bytes": 36037,
+        "sha256": "bf3c4ab12753e6eb2a70b70f25efbca7ac23f045373a8b03155bc116935eefd4"
+      },
+      "actual_OS_process_receipt": {
+        "file": ".astis/semantic-neutral-20261114/laplace_native_61e4/verification-execution-999b/window1-process.receipt.json",
+        "bytes": 1956,
+        "sha256": "70afa8ebcd875646cde4189bd0d8f2751ef7e92ca1d1c2c2fca4d7bc44597661"
+      },
+      "public_normal_V_outcome": {
+        "file": ".astis/semantic-neutral-20261114/laplace_native_61e4/verification-execution-999b/normal-V-outcome.public-summary.json",
+        "bytes": 3801,
+        "sha256": "c39eda8a5bfb0dd694f12b1e25d13711d30e64168afb1c38be35481f8a367025"
+      },
+      "original24_top_level_fields_unchanged": true,
+      "actual_math_build_commit": "1d1103af694b9663a72b0d610004ed85c7c6b527",
+      "new_Lean_build_at_verified_metadata_carrier": false,
+      "all_frontiers_including_target_unchanged_during_API_window": true,
+      "cell_projection_scope": "Separate second window by the independent verifier; only this target cell changes. No stabilization/main/site/global graph/purification or whole-Goal completion."
     }
   },
   "blocked": {
     "reason": "",
     "children": []
   },
-  "truth_boundary": "The sealed public P and literal private four-family T are compiled at immutable mathematical commit1d110; independent native/type/value/kernel checks and current P/T v4 source reviews at binding159708 are accepted. This accepts the disclosed finite real specialization and nonnegative scalar extended-expectation completion, not literal identity with the full complex source or all-parameter finite matrix MGFs. The exact v2 source-to-Lean map is accepted as a bounded sufficient route and partial-node correspondence. GC.FINITE.MGF remains open as a full node beyond T: all-real parameters, strict trace positivity and an explicit r²-scaled cap are not separately closed. BG.MEAS and BG.HOMOG intermediaries are absorbed in the sufficient route rather than separately emitted. No independent-sum/Lieb/master-tail trace-MGF bound, Bernstein, strict-norm union adapter, C6/Lemma4.4, either main lower bound or oracle/TV/precision/query-cap/expected-cost adapter is completed. One normal PROVED_LOCAL is recorded; proof VERIFIED and current reader/browser/visual acceptance remain pending. Authored-v4 served bytes equal v3 for207 files; current reader acceptance must cite a genuine v3 runtime and independent visual review, with no new v4 browser run claimed. Main/shared graph/site integration, purification and whole-Goal acceptance remain held/separate. The independently validated conceptual mechanism supplies no proof V or certified formal transport.",
+  "truth_boundary": "The sealed public P and literal private four-family T are compiled at immutable mathematical commit1d110; independent native/type/value/kernel checks and current P/T v4 source reviews at binding159708 are accepted. This accepts the disclosed finite real specialization and nonnegative scalar extended-expectation completion, not literal identity with the full complex source or all-parameter finite matrix MGFs. The exact v2 source-to-Lean map is accepted as a bounded sufficient route and partial-node correspondence. GC.FINITE.MGF remains open as a full node beyond T: all-real parameters, strict trace positivity and an explicit r²-scaled cap are not separately closed. BG.MEAS and BG.HOMOG intermediaries are absorbed in the sufficient route rather than separately emitted. No independent-sum/Lieb/master-tail trace-MGF bound, Bernstein, strict-norm union adapter, C6/Lemma4.4, either main lower bound or oracle/TV/precision/query-cap/expected-cost adapter is completed. One normal PROVED_LOCAL and one normal independent VERIFIED are recorded; the verified metadata/source/reader carrier is999b89925e95e463e0269148010f794dc27bb26a, while the actual independent Lean build identity remains immutable1d110. Current-v3 Chrome and independent bounded visual acceptance are complete. The old two-parent SVG clip finding is closed by four real supplemental viewport/node/core-label observations combined independently with the earlier same-fixture detail/source/navigation evidence. The original398 flags and the supplemental exit1/167checks/2false, wrong desktop crops and unexecuted mobile post-crop actions remain unchanged and explicit. The failed supplemental contract is not promoted to PASS and optional v3 was not executed. Authored-v4 served bytes equal v3 for207 files; no new v4 browser run is claimed. Main/shared graph/site integration, purification and whole-Goal acceptance remain held/separate. The independently validated conceptual mechanism supplies no proof V or certified formal transport.",
   "integration_notes": {
     "public_imports_needed": [],
     "registry_or_site_updates": [],
@@ -551,7 +675,19 @@
       "AutoSamplingTheory.Tests.GaussianComplexityLaplaceTail.actual_source_four_sums_laplace_tail",
       "Future generic independent-sum master-tail / Bernstein route using the same Tropp Proposition 3.1 Laplace-tail reduction; PLANNED_ONLY, no declaration or compiled call claimed."
     ],
-    "status": "All integration held. Preserve original two main4db stabilizers, R14 VERIFIED source/evidence/cell, PBPS/SPHMC/other ASTIS queues and all old frontiers. No root imports/Tests.lean/Registry/sourceIndex/global graph/CSS/site mutation authorized here."
+    "status": "All original stabilization ownership remains held at the latest ROOT-reported origin/main9448 observation. A successful local replay is not release. Preserve the original two stabilization owners, R14 VERIFIED source/evidence/cell, PBPS/SPHMC/other ASTIS queues and all old frontiers. No root imports/Tests.lean/Registry/sourceIndex/global graph/CSS/site mutation or owner takeover is authorized by this metadata correction.",
+    "original_stabilization_owners_held": [
+      {
+        "advance_id": "ASTIS-SA-20261110-SlcLsiWeightedRadialMGF",
+        "owner_id": "/root"
+      },
+      {
+        "advance_id": "ASTIS-SA-20261109-StatOTGaussianMixtureWasserstein",
+        "owner_id": "root_statot_gaussian_mixture_wasserstein_20261109"
+      }
+    ],
+    "current_main_observation_scope": "Actual bounded root observation at origin/main9448; two original stabilizers held. Local private replay0 is not release. Exact observation is preserved separately.",
+    "reader_graph_delta": "Isolated bounded graph/detail/source navigation accepted on identical served bytes; one public P and private T module with actual P/Radius/Structure parents. Targeted complete-viewport correction plus prior source/navigation observations; raw crop failure preserved. Shared generated graph/production-site integration remains held."
   },
   "owned_files": [
     "AutoSamplingTheory/TechnicalLemmas/Probability/MatrixLaplaceTail.lean",
@@ -580,5 +716,5 @@
     "research-wiki/frontier-cells/ASTIS-SHARED-MATRIX-BERNSTEIN-MGF.json",
     "research-wiki/technical-lemmas/matrix-bernstein-mgf-semantic-evidence/"
   ],
-  "phase_snapshot": "One actual normal PROVED_LOCAL; immutable mathematics/native and current source acceptance complete. Current-v3 browser/independent visual and proof VERIFIED still pending; no production/main/global integration/purification/full-paper claim."
+  "phase_snapshot": "One actual normal PROVED_LOCAL and one normal independent VERIFIED by laplace_native_61e4_independent_verifier at exact carrier999b; immutable1d110 mathematical build/native and accepted current source/reader evidence reused without new Lean/browser/source work. All frontiers were unchanged in the API window; this target cell is now projected independently in a separate guarded window. Supplement raw FAIL/crop limitations and cancelled v3 remain preserved. Original stabilization owners remain held; no production/main/global graph/site/purification or whole-Goal completion."
 }

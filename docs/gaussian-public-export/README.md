@@ -122,3 +122,41 @@ claimed. The old plain warning log is retained in immutable b3da history and
 resolved by an exact lossless gzip custody record in the current tree; raw
 warning bytes were not trimmed. The public snapshot identity is not claimed
 newly Lean-built. Original execution and immutable-source identities remain.
+
+
+## Matrix Laplace-tail independent verification and isolated reader — 2026-11-15
+
+An independent non-proving verifier recorded exactly one normal VERIFIED for
+the real matrix Laplace-tail theorem. All24 original PROVED_LOCAL evidence fields,
+including their historical pending-reader snapshot, remain inline unchanged.
+Separate current evidence records the real browser run and independent visual
+review. Mathematical P/T, lesson, publication and semantic audit bytes retain
+their previous exact identities. The actual Lean/native build belongs to the
+recorded immutable mathematical source1d110, rather than a later metadata or
+public-export commit identity.
+
+The original actual-v3 run reported398 checks with0 false checks. Independent
+visual review found that two parent SVG zoom-pan screenshots had nodes outside
+the SVG clip; the font-size assertion was insufficient. Those raw results and
+PNGs remain unchanged. A separate targeted actual-browser supplement produced
+four complete parent viewport states. Its raw process retains exit1 and2false
+completion checks: desktop crops selected the wrong region and mobile crops
+failed before later repeated actions. Independent review excludes the wrong
+crops, verifies the four complete viewport states and combines them with the
+unchanged previously accepted source/detail/navigation observations. Necessary
+bounded-reader residual is0; the failed supplemental contract is never relabelled
+PASS. A further optional crop repeat was cancelled before execution. Exactv4
+served bytes equalv3; no browser-v4 run is invented.
+
+Formulas, initially folded statement/proof/code, six expanded proof steps,
+source anchors, full source/copy/download, source-index and bounded graph/detail
+navigation have bounded isolated-reader acceptance. Default graph-fit labels
+remain small; zoomed long SVG labels may be ellipsized or extend beyond a mobile
+viewport, so full identifiers use the detail inspector. Responsive viewport
+checks are not physical-touch, production-site or post-V-status-pixel acceptance.
+
+The original two stabilization owners on observed main9448 remain held. Shared
+main/Registry/global graph/production-site integration, post-merge purification,
+full independent-sum/Lieb/master-tail/Bernstein and C6/Lemma4.4, both main lower
+bounds, and actual oracle/TV/precision/deterministic-query-cap/expected-cost
+adaptation and whole-Goal acceptance remain unfinished.

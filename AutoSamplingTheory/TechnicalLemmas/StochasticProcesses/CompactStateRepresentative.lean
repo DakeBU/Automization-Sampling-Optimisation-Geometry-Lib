@@ -1,4 +1,4 @@
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+import Mathlib.MeasureTheory.MeasurableSpace.Constructions
 
 namespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactStateRepresentative
 

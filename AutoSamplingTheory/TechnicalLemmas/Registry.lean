@@ -2927,6 +2927,26 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.path-law-transport-vanishes",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.tendsto_transportCost_marginal_of_ae_continuous",
+    upstreamDecl := "Original Samplinglib path-law transport supplement: Continuous paths give vanishing transport cost",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "transport", "shared"],
+    saldUse := "Shared Gaussian potential and path-law continuity prerequisites.",
+    note := "Canonical compiled result with independent source-blind reconstruction and whole-module/source/reader review. The cost need not be a metric or symmetric. Compactness and the finite continuous cost are retained. This is a limit at each fixed time, without a quantitative rate."
+  },
+  {
+    key := "shared.path-law-field-continuity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.continuous_of_path_law_transport_bound",
+    upstreamDecl := "Original Samplinglib path-law transport supplement: A transport estimate gives joint continuity",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "transport", "shared"],
+    saldUse := "Shared Gaussian potential and path-law continuity prerequisites.",
+    note := "Canonical compiled result with independent source-blind reconstruction and whole-module/source/reader review. The estimate is an explicit input to this general continuity principle. A model application must establish it separately. The proof uses continuity of the extended-real toReal map at zero; no separate finite-cost premise is inserted."
+  },
+  {
     key := "shared.continuous-weak-probability-integral",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral.continuous_integral_of_compact",
     upstreamDecl := "Original Samplinglib supplement: Continuity of an integral with a moving observable and law",
@@ -6047,6 +6067,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "shared.gaussian-joint-potential-gradient-supplement",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient.gaussian_polynomial_joint_potential_projected_gradient_transport_control",
+    upstreamDecl := "Original complete statement, conditions, definitions and seven proof steps in units[0] at immutable source commit 9ebb4f57fbdcb8db51701547ed0e0043ef743b4f.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/website/content/declaration_lessons/gaussian-joint-potential-gradient.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "geometry", "shared"],
+    saldUse := "Shared Gaussian potential and path-law continuity prerequisites.",
+    note := "Canonical compiled result with independent source-blind reconstruction and whole-module/source/reader review. The theorem returns an actual ambient gradient and its explicit normal-component projection. Intrinsic path-length and installed Riemannian-gradient/Wasserstein API identifications are separate.; No teacher/noise generative construction, general stochastic model, convergence theorem or primary-textbook chapter completion is certified.; Derivative witnesses, domination, feature means, residual budgets and scalar-potential identities are constructed inside the proof. Constants remain qualitative and may depend on the dimension."
+  },
     {
       key := "probability.slc-lsi-weighted-radial-mgf",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",

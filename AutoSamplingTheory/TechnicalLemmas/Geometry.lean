@@ -1,3 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient
 import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient

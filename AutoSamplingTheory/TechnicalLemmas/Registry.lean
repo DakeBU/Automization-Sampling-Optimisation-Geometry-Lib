@@ -4165,6 +4165,16 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
 
 def stochasticProcessMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.synchronous-sphere-energy-balance",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.synchronous_sphere_expected_chord_energy_balance",
+    upstreamDecl := "Complete source-only.json: D1-D6, A1-A5, F1-F3, P1-P6 and B1-B5",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/7063c7055c7dd2a21d02d4c6314f2b250aa08d28/runs/20261116-synchronous-sphere-coupling/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["stochastic-processes", "coupling", "sphere", "shared"],
+    saldUse := "Exact energy balance for supplied synchronous sphere diffusions.",
+    note := "One actual coordinate-SDE-to-observable integration theorem; twenty private providers share its review. Supplied solutions only: no process-existence, uniqueness, density, or pointwise PDE theorem is claimed. Temperature is one fixed nonnegative real number. Measurable time-varying temperature would need its own integral/AC-a.e. statement; it is not obtained by renaming this derivative theorem. The equality is dimension-general. A contraction sign requiring d>3, force estimates, or a closed coupling certificate requires additional downstream work. No independence of distinct particle drivers is used or derived. No two-sided derivative of the clamped real-time function is claimed at zero. No downstream actual-process adapter or removal of a downstream assumed Itô differential inequality has yet been completed. Joint measurability hX/hY remains explicitly present exactly as in the accepted source/signature. Its redundancy under strong progressivity is recorded for possible bounded purification; it was not silently removed."
+  },
+  {
     key := "shared.dyadic-block-weights-8e8ed6a3",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicBlockWeights.dyadic_sum_coarse_weight_eq_prefix_differences",
     upstreamDecl := "Original Samplinglib supplement: Group weighted fine increments by coarse dyadic cells. Exact assumptions and formula below.",

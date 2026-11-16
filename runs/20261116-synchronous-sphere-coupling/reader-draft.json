@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "kind": "theorem",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.synchronous_sphere_expected_chord_energy_balance",
+      "title": "Expected squared separation under shared sphere noise",
+      "reading_layout": "progressive",
+      "statement": "Let \\(E=\\mathbb R^d\\), \\(S=\\{x\\in E:\\|x\\|=1\\}\\), and \\(C=S^N\\), with \\(N>0\\). On one probability space with a complete right-continuous filtration, let each \\(B_i\\) be a standard \\(E\\)-valued Brownian motion relative to that filtration. Let \\(X_i,Y_i\\) be supplied jointly measurable, strongly progressive processes taking values in \\(S\\). Fix \\(\\lambda\\ge0\\) and continuous fields \\(b_X,b_Y:[0,\\infty)\\times C\\times C\\to E^N\\). Assume the coordinate integral forms of the displayed SDEs hold on every positive finite horizon, almost surely simultaneously at every time on that horizon. The two equations for particle \\(i\\) use the same \\(B_i\\). Then the expected normalized squared chord separation has the exact integral and derivative identities below. With the negative-time clamping convention, \\(G\\) is also continuous and locally integrable on all of \\(\\mathbb R\\); these are conclusions of the theorem.",
+      "formula": "\\begin{gathered}P_x=I-xx^\\top,\\quad \\delta_i=X_i-Y_i,\\\\ dX_i=[b_{X,i}(t,X,Y)-\\lambda(d-1)X_i]dt+\\sqrt{2\\lambda}\\,P_{X_i}\\,dB_i,\\\\ dY_i=[b_{Y,i}(t,X,Y)-\\lambda(d-1)Y_i]dt+\\sqrt{2\\lambda}\\,P_{Y_i}\\,dB_i,\\\\ D(t)=\\frac1N\\sum_i\\mathbb E\\|\\delta_i(t)\\|^2,\\quad R_4(t)=\\frac1N\\sum_i\\mathbb E\\|\\delta_i(t)\\|^4,\\\\ L(t)=\\frac2N\\sum_i\\mathbb E\\langle\\delta_i(t),b_{X,i}(t,X(t),Y(t))-b_{Y,i}(t,X(t),Y(t))\\rangle,\\\\ G(t)=L(t)-2\\lambda(d-3)D(t)-\\lambda R_4(t),\\\\ D(b)-D(a)=\\int_a^bG(s)\\,ds\\quad(a,b\\ge0),\\\\ D\\in AC([0,T]),\\quad D\\prime(t)=G(t)\\ (t>0),\\quad D\\prime_+(0)=G(0).\\end{gathered}",
+      "assumptions": [
+        "\\(N\\) is a positive natural number and \\(d\\) is a natural number. The exact identity imposes no \\(d\\ge3\\) condition. When \\(d=0\\), the existence of the supplied sphere-valued processes on a probability space is impossible, so that case is vacuous.",
+        "All processes use the same probability measure and filtration. Each \\(B_i\\) starts at zero, is strongly adapted, and has continuous paths almost surely. For \\(s<t\\), the increment \\(B_i(t)-B_i(s)\\) is centered Gaussian with covariance \\((t-s)I\\), independent of the entire past filtration at \\(s\\). Independence between the drivers of different particles is not required.",
+        "Each \\(X_i,Y_i\\) is jointly measurable in time and sample and strongly progressive relative to this filtration. Continuity of their paths, measurability of their initial values, and the coefficient integrability needed by the Itô formula are derived internally.",
+        "The fields are continuous in time and the complete paired configuration \\((x,y)\\in C\\times C\\). Compactness gives bounds on each finite horizon; no global bound or Lipschitz constant is assumed. Their signs are included in \\(b_X,b_Y\\); no separate tangency premise is imposed for this identity.",
+        "The temperature \\(\\lambda\\) is one fixed nonnegative real number. The coordinate equations use the completed progressive \\(L^2\\) Itô integral with the same scalar coordinate of \\(B_i\\) in both equations, for every coordinate and every time on each horizon outside one null event for that horizon.",
+        "Process times are nonnegative. For the real-time Lean functions, negative time is clamped to zero. The interval integral is oriented, so the two-time identity uses arbitrary \\(a,b\\ge0\\) without an ordering condition."
+      ],
+      "steps": [
+        {
+          "title": "Obtain the finite-horizon coefficient bounds",
+          "text": "Use the full compact state \\(C\\times C\\). Continuity bounds each drift coefficient on \\([0,T]\\times C\\times C\\). Composing it with the strongly progressive state gives the required progressive drift and time integrability. The existing sphere-noise constructor supplies the square-integrable projected coefficients.",
+          "formula": "\\sup_{0\\le t\\le T,\\,(x,y)\\in C\\times C}\\|b_{X,i}(t,x,y)\\|<\\infty,\\qquad \\sup_{0\\le t\\le T,\\,(x,y)\\in C\\times C}\\|b_{Y,i}(t,x,y)\\|<\\infty.",
+          "lean": "  have hRow (q : Bool × Fin d) : IsStronglyProgressive filtration (b q) ∧\n      ∀ ω, Integrable (fun t => b q t ω) (TimeMeasure.upTo T) := by\n    have hK : IsCompact (Icc (0 : ℝ≥0) T ×ˢ (univ : Set Q)) := isCompact_Icc.prod isCompact_univ\n    obtain ⟨C₀,hC₀⟩ := hK.bddAbove_image (hc q).norm.continuousOn\n    have hBound : ∃ C₀ : ℝ, ∀ t ≤ T, ∀ w, ‖c q (t,w)‖ ≤ C₀ :=\n      ⟨C₀,fun t ht w => hC₀ ⟨(t,w),⟨⟨bot_le,ht⟩,mem_univ w⟩,rfl⟩⟩\n    have h := ProgressiveCoefficientBounds.bounded_measurable_coefficient_along_progressive_process\n      (μ := (P : Measure Ω)) Z hZ hZp (c q) (hc q).measurable T 1 hBound\n    exact ⟨h.1,h.2.1⟩\n  let η (q : Bool × Fin d) (j : Fin d) : ProgressiveL2Integrand filtration (P : Measure Ω) T :=\n    if q.1 then sphereMeasurableNoiseIntegrand (μ := (P : Measure Ω)) T (Y i)\n      (hY i) (hProgressiveY i) (fun _ => lambda) measurable_const ⟨‖lambda‖,fun _ _ => le_rfl⟩ q.2 j\n    else sphereMeasurableNoiseIntegrand (μ := (P : Measure Ω)) T (X i)\n      (hX i) (hProgressiveX i) (fun _ => lambda) measurable_const ⟨‖lambda‖,fun _ _ => le_rfl⟩ q.2 j",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        },
+        {
+          "title": "Pair the coordinates without changing the driver",
+          "text": "For each particle separately, join its two states into \\(z=(x,y)\\) and use \\(q(z)=\\|x-y\\|^2\\). Both blocks retain the same \\(d\\) Brownian coordinates. The difference of a shared noise column is therefore \\(\\sqrt{2\\lambda}(P_x-P_y)e_j\\). The first and second derivatives of \\(q\\) follow from the continuous linear difference map.",
+          "formula": "Dq_{(x,y)}[v,w]=2\\langle x-y,v-w\\rangle,\\qquad D^2q[(v,w),(v,w)]=2\\|v-w\\|^2.",
+          "lean": "private theorem quadratic_fderiv {V W : Type*}\n    [NormedAddCommGroup V] [NormedSpace ℝ V]\n    [NormedAddCommGroup W] [InnerProductSpace ℝ W]\n    (D : V →L[ℝ] W) (z v : V) :\n    fderiv ℝ (fun a => ‖D a‖ ^ 2) z v = 2 * inner ℝ (D z) (D v) := by\n  rw [(D.hasFDerivAt.norm_sq).fderiv]\n  simp\n\nprivate theorem quadratic_hessian {V W : Type*}\n    [NormedAddCommGroup V] [NormedSpace ℝ V]\n    [NormedAddCommGroup W] [InnerProductSpace ℝ W]\n    (D : V →L[ℝ] W) (z v w : V) :\n    fderiv ℝ (fderiv ℝ (fun a => ‖D a‖ ^ 2)) z v w =\n      2 * inner ℝ (D v) (D w) := by\n  let K : V →L[ℝ] V →L[ℝ] ℝ :=\n    2 • (((ContinuousLinearMap.compL ℝ V W ℝ).flip D).comp ((innerSL ℝ).comp D))\n  have heq : fderiv ℝ (fun a => ‖D a‖ ^ 2) = K := by\n    ext a b\n    rw [quadratic_fderiv]\n    simp [K]\n  rw [heq, K.fderiv]\n  simp [K]",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        },
+        {
+          "title": "Apply the existing compact-state Itô theorem",
+          "text": "The paired state has compact range \\(S\\times S\\), and \\(q\\) is a genuine smooth quadratic function. Write \\(v_i\\) for the paired drift and \\(\\sigma_{ij}\\) for its shared diffusion columns. For each positive finite horizon, the existing Itô theorem produces the displayed balance almost surely and an actual martingale starting at zero. Its row-regularity and generator-integrability results justify the terms; no quadratic-test balance is supplied as an assumption.",
+          "formula": "q(Z_i(T))-q(Z_i(0))=\\int_0^T\\!\\left[Dq_{Z_i(s)}v_i(s)+\\frac12\\sum_jD^2q_{Z_i(s)}[\\sigma_{ij}(s),\\sigma_{ij}(s)]\\right]ds+M_i(T),\\quad M_i(0)=0.",
+          "lean": "  intro A Z v σ hRange\n  let f := fun a => ‖D a‖ ^ 2\n  have hf : ∀ a ∈ K, ContDiffAt ℝ 2 f a := fun _ _ =>\n    (D.contDiff.norm_sq ℝ).contDiffAt\n  obtain ⟨θ, _, hM, hM0, hIto⟩ :=\n    ItoCompactEuclideanFormula.ito_formula_compact_euclidean_at_horizon\n      hB hT hUsual η x hx b hb hbi hK fallback f hf hRange\n  let M (s : ℝ≥0) (ω : Ω) := ∑ q : I × J,\n    itoIntegralProcess (θ q) hT ((coordinateFamily hB).isBrownian q.2) hUsual s ω\n  refine ⟨M, hM, hM0, ?_⟩\n  have hA (i : I) := ItoInitializedDrift.initialized_drift_progressive_continuous_boundedVariation\n    (fun ω => x ω i) (hx i) (b i) (hb i) (hbi i)\n  have hAmeas (i : I) (s : ℝ≥0) (_ : s ≤ T) : AEStronglyMeasurable (A i s) μ :=\n    (((hA i).1.stronglyAdapted s).mono (filtration.le s)).aestronglyMeasurable\n  obtain ⟨_, hZc⟩ := ItoEuclideanRowRegularity.measurable_continuousOn_euclidean_ito_rows\n    hB hT hUsual η A hAmeas (fun i => (hA i).2.2.mono fun _ h => h.1)\n  have hInt := ItoGeneratorIntegrability.ae_integrable_euclidean_generator_terms\n    η b hbi Z hZc hRange f hf\n  filter_upwards [hIto, hInt] with ω hω hint\n  change ‖D (Z T ω)‖ ^ 2 - ‖D (Z 0 ω)‖ ^ 2 =\n    (∫ s, fderiv ℝ f (Z s ω) (v s ω) ∂(TimeMeasure.upTo T)) +\n    (∫ s, (1 / 2 : ℝ) * ∑ j : J,\n      fderiv ℝ (fderiv ℝ f) (Z s ω) (σ j s ω) (σ j s ω) ∂(TimeMeasure.upTo T)) + M T ω at hω\n  rw [hω, ← integral_add hint.1 hint.2]\n  congr 1\n  apply integral_congr_ae\n  exact Filter.Eventually.of_forall fun s => by\n    simp only [f, quadratic_fderiv, quadratic_hessian,\n      real_inner_self_eq_norm_sq, ← Finset.mul_sum]\n    ring",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        },
+        {
+          "title": "Keep the exact radial and fourth-order terms",
+          "text": "For unit vectors, expand the squared difference of the two projection matrices. Combine this diffusion correction with the radial drift. The result is an equality involving the fourth power of the actual samplewise separation; it makes no replacement by a squared expectation.",
+          "formula": "\\begin{gathered}\\|P_x-P_y\\|_F^2=2(1-\\langle x,y\\rangle^2),\\quad \\|x-y\\|^2=2(1-\\langle x,y\\rangle),\\\\ -2\\lambda(d-1)\\|x-y\\|^2+2\\lambda\\|P_x-P_y\\|_F^2=-2\\lambda(d-3)\\|x-y\\|^2-\\lambda\\|x-y\\|^4.\\end{gathered}",
+          "lean": "private theorem radial_noise_identity (lambda : ℝ) (x y : E)\n    (hx : ‖x‖ = 1) (hy : ‖y‖ = 1) :\n    -2 * lambda * ((d : ℝ) - 1) * ‖x-y‖^2 +\n      2 * lambda * ∑ j : Fin d, ‖projectedNoiseColumn j x - projectedNoiseColumn j y‖^2 =\n      -2 * lambda * ((d : ℝ) - 3) * ‖x-y‖^2 - lambda * ‖x-y‖^4 := by\n  have hchord : ‖x-y‖^2 = 2 * (1 - inner ℝ x y) := by\n    rw [norm_sub_sq_real, hx, hy]\n    ring\n  rw [projection_difference_sum x y hx hy, show ‖x-y‖^4 = (‖x-y‖^2)^2 by ring, hchord]\n  ring",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        },
+        {
+          "title": "Recover paths for the complete configuration",
+          "text": "The coordinate equations and Itô row regularity give continuous paths on each finite horizon. Intersect countably many horizon events and the finitely many coordinate events. This yields almost-sure continuous paths of \\(Z=(X,Y)\\) in the complete paired configuration, which is essential when a coefficient depends on other particles.",
+          "formula": "Z(t)=(X(t),Y(t))\\in C\\times C,\\qquad \\mathbb P\\{Z(\\cdot)\\text{ is continuous on }[0,\\infty)\\}=1.",
+          "lean": "  have hParticle := source_particle_balance (d := d) (N := N) P hN B hB hUsual X Y hX hY\n    hProgressiveX hProgressiveY bX bY hbX hbY lambda hlambda hEquation\n  clear hEquation hB hUsual hProgressiveX hProgressiveY B\n  have hPaths : ∀ᵐ ω ∂(P : Measure Ω), Continuous (fun t => Z t ω) := by\n    apply continuous_paths_of_horizon\n    intro T hT\n    have h := ae_all_iff.mpr (fun i : Fin N => (hParticle T hT i).choose_spec.2.2.1)\n    filter_upwards [h] with ω hω\n    exact (continuousOn_pi.mpr fun i => (hω i).1).prodMk\n      (continuousOn_pi.mpr fun i => (hω i).2)",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        },
+        {
+          "title": "Take expectations using the actual martingales",
+          "text": "For each finite horizon, the martingale integral identity between zero and the horizon gives \\(\\mathbb E M_i(T)=0\\). Form their normalized finite sum and use the already proved integrability to interchange finite sums and integrals. This centers the residual without a new mean-zero assumption.",
+          "formula": "\\mathbb E M_i(T)=\\mathbb E M_i(0)=0,\\qquad \\mathbb E\\!\\left[\\frac1N\\sum_iM_i(T)\\right]=0.",
+          "lean": "    have hTpos : 0 < T := lt_of_le_of_ne bot_le (Ne.symm hT)\n    choose M hM hM0 hMp hMi using hParticle T hTpos\n    have hMean (i : Fin N) : ∫ ω, M i T ω ∂(P : Measure Ω) = 0 := by\n      have h := (hM i).setIntegral_eq (i := 0) (j := T) bot_le (s := univ) MeasurableSet.univ\n      simpa only [setIntegral_univ,hM0 i,integral_zero] using h.symm\n    let m (ω : Ω) := (N : ℝ)⁻¹ * ∑ i : Fin N, M i T ω\n    refine ⟨m,(integrable_finsetSum _ fun i _ => (hM i).integrable T).const_mul _,?_,?_⟩\n    · dsimp only [m]\n      rw [integral_const_mul,integral_finsetSum _ (fun i _ => (hM i).integrable T)]\n      simp only [hMean,Finset.sum_const_zero,mul_zero]",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        },
+        {
+          "title": "Pass from weak evolution to classical time derivatives",
+          "text": "Apply the existing weak marginal-evolution theorem to the full compact state and the continuous generator. It supplies the oriented balance and finite-interval absolute continuity. Almost-sure continuous paths give continuous marginal laws; the compact moving-law integral theorem makes the expected generator continuous. The fundamental theorem of calculus then yields the derivative at every positive time and the right derivative at zero.",
+          "formula": "D(b)-D(a)=\\int_a^bG(s)\\,ds,\\qquad G\\in C(\\mathbb R),\\qquad D\\prime(t)=G(t)\\ (t>0),\\quad D\\prime_+(0)=G(0).",
+          "lean": "    Continuous γ ∧ LocallyIntegrable γ volume ∧\n      (∀ a b : ℝ≥0, φ b - φ a = ∫ t in (a : ℝ)..(b : ℝ), γ t) ∧\n      (∀ T : ℝ≥0, AbsolutelyContinuousOnInterval φ 0 (T : ℝ)) ∧\n      (∀ t : ℝ, 0 < t → HasDerivAt φ (γ t) t) ∧\n      HasDerivWithinAt φ (γ 0) (Ici 0) 0 := by\n  intro φ γ\n  let hSlice (t : ℝ≥0) : Measurable (Z t) := hZ.comp (measurable_const.prodMk measurable_id)\n  let ρ (t : ℝ≥0) := P.map (hSlice t).aemeasurable\n  have hρ : Continuous ρ :=\n    WeakDiffusionLaw.continuous_marginal_law_of_ae_continuous P Z hSlice hPaths\n  have hMap (t : ℝ≥0) (f : V → ℝ) (hf : Continuous f) :\n      (∫ w, f w ∂(ρ t : Measure V)) = ∫ ω, f (Z t ω) ∂(P : Measure Ω) := by\n    rw [ProbabilityMeasure.toMeasure_map]\n    exact integral_map (hSlice t).aemeasurable hf.measurable.aestronglyMeasurable\n  have hGc : Continuous γ := by\n    have h := AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral.continuous_integral_of_compact hA hρ\n    have hAc (t : ℝ≥0) : Continuous (A t) := hA.comp (continuous_const.prodMk continuous_id)\n    simpa only [γ,hMap _ _ (hAc _),Function.comp_def] using h.comp continuous_real_toNNReal\n  have hBound (T : ℝ≥0) : ∃ K : ℝ, ∀ t ≤ T, ∀ w, ‖A t w‖ ≤ K := by\n    have hK : IsCompact (Icc (0 : ℝ≥0) T ×ˢ (univ : Set V)) := isCompact_Icc.prod isCompact_univ\n    obtain ⟨K,hK⟩ := hK.bddAbove_image hA.norm.continuousOn\n    exact ⟨K,fun t ht w => hK ⟨(t,w),⟨⟨bot_le,ht⟩,mem_univ w⟩,rfl⟩⟩\n  have hweak := WeakMeasurableEvolution.marginal_balance_of_locally_bounded_generator\n    P Z hZ g hg A hA.measurable hBound hbalance\n  change LocallyIntegrable (fun t : ℝ => ∫ w, A t.toNNReal w ∂(ρ t.toNNReal : Measure V)) volume ∧\n    (∀ a b : ℝ≥0, (∫ w, g w ∂(ρ (b : ℝ).toNNReal : Measure V)) -\n      (∫ w, g w ∂(ρ (a : ℝ).toNNReal : Measure V)) =\n      ∫ v in (a : ℝ)..(b : ℝ), ∫ w, A v.toNNReal w ∂(ρ v.toNNReal : Measure V)) ∧\n    (∀ T : ℝ≥0, AbsolutelyContinuousOnInterval\n      (fun t : ℝ => ∫ w, g w ∂(ρ t.toNNReal : Measure V)) 0 (T : ℝ)) ∧ _ at hweak\n  have hAc (t : ℝ≥0) : Continuous (A t) := hA.comp (continuous_const.prodMk continuous_id)\n  simp only [hMap _ _ hg,hMap _ _ (hAc _)] at hweak\n  obtain ⟨hLoc,hTwo,hAC,_⟩ := hweak\n  refine ⟨hGc,hLoc,hTwo,hAC,?_,?_⟩\n  · intro t ht\n    have hp : HasDerivAt (fun u => ∫ v in t..u, γ v) (γ t) t :=\n      intervalIntegral.integral_hasDerivAt_right (hGc.intervalIntegrable t t)\n        hGc.stronglyMeasurable.stronglyMeasurableAtFilter hGc.continuousAt\n    apply (hp.const_add (φ t)).congr_of_eventuallyEq\n    filter_upwards [Ioi_mem_nhds ht] with u hu\n    have h := hTwo t.toNNReal u.toNNReal\n    rw [Real.coe_toNNReal t ht.le,Real.coe_toNNReal u hu.le] at h\n    exact eq_add_of_sub_eq' h\n  · have hp : HasDerivAt (fun u => ∫ v in (0 : ℝ)..u, γ v) (γ 0) 0 :=\n      intervalIntegral.integral_hasDerivAt_right (hGc.intervalIntegrable 0 0)\n        hGc.stronglyMeasurable.stronglyMeasurableAtFilter hGc.continuousAt\n    apply ((hp.const_add (φ 0)).hasDerivWithinAt).congr_of_mem _ (show (0 : ℝ) ∈ Ici 0 from by simp)\n    intro u hu\n    have h := hTwo 0 u.toNNReal\n    rw [Real.coe_toNNReal u hu] at h\n    exact eq_add_of_sub_eq' h",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        },
+        {
+          "title": "Identify the stated expected moments exactly",
+          "text": "Finally, use Bochner-integral linearity and finite sums to identify the compact observable and generator with \\(D,L,R_4,G\\). All moments refer to the original probability measure. The fourth moment remains \\(\\mathbb E\\|\\delta_i\\|^4\\), preserving the exact noise contribution.",
+          "formula": "G(t)=\\frac1N\\sum_i\\mathbb E\\!\\left[2\\langle\\delta_i,b_{X,i}-b_{Y,i}\\rangle-2\\lambda(d-3)\\|\\delta_i\\|^2-\\lambda\\|\\delta_i\\|^4\\right].",
+          "lean": "  have hD (t : ℝ) : (∫ ω, g (Z t.toNNReal ω) ∂(P : Measure Ω)) = D t := by\n    dsimp only [g,D]\n    rw [integral_const_mul,integral_finsetSum _ (fun i _ => heI i t.toNNReal)]\n  have hG (t : ℝ) : (∫ ω, A t.toNNReal (Z t.toNNReal ω) ∂(P : Measure Ω)) = G t := by\n    have hci (i : Fin N) : (∫ ω, c i t.toNNReal (Z t.toNNReal ω) ∂(P : Measure Ω)) =\n        2*(∫ ω, a i t.toNNReal (Z t.toNNReal ω) ∂(P : Measure Ω)) -\n        2*lambda*((d : ℝ)-3)*(∫ ω, e i (Z t.toNNReal ω) ∂(P : Measure Ω)) -\n        lambda*(∫ ω, r i (Z t.toNNReal ω) ∂(P : Measure Ω)) := by\n      dsimp only [c]\n      have hsplit := integral_sub\n        (((haI i t.toNNReal).const_mul 2).sub ((heI i t.toNNReal).const_mul (2*lambda*((d : ℝ)-3))))\n        ((hrI i t.toNNReal).const_mul lambda)\n      simp only [Pi.sub_apply] at hsplit\n      rw [hsplit, integral_sub ((haI i t.toNNReal).const_mul 2)\n        ((heI i t.toNNReal).const_mul (2*lambda*((d : ℝ)-3)))]\n      simp only [integral_const_mul]\n    dsimp only [A]\n    rw [integral_const_mul,integral_finsetSum _ (fun i _ => hcI i t.toNNReal)]\n    rw [Finset.sum_congr rfl (fun i _ => hci i)]\n    simp only [Finset.sum_sub_distrib,← Finset.mul_sum]\n    dsimp only [G,L,D,R4,delta,a,e,r,δ,Z]\n    ring",
+          "detail": "The folded excerpt is copied literally from the checked module. The complete proof and its private supporting lemmas are available below."
+        }
+      ],
+      "lean_statement": "The hypotheses contain the original coordinate SDEs, actual Brownian drivers and continuous fields. The continuous generator, time-integral balance, absolute continuity and endpoint derivatives are conclusions.",
+      "lean_proof": "The proof instantiates the existing compact Euclidean Itô theorem per paired particle, derives the exact projection correction and centered residual, then uses full-configuration weak evolution and continuity. The private implementation helpers are included in the folded full proof.",
+      "helpers": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.block",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.difference",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.pair",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.block_pair_false",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.block_pair_true",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.difference_pair",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.quadratic_fderiv",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.quadratic_hessian",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.projection_difference_sum",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.radial_noise_identity",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.quadratic_ito_at_horizon",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.sphere_pair_generator",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.continuous_pair",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.spherical_pair_ito",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.source_particle_balance",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.continuous_paths_of_horizon",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.upTo_integral_real",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.continuous_compact_expectation_balance",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.integrable_compact_observable",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.integrable_compact_time_observable"
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula.ito_formula_compact_euclidean_at_horizon",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoGeneratorIntegrability.ae_integrable_euclidean_generator_terms",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanRowRegularity.measurable_continuousOn_euclidean_ito_rows",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoInitializedDrift.initialized_drift_progressive_continuous_boundedVariation",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveCoefficientBounds.bounded_measurable_coefficient_along_progressive_process",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EuclideanBrownianCoordinates.coordinateFamily",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.ae_le_terminal",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.restrict_upTo_Ioc_zero",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasureRealBridge.integral_upTo_restrict_Ioc_eq_real",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution.marginal_balance_of_locally_bounded_generator",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.continuous_marginal_law_of_ae_continuous",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral.continuous_integral_of_compact",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.projectedNoiseColumn"
+      ],
+      "mathlib_dependencies": [
+        "HasFDerivAt.norm_sq",
+        "ContinuousLinearMap.fderiv",
+        "norm_sub_sq_real",
+        "MeasureTheory.Martingale.integrable",
+        "MeasureTheory.Martingale.setIntegral_eq",
+        "MeasureTheory.integral_finsetSum",
+        "MeasureTheory.integral_sub",
+        "intervalIntegral.integral_hasDerivAt_right"
+      ],
+      "sources": [
+        {
+          "path": "runs/20261116-synchronous-sphere-coupling/source-only.json",
+          "label": "Synchronous sphere energy supplement, 2026-11-16",
+          "scope": "Complete classical source contract, coordinate equations, definitions and proof regions; immutable public locator pending admission."
+        }
+      ],
+      "dependency_notes": "Existing stochastic integration, compact-state Itô, coefficient regularity, weak marginal evolution and compact moving-law continuity are reused. No Brownian independence across particles is added or derived.",
+      "boundary": [
+        "Supplied solutions only: no process-existence, uniqueness, density, or pointwise PDE theorem is claimed.",
+        "Temperature is one fixed nonnegative real number. Measurable time-varying temperature would need its own integral/AC-a.e. statement; it is not obtained by renaming this derivative theorem.",
+        "The equality is dimension-general. A contraction sign requiring d>3, force estimates, or a closed coupling certificate requires additional downstream work.",
+        "No independence of distinct particle drivers is used or derived.",
+        "No two-sided derivative of the clamped real-time function is claimed at zero.",
+        "No downstream actual-process adapter or removal of a downstream assumed Itô differential inequality has yet been completed.",
+        "Joint measurability hX/hY remains explicitly present exactly as in the accepted source/signature. Its redundancy under strong progressivity is recorded for possible bounded purification; it was not silently removed."
+      ],
+      "tests": {
+        "status": "Staged reader draft only. The underlying module passed its focused compiler check and independent source review; round-trip closure, canonical admission, repository gates and reader validation are pending."
+      }
+    }
+  ]
+}

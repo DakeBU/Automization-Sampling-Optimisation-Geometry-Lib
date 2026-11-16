@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-0af4c0bdfbfdd5bb",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-elementary-row-qv-fc211643",
+    "anchor": "Original Samplinglib supplement: Quadratic variation of elementary Itô rows. Exact assumptions and formula below.",
+    "original_text": "At each level of a dyadic grid, take a row of completed Itô integrals of elementary processes on that level's grid. The sum of the squared row increments minus the row's time energy is square integrable at each level and tends to zero in mean absolute value.\n\nOne Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.\nThe sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.\nFor each level n and coordinate j, the stored dyadic elementary process has level n. Its bounded left-endpoint measurable coefficients have fourth moments bounded by one common real constant C over all n, cells and coordinates.\n\n\\begin{gathered}Q_n=\\sum_i(\\Delta_i R_n)^2,\\qquad E_n=\\sum_j\\int_0^T q_{n,j}(t)^2\\,dt,\\\\ Q_n-E_n\\in L^2(\\mu),\\qquad \\int|Q_n-E_n|\\,d\\mu\\longrightarrow0.\\end{gathered}",
+    "text_sha256": "b45708227f718ae0209fd74e9a6e3a0d380403969cce7752a28e217976015089"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV.tendsto_dyadic_elementary_ito_row_quadraticVariation_L1",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoElementaryRowQV.lean",
+    "statement": "theorem anonymous_target.{u_2,\n    u_3}\n  {Omega : Type u_2} {J : Type u_3} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} {mu : MeasureTheory.Measure Omega}\n  [MeasureTheory.IsFiniteMeasure mu] {T : NNReal} {B : NNReal → Omega → EuclideanSpace ℝ J}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration mu)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu)\n  (q :\n    ℕ →\n      J →\n        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Density.DyadicElementaryProcess filtration\n          T)\n  (hlevel : ∀ (level : ℕ) (j : J), (q level j).level = level) (C : ℝ)\n  (hC :\n    ∀ (level : ℕ) (j : J) (i : Fin (2 ^ (q level j).level)),\n      ∫ (omega : Omega), (q level j).process.coeff i omega ^ 4 ∂mu ≤ C) :\n  have hcoord := ⋯;\n  have eta := fun level j =>\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTerminalCompletion.elementaryIntegrand (q level j) ⋯;\n  have row := fun level t omega =>\n    ∑ j,\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (eta level j) hT ⋯\n        hUsual t omega;\n  have error := fun level omega =>\n    have times :=\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n        (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T level)\n        (2 ^ level);\n    ∑ i, (row level (times i.succ) omega - row level (times i.castSucc) omega) ^ 2 -\n      ∑ j,\n        ∫ (t : NNReal),\n          (eta level j).process t omega ^ 2 ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T;\n  (∀ (level : ℕ), MeasureTheory.MemLp (error level) 2 mu) ∧\n    Filter.Tendsto (fun level => ∫ (omega : Omega), |error level omega| ∂mu) Filter.atTop (nhds 0)",
+    "statement_sha256": "1bf62e1e7c17d69bda287859ffebc0a00b40ef20f7fb837b0284e03b3762032b",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Finite coordinate type J; filtered Brownian data; for every level n and coordinate j, a dyadic elementary process q_{n,j}; its embedded integrand eta_{n,j}; row process Y_n=∑_j I_j(eta_{n,j}); error E_n; common fourth-moment bound C.\n\nOmega is measurable with finite measure mu and a filtration F indexed by nonnegative reals. T>0 is fixed. The Euclidean coordinate type J is finite with decidable equality. B:[0,infinity)×Omega→R^J. lambda_T denotes the pullback under NNReal.toReal of Lebesgue measure restricted to [0,T]. Each q_{n,j} has exactly level n and 2^n cells. Coefficients a_{n,j,i}:Omega→R, i=0,...,2^n-1; C∈R.\n\nAssumptions: B starts at zero for every omega, has jointly independent increments over disjoint half-open intervals, every continuous real linear functional ell sends B_t-B_s (s<t) to a centered Gaussian of variance (t-s)||ell||², and paths are continuous mu-a.e. B is strongly adapted to F and B_t-B_s is independent of F_s for s≤t. F is right-continuous and every subset S⊆Omega with mu(S)=0 belongs to F_t for every t≥0. The elementary data have strictly increasing times t_i^n=iT/2^n; each coefficient a_{n,j,i} is strongly measurable for the left-endpoint sigma-algebra F_{t_i^n} and pointwise bounded by some finite constant allowed to depend on n,j,i. For all n,j,i, ∫a_{n,j,i}^4 dmu≤C. The embedding eta_{n,j} has exactly the elementary step-process value: eta_{n,j}(t,omega)=∑_{i=0}^{2^n-1}1_{t_i^n<t≤t_{i+1}^n} a_{n,j,i}(omega), including zero at t=0 and outside (0,T].\n\nConclusion: I_j(a)(t,omega) denotes the specified completed Ito integral driven by the scalar coordinate B^j(t,omega)=(B(t,omega))_j. Its representative is the pointwise limit of chosen elementary stochastic integrals off the null complement of their uniform Cauchy event, and zero on that complement; it is held constant after T. Put Y_n(t)=∑_{j∈J}I_j(eta_{n,j})(t) and E_n(omega)=∑_{i=0}^{2^n-1}(Y_n(t_{i+1}^n,omega)-Y_n(t_i^n,omega))²-∑_{j∈J}∫eta_{n,j}(t,omega)² d lambda_T(t). Then E_n∈L²(mu) for every n and lim_{n→infinity}∫|E_n| dmu=0.\n\nQuantifier order: For every Brownian setup, every family q with level(q_{n,j})=n, and every real C with the stated uniform coefficient bounds, every E_n belongs to L²(mu) and ∫|E_n| dmu→0.\n\nScope: The process family may change with dyadic level. The theorem asserts L² membership at each level and L¹ convergence of errors; it does not assert L² convergence or almost-sure convergence.\n\nConstant dependencies: C is a single given real bound independent of level, coordinate and cell. Separate elementary coefficient bounds may depend on all three indices. No convergence rate or additional constant appears.",
+    "text_sha256": "92d1c08fb1d7ad606016719943f390d3581ae03b5bce657b444aeebf992f0a6e",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "998eddac246ad43e4d960a9199e0ca4d9f8fbde6741f98e2d335ec4fd6fa8767",
+    "decoder_run_sha256": "84df50c1221e35c6923f75c902d72018854fb98aa61b82bf1d3cc28c24da4c08",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "afc96e08508e5a42423327081b24b688a2a7c5b5199a1aea22ee4a2c9fe3c35c",
+  "candidate_publication_context": {
+    "file": "a2a92f0b1c9dcca2011a3ee89c7209cad02f78e8a7bec722f2a305b578d120cb",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianDiffusionQuadraticVariation\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralElementaryIncrement\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressivePathEnergy\n\n/-! # Dyadic quadratic variation of actual elementary Itô rows -/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV\n\nopen Filter MeasureTheory ProbabilityTheory\nopen scoped NNReal ENNReal BigOperators\nopen BrownianMotion ProgressiveL2 ProgressiveL2Density ElementaryItoIntegral ElementaryItoIsometry\n  SampledElementaryApproximation EuclideanBrownianCoordinates DyadicElementaryRefinement\n  ItoIntegralProcess ItoTerminalCompletion ItoIntegralElementaryIncrement\n  BrownianDiffusionQuadraticVariation ProgressivePathEnergy\n\nvariable {Omega : Type*} [MeasurableSpace Omega]\n  {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)} {T : ℝ≥0}\n\nprivate def cell (q : DyadicElementaryProcess filtration T)\n    {level : ℕ} (h : q.level = level) (i : Fin (2 ^ level)) : Fin (2 ^ q.level) :=\n  Fin.cast (congrArg (fun n : ℕ => 2 ^ n) h.symm) i\n\nprivate theorem grid_endpoints (q : DyadicElementaryProcess filtration T)\n    {level : ℕ} (h : q.level = level) (i : Fin (2 ^ level)) :\n    q.process.times (cell q h i).castSucc =\n      regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc ∧\n    q.process.times (cell q h i).succ =\n      regularGridTimes (dyadicMesh T level) (2 ^ level) i.succ := by\n  subst level\n  simp [cell, q.times_eq]\n\nprivate theorem elementary_grid_compensator (q : DyadicElementaryProcess filtration T)\n    {level : ℕ} (h : q.level = level) (omega : Omega) :\n    let times := regularGridTimes (dyadicMesh T level) (2 ^ level)\n    (∫ t, (q.process.value t omega)^2 ∂(TimeMeasure.upTo T)) =\n      ∑ i : Fin (2 ^ level), (q.process.coeff (cell q h i) omega)^2 *\n        ((times i.succ - times i.castSucc : ℝ≥0) : ℝ) := by\n  subst level\n  have htime (k : Fin (2 ^ q.level + 1)) : q.process.times k ≤ T := by\n    have hlast : q.process.times (Fin.last (2 ^ q.level)) = T := by\n      rw [q.times_eq, regularDyadic_last_time]\n    exact (q.process.times_strictMono.monotone (Fin.le_last k)).trans_eq hlast\n  simp only [elementary_integral_value_sq, min_eq_left (htime _), cell, Fin.cast_eq_self]\n  rw [q.times_eq]\n\n/-- The Brownian grid calculation applies to the increments of the completed\nelementary integrals and to their actual pathwise time energies. -/\ntheorem tendsto_dyadic_elementary_ito_row_quadraticVariation_L1\n    {Omega J : Type*} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)}\n    {mu : Measure Omega} [IsFiniteMeasure mu] {T : ℝ≥0}\n    {B : ℝ≥0 → Omega → EuclideanSpace ℝ J}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration mu) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration mu)\n    (q : ℕ → J → DyadicElementaryProcess filtration T)\n    (hlevel : ∀ level j, (q level j).level = level)\n    (C : ℝ) (hC : ∀ level j i, (∫ omega, ((q level j).process.coeff i omega)^4 ∂mu) ≤ C) :\n    let hcoord := (coordinateFamily hB).isBrownian\n    let eta := fun level j => elementaryIntegrand (q level j) (hcoord j)\n    let row := fun level t omega =>\n      ∑ j : J, itoIntegralProcess (eta level j) hT (hcoord j) hUsual t omega\n    let error := fun level omega =>\n      let times := regularGridTimes (dyadicMesh T level) (2 ^ level)\n      (∑ i : Fin (2 ^ level), (row level (times i.succ) omega -\n        row level (times i.castSucc) omega)^2) -\n      ∑ j : J, ∫ t, (eta level j).process t omega ^ 2 ∂(TimeMeasure.upTo T)\n    (∀ level, MemLp (error level) 2 mu) ∧\n      Tendsto (fun level => ∫ omega, |error level omega| ∂mu) atTop (nhds 0) := by\n  intro hcoord eta row error\n  let _ : IsProbabilityMeasure mu :=\n    (hB.isStandard.2.2.1 0 1 (by norm_num) (0 : StrongDual ℝ (EuclideanSpace ℝ J))).isProbabilityMeasure\n  let times (level : ℕ) := regularGridTimes (dyadicMesh T level) (2 ^ level)\n  let coeff (level : ℕ) (i : Fin (2 ^ level)) (j : J) :=\n    (q level j).process.coeff (cell (q level j) (hlevel level j) i)\n  have hadapted (level : ℕ) (i : Fin (2 ^ level)) (j : J) :\n      StronglyMeasurable[filtration (times level i.castSucc)] (coeff level i j) := by\n    have hEq : (q level j).process.times (cell (q level j) (hlevel level j) i).castSucc =\n        times level i.castSucc := (grid_endpoints (q level j) (hlevel level j) i).1\n    exact Eq.mp (congrArg (fun t : ℝ≥0 => StronglyMeasurable[filtration t] (coeff level i j)) hEq)\n      ((q level j).process.coeff_stronglyMeasurable (cell (q level j) (hlevel level j) i))\n  have hcoeff (level : ℕ) (i : Fin (2 ^ level)) (j : J) :\n      MemLp (coeff level i j) 4 mu := coeff_memLp (q level j).process mu _ 4\n  have hmoment (level : ℕ) (i : Fin (2 ^ level)) (j : J) :\n      (∫ omega, (coeff level i j omega)^4 ∂mu) ≤ C := hC level j _\n  let discrete := fun level omega =>\n    ∑ i : Fin (2 ^ level),\n      ((∑ j : J, coeff level i j omega *\n        (B (times level i.succ) omega j - B (times level i.castSucc) omega j))^2 -\n      (∑ j : J, (coeff level i j omega)^2) *\n        ((times level i.succ - times level i.castSucc : ℝ≥0) : ℝ))\n  have hDis : (∀ level, MemLp (discrete level) 2 mu) ∧\n      Tendsto (fun level => ∫ omega, (discrete level omega)^2 ∂mu) atTop (nhds 0) :=\n    dyadic_predictable_diffusion_row_quadraticVariation_L2 hB T coeff hadapted hcoeff C hmoment\n  have hInc (level : ℕ) (i : Fin (2 ^ level)) (j : J) :\n      ∀ᵐ omega ∂mu,\n        itoIntegralProcess (eta level j) hT (hcoord j) hUsual (times level i.succ) omega -\n          itoIntegralProcess (eta level j) hT (hcoord j) hUsual (times level i.castSucc) omega =\n          coeff level i j omega *\n            (B (times level i.succ) omega j - B (times level i.castSucc) omega j) := by\n    have h := itoIntegralProcess_elementary_grid_increment_ae\n      (q level j) hT (hcoord j) hUsual (cell (q level j) (hlevel level j) i)\n    dsimp only at h\n    rw [(grid_endpoints (q level j) (hlevel level j) i).1,\n      (grid_endpoints (q level j) (hlevel level j) i).2] at h\n    exact h\n  have hEnergy (level : ℕ) (omega : Omega) :\n      (∑ j : J, ∫ t, (eta level j).process t omega ^ 2 ∂(TimeMeasure.upTo T)) =\n        ∑ i : Fin (2 ^ level), (∑ j : J, (coeff level i j omega)^2) *\n          ((times level i.succ - times level i.castSucc : ℝ≥0) : ℝ) := by\n    change (∑ j : J, ∫ t, ((q level j).process.value t omega)^2 ∂(TimeMeasure.upTo T)) = _\n    simp_rw [elementary_grid_compensator (q level _) (hlevel level _)]\n    rw [Finset.sum_comm]\n    exact Finset.sum_congr rfl (fun i _ => (Finset.sum_mul ..).symm)\n  have hEq (level : ℕ) : error level =ᵐ[mu] discrete level := by\n    filter_upwards [ae_all_iff.2 fun i => ae_all_iff.2 (hInc level i)] with omega hpoint\n    change (∑ i : Fin (2 ^ level), (row level (times level i.succ) omega -\n      row level (times level i.castSucc) omega)^2) -\n      (∑ j : J, ∫ t, (eta level j).process t omega ^ 2 ∂(TimeMeasure.upTo T)) = _\n    rw [hEnergy]\n    simp only [discrete, Finset.sum_sub_distrib]\n    congr 1\n    apply Finset.sum_congr rfl\n    intro i _\n    congr 1\n    dsimp only [row]\n    rw [← Finset.sum_sub_distrib]\n    exact Finset.sum_congr rfl (fun j _ => hpoint i j)\n  have hmem (level : ℕ) : MemLp (error level) 2 mu :=\n    (memLp_congr_ae (hEq level)).2 (hDis.1 level)\n  have hSqLim : Tendsto (fun level => ∫ omega, (error level omega)^2 ∂mu) atTop (nhds 0) := by\n    have hEqIntegral (level : ℕ) :\n        (∫ omega, (error level omega)^2 ∂mu) = ∫ omega, (discrete level omega)^2 ∂mu :=\n      integral_congr_ae ((hEq level).mono fun _ h => congrArg (· ^ (2 : ℕ)) h)\n    exact (tendsto_congr' (Eventually.of_forall hEqIntegral)).2 hDis.2\n  have hUpper (level : ℕ) :\n      (∫ omega, |error level omega| ∂mu) ≤ Real.sqrt (∫ omega, (error level omega)^2 ∂mu) := by\n    have hholder : Real.HolderConjugate 2 2 := by\n      rw [Real.holderConjugate_iff]\n      norm_num\n    have h := integral_mul_norm_le_Lp_mul_Lq hholder (μ := mu)\n      (f := error level) (g := fun _ : Omega => (1 : ℝ))\n      (by simpa using hmem level) (memLp_const 1)\n    simpa [Real.norm_eq_abs, Real.rpow_two, sq_abs, Real.sqrt_eq_rpow] using h\n  have hRoot : Tendsto (fun level => Real.sqrt (∫ omega, (error level omega)^2 ∂mu))\n      atTop (nhds 0) := by\n    simpa only [Function.comp_def, Real.sqrt_zero] using\n      Real.continuous_sqrt.continuousAt.tendsto.comp hSqLim\n  exact ⟨hmem, tendsto_const_nhds.squeeze hRoot (fun _ => integral_nonneg fun _ => abs_nonneg _) hUpper⟩\n\n#print axioms tendsto_dyadic_elementary_ito_row_quadraticVariation_L1\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-elementary-row-qv-fc211643",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoElementaryRowQV.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Quadratic variation of elementary Itô rows. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "At each level of a dyadic grid, take a row of completed Itô integrals of elementary processes on that level's grid. The sum of the squared row increments minus the row's time energy is square integrable at each level and tends to zero in mean absolute value.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\begin{gathered}Q_n=\\sum_i(\\Delta_i R_n)^2,\\qquad E_n=\\sum_j\\int_0^T q_{n,j}(t)^2\\,dt,\\\\ Q_n-E_n\\in L^2(\\mu),\\qquad \\int|Q_n-E_n|\\,d\\mu\\longrightarrow0.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+      "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+      "For each level n and coordinate j, the stored dyadic elementary process has level n. Its bounded left-endpoint measurable coefficients have fourth moments bounded by one common real constant C over all n, cells and coordinates."
+    ],
+    "obligations": [
+      {
+        "id": "ito-elementary-row-qv-fc211643",
+        "label": "Quadratic variation of elementary Itô rows"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV.tendsto_dyadic_elementary_ito_row_quadraticVariation_L1",
+      "title": "Quadratic variation of elementary Itô rows",
+      "statement": "At each level of a dyadic grid, take a row of completed Itô integrals of elementary processes on that level's grid. The sum of the squared row increments minus the row's time energy is square integrable at each level and tends to zero in mean absolute value.",
+      "formula": "\\begin{gathered}Q_n=\\sum_i(\\Delta_i R_n)^2,\\qquad E_n=\\sum_j\\int_0^T q_{n,j}(t)^2\\,dt,\\\\ Q_n-E_n\\in L^2(\\mu),\\qquad \\int|Q_n-E_n|\\,d\\mu\\longrightarrow0.\\end{gathered}",
+      "assumptions": [
+        "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+        "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+        "For each level n and coordinate j, the stored dyadic elementary process has level n. Its bounded left-endpoint measurable coefficients have fourth moments bounded by one common real constant C over all n, cells and coordinates."
+      ],
+      "steps": [
+        {
+          "title": "Use the Brownian cell increments",
+          "text": "The completed scalar integral on a cell equals the stored coefficient times that coordinate's Brownian increment almost surely. Sum this equality over the coordinates.",
+          "formula": "\\Delta_i R_n=\\sum_j q_{n,i,j}\\Delta_i B^j\\quad\\mu\\text{-a.e.}",
+          "lean": "  have hInc (level : ℕ) (i : Fin (2 ^ level)) (j : J) :\n      ∀ᵐ omega ∂mu,\n        itoIntegralProcess (eta level j) hT (hcoord j) hUsual (times level i.succ) omega -\n          itoIntegralProcess (eta level j) hT (hcoord j) hUsual (times level i.castSucc) omega =\n          coeff level i j omega *\n            (B (times level i.succ) omega j - B (times level i.castSucc) omega j) := by\n    have h := itoIntegralProcess_elementary_grid_increment_ae\n      (q level j) hT (hcoord j) hUsual (cell (q level j) (hlevel level j) i)\n    dsimp only at h\n    rw [(grid_endpoints (q level j) (hlevel level j) i).1,\n      (grid_endpoints (q level j) (hlevel level j) i).2] at h\n    exact h\n"
+        },
+        {
+          "title": "Match the compensator",
+          "text": "The real energy of each elementary input is exactly the squared coefficient sum weighted by the cell lengths. Thus the actual centered error agrees almost surely with the Brownian grid error.",
+          "formula": "E_n=\\sum_i(t_{i+1}-t_i)\\sum_j q_{n,i,j}^2.",
+          "lean": "  have hEnergy (level : ℕ) (omega : Omega) :\n      (∑ j : J, ∫ t, (eta level j).process t omega ^ 2 ∂(TimeMeasure.upTo T)) =\n        ∑ i : Fin (2 ^ level), (∑ j : J, (coeff level i j omega)^2) *\n          ((times level i.succ - times level i.castSucc : ℝ≥0) : ℝ) := by\n    change (∑ j : J, ∫ t, ((q level j).process.value t omega)^2 ∂(TimeMeasure.upTo T)) = _\n    simp_rw [elementary_grid_compensator (q level _) (hlevel level _)]\n    rw [Finset.sum_comm]\n    exact Finset.sum_congr rfl (fun i _ => (Finset.sum_mul ..).symm)\n  have hEq (level : ℕ) : error level =ᵐ[mu] discrete level := by\n    filter_upwards [ae_all_iff.2 fun i => ae_all_iff.2 (hInc level i)] with omega hpoint\n    change (∑ i : Fin (2 ^ level), (row level (times level i.succ) omega -\n      row level (times level i.castSucc) omega)^2) -\n      (∑ j : J, ∫ t, (eta level j).process t omega ^ 2 ∂(TimeMeasure.upTo T)) = _\n    rw [hEnergy]\n    simp only [discrete, Finset.sum_sub_distrib]\n    congr 1\n    apply Finset.sum_congr rfl\n    intro i _\n    congr 1\n    dsimp only [row]\n    rw [← Finset.sum_sub_distrib]\n    exact Finset.sum_congr rfl (fun j _ => hpoint i j)\n"
+        },
+        {
+          "title": "Pass from mean square to mean absolute error",
+          "text": "The predictable row theorem gives an L² error and convergence of its second moment to zero. The Brownian sample measure is a probability measure, so Cauchy–Schwarz gives the L¹ conclusion.",
+          "formula": "\\int|Q_n-E_n|\\,d\\mu\\le\\left(\\int(Q_n-E_n)^2\\,d\\mu\\right)^{1/2}.",
+          "lean": "  have hmem (level : ℕ) : MemLp (error level) 2 mu :=\n    (memLp_congr_ae (hEq level)).2 (hDis.1 level)\n  have hSqLim : Tendsto (fun level => ∫ omega, (error level omega)^2 ∂mu) atTop (nhds 0) := by\n    have hEqIntegral (level : ℕ) :\n        (∫ omega, (error level omega)^2 ∂mu) = ∫ omega, (discrete level omega)^2 ∂mu :=\n      integral_congr_ae ((hEq level).mono fun _ h => congrArg (· ^ (2 : ℕ)) h)\n    exact (tendsto_congr' (Eventually.of_forall hEqIntegral)).2 hDis.2\n  have hUpper (level : ℕ) :\n      (∫ omega, |error level omega| ∂mu) ≤ Real.sqrt (∫ omega, (error level omega)^2 ∂mu) := by\n    have hholder : Real.HolderConjugate 2 2 := by\n      rw [Real.holderConjugate_iff]\n      norm_num\n    have h := integral_mul_norm_le_Lp_mul_Lq hholder (μ := mu)\n      (f := error level) (g := fun _ : Omega => (1 : ℝ))\n      (by simpa using hmem level) (memLp_const 1)\n    simpa [Real.norm_eq_abs, Real.rpow_two, sq_abs, Real.sqrt_eq_rpow] using h\n  have hRoot : Tendsto (fun level => Real.sqrt (∫ omega, (error level omega)^2 ∂mu))\n      atTop (nhds 0) := by\n    simpa only [Function.comp_def, Real.sqrt_zero] using\n      Real.continuous_sqrt.continuousAt.tendsto.comp hSqLim\n  exact ⟨hmem, tendsto_const_nhds.squeeze hRoot (fun _ => integral_nonneg fun _ => abs_nonneg _) hUpper⟩\n"
+        }
+      ],
+      "lean_statement": "The Lean statement records the original process and time integral explicitly.",
+      "lean_proof": "Each proof step links the mathematical argument to a verbatim excerpt. The complete Lean proof is folded separately.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianDiffusionQuadraticVariation.dyadic_predictable_diffusion_row_quadraticVariation_L2",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralElementaryIncrement.itoIntegralProcess_elementary_grid_increment_ae",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressivePathEnergy.elementary_integral_value_sq",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIsometry.coeff_memLp"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integral_congr_ae",
+        "MeasureTheory.integral_mul_norm_le_Lp_mul_Lq"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/150a8a5587d5960a2b4f96de86b7f42e16b2e91b/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralProcess.lean",
+          "label": "ItoIntegralProcess",
+          "scope": "Existing library construction used in the proof."
+        }
+      ],
+      "tests": [],
+      "reader_note": "Each squared increment is taken after the coordinate integrals have been added."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV.tendsto_dyadic_elementary_ito_row_quadraticVariation_L1",
+      "role": "prerequisite",
+      "supports": [
+        "ito-elementary-row-qv-fc211643"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+        "lean": "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion."
+      },
+      {
+        "source": "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+        "lean": "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions."
+      },
+      {
+        "source": "For each level n and coordinate j, the stored dyadic elementary process has level n. Its bounded left-endpoint measurable coefficients have fourth moments bounded by one common real constant C over all n, cells and coordinates.",
+        "lean": "For each level n and coordinate j, the stored dyadic elementary process has level n. Its bounded left-endpoint measurable coefficients have fourth moments bounded by one common real constant C over all n, cells and coordinates."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "23a0889dffc98e19e52571cf8c931dc036081cf1362a162da8c134e07263d647"
+}

@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-98b082f26d0a61e8",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-c-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-sphere-measurable-weak-forward-d8d80cfb",
+    "anchor": "Original Samplinglib supplement: Weak marginal evolution from sphere diffusion rows. Exact assumptions and formula below.",
+    "original_text": "Use the actual laws $\\rho_t=(X_t)_\\#P$. Put $F(t)=\\int f(w)\\,d\\rho_{t^+}(w)$ and $B(t)=\\int\\mathcal L_{t^+}f(w)\\,d\\rho_{t^+}(w)$. The generator average $B$ is locally integrable on the real line. The expectation $F$ is absolutely continuous on each finite nonnegative interval and has the signed two-time balance and almost-everywhere derivative below.\n\nThe sample space carries a probability measure $P$, a filtration indexed by nonnegative real time satisfying the usual conditions, and a standard Euclidean Brownian motion relative to that filtration. The coordinate set $I$ is finite with decidable equality.\nThe process $X$ is jointly measurable and takes values in the Euclidean unit sphere $S$. The field $u(t,w)$ is jointly continuous and ambient-vector-valued.\nThe deterministic temperature $\\lambda$ is Borel measurable, nonnegative at each time, and bounded pointwise on each finite horizon. The ambient real test $f$ is $C^2$ at every point of $S$.\nFor each strictly positive horizon, supply initialized coordinates strongly measurable in $\\mathcal F_0$, strongly progressive drift rows with almost-sure integrable sections, and strongly progressive product-$L^2$ noise rows. Their initialized integral equation agrees with $X$ almost surely simultaneously for all horizon times. On the corresponding full-measure events the drift is $-u(t,X_t)-\\lambda(t)(|I|-1)X_t$ and each noise column is $\\sqrt{2\\lambda(t)}P_{X_t}e_j$ throughout the horizon.\nHere $P_we_j=e_j-w_jw$ and $t^+=\\max(t,0)$. Both endpoints in the signed balance are arbitrary nonnegative times.\nThe sphere generator is $\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}}f(w)$, with $\\Delta_S^{\\mathrm{ext}}f(w)=\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]$.\n\nF(b)-F(a)=\\int_a^b B(v)\\,dv,\\qquad F'(t)=B(t)\\quad\\text{for Lebesgue-a.e. }t>0.",
+    "text_sha256": "18171dce06fd921aa90c66217a9df72d0cb8a1cfd5b1e1b1b4dba4d7b4dcb5f6"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableWeakForward.sphere_marginal_balance_of_measurable_temperature_rows",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereMeasurableWeakForward.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {Ω : Type u_1} {I : Type u_2} [MeasurableSpace Ω] [Fintype I] [DecidableEq I]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} (P : MeasureTheory.ProbabilityMeasure Ω)\n  {B : NNReal → Ω → EuclideanSpace ℝ I}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration ↑P)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration ↑P)\n  (X : NNReal → Ω → ↑(Metric.sphere 0 1)) (hX : Measurable (Function.uncurry X))\n  (u : NNReal → ↑(Metric.sphere 0 1) → EuclideanSpace ℝ I) (hu : Continuous (Function.uncurry u))\n  (temperature : NNReal → ℝ) (hTemperature : Measurable temperature)\n  (hTemperatureBound : ∀ (T : NNReal), ∃ C, ∀ t ≤ T, ‖temperature t‖ ≤ C) (hNonneg : ∀ (t : NNReal), 0 ≤ temperature t)\n  (hEquation :\n    ∀ (T : NNReal) (hT : 0 < T),\n      ∃ η x b,\n        (∀ (i : I), MeasureTheory.StronglyMeasurable fun ω => x ω i) ∧\n          (∀ (i : I), MeasureTheory.IsStronglyProgressive filtration (b i)) ∧\n            (∀ (i : I),\n                ∀ᵐ (ω : Ω) ∂↑P,\n                  MeasureTheory.Integrable (fun t => b i t ω)\n                    (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T)) ∧\n              (∀ᵐ (ω : Ω) ∂↑P,\n                  ∀ t ≤ T,\n                    (WithLp.toLp 2 fun i =>\n                        x ω i +\n                            AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess\n                              (b i) t ω +\n                          ∑ j,\n                            AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess\n                              (η i j) hT ⋯ hUsual t ω) =\n                      ↑(X t ω)) ∧\n                (∀ᵐ (ω : Ω) ∂↑P,\n                    ∀ t ≤ T,\n                      (WithLp.toLp 2 fun i => b i t ω) =\n                        -u t (X t ω) - (temperature t * ↑(Fintype.card I - 1)) • ↑(X t ω)) ∧\n                  ∀ᵐ (ω : Ω) ∂↑P,\n                    ∀ t ≤ T,\n                      ∀ (j : I),\n                        (WithLp.toLp 2 fun i => (η i j).process t ω) =\n                          √(2 * temperature t) •\n                            local_symbol_235fd8b746d6 j\n                              ↑(X t ω))\n  (f : EuclideanSpace ℝ I → ℝ) (hf : ∀ w ∈ Metric.sphere 0 1, ContDiffAt ℝ 2 f w) :\n  let S := Metric.sphere 0 1;\n  have hSlice := ⋯;\n  have ρ := fun t => P.map ⋯;\n  have F := fun t => ∫ (w : ↑S), f ↑w ∂↑(ρ t.toNNReal);\n  have B := fun t =>\n    ∫ (w : ↑S),\n      -(fderiv ℝ f ↑w) (u t.toNNReal w) +\n        temperature t.toNNReal *\n          local_symbol_e27025fd0d42 f ↑w ∂↑(ρ t.toNNReal);\n  MeasureTheory.LocallyIntegrable B MeasureTheory.MeasureSpace.volume ∧\n    (∀ (a b : NNReal), F ↑b - F ↑a = ∫ (v : ℝ) in ↑a..↑b, B v) ∧\n      (∀ (T : NNReal), AbsolutelyContinuousOnInterval F 0 ↑T) ∧\n        ∀ᵐ (t : ℝ) ∂MeasureTheory.MeasureSpace.volume.restrict (Set.Ioi 0), HasDerivAt F (B t) t",
+    "statement_sha256": "5d7a5da82a707ca2523590994f5728f920a66ec7fec3b173ce505f1230befb1c",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Objects: Put d=card(I), c=real(max(d-1,0)) (natural-number subtraction before casting), E=R^I with Euclidean norm, S={x in E: ||x||=1}, V_j(x)=e_j-x_j*x, and L_S f(x)=Laplacian(f)(x)-D^2 f(x)[x,x]-c*Df(x)[x]. Here Df is the Frechet derivative and D^2 f=D(Df). Write R_+=[0,infinity), and let lambda_T be Lebesgue measure on [0,T], transported to R_+ (the given comap of volume restricted to [0,T]). All time integrals below use this measure unless indicated otherwise. A ProgressiveL2Integrand eta on horizon T is a real process eta(t,omega), strongly progressive for the filtration, with (omega,t) -> eta(t,omega) in L^2(P x lambda_T). I_T^j(eta) denotes the supplied completed continuous Ito process driven by the scalar coordinate B_j(t,omega)=(B(t,omega))_j: the pointwise limit of chosen elementary stochastic-integral approximations off their null uniform-Cauchy bad set, zero on that bad set, and held constant after T; at each t<=T it agrees almost everywhere with the L^2-completion integral up to t. Let rho(t)=(X(t,.))_*P be the law on S obtained by mapping P under X(t,.). Put F(r)=integral_S f(w)d rho(max(r,0)) and G(r)=integral_S [-Df(w)[u(max(r,0),w)]+a(max(r,0))*L_S f(w)]d rho(max(r,0)). The integrand's toLp operation is its L^2 equivalence class represented by (omega,t)->eta(t,omega).\n\nDomains: Omega measurable; I finite with decidable equality; E,S as above; P probability; filtration indexed by R_+; B:R_+ x Omega -> E; X:R_+ x Omega -> S; u:R_+ x S -> E; a:R_+ -> R; f:E -> R. F,G have domain all real numbers.\n\nQuantifiers: Universally Omega,I,structures,filtration,P,B and Brownian/usual hypotheses; X,hX; u,hu; a,measurability,local bound,nonnegativity; equation; f,hf. The equation has order: for every T>0 there exist eta,x,b, then all listed conjuncts. eta,x,b may depend on T. Conclusions quantify independently over all a0,b0>=0 and all T>=0, then almost every positive real t.\n\nAssumptions: The vector Brownian hypothesis means B(0,omega)=0 for every omega; increments on finite families of pairwise disjoint half-open intervals are jointly independent; every continuous real linear functional ell sends B(t)-B(s), s<t, to a centered Gaussian of variance (t-s)||ell||^2; paths are P-almost surely continuous. B is strongly adapted, and for every s<=t the increment B(t)-B(s) is independent of the sigma-algebra filtration(s). The filtration is right continuous, and every P-null subset of Omega belongs to filtration(t) for every t>=0 (completeness at each time). X is jointly measurable. u is jointly continuous. Temperature a is measurable, everywhere nonnegative, and for each T>=0 there is a real C_T with |a(t)|<=C_T for all t<=T. For every T>0 there exist eta_ij in ProgressiveL2Integrand(filtration,P,T), x:Omega->R^I and b_i:R_+ x Omega->R such that each x_i is strongly measurable with respect to filtration(0), each b_i is strongly progressive, each b_i(.,omega) is lambda_T-integrable for P-a.e. omega, and the following three pathwise identities hold P-a.e., each uniformly for t<=T: X_i(t)=x_i+integral_0^t b_i(v)dv+sum_j I_T^j(eta_ij)(t); b(t)=-u(t,X(t))-a(t)*c*X(t); for every j, (eta_ij(t))_i=sqrt(2*a(t))*V_j(X(t)). f is C^2 at every point of S. No separate progressive or continuous-path assumption on X is listed.\n\nConclusion: G is locally integrable with respect to Lebesgue measure on all R; for every a0,b0 in R_+, F(b0)-F(a0)=integral_{a0}^{b0} G(v)dv with the oriented interval integral; for every T in R_+, F is absolutely continuous on [0,T]; and for Lebesgue-a.e. t in (0,infinity), F is differentiable at t with derivative G(t).\n\nScopes: Global local integrability includes negative arguments because max(r,0) extends the coefficients and rho. The integral identity has no ordering condition a0<=b0. Absolute continuity is for every finite nonnegative horizon including zero. Derivative is almost everywhere on the open positive half-line, not asserted at zero. Three equation events may be intersected for a fixed T; no one-event-for-all-T assertion is given.\n\nConstant dependencies: Each temperature bound C_T may depend on T and a. Witnesses eta,x,b depend on the preceding data and T. F and G depend on the laws rho(t)=(X(t,.))_*P; no additional constants are quantified.",
+    "text_sha256": "ae9d582ee3b3a86b0bf37a2174b8678f937ab424b948856df6c2187f6bbb2cb3",
+    "decoder": "independent-decoder-c-20261116",
+    "decoder_packet_sha256": "bb2fc5b63dd04931a3c9d3637f79ee4ebd84d4b981bde83662c132479392b048",
+    "decoder_run_sha256": "5755b5d59104454ec4f6bb979b0c03e50cb3a01982cc1c14f406e4f3f1fd95b7",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "030ba0b5f28991c1c073bd250cec634cc8f6b077465c662747fb685e8ed88698",
+  "candidate_publication_context": {
+    "file": "2bf79f4c3b66632a77232b312988f58727fc02a61091878de8fd9ed619ad54a7",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoIntegratedRows\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasureRealBridge\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableWeakForward\n\nopen Filter MeasureTheory ProbabilityTheory Set\nopen scoped BigOperators NNReal\nopen BrownianMotion ProgressiveL2 EuclideanBrownianCoordinates ItoIntegralProcess\n  ProgressiveDriftIntegral SphereItoIntegratedRows TimeMeasureRealBridge WeakMeasurableEvolution\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise\n  AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator\n\n/-- A sphere-valued process with the specified integrated Brownian equations\non each positive horizon satisfies the weak marginal integral balance and\nan almost-everywhere derivative for a locally bounded measurable temperature. -/\ntheorem sphere_marginal_balance_of_measurable_temperature_rows\n    {Ω I : Type*} [MeasurableSpace Ω] [Fintype I] [DecidableEq I]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    (P : ProbabilityMeasure Ω) {B : ℝ≥0 → Ω → EuclideanSpace ℝ I}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration (P : Measure Ω))\n    (hUsual : SatisfiesUsualConditions filtration (P : Measure Ω))\n    (X : ℝ≥0 → Ω → Metric.sphere (0 : EuclideanSpace ℝ I) 1)\n    (hX : Measurable (Function.uncurry X))\n    (u : ℝ≥0 → Metric.sphere (0 : EuclideanSpace ℝ I) 1 → EuclideanSpace ℝ I)\n    (hu : Continuous (Function.uncurry u))\n    (temperature : ℝ≥0 → ℝ) (hTemperature : Measurable temperature)\n    (hTemperatureBound : ∀ T : ℝ≥0, ∃ C : ℝ, ∀ t ≤ T, ‖temperature t‖ ≤ C)\n    (hNonneg : ∀ t, 0 ≤ temperature t)\n    (hEquation : ∀ (T : ℝ≥0) (hT : 0 < T),\n      ∃ (η : I → I → ProgressiveL2Integrand filtration (P : Measure Ω) T)\n        (x : Ω → I → ℝ) (b : I → ℝ≥0 → Ω → ℝ),\n        (∀ i, StronglyMeasurable[filtration 0] (fun ω => x ω i)) ∧\n        (∀ i, IsStronglyProgressive filtration (b i)) ∧\n        (∀ i, ∀ᵐ ω ∂(P : Measure Ω), Integrable (fun t => b i t ω) (TimeMeasure.upTo T)) ∧\n        (∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T,\n          (WithLp.toLp 2 (fun i : I => x ω i + prefixIntegralProcess (b i) t ω +\n            ∑ j : I, itoIntegralProcess (η i j) hT ((coordinateFamily hB).isBrownian j) hUsual t ω) :\n              EuclideanSpace ℝ I) = (X t ω : EuclideanSpace ℝ I)) ∧\n        (∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T, WithLp.toLp 2 (fun i => b i t ω) =\n          -u t (X t ω) - (temperature t * ((Fintype.card I - 1 : ℕ) : ℝ)) •\n            (X t ω : EuclideanSpace ℝ I)) ∧\n        (∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T, ∀ j : I, WithLp.toLp 2 (fun i => (η i j).process t ω) =\n          Real.sqrt (2 * temperature t) • projectedNoiseColumn j (X t ω)))\n    (f : EuclideanSpace ℝ I → ℝ)\n    (hf : ∀ w ∈ Metric.sphere (0 : EuclideanSpace ℝ I) 1, ContDiffAt ℝ 2 f w)\n    :\n    let S := Metric.sphere (0 : EuclideanSpace ℝ I) 1\n    let hSlice (t : ℝ≥0) : Measurable (X t) := hX.comp (measurable_const.prodMk measurable_id)\n    let ρ (t : ℝ≥0) := P.map (hSlice t).aemeasurable\n    let F (t : ℝ) := ∫ w : S, f w ∂(ρ t.toNNReal : Measure S)\n    let B (t : ℝ) := ∫ w : S, -fderiv ℝ f w (u t.toNNReal w) +\n      temperature t.toNNReal * sphereLaplacian f w ∂(ρ t.toNNReal : Measure S)\n    LocallyIntegrable B volume ∧\n      (∀ a b : ℝ≥0, F b - F a = ∫ v in (a : ℝ)..(b : ℝ), B v) ∧\n      (∀ T : ℝ≥0, AbsolutelyContinuousOnInterval F 0 (T : ℝ)) ∧\n      (∀ᵐ t ∂volume.restrict (Ioi (0 : ℝ)), HasDerivAt F (B t) t) := by\n  intro S hSlice ρ F B\n  obtain ⟨ω₀⟩ := nonempty_of_isProbabilityMeasure (P : Measure Ω)\n  let E := EuclideanSpace ℝ I\n  have : CompactSpace S := isCompact_iff_compactSpace.mp (isCompact_sphere _ _)\n  let A (t : ℝ≥0) (w : S) : ℝ :=\n    -fderiv ℝ f w (u t w) + temperature t * sphereLaplacian f w\n  have hg : Continuous (fun w : S => f (w : E)) := continuous_iff_continuousAt.2 fun w =>\n    (hf w w.property).continuousAt.comp continuous_subtype_val.continuousAt\n  have hD : Continuous (fun w : S => fderiv ℝ f (w : E)) :=\n    continuous_iff_continuousAt.2 fun w =>\n      ((hf w w.property).continuousAt_fderiv (by decide)).comp continuous_subtype_val.continuousAt\n  have hH : Continuous (fun w : S => fderiv ℝ (fderiv ℝ f) (w : E)) :=\n    continuous_iff_continuousAt.2 fun w =>\n      (((hf w w.property).fderiv_right (m := 1) (by decide)).continuousAt_fderiv\n        (by decide)).comp continuous_subtype_val.continuousAt\n  have hTrace : Continuous (fun w : S => ∑ j : I,\n      fderiv ℝ (fderiv ℝ f) (w : E) (projectedNoiseColumn j w) (projectedNoiseColumn j w)) := by\n    apply continuous_finsetSum\n    intro j _\n    let L : E →L[ℝ] ℝ := PiLp.proj (p := 2) (𝕜 := ℝ) (β := fun _ : I => ℝ) j\n    have hp : Continuous (fun w : S => projectedNoiseColumn j (w : E)) :=\n      continuous_const.sub ((L.continuous.comp continuous_subtype_val).smul continuous_subtype_val)\n    exact (hH.clm_apply hp).clm_apply hp\n  have hLap : Continuous (fun w : S => sphereLaplacian f (w : E)) := by\n    refine (hTrace.sub ((continuous_const (y := ((Fintype.card I - 1 : ℕ) : ℝ))).mul\n      (hD.clm_apply continuous_subtype_val))).congr ?_\n    intro w\n    change (∑ j : I, fderiv ℝ (fderiv ℝ f) (w : E)\n      (projectedNoiseColumn j w) (projectedNoiseColumn j w)) -\n      ((Fintype.card I - 1 : ℕ) : ℝ) * fderiv ℝ f (w : E) (w : E) = _\n    rw [sum_hessian_projectedNoiseColumn f (mem_sphere_zero_iff_norm.1 w.property)]\n    rfl\n  let drift (q : ℝ≥0 × S) := -fderiv ℝ f (q.2 : E) (u q.1 q.2)\n  have hDriftCont : Continuous drift := ((hD.comp continuous_snd).clm_apply hu).neg\n  have hA : Measurable (Function.uncurry A) :=\n    hDriftCont.measurable.add ((hTemperature.comp measurable_fst).mul\n      (hLap.measurable.comp measurable_snd))\n  have hBound (T : ℝ≥0) : ∃ C : ℝ, ∀ t ≤ T, ∀ w, ‖A t w‖ ≤ C := by\n    have hcompact : IsCompact (Icc (0 : ℝ≥0) T ×ˢ (univ : Set S)) :=\n      isCompact_Icc.prod isCompact_univ\n    obtain ⟨C₁, h₁⟩ := hcompact.bddAbove_image hDriftCont.norm.continuousOn\n    obtain ⟨C₂, h₂⟩ := (isCompact_univ (X := S)).bddAbove_image hLap.norm.continuousOn\n    obtain ⟨C₃, h₃⟩ := hTemperatureBound T\n    have h₃pos : 0 ≤ C₃ := (norm_nonneg _).trans (h₃ 0 bot_le)\n    refine ⟨C₁ + C₃ * C₂, fun t ht w => ?_⟩\n    calc\n      ‖A t w‖ ≤ ‖drift (t, w)‖ + ‖temperature t‖ * ‖sphereLaplacian f (w : E)‖ := by\n        dsimp only [A, drift]\n        simpa only [norm_mul] using norm_add_le\n          (-fderiv ℝ f (w : E) (u t w)) (temperature t * sphereLaplacian f (w : E))\n      _ ≤ C₁ + C₃ * C₂ :=\n        add_le_add (h₁ ⟨(t,w), ⟨⟨bot_le, ht⟩, mem_univ w⟩, rfl⟩)\n          (mul_le_mul (h₃ t ht) (h₂ ⟨w, mem_univ w, rfl⟩) (norm_nonneg _) h₃pos)\n  apply marginal_balance_of_locally_bounded_generator P X hX\n    (fun w : S => f (w : E)) hg A hA hBound\n  intro T\n  by_cases hT : T = 0\n  · subst T\n    exact ⟨0, integrable_zero Ω ℝ _, integral_zero _ _,\n      Eventually.of_forall fun _ => by simp⟩\n  have hPos : 0 < T := bot_lt_iff_ne_bot.mpr hT\n  obtain ⟨η, x, b, hx, hb, hbi, hEq, hbEq, hηEq⟩ := hEquation T hPos\n  let Y (t : ℝ≥0) (ω : Ω) : E := WithLp.toLp 2 (fun i : I =>\n    x ω i + prefixIntegralProcess (b i) t ω +\n      ∑ j : I, itoIntegralProcess (η i j) hPos ((coordinateFamily hB).isBrownian j) hUsual t ω)\n  have hYEq : ∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T, Y t ω = (X t ω : E) := hEq\n  have hSphere : ∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T, Y t ω ∈ S :=\n    hYEq.mono fun ω heq t ht => (heq t ht).symm ▸ (X t ω).property\n  have hDrift : ∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T, WithLp.toLp 2 (fun i => b i t ω) =\n      -u t (X t ω) - (temperature t * ((Fintype.card I - 1 : ℕ) : ℝ)) • Y t ω := by\n    filter_upwards [hYEq, hbEq] with ω heq hcoeff t ht\n    rw [heq t ht]\n    exact hcoeff t ht\n  have hColumns : ∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T, ∀ j : I,\n      WithLp.toLp 2 (fun i => (η i j).process t ω) =\n      Real.sqrt (2 * temperature t) • projectedNoiseColumn j (Y t ω) := by\n    filter_upwards [hYEq, hηEq] with ω heq hcoeff t ht j\n    rw [heq t ht]\n    exact hcoeff t ht j\n  obtain ⟨M, hM, hM0, hIto⟩ := ito_formula_sphere_of_integrated_rows hB hPos hUsual η x hx b hb hbi\n    (X 0 ω₀) f hf (fun t ω => u t (X t ω)) temperature\n    (fun t _ => hNonneg t) hSphere hDrift hColumns\n  have hmean := hM.setIntegral_eq (show 0 ≤ T from bot_le) MeasurableSet.univ\n  rw [Measure.restrict_univ] at hmean\n  simp only [hM0, integral_zero] at hmean\n  refine ⟨M T, hM.integrable T, hmean.symm, ?_⟩\n  filter_upwards [hYEq, hIto] with ω heq hω\n  change f (Y T ω) - f (Y 0 ω) =\n    (∫ t, -fderiv ℝ f (Y t ω) (u t (X t ω)) + temperature t * sphereLaplacian f (Y t ω)\n      ∂(TimeMeasure.upTo T)) + M T ω at hω\n  rw [heq T le_rfl, heq 0 bot_le] at hω\n  rw [hω]\n  apply congrArg (· + M T ω)\n  calc\n    _ = ∫ t, A t (X t ω) ∂(TimeMeasure.upTo T) := by\n      apply integral_congr_ae\n      filter_upwards [TimeMeasure.ae_mem_Ioc_zero_upTo T] with t ht\n      simp only [heq t ht.2, A]\n    _ = _ := by\n      rw [← TimeMeasure.restrict_upTo_Ioc_zero T,\n        integral_upTo_restrict_Ioc_eq_real (fun t => A t (X t ω)) (show 0 ≤ T from bot_le) le_rfl]\n      apply intervalIntegral.integral_congr\n      intro r hr\n      change r ∈ uIcc (0 : ℝ) (T : ℝ) at hr\n      rw [uIcc_of_le T.coe_nonneg] at hr\n      simp only [realZeroExtension, if_pos hr.1]\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableWeakForward\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-sphere-measurable-weak-forward-d8d80cfb",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereMeasurableWeakForward.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Weak marginal evolution from sphere diffusion rows. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "Use the actual laws $\\rho_t=(X_t)_\\#P$. Put $F(t)=\\int f(w)\\,d\\rho_{t^+}(w)$ and $B(t)=\\int\\mathcal L_{t^+}f(w)\\,d\\rho_{t^+}(w)$. The generator average $B$ is locally integrable on the real line. The expectation $F$ is absolutely continuous on each finite nonnegative interval and has the signed two-time balance and almost-everywhere derivative below.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "F(b)-F(a)=\\int_a^b B(v)\\,dv,\\qquad F'(t)=B(t)\\quad\\text{for Lebesgue-a.e. }t>0."
+      }
+    ],
+    "assumptions": [
+      "The sample space carries a probability measure $P$, a filtration indexed by nonnegative real time satisfying the usual conditions, and a standard Euclidean Brownian motion relative to that filtration. The coordinate set $I$ is finite with decidable equality.",
+      "The process $X$ is jointly measurable and takes values in the Euclidean unit sphere $S$. The field $u(t,w)$ is jointly continuous and ambient-vector-valued.",
+      "The deterministic temperature $\\lambda$ is Borel measurable, nonnegative at each time, and bounded pointwise on each finite horizon. The ambient real test $f$ is $C^2$ at every point of $S$.",
+      "For each strictly positive horizon, supply initialized coordinates strongly measurable in $\\mathcal F_0$, strongly progressive drift rows with almost-sure integrable sections, and strongly progressive product-$L^2$ noise rows. Their initialized integral equation agrees with $X$ almost surely simultaneously for all horizon times. On the corresponding full-measure events the drift is $-u(t,X_t)-\\lambda(t)(|I|-1)X_t$ and each noise column is $\\sqrt{2\\lambda(t)}P_{X_t}e_j$ throughout the horizon.",
+      "Here $P_we_j=e_j-w_jw$ and $t^+=\\max(t,0)$. Both endpoints in the signed balance are arbitrary nonnegative times.",
+      "The sphere generator is $\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}}f(w)$, with $\\Delta_S^{\\mathrm{ext}}f(w)=\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]$."
+    ],
+    "obligations": [
+      {
+        "id": "sphere-measurable-weak-forward-d8d80cfb",
+        "label": "Weak marginal evolution from sphere diffusion rows"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableWeakForward.sphere_marginal_balance_of_measurable_temperature_rows",
+      "kind": "theorem",
+      "title": "Weak marginal evolution from sphere diffusion rows",
+      "statement": "Use the actual laws $\\rho_t=(X_t)_\\#P$. Put $F(t)=\\int f(w)\\,d\\rho_{t^+}(w)$ and $B(t)=\\int\\mathcal L_{t^+}f(w)\\,d\\rho_{t^+}(w)$. The generator average $B$ is locally integrable on the real line. The expectation $F$ is absolutely continuous on each finite nonnegative interval and has the signed two-time balance and almost-everywhere derivative below.",
+      "formula": "F(b)-F(a)=\\int_a^b B(v)\\,dv,\\qquad F'(t)=B(t)\\quad\\text{for Lebesgue-a.e. }t>0.",
+      "assumptions": [
+        "The sample space carries a probability measure $P$, a filtration indexed by nonnegative real time satisfying the usual conditions, and a standard Euclidean Brownian motion relative to that filtration. The coordinate set $I$ is finite with decidable equality.",
+        "The process $X$ is jointly measurable and takes values in the Euclidean unit sphere $S$. The field $u(t,w)$ is jointly continuous and ambient-vector-valued.",
+        "The deterministic temperature $\\lambda$ is Borel measurable, nonnegative at each time, and bounded pointwise on each finite horizon. The ambient real test $f$ is $C^2$ at every point of $S$.",
+        "For each strictly positive horizon, supply initialized coordinates strongly measurable in $\\mathcal F_0$, strongly progressive drift rows with almost-sure integrable sections, and strongly progressive product-$L^2$ noise rows. Their initialized integral equation agrees with $X$ almost surely simultaneously for all horizon times. On the corresponding full-measure events the drift is $-u(t,X_t)-\\lambda(t)(|I|-1)X_t$ and each noise column is $\\sqrt{2\\lambda(t)}P_{X_t}e_j$ throughout the horizon.",
+        "Here $P_we_j=e_j-w_jw$ and $t^+=\\max(t,0)$. Both endpoints in the signed balance are arbitrary nonnegative times.",
+        "The sphere generator is $\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}}f(w)$, with $\\Delta_S^{\\mathrm{ext}}f(w)=\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]$."
+      ],
+      "steps": [
+        {
+          "title": "Bound the generator on compact horizons",
+          "text": "The derivative weights and continuous field give uniform bounds on the compact state and time sets. Multiply the Laplacian bound by the horizon bound for the Borel temperature.",
+          "formula": "\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\left(\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]\\right).",
+          "lean": "  let drift (q : ℝ≥0 × S) := -fderiv ℝ f (q.2 : E) (u q.1 q.2)\n  have hDriftCont : Continuous drift := ((hD.comp continuous_snd).clm_apply hu).neg\n  have hA : Measurable (Function.uncurry A) :=\n    hDriftCont.measurable.add ((hTemperature.comp measurable_fst).mul\n      (hLap.measurable.comp measurable_snd))\n  have hBound (T : ℝ≥0) : ∃ C : ℝ, ∀ t ≤ T, ∀ w, ‖A t w‖ ≤ C := by\n    have hcompact : IsCompact (Icc (0 : ℝ≥0) T ×ˢ (univ : Set S)) :=\n      isCompact_Icc.prod isCompact_univ\n    obtain ⟨C₁, h₁⟩ := hcompact.bddAbove_image hDriftCont.norm.continuousOn\n    obtain ⟨C₂, h₂⟩ := (isCompact_univ (X := S)).bddAbove_image hLap.norm.continuousOn\n    obtain ⟨C₃, h₃⟩ := hTemperatureBound T\n    have h₃pos : 0 ≤ C₃ := (norm_nonneg _).trans (h₃ 0 bot_le)\n    refine ⟨C₁ + C₃ * C₂, fun t ht w => ?_⟩\n    calc\n      ‖A t w‖ ≤ ‖drift (t, w)‖ + ‖temperature t‖ * ‖sphereLaplacian f (w : E)‖ := by\n        dsimp only [A, drift]\n        simpa only [norm_mul] using norm_add_le\n          (-fderiv ℝ f (w : E) (u t w)) (temperature t * sphereLaplacian f (w : E))\n      _ ≤ C₁ + C₃ * C₂ :=\n        add_le_add (h₁ ⟨(t,w), ⟨⟨bot_le, ht⟩, mem_univ w⟩, rfl⟩)\n          (mul_le_mul (h₃ t ht) (h₂ ⟨w, mem_univ w, rfl⟩) (norm_nonneg _) h₃pos)",
+          "detail": "Use continuity of the derivative restrictions and the bound on temperature."
+        },
+        {
+          "title": "Center the terminal increment",
+          "text": "The horizon-specific rows satisfy the sphere Itô formula. The martingale has expectation zero at the terminal time because it starts at zero. Convert the restricted nonnegative time integral into the real interval integral.",
+          "formula": "f(X_T)-f(X_0)=\\int_0^T\\mathcal L_t f(X_t)\\,dt+M_T,\\qquad \\mathbb E M_T=0.",
+          "lean": "  obtain ⟨M, hM, hM0, hIto⟩ := ito_formula_sphere_of_integrated_rows hB hPos hUsual η x hx b hb hbi\n    (X 0 ω₀) f hf (fun t ω => u t (X t ω)) temperature\n    (fun t _ => hNonneg t) hSphere hDrift hColumns\n  have hmean := hM.setIntegral_eq (show 0 ≤ T from bot_le) MeasurableSet.univ\n  rw [Measure.restrict_univ] at hmean\n  simp only [hM0, integral_zero] at hmean\n  refine ⟨M T, hM.integrable T, hmean.symm, ?_⟩\n  filter_upwards [hYEq, hIto] with ω heq hω\n  change f (Y T ω) - f (Y 0 ω) =\n    (∫ t, -fderiv ℝ f (Y t ω) (u t (X t ω)) + temperature t * sphereLaplacian f (Y t ω)\n      ∂(TimeMeasure.upTo T)) + M T ω at hω\n  rw [heq T le_rfl, heq 0 bot_le] at hω\n  rw [hω]\n  apply congrArg (· + M T ω)\n  calc\n    _ = ∫ t, A t (X t ω) ∂(TimeMeasure.upTo T) := by\n      apply integral_congr_ae\n      filter_upwards [TimeMeasure.ae_mem_Ioc_zero_upTo T] with t ht\n      simp only [heq t ht.2, A]\n    _ = _ := by\n      rw [← TimeMeasure.restrict_upTo_Ioc_zero T,\n        integral_upTo_restrict_Ioc_eq_real (fun t => A t (X t ω)) (show 0 ≤ T from bot_le) le_rfl]\n      apply intervalIntegral.integral_congr\n      intro r hr\n      change r ∈ uIcc (0 : ℝ) (T : ℝ) at hr\n      rw [uIcc_of_le T.coe_nonneg] at hr\n      simp only [realZeroExtension, if_pos hr.1]",
+          "detail": "Apply ito_formula_sphere_of_integrated_rows and integral_upTo_restrict_Ioc_eq_real."
+        },
+        {
+          "title": "Use the marginal balance theorem",
+          "text": "The centered increment applies at each terminal time. At time zero the increment and integral are both zero. The general marginal theorem gives the stated regularity and balance.",
+          "formula": "F(b)-F(a)=\\int_a^b B(v)\\,dv,\\qquad F'(t)=B(t)\\quad\\text{for Lebesgue-a.e. }t>0.",
+          "lean": "  apply marginal_balance_of_locally_bounded_generator P X hX\n    (fun w : S => f (w : E)) hg A hA hBound\n  intro T\n  by_cases hT : T = 0\n  · subst T\n    exact ⟨0, integrable_zero Ω ℝ _, integral_zero _ _,\n      Eventually.of_forall fun _ => by simp⟩",
+          "detail": "Apply marginal_balance_of_locally_bounded_generator."
+        }
+      ],
+      "lean_statement": "The same supplied sphere process determines every marginal in the conclusion.",
+      "lean_proof": "The proof constructs the centered test increment separately on each horizon.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoIntegratedRows.ito_formula_sphere_of_integrated_rows",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution.marginal_balance_of_locally_bounded_generator",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasureRealBridge.integral_upTo_restrict_Ioc_eq_real"
+      ],
+      "mathlib_dependencies": [
+        "isCompact_Icc",
+        "isCompact_univ"
+      ],
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereMeasurableWeakForward.lean",
+          "label": "Samplinglib original supplement",
+          "scope": "The exact declaration and proof."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableWeakForward.sphere_marginal_balance_of_measurable_temperature_rows",
+      "role": "prerequisite",
+      "supports": [
+        "sphere-measurable-weak-forward-d8d80cfb"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The sample space carries a probability measure $P$, a filtration indexed by nonnegative real time satisfying the usual conditions, and a standard Euclidean Brownian motion relative to that filtration. The coordinate set $I$ is finite with decidable equality.",
+        "lean": "The sample space carries a probability measure $P$, a filtration indexed by nonnegative real time satisfying the usual conditions, and a standard Euclidean Brownian motion relative to that filtration. The coordinate set $I$ is finite with decidable equality."
+      },
+      {
+        "source": "The process $X$ is jointly measurable and takes values in the Euclidean unit sphere $S$. The field $u(t,w)$ is jointly continuous and ambient-vector-valued.",
+        "lean": "The process $X$ is jointly measurable and takes values in the Euclidean unit sphere $S$. The field $u(t,w)$ is jointly continuous and ambient-vector-valued."
+      },
+      {
+        "source": "The deterministic temperature $\\lambda$ is Borel measurable, nonnegative at each time, and bounded pointwise on each finite horizon. The ambient real test $f$ is $C^2$ at every point of $S$.",
+        "lean": "The deterministic temperature $\\lambda$ is Borel measurable, nonnegative at each time, and bounded pointwise on each finite horizon. The ambient real test $f$ is $C^2$ at every point of $S$."
+      },
+      {
+        "source": "For each strictly positive horizon, supply initialized coordinates strongly measurable in $\\mathcal F_0$, strongly progressive drift rows with almost-sure integrable sections, and strongly progressive product-$L^2$ noise rows. Their initialized integral equation agrees with $X$ almost surely simultaneously for all horizon times. On the corresponding full-measure events the drift is $-u(t,X_t)-\\lambda(t)(|I|-1)X_t$ and each noise column is $\\sqrt{2\\lambda(t)}P_{X_t}e_j$ throughout the horizon.",
+        "lean": "For each strictly positive horizon, supply initialized coordinates strongly measurable in $\\mathcal F_0$, strongly progressive drift rows with almost-sure integrable sections, and strongly progressive product-$L^2$ noise rows. Their initialized integral equation agrees with $X$ almost surely simultaneously for all horizon times. On the corresponding full-measure events the drift is $-u(t,X_t)-\\lambda(t)(|I|-1)X_t$ and each noise column is $\\sqrt{2\\lambda(t)}P_{X_t}e_j$ throughout the horizon."
+      },
+      {
+        "source": "Here $P_we_j=e_j-w_jw$ and $t^+=\\max(t,0)$. Both endpoints in the signed balance are arbitrary nonnegative times.",
+        "lean": "Here $P_we_j=e_j-w_jw$ and $t^+=\\max(t,0)$. Both endpoints in the signed balance are arbitrary nonnegative times."
+      },
+      {
+        "source": "The sphere generator is $\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}}f(w)$, with $\\Delta_S^{\\mathrm{ext}}f(w)=\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]$.",
+        "lean": "The sphere generator is $\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}}f(w)$, with $\\Delta_S^{\\mathrm{ext}}f(w)=\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]$."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "20d6de6780fb8ca709d0a4a9e6444ea129f059b9e0feca562e1a351368284724"
+}

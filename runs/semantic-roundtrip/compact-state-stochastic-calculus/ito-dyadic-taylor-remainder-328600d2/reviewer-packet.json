@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-1bb53be8ee8e5574",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-dyadic-taylor-remainder-328600d2",
+    "anchor": "Original Samplinglib supplement: Vanishing Taylor residuals on a dyadic time grid. Exact assumptions and formula below.",
+    "original_text": "For a compact-state process on [0,T], the sums of second-order Taylor residuals over the dyadic grids converge in measure to zero whenever the sums of squared increments converge in measure to a real-valued Q.\n\nThe sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.\nf:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.\nT>0, X is defined at all nonnegative times and has almost-sure continuous paths on [0,T]. The dyadic sums of squared increments converge in measure to Q:Ω→ℝ.\n\n\\sum_{i<2^n}R_f(X_{iT/2^n},X_{(i+1)T/2^n}-X_{iT/2^n})\\xrightarrow{\\mu}0.",
+    "text_sha256": "bb810ce4053d11f2648eaa6de29912b3accd5d4fdda31edc60f341658b438565"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicTaylorRemainder.tendstoInMeasure_dyadic_sum_secondOrderRemainder",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicTaylorRemainder.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {Ω : Type u_1} {E : Type u_2} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω} [MeasureTheory.IsFiniteMeasure μ]\n  [NormedAddCommGroup E] [NormedSpace ℝ E] [LocallyCompactSpace E] [MeasurableSpace E] [BorelSpace E] {K : Set E}\n  (hK : IsCompact K) (f : E → ℝ) (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x) {T : NNReal} (hT : 0 < T) (X : NNReal → Ω → ↑K)\n  (hX : ∀ (t : NNReal), Measurable (X t)) (hpaths : ∀ᵐ (ω : Ω) ∂μ, ContinuousOn (fun t => X t ω) (Set.Icc 0 T))\n  {Q : Ω → ℝ}\n  (hQV :\n    MeasureTheory.TendstoInMeasure μ\n      (fun n ω =>\n        have times :=\n          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n            (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T n)\n            (2 ^ n);\n        ∑ i, ‖↑(X (times i.succ) ω) - ↑(X (times i.castSucc) ω)‖ ^ 2)\n      Filter.atTop Q) :\n  MeasureTheory.TendstoInMeasure μ\n    (fun n ω =>\n      have times :=\n        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n          (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T n)\n          (2 ^ n);\n      ∑ i,\n        local_symbol_cae43895bf58 f\n          (↑(X (times i.castSucc) ω)) (↑(X (times i.succ) ω) - ↑(X (times i.castSucc) ω)))\n    Filter.atTop fun x => 0",
+    "statement_sha256": "e9653d3d724b3af7067079b955c8410c6fa78e922822fe6b11ef396f846ab570",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Finite measure space (Omega,m,mu); locally compact real normed space E with its Borel measurable structure; compact K⊆E; f:E→R; K-valued stochastic path X; real random variable Q.\n\nE is a normed additive commutative group and real normed vector space, locally compact, with measurable and Borel-space instances. T>0 is a nonnegative real. X:[0,infinity)×Omega→K (subtype), Q:Omega→R.\n\nAssumptions: mu finite; K compact; f is C² at each point of K in E. For every t≥0, X(t,·) is measurable into K. For mu-a.e. omega, t↦X(t,omega) is continuous on [0,T]. With t_i^n=iT/2^n and Delta_i^n X=X(t_{i+1}^n)-X(t_i^n) interpreted in E, ∑_{i=0}^{2^n-1}||Delta_i^n X||² converges in mu-measure to Q as n→infinity. No separate measurability or integrability hypothesis on Q is written.\n\nConclusion: Define R_f(x,v)=f(x+v)-f(x)-Df(x)[v]-(1/2)D²f(x)[v,v]. Then omega↦∑_{i=0}^{2^n-1}R_f(X(t_i^n,omega),Delta_i^n X(omega)) converges in mu-measure to the identically zero function.\n\nQuantifier order: For arbitrary listed data satisfying the assumptions, convergence in measure of the dyadic squared-increment sums to the supplied Q implies convergence in measure of the dyadic second-order Taylor-remainder sums to zero.\n\nScope: One fixed positive horizon; dyadic mesh; convergence in measure only, not an asserted L¹ or almost-sure convergence. Derivatives are ambient Frechet derivatives; x+v need not independently be constrained by a neighborhood assumption.\n\nConstant dependencies: Q is supplied, arbitrary subject to the stated convergence; no rate or uniform constant is asserted.",
+    "text_sha256": "be4d57434196fec54c7fc864a372ba0714ff0cbc1da5f746deb5b75a56ff4c76",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "95efd03e92da130457d70ee904f9c0103e40f9eb74ca6d31a2907c86c0402266",
+    "decoder_run_sha256": "7b8e9f980b443ec4a1d6e0521207076423634305d5a50e43ac0b310b474e5120",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "e982bdb232f4084fe72b9308f319f26c947f6b8f4c039f32bfc4954e6027c49c",
+  "candidate_publication_context": {
+    "file": "d9a7d0c873001960692db416c128f067e3127af7f97a04aef93cf81debf8d08d",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicElementaryRefinement\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicTaylorRemainder\n\nopen Filter MeasureTheory Set\nopen scoped BigOperators NNReal\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder\nopen AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder\nopen FiniteTimeGrid ElementaryItoIntegral SampledElementaryApproximation DyadicElementaryRefinement\n\n/-- The Taylor remainder limit on the regular dyadic grids used for\ncompleted Itô integrals and quadratic variation. -/\ntheorem tendstoInMeasure_dyadic_sum_secondOrderRemainder\n    {Ω E : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsFiniteMeasure μ]\n    [NormedAddCommGroup E] [NormedSpace ℝ E] [LocallyCompactSpace E]\n    [MeasurableSpace E] [BorelSpace E] {K : Set E}\n    (hK : IsCompact K) (f : E → ℝ) (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x)\n    {T : ℝ≥0} (hT : 0 < T) (X : ℝ≥0 → Ω → K) (hX : ∀ t, Measurable (X t))\n    (hpaths : ∀ᵐ ω ∂μ, ContinuousOn (fun t => X t ω) (Icc 0 T))\n    {Q : Ω → ℝ}\n    (hQV : TendstoInMeasure μ (fun n ω =>\n      let times := regularGridTimes (dyadicMesh T n) (2 ^ n)\n      ∑ i : Fin (2 ^ n), ‖(X (times i.succ) ω : E) - (X (times i.castSucc) ω : E)‖ ^ 2)\n      atTop Q) :\n    TendstoInMeasure μ (fun n ω =>\n      let times := regularGridTimes (dyadicMesh T n) (2 ^ n)\n      ∑ i : Fin (2 ^ n), secondOrderRemainder f (X (times i.castSucc) ω : E)\n        ((X (times i.succ) ω : E) - (X (times i.castSucc) ω : E))) atTop (fun _ => 0) := by\n  let times (n : ℕ) := regularGridTimes (dyadicMesh T n) (2 ^ n)\n  let S := Icc (0 : ℝ≥0) T\n  have : CompactSpace S := isCompact_iff_compactSpace.mp isCompact_Icc\n  have htime (n : ℕ) (i : Fin (2 ^ n + 1)) : times n i ≤ T :=\n    ((regularGridTimes_strictMono (dyadicMesh_pos hT n) _).monotone (Fin.le_last i)).trans_eq\n      (regularDyadic_last_time T n)\n  let grid (n : ℕ) (i : Fin (2 ^ n + 1)) : S := ⟨times n i, bot_le, htime n i⟩\n  let Y (t : S) := X (t : ℝ≥0)\n  have hY (t : S) : Measurable (Y t) := hX t\n  have hYpaths : ∀ᵐ ω ∂μ, Continuous (fun t : S => Y t ω) :=\n    hpaths.mono fun _ hω => hω.domRestrict\n  have hmesh (δ : ℝ) (hδ : 0 < δ) : ∀ᶠ n in atTop, ∀ i : Fin (2 ^ n),\n      dist (grid n i.succ) (grid n i.castSucc) < δ := by\n    filter_upwards [eventually_dyadicMesh_lt T hδ] with n hn i\n    change dist ((times n i.succ : ℝ≥0) : ℝ) ((times n i.castSucc : ℝ≥0) : ℝ) < δ\n    have h := dyadic_activeCell_right (T := T) i\n    change times n i.succ = times n i.castSucc + dyadicMesh T n at h\n    rw [h, NNReal.coe_add, Real.dist_eq, add_sub_cancel_left, abs_of_nonneg (NNReal.coe_nonneg _)]\n    exact hn\n  exact tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation hK f hf Y hY\n    hYpaths (fun n => 2 ^ n) grid hmesh hQV\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicTaylorRemainder\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-dyadic-taylor-remainder-328600d2",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicTaylorRemainder.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Vanishing Taylor residuals on a dyadic time grid. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "For a compact-state process on [0,T], the sums of second-order Taylor residuals over the dyadic grids converge in measure to zero whenever the sums of squared increments converge in measure to a real-valued Q.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\sum_{i<2^n}R_f(X_{iT/2^n},X_{(i+1)T/2^n}-X_{iT/2^n})\\xrightarrow{\\mu}0."
+      }
+    ],
+    "assumptions": [
+      "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.",
+      "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.",
+      "T>0, X is defined at all nonnegative times and has almost-sure continuous paths on [0,T]. The dyadic sums of squared increments converge in measure to Q:Ω→ℝ."
+    ],
+    "obligations": [
+      {
+        "id": "ito-dyadic-taylor-remainder-328600d2",
+        "label": "Vanishing Taylor residuals on a dyadic time grid"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicTaylorRemainder.tendstoInMeasure_dyadic_sum_secondOrderRemainder",
+      "kind": "theorem",
+      "title": "Vanishing Taylor residuals on a dyadic time grid",
+      "statement": "For a compact-state process on [0,T], the sums of second-order Taylor residuals over the dyadic grids converge in measure to zero whenever the sums of squared increments converge in measure to a real-valued Q.",
+      "formula": "\\sum_{i<2^n}R_f(X_{iT/2^n},X_{(i+1)T/2^n}-X_{iT/2^n})\\xrightarrow{\\mu}0.",
+      "assumptions": [
+        "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.",
+        "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.",
+        "T>0, X is defined at all nonnegative times and has almost-sure continuous paths on [0,T]. The dyadic sums of squared increments converge in measure to Q:Ω→ℝ."
+      ],
+      "steps": [
+        {
+          "title": "Restrict time to the compact interval",
+          "text": "Every dyadic time lies in [0,T]. Restrict X to this interval, retaining measurable time slices and almost-sure path continuity.",
+          "formula": "t_{n,i}=iT/2^n\\in[0,T].",
+          "lean": "  let times (n : ℕ) := regularGridTimes (dyadicMesh T n) (2 ^ n)\n  let S := Icc (0 : ℝ≥0) T\n  have : CompactSpace S := isCompact_iff_compactSpace.mp isCompact_Icc\n  have htime (n : ℕ) (i : Fin (2 ^ n + 1)) : times n i ≤ T :=\n    ((regularGridTimes_strictMono (dyadicMesh_pos hT n) _).monotone (Fin.le_last i)).trans_eq\n      (regularDyadic_last_time T n)\n  let grid (n : ℕ) (i : Fin (2 ^ n + 1)) : S := ⟨times n i, bot_le, htime n i⟩\n  let Y (t : S) := X (t : ℝ≥0)\n  have hY (t : S) : Measurable (Y t) := hX t\n  have hYpaths : ∀ᵐ ω ∂μ, Continuous (fun t : S => Y t ω) :=\n    hpaths.mono fun _ hω => hω.domRestrict"
+        },
+        {
+          "title": "Verify the mesh hypothesis and apply the grid theorem",
+          "text": "Consecutive grid points are exactly T/2ⁿ apart, so their distances tend to zero. All hypotheses of the arbitrary-grid residual theorem now hold.",
+          "formula": "t_{n,i+1}-t_{n,i}=T2^{-n}\\longrightarrow0.",
+          "lean": "  have hmesh (δ : ℝ) (hδ : 0 < δ) : ∀ᶠ n in atTop, ∀ i : Fin (2 ^ n),\n      dist (grid n i.succ) (grid n i.castSucc) < δ := by\n    filter_upwards [eventually_dyadicMesh_lt T hδ] with n hn i\n    change dist ((times n i.succ : ℝ≥0) : ℝ) ((times n i.castSucc : ℝ≥0) : ℝ) < δ\n    have h := dyadic_activeCell_right (T := T) i\n    change times n i.succ = times n i.castSucc + dyadicMesh T n at h\n    rw [h, NNReal.coe_add, Real.dist_eq, add_sub_cancel_left, abs_of_nonneg (NNReal.coe_nonneg _)]\n    exact hn\n  exact tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation hK f hf Y hY\n    hYpaths (fun n => 2 ^ n) grid hmesh hQV"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder.tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid.eventually_dyadicMesh_lt",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicElementaryRefinement.regularDyadic_last_time",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteTimeGrid.dyadic_activeCell_right"
+      ],
+      "mathlib_dependencies": [
+        "isCompact_Icc"
+      ],
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicTaylorRemainder.lean",
+          "label": "Original Samplinglib mathematical supplement",
+          "scope": "The precise library statement and its proof; no external theorem is claimed verbatim."
+        }
+      ],
+      "tests": [
+        "Lean 4.33.0 compilation and declaration axiom inspection."
+      ],
+      "lean_statement": "The exact Lean statement appears in the adjacent initially closed disclosure.",
+      "lean_proof": "The proof excerpts below correspond to the mathematical steps.",
+      "notation": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicTaylorRemainder.tendstoInMeasure_dyadic_sum_secondOrderRemainder",
+      "role": "prerequisite",
+      "supports": [
+        "ito-dyadic-taylor-remainder-328600d2"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.",
+        "lean": "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact."
+      },
+      {
+        "source": "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.",
+        "lean": "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample."
+      },
+      {
+        "source": "T>0, X is defined at all nonnegative times and has almost-sure continuous paths on [0,T]. The dyadic sums of squared increments converge in measure to Q:Ω→ℝ.",
+        "lean": "T>0, X is defined at all nonnegative times and has almost-sure continuous paths on [0,T]. The dyadic sums of squared increments converge in measure to Q:Ω→ℝ."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "bf3ac25bc067b8a43492bc5711cb776c3900863dc6f890302d8f02ec0563550c"
+}

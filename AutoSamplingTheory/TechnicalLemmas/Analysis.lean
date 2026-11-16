@@ -1,3 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder
+import AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates
 import AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients
 import AutoSamplingTheory.TechnicalLemmas.Analysis.JointEmpiricalSegmentRisk
 import AutoSamplingTheory.TechnicalLemmas.Analysis.ProbabilitySegmentRisk

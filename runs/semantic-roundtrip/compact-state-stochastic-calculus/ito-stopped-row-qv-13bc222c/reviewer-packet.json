@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-75ac5914e64bb35c",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-c-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-stopped-row-qv-13bc222c",
+    "anchor": "Original Samplinglib supplement: Quadratic variation up to a common stop. Exact assumptions and formula below.",
+    "original_text": "Evaluate the original finite Itô row at a common bounded stopping time capped by the evaluation time. The dyadic squared-increment sum of this stopped row converges in L¹ to the original square energy accumulated up to that stop, with integrable signed error at every level.\n\nOne Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.\nThe sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.\nEach coordinate input is progressive and product-space square integrable. One [0,T]-valued stopping time τ is shared by all coordinates and satisfies 0 ≤ τ(ω) ≤ T at every sample point.\n\n\\begin{gathered}R^\\tau_t=\\sum_j\\int_0^{t\\wedge\\tau}\\eta_j(s)\\,dB_s^j,\\qquad E^\\tau=\\sum_j\\int_{[0,\\tau]}\\eta_j(t)^2\\,dt,\\\\ \\int\\left|\\sum_i(\\Delta_i R^\\tau)^2-E^\\tau\\right|\\,d\\mu\\longrightarrow0.\\end{gathered}",
+    "text_sha256": "c2fc12f933c1b6a88f38a4264feef1c11a81cea531a279682d091f796e5884da"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV.tendsto_dyadic_stopped_ito_row_quadraticVariation_L1",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoStoppedRowQV.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {Omega : Type u_1} {J : Type u_2} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} {mu : MeasureTheory.Measure Omega}\n  [MeasureTheory.IsFiniteMeasure mu] {T : NNReal} {B : NNReal → Omega → EuclideanSpace ℝ J}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration mu)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu)\n  (eta :\n    J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T)\n  (tau : Omega → NNReal)\n  (htau :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.StoppingTime.IsChewiStoppingTime filtration fun omega =>\n      ↑(tau omega))\n  (htauT : ∀ (omega : Omega), tau omega ≤ T) :\n  have hcoord := ⋯;\n  have row := fun t omega =>\n    ∑ j,\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (eta j) hT ⋯ hUsual\n        (Min.min (tau omega) t) omega;\n  have error := fun level omega =>\n    have times :=\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n        (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T level)\n        (2 ^ level);\n    ∑ i, (row (times i.succ) omega - row (times i.castSucc) omega) ^ 2 -\n      ∑ j,\n        ∫ (t : NNReal) in Set.Iic (tau omega),\n          (eta j).process t omega ^ 2 ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T;\n  (∀ (level : ℕ), MeasureTheory.Integrable (error level) mu) ∧\n    Filter.Tendsto (fun level => ∫ (omega : Omega), |error level omega| ∂mu) Filter.atTop (nhds 0)",
+    "statement_sha256": "222d922a7ae46b87f9568c77c9e072544396b190e0d2fe2de2561ceaa3177bf3",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Objects: Write R_+=[0,infinity), and let lambda_T be Lebesgue measure on [0,T], transported to R_+ (the given comap of volume restricted to [0,T]). All time integrals below use this measure unless indicated otherwise. For n in N put t[n,i]=i*T/2^n for i=0,...,2^n, and Delta_i^n Z=Z(t[n,i+1])-Z(t[n,i]). A ProgressiveL2Integrand eta on horizon T is a real process eta(t,omega), strongly progressive for the filtration, with (omega,t) -> eta(t,omega) in L^2(mu x lambda_T). I_T^j(eta) denotes the supplied completed continuous Ito process driven by the scalar coordinate B_j(t,omega)=(B(t,omega))_j: the pointwise limit of chosen elementary stochastic-integral approximations off their null uniform-Cauchy bad set, zero on that bad set, and held constant after T; at each t<=T it agrees almost everywhere with the L^2-completion integral up to t. Define R(t,omega)=sum_j I_T^j(eta_j)(min(tau(omega),t),omega). Define e_n(omega)=sum_i (Delta_i^n R(omega))^2-sum_j integral_{s<=tau(omega)} eta_j(s,omega)^2 d lambda_T(s). The integrand's toLp operation is its L^2 equivalence class represented by (omega,t)->eta(t,omega).\n\nDomains: Omega measurable; J finite with decidable equality; mu finite; filtration on R_+; T>0; vector Brownian B in R^J; eta:J->ProgressiveL2Integrand(filtration,mu,T); tau:Omega->R_+.\n\nQuantifiers: Universally spaces,filtration,mu,T,B; Brownian,positive-T,usual assumptions; eta,tau; stopping-time and bound assumptions. Conclusion first forall n, then the limit as n->infinity.\n\nAssumptions: The vector Brownian hypothesis means B(0,omega)=0 for every omega; increments on finite families of pairwise disjoint half-open intervals are jointly independent; every continuous real linear functional ell sends B(t)-B(s), s<t, to a centered Gaussian of variance (t-s)||ell||^2; paths are mu-almost surely continuous. B is strongly adapted, and for every s<=t the increment B(t)-B(s) is independent of the sigma-algebra filtration(s). The filtration is right continuous, and every mu-null subset of Omega belongs to filtration(t) for every t>=0 (completeness at each time). The coercion omega->tau(omega) into extended nonnegative reals is a stopping time for the filtration (the supplied IsChewiStoppingTime is exactly IsStoppingTime); tau(omega)<=T for every omega.\n\nConclusion: Every e_n is mu-integrable, and integral_Omega |e_n(omega)|dmu tends to zero as n->infinity.\n\nScopes: This is L^1 convergence of the stopped quadratic-variation error to zero. The stopping-time bound is pointwise, not only almost sure. Integrals restrict to s<=tau(omega); the partition remains the deterministic dyadic partition of [0,T].\n\nConstant dependencies: No bound or rate constant is stated. e_n depends on T,tau,eta and the completed Ito processes; convergence may depend on all input data.",
+    "text_sha256": "90a89c4bc5b12d686c4674cbda298ce51b04a84b99d6e30881a5d9cc2017de75",
+    "decoder": "independent-decoder-c-20261116",
+    "decoder_packet_sha256": "a6c7879e8ccc72c0008e28210e76fb477338f109e0e27060894e369245426194",
+    "decoder_run_sha256": "08052a8afc096efc4b5889be65d7c9a0bde89ae0bae5269c9fa340e459658ce5",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "36ee2d5660e40f6c1bb78d6bb24b366cd159e4aedd45266f9c383ea7c768f3a0",
+  "candidate_publication_context": {
+    "file": "f37f2bca9c8414ea1997d912140db04c8db6a7fbccc6ff04a80b3f9de62fd2aa",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingProcessConsistency\n\n/-! # Dyadic quadratic variation at one common bounded stopping time -/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV\n\nopen Filter MeasureTheory Set\nopen scoped NNReal BigOperators\nopen BrownianMotion ProgressiveL2 StoppingTime EuclideanBrownianCoordinates\n  ItoIntegralProcess SampledElementaryApproximation DyadicElementaryRefinement\n  ProgressiveL2Stopping RandomStoppingProcessConsistency ItoContinuousRowQV\n\n/-- Evaluate the actual Itô row at the common stopped time. Its dyadic\nquadratic variation converges in `L¹` to the original energy up to the stop. -/\ntheorem tendsto_dyadic_stopped_ito_row_quadraticVariation_L1\n    {Omega J : Type*} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)}\n    {mu : Measure Omega} [IsFiniteMeasure mu] {T : ℝ≥0}\n    {B : ℝ≥0 → Omega → EuclideanSpace ℝ J}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration mu) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration mu)\n    (eta : J → ProgressiveL2Integrand filtration mu T)\n    (tau : Omega → ℝ≥0)\n    (htau : IsChewiStoppingTime filtration (fun omega => (tau omega : WithTop ℝ≥0)))\n    (htauT : ∀ omega, tau omega ≤ T) :\n    let hcoord := (coordinateFamily hB).isBrownian\n    let row := fun t omega =>\n      ∑ j : J, itoIntegralProcess (eta j) hT (hcoord j) hUsual (min (tau omega) t) omega\n    let error := fun level omega =>\n      let times := regularGridTimes (dyadicMesh T level) (2 ^ level)\n      (∑ i : Fin (2 ^ level), (row (times i.succ) omega -\n        row (times i.castSucc) omega)^2) -\n      ∑ j : J, ∫ t in Set.Iic (tau omega), (eta j).process t omega ^ 2 ∂(TimeMeasure.upTo T)\n    (∀ level, Integrable (error level) mu) ∧\n      Tendsto (fun level => ∫ omega, |error level omega| ∂mu) atTop (nhds 0) := by\n  intro hcoord row error\n  let times (level : ℕ) := regularGridTimes (dyadicMesh T level) (2 ^ level)\n  let stoppedEta (j : J) := stop (eta j) (fun omega => (tau omega : WithTop ℝ≥0)) htau\n  let stoppedRow (t : ℝ≥0) (omega : Omega) :=\n    ∑ j : J, itoIntegralProcess (stoppedEta j) hT (hcoord j) hUsual t omega\n  let stoppedError (level : ℕ) (omega : Omega) :=\n    (∑ i : Fin (2 ^ level), (stoppedRow (times level i.succ) omega -\n      stoppedRow (times level i.castSucc) omega)^2) -\n    ∑ j : J, ∫ t, (stoppedEta j).process t omega ^ 2 ∂(TimeMeasure.upTo T)\n  have htime (level : ℕ) (k : Fin (2 ^ level + 1)) : times level k ≤ T :=\n    ((regularGridTimes_strictMono (dyadicMesh_pos hT level) _).monotone\n      (Fin.le_last k)).trans_eq (regularDyadic_last_time T level)\n  have hAt (level : ℕ) (k : Fin (2 ^ level + 1)) (j : J) :\n      ∀ᵐ omega ∂mu,\n        itoIntegralProcess (stoppedEta j) hT (hcoord j) hUsual (times level k) omega =\n          itoIntegralProcess (eta j) hT (hcoord j) hUsual (min (tau omega) (times level k)) omega :=\n    itoIntegralProcess_stop_ae (eta j) hT tau htau htauT (hcoord j) hUsual (htime level k)\n  have hEnergy (j : J) (omega : Omega) :\n      (∫ t, (stoppedEta j).process t omega ^ 2 ∂(TimeMeasure.upTo T)) =\n        ∫ t in Set.Iic (tau omega), (eta j).process t omega ^ 2 ∂(TimeMeasure.upTo T) := by\n    rw [← integral_indicator measurableSet_Iic]\n    apply integral_congr_ae\n    filter_upwards [] with t\n    change (if (t : WithTop ℝ≥0) ≤ (tau omega : WithTop ℝ≥0)\n      then (eta j).process t omega else 0)^2 = _\n    by_cases ht : t ≤ tau omega\n    · rw [if_pos (WithTop.coe_le_coe.mpr ht),\n        Set.indicator_of_mem (show t ∈ Set.Iic (tau omega) from ht)]\n    · rw [if_neg (fun h => ht (WithTop.coe_le_coe.mp h)),\n        Set.indicator_of_notMem (show t ∉ Set.Iic (tau omega) from ht)]\n      norm_num\n  have hEq (level : ℕ) : stoppedError level =ᵐ[mu] error level := by\n    filter_upwards [ae_all_iff.2 fun k => ae_all_iff.2 (hAt level k)] with omega homega\n    have hRow (k : Fin (2 ^ level + 1)) : stoppedRow (times level k) omega =\n        row (times level k) omega :=\n      Finset.sum_congr rfl (fun j _ => homega k j)\n    simp only [stoppedError, error, hEnergy, hRow]\n    rfl\n  have hLimit : (∀ level, Integrable (stoppedError level) mu) ∧\n      Tendsto (fun level => ∫ omega, |stoppedError level omega| ∂mu) atTop (nhds 0) :=\n    tendsto_dyadic_ito_row_quadraticVariation_L1 hB hT hUsual stoppedEta\n  refine ⟨fun level => (hLimit.1 level).congr (hEq level), ?_⟩\n  exact (tendsto_congr' (Eventually.of_forall fun level =>\n    integral_congr_ae ((hEq level).mono fun _ h => congrArg abs h))).1 hLimit.2\n\n#print axioms tendsto_dyadic_stopped_ito_row_quadraticVariation_L1\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-stopped-row-qv-13bc222c",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoStoppedRowQV.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Quadratic variation up to a common stop. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "Evaluate the original finite Itô row at a common bounded stopping time capped by the evaluation time. The dyadic squared-increment sum of this stopped row converges in L¹ to the original square energy accumulated up to that stop, with integrable signed error at every level.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\begin{gathered}R^\\tau_t=\\sum_j\\int_0^{t\\wedge\\tau}\\eta_j(s)\\,dB_s^j,\\qquad E^\\tau=\\sum_j\\int_{[0,\\tau]}\\eta_j(t)^2\\,dt,\\\\ \\int\\left|\\sum_i(\\Delta_i R^\\tau)^2-E^\\tau\\right|\\,d\\mu\\longrightarrow0.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+      "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+      "Each coordinate input is progressive and product-space square integrable. One [0,T]-valued stopping time τ is shared by all coordinates and satisfies 0 ≤ τ(ω) ≤ T at every sample point."
+    ],
+    "obligations": [
+      {
+        "id": "ito-stopped-row-qv-13bc222c",
+        "label": "Quadratic variation up to a common stop"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV.tendsto_dyadic_stopped_ito_row_quadraticVariation_L1",
+      "title": "Quadratic variation up to a common stop",
+      "statement": "Evaluate the original finite Itô row at a common bounded stopping time capped by the evaluation time. The dyadic squared-increment sum of this stopped row converges in L¹ to the original square energy accumulated up to that stop, with integrable signed error at every level.",
+      "formula": "\\begin{gathered}R^\\tau_t=\\sum_j\\int_0^{t\\wedge\\tau}\\eta_j(s)\\,dB_s^j,\\qquad E^\\tau=\\sum_j\\int_{[0,\\tau]}\\eta_j(t)^2\\,dt,\\\\ \\int\\left|\\sum_i(\\Delta_i R^\\tau)^2-E^\\tau\\right|\\,d\\mu\\longrightarrow0.\\end{gathered}",
+      "assumptions": [
+        "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+        "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+        "Each coordinate input is progressive and product-space square integrable. One [0,T]-valued stopping time τ is shared by all coordinates and satisfies 0 ≤ τ(ω) ≤ T at every sample point."
+      ],
+      "steps": [
+        {
+          "title": "Identify the stopped row at every grid endpoint",
+          "text": "Use the fixed-time stopping theorem at all endpoints of one finite grid. This identifies the actual stopped row with the completed row of closed stopped integrands almost surely.",
+          "formula": "R^\\tau_{t_i}=\\sum_j\\int_0^{t_i}\\mathbf 1_{\\{s\\le\\tau\\}}\\eta_j(s)\\,dB_s^j\\quad\\mu\\text{-a.e.}",
+          "lean": "  have hAt (level : ℕ) (k : Fin (2 ^ level + 1)) (j : J) :\n      ∀ᵐ omega ∂mu,\n        itoIntegralProcess (stoppedEta j) hT (hcoord j) hUsual (times level k) omega =\n          itoIntegralProcess (eta j) hT (hcoord j) hUsual (min (tau omega) (times level k)) omega :=\n    itoIntegralProcess_stop_ae (eta j) hT tau htau htauT (hcoord j) hUsual (htime level k)\n"
+        },
+        {
+          "title": "Identify the stopped energy",
+          "text": "Squaring the stopped integrand preserves its indicator. Integrate the original coefficient squared on the closed interval ending at τ.",
+          "formula": "(\\mathbf 1_{\\{t\\le\\tau\\}}\\eta_j(t))^2=\\mathbf 1_{\\{t\\le\\tau\\}}\\eta_j(t)^2.",
+          "lean": "  have hEnergy (j : J) (omega : Omega) :\n      (∫ t, (stoppedEta j).process t omega ^ 2 ∂(TimeMeasure.upTo T)) =\n        ∫ t in Set.Iic (tau omega), (eta j).process t omega ^ 2 ∂(TimeMeasure.upTo T) := by\n    rw [← integral_indicator measurableSet_Iic]\n    apply integral_congr_ae\n    filter_upwards [] with t\n    change (if (t : WithTop ℝ≥0) ≤ (tau omega : WithTop ℝ≥0)\n      then (eta j).process t omega else 0)^2 = _\n    by_cases ht : t ≤ tau omega\n    · rw [if_pos (WithTop.coe_le_coe.mpr ht),\n        Set.indicator_of_mem (show t ∈ Set.Iic (tau omega) from ht)]\n    · rw [if_neg (fun h => ht (WithTop.coe_le_coe.mp h)),\n        Set.indicator_of_notMem (show t ∉ Set.Iic (tau omega) from ht)]\n      norm_num\n"
+        },
+        {
+          "title": "Apply the progressive-row theorem",
+          "text": "Stopping preserves progressive L². Replace the row values and energy at each level by their identified counterparts and use the already proved L¹ limit.",
+          "formula": "\\|Q_n(R^\\tau)-E^\\tau\\|_1\\longrightarrow0.",
+          "lean": "  have hEq (level : ℕ) : stoppedError level =ᵐ[mu] error level := by\n    filter_upwards [ae_all_iff.2 fun k => ae_all_iff.2 (hAt level k)] with omega homega\n    have hRow (k : Fin (2 ^ level + 1)) : stoppedRow (times level k) omega =\n        row (times level k) omega :=\n      Finset.sum_congr rfl (fun j _ => homega k j)\n    simp only [stoppedError, error, hEnergy, hRow]\n    rfl\n  have hLimit : (∀ level, Integrable (stoppedError level) mu) ∧\n      Tendsto (fun level => ∫ omega, |stoppedError level omega| ∂mu) atTop (nhds 0) :=\n    tendsto_dyadic_ito_row_quadraticVariation_L1 hB hT hUsual stoppedEta\n  refine ⟨fun level => (hLimit.1 level).congr (hEq level), ?_⟩\n  exact (tendsto_congr' (Eventually.of_forall fun level =>\n    integral_congr_ae ((hEq level).mono fun _ h => congrArg abs h))).1 hLimit.2\n"
+        }
+      ],
+      "lean_statement": "The Lean statement records the original process and time integral explicitly.",
+      "lean_proof": "Each proof step links the mathematical argument to a verbatim excerpt. The complete Lean proof is folded separately.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.RandomStoppingProcessConsistency.itoIntegralProcess_stop_ae",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Stopping.stop",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV.tendsto_dyadic_ito_row_quadraticVariation_L1"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integral_indicator",
+        "MeasureTheory.integral_congr_ae",
+        "Filter.tendsto_congr'"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/150a8a5587d5960a2b4f96de86b7f42e16b2e91b/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/RandomStoppingProcessConsistency.lean",
+          "label": "RandomStoppingProcessConsistency",
+          "scope": "Existing library construction used in the proof."
+        }
+      ],
+      "tests": [],
+      "reader_note": "The statement uses the literal original inputs inside the energy integral over [0,τ]."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV.tendsto_dyadic_stopped_ito_row_quadraticVariation_L1",
+      "role": "prerequisite",
+      "supports": [
+        "ito-stopped-row-qv-13bc222c"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+        "lean": "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion."
+      },
+      {
+        "source": "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+        "lean": "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions."
+      },
+      {
+        "source": "Each coordinate input is progressive and product-space square integrable. One [0,T]-valued stopping time τ is shared by all coordinates and satisfies 0 ≤ τ(ω) ≤ T at every sample point.",
+        "lean": "Each coordinate input is progressive and product-space square integrable. One [0,T]-valued stopping time τ is shared by all coordinates and satisfies 0 ≤ τ(ω) ≤ T at every sample point."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "50e84e7e4dc5fbc5347b06841e669ed447800a6cdb05aa6610821040f7523e6d"
+}

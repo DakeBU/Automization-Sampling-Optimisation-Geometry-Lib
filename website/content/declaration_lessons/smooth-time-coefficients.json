@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients.exists_smooth_pos_of_ae_nonneg_bounded",
+      "title": "Smooth positive approximation of a measurable time coefficient",
+      "statement": "For every measurable coefficient with the stated almost-everywhere range on \\([a,b]\\), there is a globally smooth real function \\(g\\) that is strictly positive and at most \\(C+\\varepsilon\\) at every point of that interval, and whose integrated absolute error is less than \\(\\varepsilon\\).",
+      "formula": "\\exists g\\in C^\\infty(\\mathbb R),\\quad 0<g(t)\\le C+\\varepsilon\\ (a\\le t\\le b),\\qquad \\int_a^b |g(t)-f(t)|\\,dt<\\varepsilon.",
+      "steps": [
+        {
+          "title": "Approximate by a bounded continuous function",
+          "text": "The finite interval and the bound on \\(f\\) give integrability. Apply continuous approximation with half the error budget.",
+          "formula": "\\int_a^b |f(t)-q(t)|\\,dt\\le\\varepsilon/2.",
+          "lean": "  let ν := volume.restrict (Icc a b)\n  have hν : ∀ᵐ t ∂ν, t ∈ Icc a b := ae_restrict_mem measurableSet_Icc\n  have hfI : Integrable f ν :=\n    Integrable.of_bound hf.aestronglyMeasurable C\n      (hRange.mono fun t ht => by simpa [Real.norm_eq_abs, abs_of_nonneg ht.1] using ht.2)\n  obtain ⟨q, hq, hqI⟩ := hfI.exists_boundedContinuous_integral_sub_le (half_pos hε)"
+        },
+        {
+          "title": "Clip the continuous approximation to the allowed range",
+          "text": "Set \\(u(t)=\\max(0,\\min(C,q(t)))\\). This is continuous and takes values in \\([0,C]\\) everywhere. Projection onto this interval cannot increase the distance to an almost-everywhere value of \\(f\\).",
+          "formula": "|u(t)-f(t)|\\le|q(t)-f(t)|\\quad\\text{a.e.},\\qquad\\int_a^b|u-f|\\le\\varepsilon/2.",
+          "lean": "  let u (t : ℝ) := max 0 (min C (q t))\n  have huC : Continuous u := continuous_const.max (continuous_const.min q.continuous)\n  have huRange (t : ℝ) : u t ∈ Icc 0 C := ⟨le_max_left _ _, max_le hC (min_le_left _ _)⟩\n  have huI : Integrable u ν :=\n    Integrable.of_bound huC.aestronglyMeasurable C (ae_of_all _ fun t => by\n      simpa [Real.norm_eq_abs, abs_of_nonneg (huRange t).1] using (huRange t).2)\n  have hClip : ∀ᵐ t ∂ν, ‖u t - f t‖ ≤ ‖f t - q t‖ := hRange.mono fun t ht => by\n    change 0 ≤ f t ∧ f t ≤ C at ht\n    simp only [u, Real.norm_eq_abs]\n    rcases le_or_gt (q t) 0 with hq0 | hq0\n    · rw [max_eq_left ((min_le_right C (q t)).trans hq0)]\n      rw [abs_of_nonpos (by linarith [ht.1]), abs_of_nonneg (by linarith [ht.1])]\n      linarith\n    rcases le_or_gt C (q t) with hqC | hqC\n    · rw [min_eq_left hqC, max_eq_right hC]\n      rw [abs_of_nonneg (sub_nonneg.mpr ht.2), abs_of_nonpos (by linarith [ht.2])]\n      linarith\n    rw [min_eq_right hqC.le, max_eq_right hq0.le, abs_sub_comm]\n  have hApprox : (∫ t, ‖u t - f t‖ ∂ν) ≤ ε / 2 :=\n    (integral_mono_ae (huI.sub hfI).norm (hfI.sub hqI).norm hClip).trans hq"
+        },
+        {
+          "title": "Smooth on a compact neighborhood",
+          "text": "Write \\(L=b-a\\) and choose \\(\\delta=\\varepsilon/[4(L+1)]\\). Uniform continuity on the compact closed one-neighborhood of the interval lets the smooth approximation theorem produce a globally smooth \\(v\\) with the required error on the interval.",
+          "formula": "|v(t)-u(t)|\\le\\delta/2\\quad(a\\le t\\le b).",
+          "lean": "  let δ := ε / (4 * (b - a + 1))\n  have hLen := sub_nonneg.mpr hab\n  have hDen : 0 < 4 * (b - a + 1) := by positivity\n  have hδ : 0 < δ := div_pos hε hDen\n  have hδEq : δ * (4 * (b - a + 1)) = ε := div_mul_cancel₀ _ hDen.ne'\n  have hδE : 2 * δ ≤ ε := by nlinarith [mul_nonneg hδ.le hLen]\n  have hδL : 2 * δ * (b - a) < ε / 2 := by nlinarith\n  have hK : IsCompact (Metric.cthickening 1 (Icc a b)) := isCompact_Icc.cthickening\n  obtain ⟨η, hη, hUniform⟩ := Metric.uniformContinuousOn_iff.mp\n    (hK.uniformContinuousOn_of_continuous huC.continuousOn) (δ / 2) (half_pos hδ)\n  obtain ⟨v, hv, hvNear⟩ :=\n    huC.exists_contDiff_dist_le_of_forall_mem_ball_dist_le (lt_min one_pos hη)\n  have hvClose (t : ℝ) (ht : t ∈ Icc a b) : dist (v t) (u t) ≤ δ / 2 := by\n    apply hvNear t\n    intro z hz\n    rw [Metric.mem_ball, lt_min_iff] at hz\n    exact (hUniform z (mem_cthickening_of_dist_le _ t _ _ ht hz.1.le) t\n      (self_subset_cthickening _ ht) hz.2).le"
+        },
+        {
+          "title": "Shift to obtain strict positivity",
+          "text": "Set \\(g=v+\\delta\\). Since \\(0\\le u\\le C\\), the shift gives strict positivity. The estimate \\(2\\delta\\le\\varepsilon\\) also gives the claimed upper bound. Boundedness on the finite interval yields all integral expressions used below.",
+          "formula": "\\delta/2\\le g(t)\\le C+3\\delta/2\\le C+\\varepsilon.",
+          "lean": "  let w (t : ℝ) := v t + δ\n  have hw : ContDiff ℝ ∞ w := hv.add contDiff_const\n  have hwRange (t : ℝ) (ht : t ∈ Icc a b) : 0 < w t ∧ w t ≤ C + ε := by\n    have h := abs_le.mp (by simpa [Real.dist_eq] using hvClose t ht)\n    exact ⟨by dsimp [w]; linarith [h.1, (huRange t).1],\n      by dsimp [w]; linarith [h.2, (huRange t).2]⟩\n  have hwI : Integrable w ν :=\n    Integrable.of_bound hw.continuous.aestronglyMeasurable (C + ε) (hν.mono fun t ht => by\n      simpa [Real.norm_eq_abs, abs_of_nonneg (hwRange t ht).1.le] using (hwRange t ht).2)"
+        },
+        {
+          "title": "Add the two error budgets",
+          "text": "The smoothing and shift cost at most \\(2\\delta L<\\varepsilon/2\\) in integral. The triangle inequality combines this with the clipped approximation.",
+          "formula": "\\int_a^b|g-f|\\le\\int_a^b|g-u|+\\int_a^b|u-f|\\le2\\delta L+\\varepsilon/2<\\varepsilon.",
+          "lean": "  have hwClose : ∀ᵐ t ∂ν, ‖‖w t - u t‖‖ ≤ 2 * δ := hν.mono fun t ht => by\n    have h := abs_le.mp (by simpa [Real.dist_eq] using hvClose t ht)\n    rw [Real.norm_of_nonneg (norm_nonneg _), Real.norm_eq_abs]\n    exact abs_le.mpr ⟨by dsimp [w]; linarith [h.1], by dsimp [w]; linarith [h.2]⟩\n  have hνReal : ν.real univ = b - a := by\n    rw [Measure.real_def, Measure.restrict_apply_univ, Real.volume_Icc, ENNReal.toReal_ofReal hLen]\n  have hwU : (∫ t, ‖w t - u t‖ ∂ν) ≤ 2 * δ * (b - a) := by\n    calc\n      _ ≤ ‖∫ t, ‖w t - u t‖ ∂ν‖ := le_abs_self _\n      _ ≤ 2 * δ * (b - a) := hνReal ▸ norm_integral_le_of_norm_le_const hwClose\n  refine ⟨w, hw, hwRange, ?_⟩\n  change (∫ t, ‖w t - f t‖ ∂ν) < ε\n  calc\n    _ ≤ ∫ t, ‖w t - u t‖ + ‖u t - f t‖ ∂ν := integral_mono_ae (hwI.sub hfI).norm\n      ((hwI.sub huI).norm.add (huI.sub hfI).norm)\n      (ae_of_all _ fun t => by simpa [Real.dist_eq, Real.norm_eq_abs] using dist_triangle (w t) (u t) (f t))\n    _ = (∫ t, ‖w t - u t‖ ∂ν) + ∫ t, ‖u t - f t‖ ∂ν :=\n      integral_add (hwI.sub huI).norm (huI.sub hfI).norm\n    _ < ε := by linarith"
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "MeasureTheory.Integrable.exists_boundedContinuous_integral_sub_le",
+        "Continuous.exists_contDiff_dist_le_of_forall_mem_ball_dist_le",
+        "MeasureTheory.Integrable.of_bound",
+        "MeasureTheory.integral_mono_ae",
+        "MeasureTheory.norm_integral_le_of_norm_le_const",
+        "Real.volume_Icc"
+      ],
+      "lean_statement": "The range of the input is imposed almost everywhere; the range of the output is pointwise on the interval.",
+      "lean_proof": "Continuous approximation, clipping, uniform smoothing, positive shift, and integral triangle inequality.",
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "assumptions": [
+        "The endpoints \\(a,b\\) are real with \\(a\\le b\\). All integrals are Lebesgue integrals restricted to the closed interval \\([a,b]\\). The case \\(a=b\\) is included.",
+        "The constants satisfy \\(C\\ge0\\) and \\(\\varepsilon>0\\). The function \\(f:\\mathbb R\\to\\mathbb R\\) is Borel measurable.",
+        "The range condition \\(0\\le f(t)\\le C\\) holds almost everywhere on \\([a,b]\\). No condition is placed on its values outside that interval or on its exceptional null set."
+      ],
+      "boundary": "The approximation is for one prescribed finite interval and tolerance. Smoothness holds on all of \\(\\mathbb R\\); positivity and the displayed upper bound are guaranteed on \\([a,b]\\). This result controls coefficient integrals. Convergence of solutions and passage of density estimates to limits require further arguments.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothBoundedTimeCoefficients.lean",
+          "label": "Original Samplinglib analysis supplement",
+          "scope": "Exact theorem and proof."
+        },
+        {
+          "path": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/ContinuousMapDense.lean",
+          "label": "Mathlib bounded continuous approximation in integral",
+          "scope": "The integrable function admits a bounded continuous approximation."
+        },
+        {
+          "path": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/Calculus/BumpFunction/SmoothApprox.lean",
+          "label": "Mathlib smooth approximation",
+          "scope": "Uniform approximation of a continuous function on the compact interval."
+        }
+      ],
+      "tests": [
+        "Lean 4.33.0 focused compilation and exact axiom audit."
+      ]
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients.exists_smooth_pos_with_noise_scale_approx",
+      "title": "One approximation for a coefficient and its noise amplitude",
+      "statement": "Under the same assumptions there is one globally smooth function \\(g\\), positive and at most \\(C+\\varepsilon\\) on \\([a,b]\\), for which both the integrated coefficient error and the integrated squared error of the noise amplitude \\(\\sqrt{2f}\\) are less than \\(\\varepsilon\\).",
+      "formula": "\\int_a^b|g-f|\\,dt<\\varepsilon,\\qquad\\int_a^b\\left|\\sqrt{2g(t)}-\\sqrt{2f(t)}\\right|^2dt<\\varepsilon.",
+      "steps": [
+        {
+          "title": "Use the coefficient theorem at half tolerance",
+          "text": "Choose the same \\(g\\) from the preceding result with tolerance \\(\\varepsilon/2\\). Its pointwise upper bound is even \\(C+\\varepsilon/2\\), and both coefficient functions are integrable.",
+          "formula": "\\int_a^b|g-f|\\,dt<\\varepsilon/2,\\qquad0<g\\le C+\\varepsilon/2.",
+          "lean": "  obtain ⟨g, hg, hgRange, hgL1⟩ :=\n    exists_smooth_pos_of_ae_nonneg_bounded hab hC (half_pos hε) f hf hRange\n  let ν := volume.restrict (Icc a b)\n  have hν : ∀ᵐ t ∂ν, t ∈ Icc a b := ae_restrict_mem measurableSet_Icc\n  have hgI : Integrable g ν :=\n    Integrable.of_bound hg.continuous.aestronglyMeasurable (C + ε / 2)\n      (hν.mono fun t ht => by\n        simpa [Real.norm_eq_abs, abs_of_nonneg (hgRange t ht).1.le] using (hgRange t ht).2)\n  have hfI : Integrable f ν :=\n    Integrable.of_bound hf.aestronglyMeasurable C\n      (hRange.mono fun t ht => by simpa [Real.norm_eq_abs, abs_of_nonneg ht.1] using ht.2)"
+        },
+        {
+          "title": "Compare square roots without a positive lower bound",
+          "text": "For nonnegative \\(x,y\\), split into \\(x\\le y\\) and \\(y\\le x\\), expand the square, and use monotonicity of square root. This proves the estimate even when either input is zero.",
+          "formula": "(\\sqrt{x}-\\sqrt{y})^2\\le|x-y|\\qquad(x,y\\ge0).",
+          "lean": "private theorem sq_sqrt_sub_sqrt_le_abs_sub {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :\n    (Real.sqrt x - Real.sqrt y) ^ 2 ≤ |x - y| := by\n  rcases le_total x y with h | h\n  · rw [abs_of_nonpos (sub_nonpos.mpr h)]\n    nlinarith [Real.sq_sqrt hx, Real.sq_sqrt hy,\n      mul_nonneg (Real.sqrt_nonneg x) (sub_nonneg.mpr (Real.sqrt_le_sqrt h))]\n  · rw [abs_of_nonneg (sub_nonneg.mpr h)]\n    nlinarith [Real.sq_sqrt hx, Real.sq_sqrt hy,\n      mul_nonneg (Real.sqrt_nonneg y) (sub_nonneg.mpr (Real.sqrt_le_sqrt h))]"
+        },
+        {
+          "title": "Integrate the pointwise comparison",
+          "text": "Apply that inequality to \\(x=2g(t)\\), \\(y=2f(t)\\) almost everywhere. The squared noise error is measurable and dominated by an integrable coefficient error, so it is integrable. Integration gives the strict error bound for the same \\(g\\).",
+          "formula": "\\left|\\sqrt{2g}-\\sqrt{2f}\\right|^2\\le2|g-f|\\quad\\text{a.e.},\\qquad\\int_a^b\\left|\\sqrt{2g}-\\sqrt{2f}\\right|^2<\\varepsilon.",
+          "lean": "  let A (t : ℝ) := ‖Real.sqrt (2 * g t) - Real.sqrt (2 * f t)‖ ^ 2\n  have hA : Measurable A :=\n    ((Real.continuous_sqrt.measurable.comp (measurable_const.mul hg.continuous.measurable)).sub\n      (Real.continuous_sqrt.measurable.comp (measurable_const.mul hf))).norm.pow_const 2\n  have hABound : ∀ᵐ t ∂ν, A t ≤ 2 * ‖g t - f t‖ := by\n    filter_upwards [hν, hRange] with t ht hft\n    have hs := sq_sqrt_sub_sqrt_le_abs_sub (x := 2 * g t) (y := 2 * f t)\n      (mul_nonneg (by norm_num) (hgRange t ht).1.le)\n      (mul_nonneg (by norm_num) hft.1)\n    simpa only [A, Real.norm_eq_abs, sq_abs, ← mul_sub, abs_mul, abs_of_nonneg (show 0 ≤ (2 : ℝ) by norm_num)] using hs\n  have hDI : Integrable (fun t => 2 * ‖g t - f t‖) ν := (hgI.sub hfI).norm.const_mul 2\n  have hAI : Integrable A ν := hDI.mono' hA.aestronglyMeasurable\n    (hABound.mono fun t ht => by simpa [Real.norm_of_nonneg (sq_nonneg _), A] using ht)\n  refine ⟨g, hg, fun t ht => ⟨(hgRange t ht).1, by linarith [(hgRange t ht).2]⟩, ?_, ?_⟩\n  · exact hgL1.trans (half_lt_self hε)\n  have hAInt := integral_mono_ae hAI hDI hABound\n  rw [integral_const_mul] at hAInt\n  change (∫ t, A t ∂ν) < ε\n  linarith"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients.exists_smooth_pos_of_ae_nonneg_bounded"
+      ],
+      "mathlib_dependencies": [
+        "Real.sq_sqrt",
+        "Real.sqrt_le_sqrt",
+        "Real.continuous_sqrt",
+        "MeasureTheory.Integrable.mono'",
+        "MeasureTheory.integral_mono_ae",
+        "MeasureTheory.integral_const_mul"
+      ],
+      "lean_statement": "A single existentially quantified smooth function satisfies both errors simultaneously.",
+      "lean_proof": "The coefficient error at half tolerance dominates the square-integral error of the square-root noise amplitude.",
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "assumptions": [
+        "The endpoints \\(a,b\\) are real with \\(a\\le b\\). All integrals are Lebesgue integrals restricted to the closed interval \\([a,b]\\). The case \\(a=b\\) is included.",
+        "The constants satisfy \\(C\\ge0\\) and \\(\\varepsilon>0\\). The function \\(f:\\mathbb R\\to\\mathbb R\\) is Borel measurable.",
+        "The range condition \\(0\\le f(t)\\le C\\) holds almost everywhere on \\([a,b]\\). No condition is placed on its values outside that interval or on its exceptional null set."
+      ],
+      "boundary": "The approximation is for one prescribed finite interval and tolerance. Smoothness holds on all of \\(\\mathbb R\\); positivity and the displayed upper bound are guaranteed on \\([a,b]\\). This result controls coefficient integrals. Convergence of solutions and passage of density estimates to limits require further arguments.",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Analysis/SmoothBoundedTimeCoefficients.lean",
+          "label": "Original Samplinglib analysis supplement",
+          "scope": "Exact theorem and proof."
+        },
+        {
+          "path": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/ContinuousMapDense.lean",
+          "label": "Mathlib bounded continuous approximation in integral",
+          "scope": "The integrable function admits a bounded continuous approximation."
+        },
+        {
+          "path": "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/Calculus/BumpFunction/SmoothApprox.lean",
+          "label": "Mathlib smooth approximation",
+          "scope": "Uniform approximation of a continuous function on the compact interval."
+        }
+      ],
+      "tests": [
+        "Lean 4.33.0 focused compilation and exact axiom audit."
+      ]
+    }
+  ]
+}

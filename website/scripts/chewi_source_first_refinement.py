@@ -46,6 +46,16 @@ FORBIDDEN_INTERNAL_PROSE: tuple[str, ...] = (
 SKIP_TAGS = {"pre", "code", "script", "style"}
 INLINE_MATH_RE = re.compile(r"\\\(.*?\\\)", re.S)
 DISPLAY_MATH_RE = re.compile(r"\\\[.*?\\\]", re.S)
+# The shared math-reader.js also configures $...$ and $$...$$. Ignore only
+# complete, unescaped pairs; unmatched/escaped delimiters still expose raw prose.
+# Escaped characters inside math are one token; even backslash runs before
+# an opening dollar leave that delimiter unescaped, as in the reader runtime.
+DOLLAR_INLINE_MATH_RE = re.compile(
+    r"(?<![\\$])(?:\\\\)*\$(?!\$)(?:\\.|[^\\$])*\$(?!\$)", re.S
+)
+DOLLAR_DISPLAY_MATH_RE = re.compile(
+    r"(?<!\\)(?:\\\\)*\$\$(?:\\.|[^\\$]|\$(?!\$))*\$\$", re.S
+)
 
 
 def mathify(value: object) -> str:
@@ -121,6 +131,8 @@ class _VisibleMathScanner(HTMLParser):
             return
         visible = INLINE_MATH_RE.sub(" ", data)
         visible = DISPLAY_MATH_RE.sub(" ", visible)
+        visible = DOLLAR_DISPLAY_MATH_RE.sub(" ", visible)
+        visible = DOLLAR_INLINE_MATH_RE.sub(" ", visible)
         if not visible.strip():
             return
         context = self.frames[-1][2] if self.frames else "page"

@@ -3,6 +3,10 @@ from __future__ import annotations
 import copy
 import json
 import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+from tools import astis_semantic_roundtrip as roundtrip_api
 
 from tools.astis_semantic_roundtrip import (
     DECODER_INPUT_ARTIFACTS,
@@ -14,6 +18,30 @@ from tools.astis_semantic_roundtrip import (
     sha256_text,
     validate_registry,
 )
+
+
+class ArtifactDecoderHashTests(unittest.TestCase):
+    def load_artifact(self, decoder_hashes):
+        fragment = {"id": "ASTIS-RT-ARTIFACT-TEST", **{
+            key: key + ".json" for key in
+            ("reviewer_packet", "decoder_packet", "decoder_result", "review_result")}}
+        documents = [{}, {}, {"decoder_run_sha256": "unchanged-run", **decoder_hashes}, {}]
+        with patch.object(Path, "is_file", return_value=True), patch.object(
+                roundtrip_api, "_json", side_effect=documents):
+            return roundtrip_api._artifact_backed_audit(fragment, Path("audit.json"))
+
+    def test_legacy_and_explicit_hash_fields_preserve_signed_decoder_run(self):
+        for fields in ({"packet_sha256": "packet"},
+                       {"decoder_packet_sha256": "packet"},
+                       {"packet_sha256": "packet", "decoder_packet_sha256": "packet"}):
+            with self.subTest(fields=fields):
+                reconstruction = self.load_artifact(fields)["reconstruction"]
+                self.assertEqual(reconstruction["decoder_packet_sha256"], "packet")
+                self.assertEqual(reconstruction["decoder_run_sha256"], "unchanged-run")
+
+    def test_conflicting_hash_aliases_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "conflicting decoder packet hashes"):
+            self.load_artifact({"packet_sha256": "old", "decoder_packet_sha256": "different"})
 
 
 def valid_registry() -> dict:

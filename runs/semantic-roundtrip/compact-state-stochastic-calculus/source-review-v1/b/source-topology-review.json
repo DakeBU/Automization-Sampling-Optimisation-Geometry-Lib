@@ -1,0 +1,641 @@
+{
+  "reviewer": "independent-source-reviewer-b-20261116",
+  "phase": "source-only-before-lean",
+  "source_only_sha256": "272298cf44fd38e67e9e32ade8800cad1b6e484bcd39a27068da85193a69fb7c",
+  "lean_or_decoder_packets_opened": false,
+  "units": [
+    {
+      "id": "dyadic-weighted-limits-76547c20",
+      "assumption_inventory": [
+        "The horizon T is positive and the sequence of fine levels tends to infinity.",
+        "The real weight w is continuous on [0,T], and the real density b is integrable against the horizon time measure.",
+        "The total absolute cell mass is uniformly bounded along the specified sequence. For every fixed dyadic node, the inclusive fine prefix converges to the integral primitive of b at that node."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Freeze the weights on a coarse grid",
+          "text": "Hold the coarse level m fixed. Once the fine level σ(n) is at least m, use the coarse left-endpoint weight for every fine cell it contains. The block identity and the prefix hypotheses give the limit as a finite sum of weighted primitive differences.",
+          "formula": "V_{m,n}=\\sum_j w(s_j)\\bigl(P_n(s_{j+1})-P_n(s_j)\\bigr)\\longrightarrow L_m=\\sum_j w(s_j)\\bigl(I_b(s_{j+1})-I_b(s_j)\\bigr)."
+        },
+        {
+          "title": "Bound the freezing error",
+          "text": "For these refining fine levels, each fine left endpoint and its coarse left endpoint are in the same coarse cell. Uniform continuity on [0,T] bounds the difference of the two weights. Multiply that bound by the uniform bound on total absolute mass.",
+          "formula": "|S_n-V_{m,n}|\\le \\sup_{|s-t|\\le T/2^m,\\ s,t\\in[0,T]}|w(s)-w(t)|\\,\\sum_i|z_{\\sigma(n),i}|\\qquad(\\sigma(n)\\ge m)."
+        },
+        {
+          "title": "Pass to the weighted integral",
+          "text": "The existing deterministic weighted time-sum theorem gives the limit of Lₘ. Choose m so both the freezing error and the error in Lₘ are small, then take the fine level sufficiently large.",
+          "formula": "|S_n-I|\\le |S_n-V_{m,n}|+|V_{m,n}-L_m|+|L_m-I|,\\qquad I=\\int w(s)b(s)\\,ds."
+        }
+      ],
+      "proof_topology": "coarse-block regrouping; dyadic primitive convergence; uniform continuity; uniform total-variation bound; two-stage epsilon estimate",
+      "bridge_obligations_and_natural_math_check": "Requires inclusive-prefix/half-open primitive endpoint equivalence and sigma(n) eventually at least every fixed m; signed masses require absolute mass, not signed mass. No natural-math defect detected.",
+      "dependency_edges": [
+        "dyadic block identity",
+        "weighted deterministic time sums"
+      ],
+      "source_formula": "\\sum_i w(t_{\\sigma(n),i})z_{\\sigma(n),i}\\longrightarrow\\int_{[0,T]}w(s)b(s)\\,ds."
+    },
+    {
+      "id": "ito-dyadic-weighted-covariation-c9f121b0",
+      "assumption_inventory": [
+        "The horizon T is positive. The sample measure is finite, and the filtration satisfies the usual conditions. The coordinate set is finite with decidable equality.",
+        "Each row uses progressive square-integrable coefficients on the product of the sample measure and the horizon time measure. Its drift has almost-everywhere strongly measurable evaluations up to T and almost surely continuous finite-variation paths on [0,T].",
+        "At each fixed t≤T the weight W(t) is almost-everywhere strongly measurable. Almost every weight path is continuous on [0,T]."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Choose a common subsequence of actual limits",
+          "text": "On any subsequence, apply the countable selection theorem to all mixed prefix limits and the two terminal square-sum limits. This gives a further subsequence on which the limits hold together almost everywhere.",
+          "formula": "P_n(a)\\to\\int_{[0,a]}\\sum_j\\eta_j(s)\\xi_j(s)\\,ds,\\qquad a\\text{ dyadic}."
+        },
+        {
+          "title": "Control the signed cell masses",
+          "text": "The absolute product of the two increments is bounded by half their squared sum. The two terminal limits bound this sum along the selected subsequence. The coefficient products have integrable time sections by product L² and Fubini.",
+          "formula": "2\\sum_i|\\Delta X_i\\,\\Delta Y_i|\\le \\sum_i(\\Delta X_i)^2+\\sum_i(\\Delta Y_i)^2."
+        },
+        {
+          "title": "Apply the continuous-weight limit pathwise",
+          "text": "For almost every sample, the continuous weight, the bounded signed masses, and the cumulative limits satisfy the deterministic theorem. Apply the subsequence characterization of convergence in measure.",
+          "formula": "S_{n_\\ell}\\to\\int W(s)\\sum_j\\eta_j(s)\\xi_j(s)\\,ds\\quad\\text{almost everywhere along the selected subsequence}."
+        }
+      ],
+      "proof_topology": "common subsequence for countably many prefixes and two terminal energies; |ab|≤(a²+b²)/2; pathwise deterministic weighted limit; subsequence criterion",
+      "bridge_obligations_and_natural_math_check": "Need measurable approximants and a single common full-measure event; L² sections make eta·xi time-integrable. No boundedness or adaptedness of W beyond stated hypotheses should be added.",
+      "dependency_edges": [
+        "prefix covariation",
+        "scalar terminal quadratic variation",
+        "countable extraction",
+        "continuous-weight deterministic limit"
+      ],
+      "source_formula": "\\sum_i W(t_i)\\,(X_{t_{i+1}}-X_{t_i})(Y_{t_{i+1}}-Y_{t_i})\\xrightarrow{\\mu}\\int_{[0,T]} W(s)\\sum_j\\eta_j(s)\\xi_j(s)\\,ds."
+    },
+    {
+      "id": "ito-dyadic-prefix-cross-qv-0a0b3bc2",
+      "assumption_inventory": [
+        "The underlying measure is finite. The filtration satisfies the usual conditions, and B is a standard Euclidean Brownian motion relative to that filtration and measure.",
+        "The two finite rows of coefficients η and ξ are progressive and square-integrable for the product of the horizon time measure and the underlying measure. The Brownian coordinate index set has decidable equality.",
+        "The drift evaluations of X and Y are almost-everywhere strongly measurable at every deterministic time t≤T. Almost every drift path is continuous and has bounded variation on [0,T].",
+        "The horizon T is positive. The fixed cutoff τ is any coarse dyadic grid point, including the endpoints."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Form the sum of the two rows",
+          "text": "The sum of the drifts is continuous with variation at most the sum of the two variations. The integrands add in progressive L². Linearity of the completed Itô integral identifies the summed row Z with X+Y almost everywhere at each fine-grid time.",
+          "formula": "Z_t=A_t+C_t+\\sum_j\\int_0^t(\\eta_j+\\xi_j)(s)\\,dB^j_s=X_t+Y_t\\quad\\mu\\text{-a.e. for each }t\\le T."
+        },
+        {
+          "title": "Polarize the three scalar limits",
+          "text": "Apply the scalar prefix theorem to Z, X and Y. The cell identity below turns the mixed increment sum into half the difference of their square sums. From any subsequence, extract a further one on which all three square sums converge almost everywhere and take the same linear combination there.",
+          "formula": "2\\,\\Delta X_i\\,\\Delta Y_i=(\\Delta Z_i)^2-(\\Delta X_i)^2-(\\Delta Y_i)^2."
+        },
+        {
+          "title": "Identify the limit on each Brownian coordinate",
+          "text": "Each of the three squared coefficients is integrable in time on almost every path by product L² and Fubini. Apply the same polarization identity inside the restricted time integrals and sum over the coordinates.",
+          "formula": "\\frac{1}{2}\\sum_j\\int_{[0,\\tau]}\\bigl((\\eta_j+\\xi_j)^2-\\eta_j^2-\\xi_j^2\\bigr)\\,ds=\\sum_j\\int_{[0,\\tau]}\\eta_j\\xi_j\\,ds."
+        }
+      ],
+      "proof_topology": "linearity of completed integrals at countably many grid times; polarization of three prefix square limits; polarization inside integrable time sections",
+      "bridge_obligations_and_natural_math_check": "Must preserve common Brownian coordinates and fixed dyadic cutoff, collect all grid-time equalities, and establish integrability before subtracting integrals.",
+      "dependency_edges": [
+        "scalar prefix square variation",
+        "Ito linearity",
+        "product-L² Fubini"
+      ],
+      "source_formula": "\\sum_{i:\\ t_{i+1}\\le\\tau}(X_{t_{i+1}}-X_{t_i})(Y_{t_{i+1}}-Y_{t_i})\\xrightarrow[n\\to\\infty]{\\mu}\\sum_j\\int_{[0,\\tau]}\\eta_j(s)\\xi_j(s)\\,ds."
+    },
+    {
+      "id": "progressive-path-energy-bc6bcbd0",
+      "assumption_inventory": [
+        "An elementary adapted real process on a finite strictly increasing grid, with its stored left-endpoint measurable bounded coefficients.",
+        "Any nonnegative horizon T and any sample point ω. The clipped interval lengths are nonnegative."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Evaluate the nonnegative integral",
+          "text": "The existing cell formula evaluates the nonnegative Lebesgue integral. The squared coefficients and clipped lengths are finite, so the formula is a finite sum of finite terms. Convert the nonnegative integral to ℝ to obtain the real integral.",
+          "formula": "\\int q^2\\,dt=\\operatorname{toReal}\\!\\left(\\int{}^- \\operatorname{ofReal}(q^2)\\,dt\\right)."
+        }
+      ],
+      "proof_topology": "nonnegative cell integral; finite ENNReal sum; conversion to real integral",
+      "bridge_obligations_and_natural_math_check": "Need disjoint step supports and finite clipped lengths; endpoints have zero Lebesgue mass. No natural defect.",
+      "dependency_edges": [
+        "elementary nonnegative energy formula"
+      ],
+      "source_formula": "\\int_0^T q(t,\\omega)^2\\,dt=\\sum_i q_i(\\omega)^2\\bigl(\\min(t_{i+1},T)-\\min(t_i,T)\\bigr)."
+    },
+    {
+      "id": "ito-stopped-row-qv-13bc222c",
+      "assumption_inventory": [
+        "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+        "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+        "Each coordinate input is progressive and product-space square integrable. One finite-valued stopping time τ is shared by all coordinates and satisfies 0 ≤ τ(ω) ≤ T at every sample point."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Identify the stopped row at every grid endpoint",
+          "text": "Use the fixed-time stopping theorem at all endpoints of one finite grid. This identifies the actual stopped row with the completed row of closed stopped integrands almost surely.",
+          "formula": "R^\\tau_{t_i}=\\sum_j\\int_0^{t_i}\\mathbf 1_{\\{s\\le\\tau\\}}\\eta_j(s)\\,dB_s^j\\quad\\mu\\text{-a.e.}"
+        },
+        {
+          "title": "Identify the stopped energy",
+          "text": "Squaring the stopped integrand preserves its indicator. Integrate the original coefficient squared on the closed interval ending at τ.",
+          "formula": "(\\mathbf 1_{\\{t\\le\\tau\\}}\\eta_j(t))^2=\\mathbf 1_{\\{t\\le\\tau\\}}\\eta_j(t)^2."
+        },
+        {
+          "title": "Apply the progressive-row theorem",
+          "text": "Stopping preserves progressive L². Replace the row values and energy at each level by their identified counterparts and use the already proved L¹ limit.",
+          "formula": "\\|Q_n(R^\\tau)-E^\\tau\\|_1\\longrightarrow0."
+        }
+      ],
+      "proof_topology": "fixed-time stopping identity at finite grid endpoints; stopped coefficient indicator squared; progressive-row L¹ result",
+      "bridge_obligations_and_natural_math_check": "Must distinguish bounded finite real-valued stopping time from finite-range/simple stopping time. Closed indicator versus integration endpoint is harmless only with Lebesgue time. No a.s. full-sequence limit claimed.",
+      "dependency_edges": [
+        "completed Ito stopping theorem",
+        "progressive stopped integrands",
+        "row L¹ quadratic variation"
+      ],
+      "source_formula": "\\begin{gathered}R^\\tau_t=\\sum_j\\int_0^{t\\wedge\\tau}\\eta_j(s)\\,dB_s^j,\\qquad E^\\tau=\\sum_j\\int_{[0,\\tau]}\\eta_j(t)^2\\,dt,\\\\ \\int\\left|\\sum_i(\\Delta_i R^\\tau)^2-E^\\tau\\right|\\,d\\mu\\longrightarrow0.\\end{gathered}"
+    },
+    {
+      "id": "sphere-coordinate-sde-a838c8d1",
+      "assumption_inventory": [
+        "The sample measure is finite. The filtration is indexed by nonnegative time. $I$ is finite and has decidable equality.",
+        "The process takes values in the Euclidean unit sphere. It is jointly measurable and strongly progressive. The deterministic temperature is continuous.",
+        "The horizon is nonnegative. The real square root is the total Lean operation. The defining coefficient formula holds at every nonnegative time, and the product $L^2$ property uses the specified finite horizon."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Build a jointly continuous scalar coefficient",
+          "text": "Take the coordinate of the projected vector and multiply by the square root of twice the temperature. The coordinate maps and the total real square root are continuous.",
+          "formula": "\\eta_{ij}(t,\\omega)=\\sqrt{2\\lambda(t)}\\,[e_j-(X_t(\\omega))_j X_t(\\omega)]_i."
+        },
+        {
+          "title": "Use compactness on the horizon",
+          "text": "The unit sphere is compact. The continuous-coefficient lemma gives strong progressiveness and product-space square integrability with the chosen horizon measure.",
+          "formula": "[(\\omega,t)\\mapsto\\eta_{ij}(t,\\omega)]\\in L^2(\\mu\\otimes\\ell_T)."
+        }
+      ],
+      "proof_topology": "joint continuity of scalar projected coefficient; compact state-time bound; composition with progressive X",
+      "bridge_obligations_and_natural_math_check": "Strong progressiveness may imply the separately assumed joint measurability, but redundancy is not a mathematical defect. Nonnegativity of temperature is not needed for total real sqrt.",
+      "dependency_edges": [
+        "continuous coefficient composition into progressive L²"
+      ],
+      "source_formula": "\\eta_{ij}(t,\\omega)=\\sqrt{2\\lambda(t)}\\,[e_j-(X_t(\\omega))_j X_t(\\omega)]_i."
+    },
+    {
+      "id": "sphere-coordinate-sde-fd7bb141",
+      "assumption_inventory": [
+        "The sample measure is finite. The filtration is indexed by nonnegative time. $I$ is finite and has decidable equality.",
+        "The process takes values in the Euclidean unit sphere. It is jointly measurable and strongly progressive. The deterministic temperature is continuous.",
+        "The horizon is nonnegative. The real square root is the total Lean operation. The defining coefficient formula holds at every nonnegative time, and the product $L^2$ property uses the specified finite horizon."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Read the process field of the integrand",
+          "text": "The integrand construction stores the original scalar function as its representative. Taking the process field recovers that function pointwise.",
+          "formula": "\\eta_{ij}(t,\\omega)=\\sqrt{2\\lambda(t)}\\,[e_j-(X_t(\\omega))_j X_t(\\omega)]_i."
+        }
+      ],
+      "proof_topology": "read stored process field",
+      "bridge_obligations_and_natural_math_check": "Need exact representative rather than equivalence class; pointwise identity holds globally despite horizon-specific L².",
+      "dependency_edges": [
+        "sphere-noise integrand definition"
+      ],
+      "source_formula": "\\eta_{ij}(t,\\omega)=\\sqrt{2\\lambda(t)}\\,[e_j-(X_t(\\omega))_j X_t(\\omega)]_i."
+    },
+    {
+      "id": "sphere-coordinate-sde-97d1e81c",
+      "assumption_inventory": [
+        "The probability space has a filtration and standard Euclidean Brownian motion relative to it, with the usual conditions. The Euclidean coordinate set is finite with decidable equality.",
+        "The sphere-valued process is jointly measurable and strongly progressive, with almost surely continuous paths. The ambient field is jointly continuous, and the deterministic temperature is continuous and nonnegative.",
+        "For every positive horizon the stated integrated equation holds on one full-measure event for all times in that horizon and all coordinates. It uses the literal drift and the constructed completed Brownian integrals.",
+        "The real ambient test is twice continuously differentiable at every sphere point."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Use the actual coordinate equation",
+          "text": "Strong progressiveness gives time-zero measurability of the initial coordinates. Continuity and compactness prove progressiveness and integrability of the scalar drift. The noise integrands have the literal projected coefficients.",
+          "formula": "(X_t)_i=(X_0)_i+\\int_0^t b_i(s,X_s)\\,ds+\\sum_{j\\in I}\\int_0^t\\eta_{ij}(s)\\,dB_s^j."
+        },
+        {
+          "title": "Apply the weak evolution for the assembled rows",
+          "text": "The path equation identifies the assembled vector with the supplied sphere process on the common horizon event. The existing sphere-row theorem gives the expected generator as the derivative.",
+          "formula": "\\partial_t\\mathbb E[f(X_t)]=\\mathbb E[\\mathcal L_t f(X_t)]."
+        }
+      ],
+      "proof_topology": "time-zero adaptation; progressive/integrable literal drift; literal diffusion; horizon simultaneous equation; expected generator derivative",
+      "bridge_obligations_and_natural_math_check": "Must derive ordinary derivative at positive time from within derivative; continuity of generator average is needed for every-time derivative and should come from compactness and continuous field/temperature.",
+      "dependency_edges": [
+        "sphere noise integrands",
+        "compact coefficient drift",
+        "integrated row weak evolution"
+      ],
+      "source_formula": "\\partial_t\\mathbb E[f(X_t)]=\\mathbb E[-Df(X_t)[u(t,X_t)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}} f(X_t)]."
+    },
+    {
+      "id": "ito-weighted-riemann-sums-41a3da04",
+      "assumption_inventory": [
+        "The horizon T is nonnegative. The real density b is integrable against nonnegative time measure restricted to [0,T]."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Control one increment",
+          "text": "A prefix increment is the integral of b over one time cell. Its absolute value is bounded by the integral of |b| over the same cell.",
+          "formula": "|A(t)-A(s)|\\le\\int_{(s,t]}|b(r)|\\,dr."
+        },
+        {
+          "title": "Telescope the bound",
+          "text": "Sum the bounds on any finite nondecreasing list of times in the horizon. The absolute-density prefixes telescope, and the final prefix is finite.",
+          "formula": "\\sum_i |\\Delta_i A|\\le V(t_n)-V(t_0)\\le V(T),\\qquad V(t)=\\int_{[0,\\min(t,T))}|b(r)|\\,dr."
+        }
+      ],
+      "proof_topology": "prefix increment bound by absolute-density increment; telescoping over ordered partitions",
+      "bridge_obligations_and_natural_math_check": "Displayed variation bound stronger than named bounded-variation conclusion: verify proof actually establishes quantitative bound. Increment formula implicitly assumes 0≤s≤t≤T; endpoint conventions need nonatomic time.",
+      "dependency_edges": [
+        "prefix integral interval-additivity",
+        "variation characterization"
+      ],
+      "source_formula": "A(t)=\\int_{[0,\\min(t,T))}b(r)\\,dr,\\qquad \\operatorname{Var}_{[0,T]}(A)\\le \\int_{[0,T]}|b(r)|\\,dr."
+    },
+    {
+      "id": "ito-weighted-riemann-sums-0db44fa0",
+      "assumption_inventory": [
+        "There is one scalar Brownian motion relative to a filtration satisfying the usual conditions, a finite sample measure μ, and a positive deterministic horizon T.",
+        "The input η is real, progressive and product-space L². The weight is strongly progressive globally, almost surely continuous on [0,T], and uniformly bounded pointwise for t∈[0,T]."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Construct the literal product",
+          "text": "Strong progressiveness is closed under multiplication. The product time measure is supported on [0,T], so the horizon bound suffices for square integrability of the global literal product.",
+          "formula": "\\int |\\theta|^2\\,d(\\mu\\otimes dt)\\le C^2\\int|\\eta|^2\\,d(\\mu\\otimes dt)."
+        },
+        {
+          "title": "Assemble the single-cell integrals",
+          "text": "Each left value is strongly measurable in its left filtration and bounded. The single-cell multiplier identity converts the weighted increment to a completed integral on that cell. Add the finite family.",
+          "formula": "I_T(w_n\\eta)=\\sum_i w(t_i)\\bigl(I_{t_{i+1}}(\\eta)-I_{t_i}(\\eta)\\bigr)\\quad\\mu\\text{-a.e.}"
+        },
+        {
+          "title": "Pass to the product integral",
+          "text": "Left samples converge along continuous paths. Their squared product errors are dominated by a constant times |η|². The terminal Itô isometry carries product L² convergence to convergence in measure of the actual terminal processes.",
+          "formula": "w_n\\eta\\to w\\eta\\text{ in product }L^2,\\qquad I_T(w_n\\eta)\\to I_T(w\\eta)\\text{ in measure}."
+        }
+      ],
+      "proof_topology": "literal product progressive L²; one-cell multiplier identity; finite sum; dominated L² convergence; Ito isometry",
+      "bridge_obligations_and_natural_math_check": "Must use same Brownian driver, left-endpoint F_t measurability and bound uniform over all samples. Endpoint failures at zero may be ignored only in product measure, not in literal process identity.",
+      "dependency_edges": [
+        "bounded progressive multiplication",
+        "cell Ito multiplier",
+        "terminal isometry",
+        "sampled continuous weight convergence"
+      ],
+      "source_formula": "\\begin{gathered}\\theta_t(\\omega)=w(t,\\omega)\\eta_t(\\omega)\\quad\\text{for all }t,\\omega,\\\\ \\sum_i w(t_i)\\bigl(I_{t_{i+1}}(\\eta)-I_{t_i}(\\eta)\\bigr)\\ \\longrightarrow\\ I_T(\\theta)\\quad\\text{in measure}.\\end{gathered}"
+    },
+    {
+      "id": "sphere-projected-noise-d4411e18",
+      "assumption_inventory": [
+        "I is a finite coordinate type with decidable equality. The space is real Euclidean space on I.",
+        "Write e_j for the j-th coordinate vector and σ_j(x)=e_j−x_j x.",
+        "Both x and u are arbitrary ambient vectors."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Differentiate the scalar and vector factors",
+          "text": "The coordinate functional has derivative u↦u_j and the identity has derivative u↦u. The fixed coordinate vector has derivative zero.",
+          "formula": "D(x\\mapsto x_jx)(x)[u]=x_ju+u_jx."
+        }
+      ],
+      "proof_topology": "product rule for coordinate times identity",
+      "bridge_obligations_and_natural_math_check": "Finite ambient derivative no sphere restriction; correct sign and both derivative terms.",
+      "dependency_edges": [
+        "Euclidean coordinate functional derivatives"
+      ],
+      "source_formula": "D\\sigma_j(x)[u]=-x_ju-u_jx."
+    },
+    {
+      "id": "finite-sum-convergence-in-measure-75a61afb",
+      "assumption_inventory": [
+        "The index set is finite and the sample measure is finite. The codomain is a seminormed additive commutative group.",
+        "Each term is almost-everywhere strongly measurable. Each sequence converges in measure to its given limit."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Use one subsequence for the whole family",
+          "text": "Start from any subsequence and choose a single further subsequence on which all component limits hold almost everywhere.",
+          "formula": "F_{i,n_{k_\\ell}}(\\omega)\\to G_i(\\omega)\\qquad\\text{for every }i\\text{ on one full-measure event}."
+        },
+        {
+          "title": "Sum the limits",
+          "text": "Continuity of finite addition gives the sum limit on that event. The finite sums are almost-everywhere strongly measurable, so the subsequence criterion gives convergence in measure.",
+          "formula": "\\sum_iF_{i,n_{k_\\ell}}(\\omega)\\to\\sum_iG_i(\\omega)."
+        }
+      ],
+      "proof_topology": "common a.s. further subsequence; finite sums continuous; reverse subsequence criterion",
+      "bridge_obligations_and_natural_math_check": "Finite measure and a.e. strong measurability support the chosen subsequence proof; finite family avoids infinite-sum interchange. Possible stronger theorem without some assumptions is outside current claim.",
+      "dependency_edges": [
+        "countable subsequence extraction",
+        "convergence-in-measure subsequence criterion"
+      ],
+      "source_formula": "\\left(F_{i,n}\\xrightarrow{\\mu} G_i\\text{ for each }i\\right)\\ \\Longrightarrow\\ \\sum_iF_{i,n}\\xrightarrow{\\mu}\\sum_i G_i."
+    },
+    {
+      "id": "euclidean-bilinear-coordinates-36480cba",
+      "assumption_inventory": [
+        "The coordinate type is finite with decidable equality. The vectors eᵢ are the standard Euclidean orthonormal basis.",
+        "H is linear in each argument and continuous. The vectors x and y are arbitrary."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Use the underlying bilinear map",
+          "text": "Forget continuity in each of the two linear maps. This keeps every evaluation equal.",
+          "formula": "L(u)(v)=H(u,v)."
+        },
+        {
+          "title": "Apply the basis expansion",
+          "text": "The algebraic bilinear basis theorem expands both arguments. In the standard Euclidean basis the representation coefficients are the actual coordinates.",
+          "formula": "L(x)(y)=\\sum_i\\sum_j(\\operatorname{repr}x)_i(\\operatorname{repr}y)_jL(e_i)(e_j)."
+        }
+      ],
+      "proof_topology": "forget continuous-linear structure; expand both arguments in standard basis",
+      "bridge_obligations_and_natural_math_check": "No symmetry or positivity needed; coordinate order must match bilinear argument order.",
+      "dependency_edges": [
+        "finite-dimensional algebraic bilinear basis expansion"
+      ],
+      "source_formula": "H(x,y)=\\sum_i\\sum_j x_i y_j\\,H(e_i,e_j)."
+    },
+    {
+      "id": "ito-euclidean-row-regularity-64470c1c",
+      "assumption_inventory": [
+        "The positive horizon is T. The sample measure is finite, the filtration satisfies the usual conditions, and the driving standard vector Brownian motion is relative to that filtration and measure.",
+        "The finite coordinate rows have progressive product-square-integrable diffusion coefficients. Their drift evaluations at each fixed time t≤T are almost-everywhere strongly measurable.",
+        "Each drift coordinate is continuous on [0,T] almost surely."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Assemble measurable slices",
+          "text": "Strong adaptation gives measurable slices of each completed integral. A finite sum with the drift is almost-everywhere strongly measurable. Completeness from the usual conditions gives ordinary measurability of that slice.",
+          "formula": "A_i(t)+\\sum_j\\int_0^t\\eta_{ij}\\,dB^j\\text{ is measurable for }t\\le T."
+        },
+        {
+          "title": "Assemble continuous paths",
+          "text": "The completed integrals have continuous paths on the horizon. Intersect the finitely many drift continuity events and use continuity of each coordinate to get continuity in the Euclidean topology.",
+          "formula": "\\bigl(\\forall i,\\ X_\\cdot^i(\\omega)\\text{ continuous on }[0,T]\\bigr)\\Longrightarrow X_\\cdot(\\omega)\\text{ continuous on }[0,T]."
+        }
+      ],
+      "proof_topology": "a.e. measurable scalar rows; completeness upgrades to actual measurable slices; finite coordinate path continuity",
+      "bridge_obligations_and_natural_math_check": "Actual measurability is stronger than a.e. measurability and depends materially on completeness of ambient null subsets inherited from usual conditions. Must inspect that bridge.",
+      "dependency_edges": [
+        "Ito strong adaptation",
+        "usual-condition completeness",
+        "coordinate topology"
+      ],
+      "source_formula": "X_t^i=A_i(t)+\\sum_j\\int_0^t\\eta_{ij}(s)\\,dB^j_s.\\qquad X_t:\\Omega\\to\\mathbb R^I\\text{ measurable for each }t\\le T,\\quad X_\\cdot(\\omega)\\text{ continuous on }[0,T]\\text{ a.e.}"
+    },
+    {
+      "id": "brownian-mixed-quadratic-variation-cacf67f3",
+      "assumption_inventory": [
+        "One Euclidean Brownian driver and its given filtration.",
+        "Distinct coordinates and square-integrable weights measurable at each left endpoint.",
+        "One uniform second-moment bound on the weights. T may be zero."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Read the mean-square conclusion of the mixed-increment theorem",
+          "text": "The preceding theorem proves both square integrability at each dyadic level and the asserted vanishing second moment. Select its second conclusion; no extra moment or independence assumption is introduced.",
+          "formula": "\\mathbb E[(\\sum_iw_{n,i}\\,\\Delta_i B^j\\,\\Delta_i B^k)^2]\\longrightarrow0\\qquad(j\\ne k)."
+        }
+      ],
+      "proof_topology": "select second conjunct of mixed-product L² theorem",
+      "bridge_obligations_and_natural_math_check": "This is a dependency projection, not an independent derivation; verify preceding theorem has identical weights, driver, coordinate distinctness and no stronger hidden hypotheses.",
+      "dependency_edges": [
+        "predictable mixed-product L² theorem"
+      ],
+      "source_formula": "\\mathbb E[(\\sum_iw_{n,i}\\,\\Delta_i B^j\\,\\Delta_i B^k)^2]\\longrightarrow0\\qquad(j\\ne k)."
+    },
+    {
+      "id": "sphere-ito-integrated-rows-263e07ee",
+      "assumption_inventory": [
+        "The sample measure is finite. A standard Euclidean Brownian motion is given relative to a filtration satisfying the usual conditions. The finite coordinate set $I$ has decidable equality and the horizon $T$ is strictly positive.",
+        "Each initialized row is $x_i+\\int_0^t b_i(s)\\,ds+\\sum_j\\int_0^t\\eta_{ij}(s)\\,dB_j(s)$ using the library's completed stochastic integral on that horizon. The initial coordinates are strongly measurable in $\\mathcal F_0$. Each drift coordinate is strongly progressive with an integrable time section almost surely. Each noise entry is a strongly progressive product-space $L^2$ integrand.",
+        "On full-measure horizon events, the row process stays on the unit sphere at every $t\\le T$ and the coefficients are $b(t)=-u_t-\\lambda(t)(|I|-1)X_t$ and $\\sigma_j(t)=\\sqrt{2\\lambda(t)}P_{X_t}e_j$ at all such times and all $j$. Here $P_we_j=e_j-w_jw$.",
+        "The real deterministic temperature is pointwise nonnegative up to $T$. The ambient test is $C^2$ at every sphere point, and a sphere point is supplied for the compact-range construction.",
+        "The ambient sphere Laplacian is $\\Delta_S^{\\mathrm{ext}}f(w)=\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]$."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Apply Itô to the integrated rows",
+          "text": "The existing compact-range Itô formula gives a first-order term, the quadratic term with factor one half, and a zero-start martingale.",
+          "formula": "f(X_T)-f(X_0)=\\int_0^T Df(X_t)[b_t]\\,dt+\\tfrac12\\int_0^T\\sum_j D^2f(X_t)[\\sigma_{j,t},\\sigma_{j,t}]\\,dt+M_T.",
+          "detail": "Obtain the initialized drift regularity and apply the compact Euclidean formula."
+        },
+        {
+          "title": "Add the drift and Hessian integrals",
+          "text": "The row integrability theorem makes both terms integrable on the same almost-sure horizon event. The projected column identity combines their integrands.",
+          "formula": "Df(X_t)[b_t] + \\tfrac12\\sum_j D^2f(X_t)[\\sigma_{j,t},\\sigma_{j,t}] = -Df(X_t)[u_t]+\\lambda(t)\\Delta_S^{\\mathrm{ext}}f(X_t).",
+          "detail": "Apply ae_integrable_euclidean_generator_terms, integral_add and ito_generator_eq_sphereLaplacian."
+        }
+      ],
+      "proof_topology": "compact-range Ito formula; pathwise integrability of drift/Hessian terms; add integrals; projected trace algebra",
+      "bridge_obligations_and_natural_math_check": "No continuity of u or temperature is stated here: mathematical terminal identity can still follow from integrable drift and L² noise plus coefficient identities, but Lean must not silently add continuity. Unit sphere equality is only needed a.s. on the horizon.",
+      "dependency_edges": [
+        "initialized drift regularity",
+        "compact Euclidean Ito formula",
+        "generator-term integrability",
+        "projected sphere Hessian identity"
+      ],
+      "source_formula": "f(X_T)-f(X_0)=\\int_0^T[-Df(X_t)[u_t]+\\lambda(t)\\Delta_S^{\\mathrm{ext}} f(X_t)]\\,dt+M_T."
+    },
+    {
+      "id": "sphere-measurable-weak-forward-d8d80cfb",
+      "assumption_inventory": [
+        "The sample space carries a probability measure $P$, a filtration indexed by nonnegative real time satisfying the usual conditions, and a standard Euclidean Brownian motion relative to that filtration. The coordinate set $I$ is finite with decidable equality.",
+        "The process $X$ is jointly measurable and takes values in the Euclidean unit sphere $S$. The field $u(t,w)$ is jointly continuous and ambient-vector-valued.",
+        "The deterministic temperature $\\lambda$ is Borel measurable, nonnegative at each time, and bounded pointwise on each finite horizon. The ambient real test $f$ is $C^2$ at every point of $S$.",
+        "For each strictly positive horizon, supply initialized coordinates strongly measurable in $\\mathcal F_0$, strongly progressive drift rows with almost-sure integrable sections, and strongly progressive product-$L^2$ noise rows. Their initialized integral equation agrees with $X$ almost surely simultaneously for all horizon times. On the corresponding full-measure events the drift is $-u(t,X_t)-\\lambda(t)(|I|-1)X_t$ and each noise column is $\\sqrt{2\\lambda(t)}P_{X_t}e_j$ throughout the horizon.",
+        "Here $P_we_j=e_j-w_jw$ and $t^+=\\max(t,0)$. Both endpoints in the signed balance are arbitrary nonnegative times.",
+        "The sphere generator is $\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}}f(w)$, with $\\Delta_S^{\\mathrm{ext}}f(w)=\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]$."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Bound the generator on compact horizons",
+          "text": "The derivative weights and continuous field give uniform bounds on the compact state and time sets. Multiply the Laplacian bound by the horizon bound for the Borel temperature.",
+          "formula": "\\mathcal L_t f(w)=-Df(w)[u(t,w)]+\\lambda(t)\\left(\\sum_j D^2f(w)[P_we_j,P_we_j]-(|I|-1)Df(w)[w]\\right).",
+          "detail": "Use continuity of the derivative restrictions and the bound on temperature."
+        },
+        {
+          "title": "Center the terminal increment",
+          "text": "The horizon-specific rows satisfy the sphere Itô formula. The martingale has expectation zero at the terminal time because it starts at zero. Convert the restricted nonnegative time integral into the real interval integral.",
+          "formula": "f(X_T)-f(X_0)=\\int_0^T\\mathcal L_t f(X_t)\\,dt+M_T,\\qquad \\mathbb E M_T=0.",
+          "detail": "Apply ito_formula_sphere_of_integrated_rows and integral_upTo_restrict_Ioc_eq_real."
+        },
+        {
+          "title": "Use the marginal balance theorem",
+          "text": "The centered increment applies at each terminal time. At time zero the increment and integral are both zero. The general marginal theorem gives the stated regularity and balance.",
+          "formula": "F(b)-F(a)=\\int_a^b B(v)\\,dv,\\qquad F'(t)=B(t)\\quad\\text{for Lebesgue-a.e. }t>0.",
+          "detail": "Apply marginal_balance_of_locally_bounded_generator."
+        }
+      ],
+      "proof_topology": "compact generator bounds for measurable locally bounded temperature; terminal martingale centering; time-measure conversion; marginal balance theorem",
+      "bridge_obligations_and_natural_math_check": "Cannot use every-time derivative conclusion under merely Borel temperature; only AC and a.e. derivative are stated, correctly. Need Fubini/integrability to exchange expectation and time integration, and signed balance for unordered a,b.",
+      "dependency_edges": [
+        "integrated sphere Ito",
+        "zero-start martingale expectation",
+        "locally bounded marginal balance"
+      ],
+      "source_formula": "F(b)-F(a)=\\int_a^b B(v)\\,dv,\\qquad F'(t)=B(t)\\quad\\text{for Lebesgue-a.e. }t>0."
+    },
+    {
+      "id": "sphere-measurable-coordinate-sde-2b908b80",
+      "assumption_inventory": [
+        "The filtration is indexed by nonnegative real time. The sample measure is finite, and the coordinate set $I$ is finite with decidable equality.",
+        "The process $X$ takes values in the Euclidean unit sphere, is jointly measurable for the product of the time Borel and sample measurable structures, and is strongly progressive.",
+        "For the selected horizon $T\\ge0$, the real deterministic temperature is Borel measurable on nonnegative time and bounded in absolute value pointwise on $[0,T]$. The square root is the total real square root.",
+        "The symbol $\\ell_T$ denotes Lebesgue time restricted to $[0,T]$. The $L^2$ membership uses $\\mu\\otimes\\ell_T$, in sample-first order."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Read the stored process field",
+          "text": "The construction stores the scalar function in the process field. Its integrability and progressiveness fields leave its pointwise value as displayed.",
+          "formula": "\\eta_{ij}(t,\\omega)=\\sqrt{2\\lambda(t)}[P_{X_t(\\omega)}e_j]_i.",
+          "detail": "Unfold sphereMeasurableNoiseIntegrand and reduce the process projection."
+        }
+      ],
+      "proof_topology": "reduce process projection of constructed measurable-temperature integrand",
+      "bridge_obligations_and_natural_math_check": "Pointwise identity globally, L² only on chosen horizon; no positivity needed for total sqrt.",
+      "dependency_edges": [
+        "measurable bounded temperature integrand construction"
+      ],
+      "source_formula": "\\eta_{ij}(t,\\omega)=\\sqrt{2\\lambda(t)}[P_{X_t(\\omega)}e_j]_i."
+    },
+    {
+      "id": "compact-taylor-remainder-cae43895",
+      "assumption_inventory": [
+        "Let E and F be real normed vector spaces. Derivatives are real Fréchet derivatives; D²f(x) is viewed as a continuous bilinear map."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Subtract the quadratic Taylor polynomial",
+          "text": "This is a literal algebraic definition. Its use as a small error requires differentiability; the definition itself is total for every f.",
+          "formula": "R_f(x,v)=f(x+v)-f(x)-Df(x)[v]-\\tfrac12D^2f(x)[v,v]."
+        }
+      ],
+      "proof_topology": "literal subtraction of Taylor polynomial",
+      "bridge_obligations_and_natural_math_check": "Definition is total; no differentiability or error estimate follows from definition alone.",
+      "dependency_edges": [
+        "total Frechet derivative"
+      ],
+      "source_formula": "R_f(x,v)=f(x+v)-f(x)-Df(x)[v]-\\tfrac12D^2f(x)[v,v]."
+    },
+    {
+      "id": "compact-taylor-remainder-c30f779f",
+      "assumption_inventory": [
+        "Let E and F be real normed vector spaces. Derivatives are real Fréchet derivatives; D²f(x) is viewed as a continuous bilinear map.",
+        "For every t∈[0,1], f is C² at x+tv and ‖D²f(x+tv)−D²f(x)‖≤ε. The constant ε is real; these assumptions imply ε≥0."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Differentiate along the segment",
+          "text": "After subtracting the first derivative and the Hessian at x, the derivative of the first-order error is exactly the Hessian variation applied twice to v.",
+          "formula": "D(t)=Df(x+tv)[v]-Df(x)[v]-tD^2f(x)[v,v],\\quad D\\!\\,\\prime(t)=(D^2f(x+tv)-D^2f(x))[v,v]."
+        },
+        {
+          "title": "Bound the first-order error",
+          "text": "The operator-norm bound controls D′. Since D(0)=0, the mean-value inequality on the unit interval bounds D by the same constant.",
+          "formula": "\\|D\\!\\,\\prime(t)\\|\\le\\varepsilon\\|v\\|^2,\\qquad\\|D(t)\\|\\le\\varepsilon\\|v\\|^2."
+        },
+        {
+          "title": "Apply the mean-value inequality a second time",
+          "text": "The residual along the segment has derivative D and starts at zero. Evaluating its bound at t=1 gives the conclusion.",
+          "formula": "R(t)=f(x+tv)-f(x)-tDf(x)[v]-\\tfrac12t^2D^2f(x)[v,v],\\quad R\\!\\,\\prime=D."
+        }
+      ],
+      "proof_topology": "differentiate first-order error; mean-value bound; differentiate residual; second mean-value bound",
+      "bridge_obligations_and_natural_math_check": "At t=0 Hessian oscillation implies epsilon≥0 even if v=0. Banach completeness not inherently needed for norm mean-value inequalities; check no hidden integral argument requiring it.",
+      "dependency_edges": [
+        "Frechet chain/product rules",
+        "normed-space mean-value inequality"
+      ],
+      "source_formula": "\\|R_f(x,v)\\|\\le\\varepsilon\\|v\\|^2."
+    },
+    {
+      "id": "brownian-predictable-quadratic-variation-l2-f194fccb",
+      "assumption_inventory": [
+        "B is a real Brownian motion with the given filtration and measure. The horizon T is any nonnegative real.",
+        "At every level n and cell i, the real weight is strongly measurable at time iT/2ⁿ and is in L². A real C satisfies E[aₙ,ᵢ²]≤C for every n,i."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Apply the exact finite-grid identity",
+          "text": "Bound each diagonal weight moment by C and sum the equal cell lengths.",
+          "formula": "0\\le\\mathbb E Z_n^2\\le2CT(T2^{-n})."
+        },
+        {
+          "title": "Let the mesh tend to zero",
+          "text": "The upper bound tends to zero and the integrand is nonnegative, so the squeeze theorem gives the limit.",
+          "formula": "T2^{-n}\\to0\\quad\\Longrightarrow\\quad\\mathbb E Z_n^2\\to0."
+        }
+      ],
+      "proof_topology": "exact finite-grid compensated-square second moment; uniform coefficient bound; dyadic mesh squeeze",
+      "bridge_obligations_and_natural_math_check": "Moment bound C is necessarily nonnegative when a nonempty cell exists; verify exact finite-grid identity and compensation delta=T/2^n. T=0 should not be excluded.",
+      "dependency_edges": [
+        "predictable compensated-square exact moment identity"
+      ],
+      "source_formula": "\\mathbb E\\!\\left[\\left(\\sum_{i<2^n}a_{n,i}\\big((\\Delta B_{n,i})^2-T2^{-n}\\big)\\right)^2\\right]\\longrightarrow0."
+    },
+    {
+      "id": "compact-state-representative-9116fdf5",
+      "assumption_inventory": [
+        "E is a type, K⊆E, and k₀ is a specified member of K. The result does not assume compactness."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Use membership to choose the subtype value",
+          "text": "The first branch retains x with its membership proof; the second uses the given element of K.",
+          "formula": "\\iota(r(x))=x\\ (x\\in K),\\qquad r(x)=k_0\\ (x\\notin K)."
+        }
+      ],
+      "proof_topology": "membership decision and subtype constructor",
+      "bridge_obligations_and_natural_math_check": "No geometry, compactness or measurable retraction claim. Off-K branch fixed fallback.",
+      "dependency_edges": [
+        "classical set membership",
+        "subtype inclusion"
+      ],
+      "source_formula": "r(x)=\\begin{cases}x&x\\in K,\\\\k_0&x\\notin K.\\end{cases}"
+    },
+    {
+      "id": "ito-taylor-grid-remainder-cb28f57d",
+      "assumption_inventory": [
+        "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.",
+        "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.",
+        "The time space is compact and pseudometric. Each grid has Nₙ+1 points, and for every δ>0, eventually all neighboring time distances are less than δ. Q:Ω→ℝ is a finite real-valued function. No ordering of the time space is required."
+      ],
+      "substantive_formula_proof_moves": [
+        {
+          "title": "Establish measurability of the residual sums",
+          "text": "The restrictions of f, Df and D²f to K are continuous. Hence the residual as a function of two K-valued endpoints is continuous, and the finite random sums are measurable.",
+          "formula": "(x,y)\\mapsto R_f(x,y-x)\\quad\\text{is continuous on }K\\times K."
+        },
+        {
+          "title": "Extract a pathwise convergent energy subsequence",
+          "text": "From any subsequence, convergence in measure provides a further subsequence on which the square-increment sum converges almost everywhere. On each such continuous path it is eventually bounded by C=|Q|+1.",
+          "formula": "A_n=\\sum_i\\|\\Delta_iX\\|^2\\le |Q|+1\\quad\\text{eventually}."
+        },
+        {
+          "title": "Combine small increments with the uniform Taylor estimate",
+          "text": "Uniform continuity of each path turns the time-mesh condition into small state increments. Apply the compact uniform residual estimate with tolerance ε/(2C). The residual sum is then bounded by ε/2. The subsequence characterization yields convergence in measure.",
+          "formula": "\\left|\\sum_i R_f(X_i,\\Delta_iX)\\right|\\le\\frac{\\varepsilon}{2C}\\sum_i\\|\\Delta_iX\\|^2\\le\\varepsilon/2."
+        }
+      ],
+      "proof_topology": "measurable remainder endpoint kernel; a.s. further subsequence of energies; eventual bound; uniform path continuity; compact Taylor estimate",
+      "bridge_obligations_and_natural_math_check": "Compact pseudometric time need not be ordered; proof must use only neighboring distances. Q finite real and C=|Q|+1>0 avoid division by zero; full-sequence conclusion only in measure.",
+      "dependency_edges": [
+        "compact uniform Taylor remainder",
+        "subsequence criterion",
+        "compact uniform continuity"
+      ],
+      "source_formula": "\\sum_{i<N_n}\\|\\Delta_iX\\|^2\\xrightarrow{\\mu}Q\\quad\\Longrightarrow\\quad\\sum_{i<N_n}R_f(X_{t_{n,i}},\\Delta_iX)\\xrightarrow{\\mu}0."
+    }
+  ],
+  "summary": "23 source units inventoried before opening Lean packets. No definitive natural-mathematical falsehood found. Critical bridges include hidden filtration measurability, exact Ito representatives and drivers, common almost-sure events, pathwise integrability, compactness bounds, and endpoint/time-measure conversions. These remain implementation-review obligations; compilation is not evidence of fidelity.",
+  "source_only": "runs/semantic-roundtrip/compact-state-stochastic-calculus/source-review-v1/b/source-only.json"
+}

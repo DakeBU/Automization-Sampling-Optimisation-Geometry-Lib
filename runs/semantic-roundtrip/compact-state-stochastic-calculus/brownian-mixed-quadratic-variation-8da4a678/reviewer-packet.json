@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-91c0a68bafedc14d",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-brownian-mixed-quadratic-variation-8da4a678",
+    "anchor": "Original Samplinglib supplement: Square-integrable mixed Brownian increment sums. Exact assumptions and formula below.",
+    "original_text": "For two distinct coordinates of one Euclidean Brownian motion, the predictably weighted dyadic mixed increment sum is in L² at each level and converges to zero in mean square.\n\nOne Euclidean Brownian driver and its given filtration.\nDistinct coordinates and square-integrable weights measurable at each left endpoint.\nOne uniform second-moment bound on the weights. T may be zero.\n\nC_n=\\sum_i w_{n,i}\\Delta_i B^j\\,\\Delta_i B^k,\\qquad C_n\\in L^2,\\qquad \\mathbb E[C_n^2]\\longrightarrow0.",
+    "text_sha256": "1d64bc46ffbaa70f72dfdaf61d6ce7727ae72773410db39bc2a8c9fd92a147b2"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation.dyadic_predictable_mixed_increment_sum_L2",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianMixedQuadraticVariation.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {Omega : Type u_1} {kappa : Type u_2} [MeasurableSpace Omega] [Fintype kappa] [DecidableEq kappa]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} {mu : MeasureTheory.Measure Omega}\n  {B : NNReal → Omega → EuclideanSpace ℝ kappa}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration mu)\n  {j k : kappa} (hjk : j ≠ k) (T : NNReal) (weight : (level : ℕ) → Fin (2 ^ level) → Omega → ℝ)\n  (hAdapted : ∀ (level : ℕ) (i : Fin (2 ^ level)), MeasureTheory.StronglyMeasurable (weight level i))\n  (hWeight : ∀ (level : ℕ) (i : Fin (2 ^ level)), MeasureTheory.MemLp (weight level i) 2 mu) (C : ℝ)\n  (hC : ∀ (level : ℕ) (i : Fin (2 ^ level)), ∫ (omega : Omega), weight level i omega ^ 2 ∂mu ≤ C) :\n  have error := fun level omega =>\n    have times :=\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n        (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T level)\n        (2 ^ level);\n    ∑ i,\n      weight level i omega *\n        (((B (times i.succ) omega).ofLp j - (B (times i.castSucc) omega).ofLp j) *\n          ((B (times i.succ) omega).ofLp k - (B (times i.castSucc) omega).ofLp k));\n  (∀ (level : ℕ), MeasureTheory.MemLp (error level) 2 mu) ∧\n    Filter.Tendsto (fun level => ∫ (omega : Omega), error level omega ^ 2 ∂mu) Filter.atTop (nhds 0)",
+    "statement_sha256": "450ef2b975dabb4ab5dad24501210dbb67db8eec17fe7e29ed2cb8be6fd7cdc3",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Measurable Omega with measure mu and filtration F; finite Euclidean coordinate type kappa; standard Brownian B; distinct coordinates j,k; horizon T; real triangular array w_{n,i}; common real bound C.\n\nkappa finite with decidable equality. B:[0,infinity)×Omega→R^kappa; j,k∈kappa, j≠k; T≥0. For n∈N, i ranges from 0 to 2^n-1 and w_{n,i}:Omega→R. mu has no explicit IsFiniteMeasure instance in the target.\n\nAssumptions: B is standard Brownian with F: starts at zero for every omega, has jointly independent disjoint-interval increments, centered Gaussian projections with variance (t-s)||ell||² for s<t, and a.e. continuous paths; B is strongly adapted and each B_t-B_s is independent of F_s for s≤t. Each weight w_{n,i} is strongly measurable with respect to F_{iT/2^n}, the left-endpoint sigma-algebra and is in L²(mu). For every n,i, ∫w_{n,i}² dmu≤C. No positivity of T or C, no usual-filtration condition, and no independence of weights from the full path is separately assumed.\n\nConclusion: Let t_i^n=iT/2^n, Delta_i^n B^j=B^j(t_{i+1}^n)-B^j(t_i^n), and E_n=∑_{i=0}^{2^n-1}w_{n,i} Delta_i^n B^j Delta_i^n B^k. Then E_n∈L²(mu) for every n, and ∫ E_n² dmu→0.\n\nQuantifier order: For all data, distinct j,k, T, weights and real C satisfying the hypotheses, every level error is in L² and its second moment tends to zero as n→infinity.\n\nScope: Convergence of second moments, hence L² convergence of the error to zero. A fixed possibly zero horizon and the entire dyadic sequence are used; no a.e. convergence or rate is asserted.\n\nConstant dependencies: C is one given bound uniform over n and i. No further constant is selected in the conclusion.",
+    "text_sha256": "90c3e5cb54cc07a9e9793360a6c2660517cd42c35ab272790e115c35f618ea2f",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "b9dbf76f24c873be36ae654601b5fcd66b8312650e849683f25c7ed5e936db0d",
+    "decoder_run_sha256": "e1af4194c7dea268af43b226ec2a094f136497d73576a975f571da602b150e0a",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "8ca098033fec72f2a96adf00890f778be9d562fa565b9a28c06deeba76a56ff8",
+  "candidate_publication_context": {
+    "file": "a8f2f8c975e46c1e14fb2625a6b310baa12ba77d68a6deb18873a2428badd5e7",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianPredictableQuadraticVariationL2\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EuclideanBrownianCoordinates\n\n/-!\n# Mixed Brownian quadratic variation with predictable weights\n\nUnit projections of one vector Brownian motion preserve the given filtration.\nPolarization then turns the mixed-coordinate increment product into a linear\ncombination of compensated squares of three such projections.\n-/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation\n\nopen Filter MeasureTheory ProbabilityTheory\nopen scoped NNReal BigOperators RealInnerProductSpace\nopen BrownianMotion BrownianQuadraticVariation BrownianQuadraticVariationL2\n  BrownianPredictableQuadraticVariationL2\n  FiniteTimeGrid SampledElementaryApproximation EuclideanBrownianCoordinates\n\n/-- A unit linear functional of the given Hilbert-space Brownian motion\nis a real Brownian motion relative to the same filtration. -/\ntheorem standardBrownian_unit_projection\n    {Omega E : Type*} [MeasurableSpace Omega]\n    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]\n    [MeasurableSpace E] [BorelSpace E]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)} {mu : Measure Omega}\n    {B : ℝ≥0 → Omega → E}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration mu)\n    (ell : StrongDual ℝ E) (hEll : ‖ell‖ = 1) :\n    IsBrownianMotionWithFiltration (fun t omega => ell (B t omega)) filtration mu := by\n  have hLaw {s t : ℝ≥0} (hst : s < t) :\n      HasLaw (fun omega => ell (B t omega) - ell (B s omega))\n        (gaussianReal 0 (t - s)) mu := by\n    simpa [map_sub, projectedIncrementVariance, hEll] using\n      hB.isStandard.2.2.1 s t hst ell\n  let _ : IsProbabilityMeasure mu := (hLaw (show (0 : ℝ≥0) < 1 by norm_num)).isProbabilityMeasure\n  have hzero (omega : Omega) : ell (B 0 omega) = 0 := by\n    rw [hB.isStandard.1 omega, map_zero]\n  have hEval (t : ℝ≥0) : HasLaw (fun omega => ell (B t omega)) (gaussianReal 0 t) mu := by\n    by_cases ht : t = 0\n    · subst t\n      simpa using (hasLaw_dirac_of_ae_eq (Eventually.of_forall hzero) :\n        HasLaw (fun omega => ell (B 0 omega)) (Measure.dirac 0) mu)\n    · simpa only [hzero, sub_zero, tsub_zero] using hLaw (pos_iff_ne_zero.mpr ht)\n  refine ⟨⟨?_, ?_⟩, ?_, ?_⟩\n  · exact HasIndepIncrements.isPreBrownianReal_of_hasLaw hEval\n      (hB.isStandard.projected_hasIndepIncrements ell)\n  · filter_upwards [hB.isStandard.2.2.2] with omega hcont\n    exact ell.continuous.comp hcont\n  · intro t\n    exact ell.continuous.comp_stronglyMeasurable (hB.stronglyAdapted t)\n  · intro s t hst\n    have he : (fun omega => ell (B t omega) - ell (B s omega)) =\n        ell ∘ (fun omega => B t omega - B s omega) := by\n      funext omega\n      exact (map_sub ell _ _).symm\n    rw [he, ← MeasurableSpace.comap_comp]\n    have hle : (borel ℝ).comap ell ≤ borel E := by\n      simpa only [← BorelSpace.measurable_eq (α := ℝ), ← BorelSpace.measurable_eq (α := E)]\n        using ell.measurable.comap_le\n    exact indep_of_indep_of_le (hB.incrementIndependent s t hst) le_rfl\n      (MeasurableSpace.comap_mono hle)\n\n/-- Left-past weighted mixed-coordinate products converge to zero in mean\nsquare. Both coordinates belong to the same Euclidean Brownian driver. -/\ntheorem dyadic_predictable_mixed_increment_sum_L2\n    {Omega kappa : Type*} [MeasurableSpace Omega] [Fintype kappa] [DecidableEq kappa]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)} {mu : Measure Omega}\n    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration mu)\n    {j k : kappa} (hjk : j ≠ k) (T : ℝ≥0)\n    (weight : (level : ℕ) → Fin (2 ^ level) → Omega → ℝ)\n    (hAdapted : ∀ level i,\n      StronglyMeasurable[filtration\n        (regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc)] (weight level i))\n    (hWeight : ∀ level i, MemLp (weight level i) 2 mu)\n    (C : ℝ) (hC : ∀ level i, (∫ omega, (weight level i omega)^2 ∂mu) ≤ C) :\n    let error := fun level omega =>\n      let times := regularGridTimes (dyadicMesh T level) (2 ^ level)\n      ∑ i, weight level i omega *\n        ((B (times i.succ) omega j - B (times i.castSucc) omega j) *\n          (B (times i.succ) omega k - B (times i.castSucc) omega k))\n    (∀ level, MemLp (error level) 2 mu) ∧\n      Tendsto (fun level => ∫ omega, (error level omega)^2 ∂mu) atTop (nhds 0) := by\n  let basis := EuclideanSpace.basisFun kappa ℝ\n  let a := (Real.sqrt 2)⁻¹\n  let ell := InnerProductSpace.toDualMap ℝ (EuclideanSpace ℝ kappa)\n    (a • (basis j + basis k))\n  have hBasis : ‖basis j + basis k‖ = Real.sqrt 2 := by\n    have hSq : ‖basis j + basis k‖^2 = 2 := by\n      rw [norm_add_sq_real, basis.orthonormal.norm_eq_one j, basis.orthonormal.norm_eq_one k,\n        basis.orthonormal.inner_eq_zero hjk]\n      norm_num\n    rw [← hSq, Real.sqrt_sq (norm_nonneg _)]\n  have hEll : ‖ell‖ = 1 := by\n    dsimp [ell]\n    rw [LinearIsometry.norm_map, norm_smul, Real.norm_eq_abs, abs_of_nonneg\n      (inv_nonneg.mpr (Real.sqrt_nonneg _)), hBasis, inv_mul_cancel₀ (by positivity)]\n  have ha : a^2 = 1/2 := by\n    dsimp [a]\n    rw [inv_pow, Real.sq_sqrt (by norm_num)]\n    norm_num\n  have hValue (x : EuclideanSpace ℝ kappa) : ell x = a * (x j + x k) := by\n    change inner ℝ (a • (basis j + basis k)) x = _\n    rw [real_inner_smul_left, inner_add_left]\n    simp only [basis, EuclideanSpace.basisFun_inner]\n  let U : ℝ≥0 → Omega → ℝ := fun t omega => ell (B t omega)\n  let J : ℝ≥0 → Omega → ℝ := fun t omega => B t omega j\n  let K : ℝ≥0 → Omega → ℝ := fun t omega => B t omega k\n  have hU : IsBrownianMotionWithFiltration U filtration mu := standardBrownian_unit_projection hB ell hEll\n  have hJ : IsBrownianMotionWithFiltration J filtration mu := (coordinateFamily hB).isBrownian j\n  have hK : IsBrownianMotionWithFiltration K filtration mu := (coordinateFamily hB).isBrownian k\n  let times (level : ℕ) := regularGridTimes (dyadicMesh T level) (2 ^ level)\n  let err (X : ℝ≥0 → Omega → ℝ) (level : ℕ) (omega : Omega) : ℝ :=\n    ∑ i, weight level i omega * centeredSquaredIncrement X (times level) i omega\n  let cross (level : ℕ) (omega : Omega) : ℝ :=\n    ∑ i, weight level i omega *\n      ((J (times level i.succ) omega - J (times level i.castSucc) omega) *\n        (K (times level i.succ) omega - K (times level i.castSucc) omega))\n  have hPolar (level : ℕ) (i : Fin (2^level)) (omega : Omega) :\n      (J (times level i.succ) omega - J (times level i.castSucc) omega) *\n          (K (times level i.succ) omega - K (times level i.castSucc) omega) =\n        centeredSquaredIncrement U (times level) i omega -\n          centeredSquaredIncrement J (times level) i omega / 2 -\n          centeredSquaredIncrement K (times level) i omega / 2 := by\n    have hInc : U (times level i.succ) omega - U (times level i.castSucc) omega =\n        a * ((J (times level i.succ) omega - J (times level i.castSucc) omega) +\n          (K (times level i.succ) omega - K (times level i.castSucc) omega)) := by\n      simp only [U,J,K,hValue]\n      ring\n    simp only [centeredSquaredIncrement, hInc, mul_pow, ha]\n    ring\n  have hCross (level : ℕ) (omega : Omega) :\n      cross level omega = err U level omega - err J level omega / 2 - err K level omega / 2 := by\n    simp only [cross,err,hPolar,mul_sub,mul_div_assoc,Finset.sum_sub_distrib,Finset.sum_div]\n  have hMem (X : ℝ≥0 → Omega → ℝ)\n      (hX : IsBrownianMotionWithFiltration X filtration mu) (level : ℕ) :\n      MemLp (err X level) 2 mu := by\n    have hmono : Monotone (times level) := by\n      intro p q hpq\n      unfold times regularGridTimes\n      gcongr\n      exact_mod_cast hpq\n    exact (predictable_weighted_quadraticVariationError_L2 hX hmono\n      (weight level) (hAdapted level) (hWeight level)).1\n  have hCrossMem (level : ℕ) : MemLp (cross level) 2 mu := by\n    have hm := ((hMem U hU level).sub ((hMem J hJ level).const_mul (1/2 : ℝ))).sub\n      ((hMem K hK level).const_mul (1/2 : ℝ))\n    refine (memLp_congr_ae ?_).1 hm\n    filter_upwards [] with omega\n    simp only [Pi.sub_apply, hCross]\n    ring\n  have hSquare (x y z : ℝ) :\n      (x - y/2 - z/2)^2 ≤ 3*x^2 + (3/4)*y^2 + (3/4)*z^2 := by\n    nlinarith [sq_nonneg (x+y/2), sq_nonneg (x+z/2), sq_nonneg ((y-z)/2)]\n  have hUpper (level : ℕ) :\n      (∫ omega, (cross level omega)^2 ∂mu) ≤\n        3 * (∫ omega, (err U level omega)^2 ∂mu) +\n          (3/4) * (∫ omega, (err J level omega)^2 ∂mu) +\n          (3/4) * (∫ omega, (err K level omega)^2 ∂mu) := by\n    have hu := (hMem U hU level).integrable_sq.const_mul 3\n    have hj := (hMem J hJ level).integrable_sq.const_mul (3/4)\n    have hk := (hMem K hK level).integrable_sq.const_mul (3/4)\n    calc\n      _ ≤ ∫ omega, 3 * (err U level omega)^2 +\n          (3/4) * (err J level omega)^2 + (3/4) * (err K level omega)^2 ∂mu :=\n        integral_mono (hCrossMem level).integrable_sq ((hu.add hj).add hk) (fun omega => by\n          rw [hCross]\n          exact hSquare _ _ _)\n      _ = _ := by\n        have hOuter := integral_add (hu.add hj) hk\n        have hInner := integral_add hu hj\n        simp only [Pi.add_apply] at hOuter hInner\n        rw [hOuter, hInner]\n        simp only [integral_const_mul]\n  have hLimit (X : ℝ≥0 → Omega → ℝ) (hX : IsBrownianMotionWithFiltration X filtration mu) :\n      Tendsto (fun level => ∫ omega, (err X level omega)^2 ∂mu) atTop (nhds 0) :=\n    tendsto_integral_dyadic_predictable_weighted_quadraticVariationError_sq hX T\n      weight hAdapted hWeight C hC\n  have hLimitUpper := (((hLimit U hU).const_mul 3).add\n    ((hLimit J hJ).const_mul (3/4))).add ((hLimit K hK).const_mul (3/4))\n  refine ⟨hCrossMem, ?_⟩\n  change Tendsto (fun level => ∫ omega, (cross level omega)^2 ∂mu) atTop (nhds 0)\n  refine tendsto_const_nhds.squeeze ?_ (fun level => integral_nonneg fun _ => sq_nonneg _) hUpper\n  simpa using hLimitUpper\n\n/-- The mean-square convergence consequence of the full mixed-coordinate estimate. -/\ntheorem tendsto_integral_dyadic_predictable_mixed_increment_sum_sq\n    {Omega kappa : Type*} [MeasurableSpace Omega] [Fintype kappa] [DecidableEq kappa]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)} {mu : Measure Omega}\n    {B : ℝ≥0 → Omega → EuclideanSpace ℝ kappa}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration mu)\n    {j k : kappa} (hjk : j ≠ k) (T : ℝ≥0)\n    (weight : (level : ℕ) → Fin (2 ^ level) → Omega → ℝ)\n    (hAdapted : ∀ level i,\n      StronglyMeasurable[filtration\n        (regularGridTimes (dyadicMesh T level) (2 ^ level) i.castSucc)] (weight level i))\n    (hWeight : ∀ level i, MemLp (weight level i) 2 mu)\n    (C : ℝ) (hC : ∀ level i, (∫ omega, (weight level i omega)^2 ∂mu) ≤ C) :\n    Tendsto (fun level =>\n      let times := regularGridTimes (dyadicMesh T level) (2 ^ level)\n      ∫ omega, (∑ i, weight level i omega *\n        ((B (times i.succ) omega j - B (times i.castSucc) omega j) *\n          (B (times i.succ) omega k - B (times i.castSucc) omega k)))^2 ∂mu)\n      atTop (nhds 0) :=\n  (dyadic_predictable_mixed_increment_sum_L2 hB hjk T weight hAdapted hWeight C hC).2\n\n#print axioms dyadic_predictable_mixed_increment_sum_L2\n#print axioms standardBrownian_unit_projection\n#print axioms tendsto_integral_dyadic_predictable_mixed_increment_sum_sq\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-brownian-mixed-quadratic-variation-8da4a678",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianMixedQuadraticVariation.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Square-integrable mixed Brownian increment sums. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "For two distinct coordinates of one Euclidean Brownian motion, the predictably weighted dyadic mixed increment sum is in L² at each level and converges to zero in mean square.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "C_n=\\sum_i w_{n,i}\\Delta_i B^j\\,\\Delta_i B^k,\\qquad C_n\\in L^2,\\qquad \\mathbb E[C_n^2]\\longrightarrow0."
+      }
+    ],
+    "assumptions": [
+      "One Euclidean Brownian driver and its given filtration.",
+      "Distinct coordinates and square-integrable weights measurable at each left endpoint.",
+      "One uniform second-moment bound on the weights. T may be zero."
+    ],
+    "obligations": [
+      {
+        "id": "brownian-mixed-quadratic-variation-8da4a678",
+        "label": "Square-integrable mixed Brownian increment sums"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation.dyadic_predictable_mixed_increment_sum_L2",
+      "title": "Square-integrable mixed Brownian increment sums",
+      "statement": "For two distinct coordinates of one Euclidean Brownian motion, the predictably weighted dyadic mixed increment sum is in L² at each level and converges to zero in mean square.",
+      "formula": "C_n=\\sum_i w_{n,i}\\Delta_i B^j\\,\\Delta_i B^k,\\qquad C_n\\in L^2,\\qquad \\mathbb E[C_n^2]\\longrightarrow0.",
+      "assumptions": [
+        "One Euclidean Brownian driver and its given filtration.",
+        "Distinct coordinates and square-integrable weights measurable at each left endpoint.",
+        "One uniform second-moment bound on the weights. T may be zero."
+      ],
+      "steps": [
+        {
+          "title": "Build a third unit projection",
+          "text": "Use the normalized sum of the two orthogonal coordinate vectors.",
+          "formula": "U=(B^j+B^k)/\\sqrt2.",
+          "lean": "  let basis := EuclideanSpace.basisFun kappa ℝ\n  let a := (Real.sqrt 2)⁻¹\n  let ell := InnerProductSpace.toDualMap ℝ (EuclideanSpace ℝ kappa)\n    (a • (basis j + basis k))\n  have hBasis : ‖basis j + basis k‖ = Real.sqrt 2 := by\n    have hSq : ‖basis j + basis k‖^2 = 2 := by\n      rw [norm_add_sq_real, basis.orthonormal.norm_eq_one j, basis.orthonormal.norm_eq_one k,\n        basis.orthonormal.inner_eq_zero hjk]\n      norm_num\n    rw [← hSq, Real.sqrt_sq (norm_nonneg _)]\n  have hEll : ‖ell‖ = 1 := by\n    dsimp [ell]\n    rw [LinearIsometry.norm_map, norm_smul, Real.norm_eq_abs, abs_of_nonneg\n      (inv_nonneg.mpr (Real.sqrt_nonneg _)), hBasis, inv_mul_cancel₀ (by positivity)]\n  have ha : a^2 = 1/2 := by\n    dsimp [a]\n    rw [inv_pow, Real.sq_sqrt (by norm_num)]\n    norm_num\n  have hValue (x : EuclideanSpace ℝ kappa) : ell x = a * (x j + x k) := by\n    change inner ℝ (a • (basis j + basis k)) x = _\n    rw [real_inner_smul_left, inner_add_left]\n    simp only [basis, EuclideanSpace.basisFun_inner]\n  let U : ℝ≥0 → Omega → ℝ := fun t omega => ell (B t omega)\n  let J : ℝ≥0 → Omega → ℝ := fun t omega => B t omega j\n  let K : ℝ≥0 → Omega → ℝ := fun t omega => B t omega k\n  have hU : IsBrownianMotionWithFiltration U filtration mu := standardBrownian_unit_projection hB ell hEll\n  have hJ : IsBrownianMotionWithFiltration J filtration mu := (coordinateFamily hB).isBrownian j\n  have hK : IsBrownianMotionWithFiltration K filtration mu := (coordinateFamily hB).isBrownian k\n  let times (level : ℕ) := regularGridTimes (dyadicMesh T level) (2 ^ level)\n  let err (X : ℝ≥0 → Omega → ℝ) (level : ℕ) (omega : Omega) : ℝ :=\n    ∑ i, weight level i omega * centeredSquaredIncrement X (times level) i omega\n  let cross (level : ℕ) (omega : Omega) : ℝ :=\n    ∑ i, weight level i omega *\n      ((J (times level i.succ) omega - J (times level i.castSucc) omega) *\n        (K (times level i.succ) omega - K (times level i.castSucc) omega))\n"
+        },
+        {
+          "title": "Polarize the increments",
+          "text": "The compensated time terms cancel, leaving the product of the two actual coordinate increments.",
+          "formula": "\\Delta B^j\\Delta B^k=Z_U-\\tfrac12 Z_j-\\tfrac12 Z_k.",
+          "lean": "  have hPolar (level : ℕ) (i : Fin (2^level)) (omega : Omega) :\n      (J (times level i.succ) omega - J (times level i.castSucc) omega) *\n          (K (times level i.succ) omega - K (times level i.castSucc) omega) =\n        centeredSquaredIncrement U (times level) i omega -\n          centeredSquaredIncrement J (times level) i omega / 2 -\n          centeredSquaredIncrement K (times level) i omega / 2 := by\n    have hInc : U (times level i.succ) omega - U (times level i.castSucc) omega =\n        a * ((J (times level i.succ) omega - J (times level i.castSucc) omega) +\n          (K (times level i.succ) omega - K (times level i.castSucc) omega)) := by\n      simp only [U,J,K,hValue]\n      ring\n    simp only [centeredSquaredIncrement, hInc, mul_pow, ha]\n    ring\n  have hCross (level : ℕ) (omega : Omega) :\n      cross level omega = err U level omega - err J level omega / 2 - err K level omega / 2 := by\n    simp only [cross,err,hPolar,mul_sub,mul_div_assoc,Finset.sum_sub_distrib,Finset.sum_div]\n"
+        },
+        {
+          "title": "Transfer the scalar limits",
+          "text": "The three compensated sums are square integrable. The mixed squared expectation is bounded by a fixed linear combination of their squared expectations.",
+          "formula": "\\mathbb E[(A-D/2-F/2)^2]\\le3\\mathbb E[A^2]+\\tfrac34\\mathbb E[D^2]+\\tfrac34\\mathbb E[F^2].",
+          "lean": "  have hMem (X : ℝ≥0 → Omega → ℝ)\n      (hX : IsBrownianMotionWithFiltration X filtration mu) (level : ℕ) :\n      MemLp (err X level) 2 mu := by\n    have hmono : Monotone (times level) := by\n      intro p q hpq\n      unfold times regularGridTimes\n      gcongr\n      exact_mod_cast hpq\n    exact (predictable_weighted_quadraticVariationError_L2 hX hmono\n      (weight level) (hAdapted level) (hWeight level)).1\n  have hCrossMem (level : ℕ) : MemLp (cross level) 2 mu := by\n    have hm := ((hMem U hU level).sub ((hMem J hJ level).const_mul (1/2 : ℝ))).sub\n      ((hMem K hK level).const_mul (1/2 : ℝ))\n    refine (memLp_congr_ae ?_).1 hm\n    filter_upwards [] with omega\n    simp only [Pi.sub_apply, hCross]\n    ring\n  have hSquare (x y z : ℝ) :\n      (x - y/2 - z/2)^2 ≤ 3*x^2 + (3/4)*y^2 + (3/4)*z^2 := by\n    nlinarith [sq_nonneg (x+y/2), sq_nonneg (x+z/2), sq_nonneg ((y-z)/2)]\n  have hUpper (level : ℕ) :\n      (∫ omega, (cross level omega)^2 ∂mu) ≤\n        3 * (∫ omega, (err U level omega)^2 ∂mu) +\n          (3/4) * (∫ omega, (err J level omega)^2 ∂mu) +\n          (3/4) * (∫ omega, (err K level omega)^2 ∂mu) := by\n    have hu := (hMem U hU level).integrable_sq.const_mul 3\n    have hj := (hMem J hJ level).integrable_sq.const_mul (3/4)\n    have hk := (hMem K hK level).integrable_sq.const_mul (3/4)\n    calc\n      _ ≤ ∫ omega, 3 * (err U level omega)^2 +\n          (3/4) * (err J level omega)^2 + (3/4) * (err K level omega)^2 ∂mu :=\n        integral_mono (hCrossMem level).integrable_sq ((hu.add hj).add hk) (fun omega => by\n          rw [hCross]\n          exact hSquare _ _ _)\n      _ = _ := by\n        have hOuter := integral_add (hu.add hj) hk\n        have hInner := integral_add hu hj\n        simp only [Pi.add_apply] at hOuter hInner\n        rw [hOuter, hInner]\n        simp only [integral_const_mul]\n  have hLimit (X : ℝ≥0 → Omega → ℝ) (hX : IsBrownianMotionWithFiltration X filtration mu) :\n      Tendsto (fun level => ∫ omega, (err X level omega)^2 ∂mu) atTop (nhds 0) :=\n    tendsto_integral_dyadic_predictable_weighted_quadraticVariationError_sq hX T\n      weight hAdapted hWeight C hC\n  have hLimitUpper := (((hLimit U hU).const_mul 3).add\n    ((hLimit J hJ).const_mul (3/4))).add ((hLimit K hK).const_mul (3/4))\n  refine ⟨hCrossMem, ?_⟩\n  change Tendsto (fun level => ∫ omega, (cross level omega)^2 ∂mu) atTop (nhds 0)\n  refine tendsto_const_nhds.squeeze ?_ (fun level => integral_nonneg fun _ => sq_nonneg _) hUpper\n  simpa using hLimitUpper\n"
+        }
+      ],
+      "lean_statement": "The folded statement retains the actual Brownian driver, grid or interval, integrand, and underlying measure.",
+      "lean_proof": "Each mathematical step above is paired with its exact proof region.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianPredictableQuadraticVariationL2.predictable_weighted_quadraticVariationError_L2",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianPredictableQuadraticVariationL2.tendsto_integral_dyadic_predictable_weighted_quadraticVariationError_sq",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation.standardBrownian_unit_projection",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EuclideanBrownianCoordinates.coordinateFamily"
+      ],
+      "mathlib_dependencies": [
+        "Orthonormal.inner_eq_zero",
+        "MeasureTheory.memLp_congr_ae",
+        "MeasureTheory.integral_mono"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/150a8a5587d5960a2b4f96de86b7f42e16b2e91b/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/EuclideanBrownianCoordinates.lean",
+          "label": "EuclideanBrownianCoordinates",
+          "scope": "Previously proved probability and stochastic integral inputs."
+        }
+      ],
+      "tests": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation.dyadic_predictable_mixed_increment_sum_L2",
+      "role": "prerequisite",
+      "supports": [
+        "brownian-mixed-quadratic-variation-8da4a678"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "One Euclidean Brownian driver and its given filtration.",
+        "lean": "One Euclidean Brownian driver and its given filtration."
+      },
+      {
+        "source": "Distinct coordinates and square-integrable weights measurable at each left endpoint.",
+        "lean": "Distinct coordinates and square-integrable weights measurable at each left endpoint."
+      },
+      {
+        "source": "One uniform second-moment bound on the weights. T may be zero.",
+        "lean": "One uniform second-moment bound on the weights. T may be zero."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "57792b421d9ee0713aca360ea6687a70ab66be9d8f3aa0a6ded7db7314c07712"
+}

@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-6a75923160c3e577",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-continuous-row-qv-186e9e72",
+    "anchor": "Original Samplinglib supplement: Quadratic variation of a progressive Itô row. Exact assumptions and formula below.",
+    "original_text": "For one fixed row of progressive square-integrable real inputs, form the sum of their completed coordinate Itô integrals. Its dyadic squared-increment sum converges in L¹ to the total pathwise square energy. The signed error is integrable at every level.\n\nOne Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.\nThe sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.\nEach coordinate input is real, progressive, and square integrable on the product of μ and time measure restricted to [0,T]. The input row is fixed across levels and can be unbounded.\n\n\\begin{gathered}R_t=\\sum_j\\int_0^t\\eta_j(s)\\,dB^j_s,\\qquad E=\\sum_j\\int_0^T\\eta_j(t)^2\\,dt,\\\\ \\int\\left|\\sum_i(R_{t_{i+1}}-R_{t_i})^2-E\\right|\\,d\\mu\\longrightarrow0.\\end{gathered}",
+    "text_sha256": "75dfa44f7bb82738afd3308eb98b80f60f281e94763fdc81cabc7ff51732f2ff"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV.tendsto_dyadic_ito_row_quadraticVariation_L1",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoContinuousRowQV.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {Omega : Type u_1} {J : Type u_2} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} {mu : MeasureTheory.Measure Omega}\n  [MeasureTheory.IsFiniteMeasure mu] {T : NNReal} {B : NNReal → Omega → EuclideanSpace ℝ J}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration mu)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu)\n  (eta :\n    J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T) :\n  have hcoord := ⋯;\n  have row := fun t omega =>\n    ∑ j,\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (eta j) hT ⋯ hUsual t\n        omega;\n  have error := fun level omega =>\n    have times :=\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n        (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T level)\n        (2 ^ level);\n    ∑ i, (row (times i.succ) omega - row (times i.castSucc) omega) ^ 2 -\n      ∑ j,\n        ∫ (t : NNReal),\n          (eta j).process t omega ^ 2 ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T;\n  (∀ (level : ℕ), MeasureTheory.Integrable (error level) mu) ∧\n    Filter.Tendsto (fun level => ∫ (omega : Omega), |error level omega| ∂mu) Filter.atTop (nhds 0)",
+    "statement_sha256": "10d23e6ef71b076a70ed19708a2e7066553008d4d1dd5f968d0d920ad901e207",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Finite Brownian coordinate type J; filtered Brownian setup; scalar integrands eta_j; row Y=∑_j I_j(eta_j); dyadic quadratic-variation error E_n.\n\nOmega is measurable with finite measure mu and a filtration F indexed by nonnegative reals. T>0 is fixed. The Euclidean coordinate type J is finite with decidable equality. B:[0,infinity)×Omega→R^J. lambda_T denotes the pullback under NNReal.toReal of Lebesgue measure restricted to [0,T]. eta:J→progressive L² integrands.\n\nAssumptions: B starts at zero for every omega, has jointly independent increments over disjoint half-open intervals, every continuous real linear functional ell sends B_t-B_s (s<t) to a centered Gaussian of variance (t-s)||ell||², and paths are continuous mu-a.e. B is strongly adapted to F and B_t-B_s is independent of F_s for s≤t. F is right-continuous and every subset S⊆Omega with mu(S)=0 belongs to F_t for every t≥0. A progressive L² integrand is a real process a(t,omega), strongly progressive for F, for which (omega,t)↦a(t,omega) is in L²(mu⊗lambda_T). No fourth-moment or boundedness assumption on eta is imposed.\n\nConclusion: I_j(a)(t,omega) denotes the specified completed Ito integral driven by the scalar coordinate B^j(t,omega)=(B(t,omega))_j. Its representative is the pointwise limit of chosen elementary stochastic integrals off the null complement of their uniform Cauchy event, and zero on that complement; it is held constant after T. Put t_i^n=iT/2^n and Y(t)=∑_j I_j(eta_j)(t). Define E_n=∑_{i=0}^{2^n-1}(Y(t_{i+1}^n)-Y(t_i^n))²-∑_j∫eta_j(s)²d lambda_T(s). Then E_n is mu-integrable for every n and ∫|E_n|dmu→0 as n→infinity.\n\nQuantifier order: For every listed setup and family eta, every dyadic error E_n is integrable and its absolute first moment tends to zero.\n\nScope: L¹ convergence of quadratic-variation errors at one positive horizon; neither L² membership of errors nor a.s. convergence is asserted. The integrands are fixed as n varies.\n\nConstant dependencies: No numerical constant or rate is introduced.",
+    "text_sha256": "6c72618467d1ed5196a2c65da492e84dcd2bdcbf76b50a5838559e12c6c2c416",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "de64509bf8d5e9d872fe231637004d38dc0d05f358a6eaa215ce1c1e44a16b5d",
+    "decoder_run_sha256": "ccdf80df9a17d882312c085e86da2b80c495a717f856b97696d187c232255c45",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "99a219081cb769b8088a3fbef49f44356cc94f0f3d689d9322c36991acdb2031",
+  "candidate_publication_context": {
+    "file": "32df20adbe9d016341a9b757766c5149d9db3c4e10922f7317c2062559b9e23e",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability\n\n/-! # Dyadic quadratic variation of completed progressive Itô rows -/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV\n\nopen Filter MeasureTheory ProbabilityTheory\nopen scoped NNReal ENNReal BigOperators\nopen BrownianMotion ProgressiveL2 ProgressiveL2Density ProgressiveL2Truncation\n  ElementaryItoIntegral ElementaryItoIsometry SampledElementaryApproximation\n  EuclideanBrownianCoordinates DyadicElementaryRefinement LaggedDyadicApproximation\n  LaggedDyadicConvergence ItoIntegralProcess ItoTerminalCompletion ItoIntegralIncrement\n  ItoIntegralGridStability ProgressivePathEnergy ItoElementaryRowQV\n\n/-- The quadratic variation of a completed scalar Itô row converges in\n`L¹` on dyadic grids to its actual integrated square energy. -/\ntheorem tendsto_dyadic_ito_row_quadraticVariation_L1\n    {Omega J : Type*} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)}\n    {mu : Measure Omega} [IsFiniteMeasure mu] {T : ℝ≥0}\n    {B : ℝ≥0 → Omega → EuclideanSpace ℝ J}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration mu) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration mu)\n    (eta : J → ProgressiveL2Integrand filtration mu T) :\n    let hcoord := (coordinateFamily hB).isBrownian\n    let row := fun t omega =>\n      ∑ j : J, itoIntegralProcess (eta j) hT (hcoord j) hUsual t omega\n    let error := fun level omega =>\n      let times := regularGridTimes (dyadicMesh T level) (2 ^ level)\n      (∑ i : Fin (2 ^ level), (row (times i.succ) omega -\n        row (times i.castSucc) omega)^2) -\n      ∑ j : J, ∫ t, (eta j).process t omega ^ 2 ∂(TimeMeasure.upTo T)\n    (∀ level, Integrable (error level) mu) ∧\n      Tendsto (fun level => ∫ omega, |error level omega| ∂mu) atTop (nhds 0) := by\n  intro hcoord row error\n  let _ : IsProbabilityMeasure mu :=\n    (hB.isStandard.2.2.1 0 1 (by norm_num) (0 : StrongDual ℝ (EuclideanSpace ℝ J))).isProbabilityMeasure\n  let Inputs := J → ProgressiveL2Integrand filtration mu T\n  let times (level : ℕ) := regularGridTimes (dyadicMesh T level) (2 ^ level)\n  let I (f : Inputs) (t : ℝ≥0) (omega : Omega) :=\n    ∑ j : J, itoIntegralProcess (f j) hT (hcoord j) hUsual t omega\n  let Q (f : Inputs) (level : ℕ) (omega : Omega) :=\n    ∑ i : Fin (2 ^ level), (I f (times level i.succ) omega -\n      I f (times level i.castSucc) omega)^2\n  let E (f : Inputs) (omega : Omega) :=\n    ∑ j : J, ∫ t, (f j).process t omega ^ 2 ∂(TimeMeasure.upTo T)\n  let err (f : Inputs) (level : ℕ) (omega : Omega) := Q f level omega - E f omega\n  let P (f g : Inputs) (j : J) := ‖(ProgressiveL2Algebra.add (f j) (g j)).toLp‖\n  let D (f g : Inputs) (j : J) := ‖(ProgressiveL2Algebra.sub (f j) (g j)).toLp‖\n  let bound (f g : Inputs) :=\n    (Fintype.card J : ℝ) * Real.sqrt (∑ j : J, (P f g j)^2) *\n      Real.sqrt (∑ j : J, (D f g j)^2) + ∑ j : J, P f g j * D f g j\n  have hmono (level : ℕ) : Monotone (times level) :=\n    (regularGridTimes_strictMono (dyadicMesh_pos hT level) _).monotone\n  have hlast (level : ℕ) : times level (Fin.last (2 ^ level)) = T :=\n    regularDyadic_last_time T level\n  have htime (level : ℕ) (i : Fin (2 ^ level + 1)) : times level i ≤ T :=\n    (hmono level (Fin.le_last i)).trans_eq (hlast level)\n  have hInt (f : Inputs) (level : ℕ) : Integrable (err f level) mu := by\n    have hRow (i : Fin (2 ^ level)) : MemLp (fun omega =>\n        I f (times level i.succ) omega - I f (times level i.castSucc) omega) 2 mu := by\n      simp only [I, ← Finset.sum_sub_distrib]\n      exact memLp_finsetSum Finset.univ (fun j _ =>\n        (itoIntegralProcess_increment_isometry (f j) hT (hcoord j) hUsual\n          (hmono level (Fin.castSucc_le_succ (i := i))) (htime level i.succ)).1)\n    have hQ : Integrable (Q f level) mu :=\n      integrable_finsetSum Finset.univ (fun i _ => (hRow i).integrable_sq)\n    have hE : Integrable (E f) mu :=\n      integrable_finsetSum Finset.univ (fun j _ => (f j).memLp.integrable_sq.integral_prod_left)\n    exact hQ.sub hE\n  have hCompare (f g : Inputs) (level : ℕ) :\n      (∫ omega, |err f level omega| ∂mu) ≤ bound f g + ∫ omega, |err g level omega| ∂mu := by\n    have hQ := itoIntegralProcess_row_grid_quadraticVariation_L1_le f g hT hcoord hUsual\n      (times level) (hmono level) (hlast level).le\n    have hE := progressiveL2_row_pathEnergy_L1_le f g\n    let qdiff := fun omega => Q f level omega - Q g level omega\n    let ediff := fun omega => E f omega - E g omega\n    have hqi : Integrable qdiff mu := hQ.1\n    have hei : Integrable ediff mu := hE.1\n    have hgi := (hInt g level).abs\n    calc\n      _ ≤ ∫ omega, (|qdiff omega| + |ediff omega|) + |err g level omega| ∂mu := by\n        apply integral_mono (hInt f level).abs ((hqi.abs.add hei.abs).add hgi)\n        intro omega\n        calc\n          |err f level omega| = |(qdiff omega + -ediff omega) + err g level omega| := by\n            congr 1\n            dsimp only [err, qdiff, ediff]\n            ring\n          _ ≤ |qdiff omega| + |ediff omega| + |err g level omega| := by\n            exact (abs_add_le _ _).trans (add_le_add (by simpa using abs_add_le (qdiff omega) (-ediff omega)) le_rfl)\n      _ = ((∫ omega, |qdiff omega| ∂mu) + ∫ omega, |ediff omega| ∂mu) +\n            ∫ omega, |err g level omega| ∂mu := by\n        have hqe : Integrable (fun omega => |qdiff omega| + |ediff omega|) mu := hqi.abs.add hei.abs\n        rw [integral_add hqe hgi, integral_add hqi.abs hei.abs]\n      _ ≤ _ := add_le_add (add_le_add hQ.2 hE.2) le_rfl\n  have hBoundLim (f : Inputs) (g : ℕ → Inputs)\n      (hg : ∀ j, Tendsto (fun level => (g level j).toLp) atTop (nhds (f j).toLp)) :\n      Tendsto (fun level => bound f (g level)) atTop (nhds 0) := by\n    have hF (j : J) : Tendsto (fun _ : ℕ => (f j).toLp) atTop (nhds (f j).toLp) :=\n      tendsto_const_nhds\n    have hP (j : J) : Tendsto (fun n => P f (g n) j) atTop\n        (nhds ‖(f j).toLp + (f j).toLp‖) := by\n      simpa only [P, ProgressiveL2Algebra.toLp_add] using ((hF j).add (hg j)).norm\n    have hD (j : J) : Tendsto (fun n => D f (g n) j) atTop (nhds 0) := by\n      simpa only [D, ProgressiveL2Algebra.toLp_sub, sub_self, norm_zero]\n        using ((hF j).sub (hg j)).norm\n    have hPsum := tendsto_finsetSum (Finset.univ : Finset J) (fun j _ => (hP j).pow 2)\n    have hDsum := tendsto_finsetSum (Finset.univ : Finset J) (fun j _ => (hD j).pow 2)\n    have hProot := Real.continuous_sqrt.continuousAt.tendsto.comp hPsum\n    have hDroot := Real.continuous_sqrt.continuousAt.tendsto.comp hDsum\n    have hProd := tendsto_finsetSum (Finset.univ : Finset J) (fun j _ => (hP j).mul (hD j))\n    simpa [bound, Function.comp_def] using ((hProot.const_mul (Fintype.card J : ℝ)).mul hDroot).add hProd\n  let clip (M : ℕ) : Inputs := fun j => clipped (eta j) M\n  let q (M level : ℕ) (j : J) : DyadicElementaryProcess filtration T :=\n    ⟨level, laggedDyadicApprox (eta j) hT level M, laggedDyadicApprox_times _ _ _ _⟩\n  let approx (M level : ℕ) : Inputs := fun j => elementaryIntegrand (q M level j) (hcoord j)\n  have hApprox (M : ℕ) (j : J) :\n      Tendsto (fun level => (approx M level j).toLp) atTop (nhds (clip M j).toLp) :=\n    tendsto_laggedDyadicApprox_toLp_clipped (eta j) hT M\n  have hMom (M level : ℕ) (j : J) (i : Fin (2 ^ (q M level j).level)) :\n      (∫ omega, ((q M level j).process.coeff i omega)^4 ∂mu) ≤ (M : ℝ)^4 := by\n    let c := (q M level j).process.coeff i\n    have hc := (coeff_memLp (q M level j).process mu i 4).integrable_norm_pow' (p := 4)\n    have hci : Integrable (fun omega => (c omega)^4) mu := by\n      exact hc.congr (Eventually.of_forall fun omega => by\n        simp only [Real.norm_eq_abs, ← abs_pow]\n        exact abs_of_nonneg (by positivity))\n    have hp (omega : Omega) : (c omega)^4 ≤ (M : ℝ)^4 := by\n      have hbound : |c omega| ≤ (M : ℝ) :=\n        laggedDyadicCoeff_abs_le (eta j) hT level M i omega\n      simpa only [← abs_pow, abs_of_nonneg (show 0 ≤ (c omega)^4 by positivity)] using\n        pow_le_pow_left₀ (abs_nonneg (c omega)) hbound 4\n    calc\n      _ ≤ ∫ _ : Omega, (M : ℝ)^4 ∂mu := integral_mono hci (integrable_const _) hp\n      _ = _ := by simp\n  have hApproxQV (M : ℕ) :\n      Tendsto (fun level => ∫ omega, |err (approx M level) level omega| ∂mu) atTop (nhds 0) :=\n    (tendsto_dyadic_elementary_ito_row_quadraticVariation_L1 hB hT hUsual (q M)\n      (fun _ _ => rfl) ((M : ℝ)^4) (hMom M)).2\n  have hClipQV (M : ℕ) :\n      Tendsto (fun level => ∫ omega, |err (clip M) level omega| ∂mu) atTop (nhds 0) := by\n    refine tendsto_const_nhds.squeeze ?_\n      (fun _ => integral_nonneg fun _ => abs_nonneg _)\n      (fun level => hCompare (clip M) (approx M level) level)\n    simpa only [add_zero] using (hBoundLim (clip M) (approx M) (hApprox M)).add (hApproxQV M)\n  refine ⟨hInt eta, tendsto_order.2 ⟨?_, ?_⟩⟩\n  · intro x hx\n    exact Eventually.of_forall (fun _ => hx.trans_le (integral_nonneg fun _ => abs_nonneg _))\n  · intro epsilon heps\n    have he : 0 < epsilon / 2 := by positivity\n    obtain ⟨M, hM⟩ := ((tendsto_order.1\n      (hBoundLim eta clip (fun j => tendsto_clipped_toLp (eta j)))).2 (epsilon / 2) he).exists\n    filter_upwards [(tendsto_order.1 (hClipQV M)).2 (epsilon / 2) he] with level hlevel\n    exact (hCompare eta (clip M) level).trans_lt (by linarith)\n\n#print axioms tendsto_dyadic_ito_row_quadraticVariation_L1\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-continuous-row-qv-186e9e72",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoContinuousRowQV.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Quadratic variation of a progressive Itô row. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "For one fixed row of progressive square-integrable real inputs, form the sum of their completed coordinate Itô integrals. Its dyadic squared-increment sum converges in L¹ to the total pathwise square energy. The signed error is integrable at every level.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\begin{gathered}R_t=\\sum_j\\int_0^t\\eta_j(s)\\,dB^j_s,\\qquad E=\\sum_j\\int_0^T\\eta_j(t)^2\\,dt,\\\\ \\int\\left|\\sum_i(R_{t_{i+1}}-R_{t_i})^2-E\\right|\\,d\\mu\\longrightarrow0.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+      "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+      "Each coordinate input is real, progressive, and square integrable on the product of μ and time measure restricted to [0,T]. The input row is fixed across levels and can be unbounded."
+    ],
+    "obligations": [
+      {
+        "id": "ito-continuous-row-qv-186e9e72",
+        "label": "Quadratic variation of a progressive Itô row"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV.tendsto_dyadic_ito_row_quadraticVariation_L1",
+      "title": "Quadratic variation of a progressive Itô row",
+      "statement": "For one fixed row of progressive square-integrable real inputs, form the sum of their completed coordinate Itô integrals. Its dyadic squared-increment sum converges in L¹ to the total pathwise square energy. The signed error is integrable at every level.",
+      "formula": "\\begin{gathered}R_t=\\sum_j\\int_0^t\\eta_j(s)\\,dB^j_s,\\qquad E=\\sum_j\\int_0^T\\eta_j(t)^2\\,dt,\\\\ \\int\\left|\\sum_i(R_{t_{i+1}}-R_{t_i})^2-E\\right|\\,d\\mu\\longrightarrow0.\\end{gathered}",
+      "assumptions": [
+        "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+        "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+        "Each coordinate input is real, progressive, and square integrable on the product of μ and time measure restricted to [0,T]. The input row is fixed across levels and can be unbounded."
+      ],
+      "steps": [
+        {
+          "title": "Compare two inputs on the same grid",
+          "text": "The cell isometry gives square-integrable coordinate increments, so each row increment square is integrable. Fubini gives integrability of the literal path energy. Apply the row increment stability bound and the path energy stability bound to compare two input families on the same grid.",
+          "formula": "\\begin{gathered}p_j=\\|f_j+g_j\\|_2,\\qquad d_j=\\|f_j-g_j\\|_2,\\qquad b(f,g)=|J|\\sqrt{\\sum_jp_j^2}\\sqrt{\\sum_jd_j^2}+\\sum_jp_jd_j,\\\\ \\|Q_n(f)-E(f)\\|_1\\le\\|Q_n(g)-E(g)\\|_1+b(f,g).\\end{gathered}",
+          "lean": "  have hInt (f : Inputs) (level : ℕ) : Integrable (err f level) mu := by\n    have hRow (i : Fin (2 ^ level)) : MemLp (fun omega =>\n        I f (times level i.succ) omega - I f (times level i.castSucc) omega) 2 mu := by\n      simp only [I, ← Finset.sum_sub_distrib]\n      exact memLp_finsetSum Finset.univ (fun j _ =>\n        (itoIntegralProcess_increment_isometry (f j) hT (hcoord j) hUsual\n          (hmono level (Fin.castSucc_le_succ (i := i))) (htime level i.succ)).1)\n    have hQ : Integrable (Q f level) mu :=\n      integrable_finsetSum Finset.univ (fun i _ => (hRow i).integrable_sq)\n    have hE : Integrable (E f) mu :=\n      integrable_finsetSum Finset.univ (fun j _ => (f j).memLp.integrable_sq.integral_prod_left)\n    exact hQ.sub hE\n  have hCompare (f g : Inputs) (level : ℕ) :\n      (∫ omega, |err f level omega| ∂mu) ≤ bound f g + ∫ omega, |err g level omega| ∂mu := by\n    have hQ := itoIntegralProcess_row_grid_quadraticVariation_L1_le f g hT hcoord hUsual\n      (times level) (hmono level) (hlast level).le\n    have hE := progressiveL2_row_pathEnergy_L1_le f g\n    let qdiff := fun omega => Q f level omega - Q g level omega\n    let ediff := fun omega => E f omega - E g omega\n    have hqi : Integrable qdiff mu := hQ.1\n    have hei : Integrable ediff mu := hE.1\n    have hgi := (hInt g level).abs\n    calc\n      _ ≤ ∫ omega, (|qdiff omega| + |ediff omega|) + |err g level omega| ∂mu := by\n        apply integral_mono (hInt f level).abs ((hqi.abs.add hei.abs).add hgi)\n        intro omega\n        calc\n          |err f level omega| = |(qdiff omega + -ediff omega) + err g level omega| := by\n            congr 1\n            dsimp only [err, qdiff, ediff]\n            ring\n          _ ≤ |qdiff omega| + |ediff omega| + |err g level omega| := by\n            exact (abs_add_le _ _).trans (add_le_add (by simpa using abs_add_le (qdiff omega) (-ediff omega)) le_rfl)\n      _ = ((∫ omega, |qdiff omega| ∂mu) + ∫ omega, |ediff omega| ∂mu) +\n            ∫ omega, |err g level omega| ∂mu := by\n        have hqe : Integrable (fun omega => |qdiff omega| + |ediff omega|) mu := hqi.abs.add hei.abs\n        rw [integral_add hqe hgi, integral_add hqi.abs hei.abs]\n      _ ≤ _ := add_le_add (add_le_add hQ.2 hE.2) le_rfl\n  have hBoundLim (f : Inputs) (g : ℕ → Inputs)\n      (hg : ∀ j, Tendsto (fun level => (g level j).toLp) atTop (nhds (f j).toLp)) :\n      Tendsto (fun level => bound f (g level)) atTop (nhds 0) := by\n    have hF (j : J) : Tendsto (fun _ : ℕ => (f j).toLp) atTop (nhds (f j).toLp) :=\n      tendsto_const_nhds\n    have hP (j : J) : Tendsto (fun n => P f (g n) j) atTop\n        (nhds ‖(f j).toLp + (f j).toLp‖) := by\n      simpa only [P, ProgressiveL2Algebra.toLp_add] using ((hF j).add (hg j)).norm\n    have hD (j : J) : Tendsto (fun n => D f (g n) j) atTop (nhds 0) := by\n      simpa only [D, ProgressiveL2Algebra.toLp_sub, sub_self, norm_zero]\n        using ((hF j).sub (hg j)).norm\n    have hPsum := tendsto_finsetSum (Finset.univ : Finset J) (fun j _ => (hP j).pow 2)\n    have hDsum := tendsto_finsetSum (Finset.univ : Finset J) (fun j _ => (hD j).pow 2)\n    have hProot := Real.continuous_sqrt.continuousAt.tendsto.comp hPsum\n    have hDroot := Real.continuous_sqrt.continuousAt.tendsto.comp hDsum\n    have hProd := tendsto_finsetSum (Finset.univ : Finset J) (fun j _ => (hP j).mul (hD j))\n    simpa [bound, Function.comp_def] using ((hProot.const_mul (Fintype.card J : ℝ)).mul hDroot).add hProd\n"
+        },
+        {
+          "title": "Prove the limit at fixed clipping",
+          "text": "The lagged dyadic approximants have coefficients bounded by M at fixed clipping M. They satisfy the elementary theorem and converge in L² to the clipped integrands. Apply the comparison at each matching level.",
+          "formula": "\\eta^{M,n}\\to\\eta^M\\text{ in }L^2,\\qquad Q_n(\\eta^M)-E(\\eta^M)\\to0\\text{ in }L^1.",
+          "lean": "  let clip (M : ℕ) : Inputs := fun j => clipped (eta j) M\n  let q (M level : ℕ) (j : J) : DyadicElementaryProcess filtration T :=\n    ⟨level, laggedDyadicApprox (eta j) hT level M, laggedDyadicApprox_times _ _ _ _⟩\n  let approx (M level : ℕ) : Inputs := fun j => elementaryIntegrand (q M level j) (hcoord j)\n  have hApprox (M : ℕ) (j : J) :\n      Tendsto (fun level => (approx M level j).toLp) atTop (nhds (clip M j).toLp) :=\n    tendsto_laggedDyadicApprox_toLp_clipped (eta j) hT M\n  have hMom (M level : ℕ) (j : J) (i : Fin (2 ^ (q M level j).level)) :\n      (∫ omega, ((q M level j).process.coeff i omega)^4 ∂mu) ≤ (M : ℝ)^4 := by\n    let c := (q M level j).process.coeff i\n    have hc := (coeff_memLp (q M level j).process mu i 4).integrable_norm_pow' (p := 4)\n    have hci : Integrable (fun omega => (c omega)^4) mu := by\n      exact hc.congr (Eventually.of_forall fun omega => by\n        simp only [Real.norm_eq_abs, ← abs_pow]\n        exact abs_of_nonneg (by positivity))\n    have hp (omega : Omega) : (c omega)^4 ≤ (M : ℝ)^4 := by\n      have hbound : |c omega| ≤ (M : ℝ) :=\n        laggedDyadicCoeff_abs_le (eta j) hT level M i omega\n      simpa only [← abs_pow, abs_of_nonneg (show 0 ≤ (c omega)^4 by positivity)] using\n        pow_le_pow_left₀ (abs_nonneg (c omega)) hbound 4\n    calc\n      _ ≤ ∫ _ : Omega, (M : ℝ)^4 ∂mu := integral_mono hci (integrable_const _) hp\n      _ = _ := by simp\n  have hApproxQV (M : ℕ) :\n      Tendsto (fun level => ∫ omega, |err (approx M level) level omega| ∂mu) atTop (nhds 0) :=\n    (tendsto_dyadic_elementary_ito_row_quadraticVariation_L1 hB hT hUsual (q M)\n      (fun _ _ => rfl) ((M : ℝ)^4) (hMom M)).2\n  have hClipQV (M : ℕ) :\n      Tendsto (fun level => ∫ omega, |err (clip M) level omega| ∂mu) atTop (nhds 0) := by\n    refine tendsto_const_nhds.squeeze ?_\n      (fun _ => integral_nonneg fun _ => abs_nonneg _)\n      (fun level => hCompare (clip M) (approx M level) level)\n    simpa only [add_zero] using (hBoundLim (clip M) (approx M) (hApprox M)).add (hApproxQV M)\n"
+        },
+        {
+          "title": "Remove the clipping",
+          "text": "Choose M so the comparison error is small uniformly over all levels. Then take the dyadic level large enough for that fixed M.",
+          "formula": "\\lim_{M\\to\\infty}b(\\eta,\\eta^M)=0.",
+          "lean": "  refine ⟨hInt eta, tendsto_order.2 ⟨?_, ?_⟩⟩\n  · intro x hx\n    exact Eventually.of_forall (fun _ => hx.trans_le (integral_nonneg fun _ => abs_nonneg _))\n  · intro epsilon heps\n    have he : 0 < epsilon / 2 := by positivity\n    obtain ⟨M, hM⟩ := ((tendsto_order.1\n      (hBoundLim eta clip (fun j => tendsto_clipped_toLp (eta j)))).2 (epsilon / 2) he).exists\n    filter_upwards [(tendsto_order.1 (hClipQV M)).2 (epsilon / 2) he] with level hlevel\n    exact (hCompare eta (clip M) level).trans_lt (by linarith)\n"
+        }
+      ],
+      "lean_statement": "The Lean statement records the original process and time integral explicitly.",
+      "lean_proof": "Each proof step links the mathematical argument to a verbatim excerpt. The complete Lean proof is folded separately.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability.itoIntegralProcess_row_grid_quadraticVariation_L1_le",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressivePathEnergy.progressiveL2_row_pathEnergy_L1_le",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV.tendsto_dyadic_elementary_ito_row_quadraticVariation_L1",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.LaggedDyadicConvergence.tendsto_laggedDyadicApprox_toLp_clipped",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Truncation.tendsto_clipped_toLp"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integral_mono",
+        "tendsto_finsetSum",
+        "tendsto_order"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/150a8a5587d5960a2b4f96de86b7f42e16b2e91b/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/LaggedDyadicConvergence.lean",
+          "label": "LaggedDyadicConvergence",
+          "scope": "Existing library construction used in the proof."
+        }
+      ],
+      "tests": [],
+      "reader_note": "The fourth moment estimate is proved for the fixed-clipping approximants. The original input needs only L²."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV.tendsto_dyadic_ito_row_quadraticVariation_L1",
+      "role": "prerequisite",
+      "supports": [
+        "ito-continuous-row-qv-186e9e72"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion.",
+        "lean": "One Euclidean Brownian motion under the sample measure μ, relative to the given filtration. The coordinates in a finite index set J come from this same motion."
+      },
+      {
+        "source": "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions.",
+        "lean": "The sample measure is finite. The horizon T is positive and the filtration satisfies the usual conditions."
+      },
+      {
+        "source": "Each coordinate input is real, progressive, and square integrable on the product of μ and time measure restricted to [0,T]. The input row is fixed across levels and can be unbounded.",
+        "lean": "Each coordinate input is real, progressive, and square integrable on the product of μ and time measure restricted to [0,T]. The input row is fixed across levels and can be unbounded."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "883cb4aa404570709398f662ea2b26abd21962955e1ddfd0c0862609276f5b3e"
+}

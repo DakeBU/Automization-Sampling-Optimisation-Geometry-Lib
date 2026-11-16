@@ -308,12 +308,19 @@ aggregators and test examples do not count as new mathematical declarations.
         text = (ROOT / path).read_text(encoding='utf-8')
         clean = astis_site.sanitize_lean(text)
         implementations = []
+        # Registering an existing declaration as an instance is an attribute
+        # command, not a new instance declaration. Skip only that exact token;
+        # subsequent commands and the whole-module review remain mandatory.
+        instance_attribute_tokens = {m.start(1) for m in re.finditer(
+            r'\battribute\s+\[\s*(?:local\s+)?(instance)\s*\]', clean)}
         # Inspect complete tokens anywhere, not only at the beginning of a line:
         # multiline attributes and Unicode suffixes must not hide declarations.
         # A keyword after a dot is a projection/qualified identifier, e.g.
         # `(hInv y r t).def`, not a declaration command. Do not weaken the
         # fail-closed check for actual command tokens elsewhere in the file.
         for match in re.finditer(r'(?<!\.)\b(theorem|lemma|def|abbrev|structure|class|inductive|opaque|axiom|instance)\b\s*([^\s(\[{:=]*)', clean):
+            if match.start() in instance_attribute_tokens:
+                continue
             line = clean.count('\n', 0, match.start()) + 1
             kind, name = match.groups()
             prefix = clean[clean.rfind('\n', 0, match.start()) + 1:match.start()]

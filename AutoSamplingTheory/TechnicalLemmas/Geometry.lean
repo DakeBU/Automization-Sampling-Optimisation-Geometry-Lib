@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost

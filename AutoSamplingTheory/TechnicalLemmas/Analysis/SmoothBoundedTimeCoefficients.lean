@@ -142,4 +142,3 @@ theorem exists_smooth_pos_with_noise_scale_approx
   linarith
 
 end AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients
-

@@ -1,6 +1,6 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Mathlib.Tactic
+import Mathlib.Analysis.Calculus.FDeriv.Mul
+import Mathlib.Tactic.Ring
 
 namespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise
 

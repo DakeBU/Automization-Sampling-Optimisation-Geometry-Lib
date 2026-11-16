@@ -1,3 +1,9 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients
+import AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactProgressiveCoefficients
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveCoefficientBounds
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
@@ -168,6 +174,26 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "shared.smooth-positive-time-coefficients",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients.exists_smooth_pos_of_ae_nonneg_bounded",
+    upstreamDecl := "Original Samplinglib supplement: Smooth positive approximation of a measurable time coefficient",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/ContinuousMapDense.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The approximation is for one prescribed finite interval and tolerance. Smoothness holds on all of \\(\\mathbb R\\); positivity and the displayed upper bound are guaranteed on \\([a,b]\\). This result controls coefficient integrals. Convergence of solutions and passage of density estimates to limits require further arguments."
+  },
+  {
+    key := "shared.smooth-positive-noise-scale-approximation",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients.exists_smooth_pos_with_noise_scale_approx",
+    upstreamDecl := "Original Samplinglib supplement: One approximation for a coefficient and its noise amplitude",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/Calculus/BumpFunction/SmoothApprox.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The approximation is for one prescribed finite interval and tolerance. Smoothness holds on all of \\(\\mathbb R\\); positivity and the displayed upper bound are guaranteed on \\([a,b]\\). This result controls coefficient integrals. Convergence of solutions and passage of density estimates to limits require further arguments."
+  },
   {
     key := "analysis.normalized-bad-mass",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds",
@@ -2861,6 +2887,16 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.continuous-weak-probability-integral",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral.continuous_integral_of_compact",
+    upstreamDecl := "Original Samplinglib supplement: Continuity of an integral with a moving observable and law",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Measure/ProbabilityMeasure.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. Compactness controls the changing observable uniformly. Weak continuity controls integration of the frozen observable."
+  },
+  {
     key := "bochner-mean-quadratic-transport",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport.bounded_bochner_mean_quadratic_transport_control",
     upstreamDecl := "Original generic feature differentiation and transport supplement",
@@ -4068,6 +4104,66 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
 ]
 
 def stochasticProcessMemory : List LemmaMemoryEntry := [
+  {
+    key := "shared.compact-progressive-coefficients",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactProgressiveCoefficients.continuous_coefficient_along_compact_process",
+    upstreamDecl := "Original Samplinglib supplement: Continuous coefficients along a compact-state progressive process",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/LpSeminorm/Basic.lean#L549",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The claim is coefficient regularity and finite-horizon integrability for a given process. Progressive measurability is global; the time-section and product bounds are local to the chosen horizon."
+  },
+  {
+    key := "shared.continuous-marginal-laws",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.continuous_marginal_law_of_ae_continuous",
+    upstreamDecl := "Original Samplinglib supplement: Continuous sample paths give continuous marginal laws",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/ConvergenceInDistribution.lean#L137",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The conclusion is continuity in the weak topology of probability measures."
+  },
+  {
+    key := "shared.centered-marginal-balance",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.weak_integral_balance_of_centered_increment",
+    upstreamDecl := "Original Samplinglib supplement: Marginal balance from a centered sample increment",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Integral/Prod.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The sample increment identity and the centered residual are supplied."
+  },
+  {
+    key := "shared.continuous-marginal-observable-derivative",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.hasDerivAt_weak_observable_of_integral_balance",
+    upstreamDecl := "Original Samplinglib supplement: Differentiating a local marginal balance",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Integral/IntervalIntegral/FundThmCalculus.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. This is the pointwise derivative under a jointly continuous field and a local balance on the real line."
+  },
+  {
+    key := "shared.bounded-progressive-coefficients",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveCoefficientBounds.bounded_measurable_coefficient_along_progressive_process",
+    upstreamDecl := "Original Samplinglib supplement: Bounded measurable coefficients along progressive paths",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/LpSeminorm/Basic.lean#L549",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The coefficient bound is pointwise on the selected horizon, which yields time integrability at every sample."
+  },
+  {
+    key := "shared.measurable-marginal-evolution",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution.marginal_balance_of_locally_bounded_generator",
+    upstreamDecl := "Original Samplinglib supplement: From centered increments to a two-time marginal balance",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Integral/IntervalIntegral/LebesgueDifferentiationThm.lean#L38",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The ordinary derivative assertion holds for Lebesgue-almost every strictly positive real time."
+  },
   {
     key := "bakry-emery.abstract-gradient-contraction",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.backwardInterpolation_contraction_of_expandedBakryEmery",

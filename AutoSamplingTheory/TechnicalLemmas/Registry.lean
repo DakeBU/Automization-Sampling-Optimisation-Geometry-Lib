@@ -6550,6 +6550,16 @@ def variationalMemory : List LemmaMemoryEntry := [
 
 def geometryMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.unit-sphere-induced-path-distance",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance.unit_sphere_induced_riemannianEDist_eq_arccos",
+    upstreamDecl := "units[0], complete statement, definitions and six proof regions in runs/20261116-sphere-distance/source-only.json",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/eee7ad7474251d3c6027af9e9a6c9e9d57ed7b11/runs/20261116-sphere-distance/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["geometry", "riemannian", "shared"],
+    saldUse := "Canonical induced spherical path distance for geometric transport applications.",
+    note := "One source-reviewed all-pairs distance identity; the three private providers have no separate theorem credit. This identifies the induced length distance of a positive-dimensional unit sphere. It leaves the ambient chord metric unchanged; for antipodal points these two distances are \\(2\\) and \\(\\pi\\). The condition \\(n>0\\) is essential for arbitrary endpoint pairs: the two-point sphere has no continuous internal path between its two distinct points. It supplies no global Riemannian bundle instance, general manifold geodesic-existence theorem, transport estimate, stochastic result, or textbook chapter completion. Spherical transport is a possible consumer of the distance identity."
+  },
+  {
     key := "shared.sphere-projected-noise-235fd8b7",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.projectedNoiseColumn",
     upstreamDecl := "Original Samplinglib supplement: A coordinate column of the sphere projection formula. Exact assumptions and formula below.",

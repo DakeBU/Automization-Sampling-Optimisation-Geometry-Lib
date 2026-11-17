@@ -1,0 +1,120 @@
+{
+  "library_definitions": [
+    {
+      "artifact": "Mathlib/MeasureTheory/Function/LpSeminorm/Defs.lean",
+      "first_line": 118,
+      "last_line": 120,
+      "lf_sha256": "26731053842cbe748838d6bb46e5ed9de51f541d387a938c26cf481c97d55332",
+      "literal_source_excerpt": "def MemLp [TopologicalSpace ε] (f : α → ε) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : Prop :=\n  AEStronglyMeasurable f μ ∧ eLpNorm f p μ < ∞\n",
+      "name": "MemLp",
+      "raw_sha256": "3af5dd0c5b1c6f4ecf3ba95545718748f3e984241fcf89b5afa2d5df2014adb7",
+      "semantics": "A.e. strong measurability and finite eLpNorm; 2 is ENNReal 2."
+    },
+    {
+      "artifact": "Mathlib/MeasureTheory/Function/AEEqFun.lean",
+      "first_line": 98,
+      "last_line": 124,
+      "lf_sha256": "2e41fe38b0d1bf176b393999755bab74bc6a7ca8a6268ea6b27b9672a5ec1b3f",
+      "literal_source_excerpt": "variable (α)\n\n/-- The space of equivalence classes of almost everywhere strongly measurable functions, where two\nstrongly measurable functions are equivalent if they agree almost everywhere, i.e.,\nthey differ on a set of measure `0`. -/\ndef AEEqFun (μ : Measure α) : Type _ :=\n  Quotient (μ.aeEqSetoid β)\n\nvariable {α β}\n\n@[inherit_doc MeasureTheory.AEEqFun]\nnotation:25 α \" →ₘ[\" μ \"] \" β => AEEqFun α β μ\n\nend MeasurableSpace\n\nvariable [TopologicalSpace δ]\n\nnamespace AEEqFun\n\nsection\nvariable [TopologicalSpace β]\n\n/-- Construct the equivalence class `[f]` of an almost everywhere measurable function `f`, based\non the equivalence relation of being almost everywhere equal. -/\ndef mk {β : Type*} [TopologicalSpace β] (f : α → β) (hf : AEStronglyMeasurable f μ) : α →ₘ[μ] β :=\n  Quotient.mk'' ⟨f, hf⟩\n",
+      "name": "AEEqFun",
+      "raw_sha256": "74c63f3460c975b6438511a6c0c216e13f1f690e6f8110abee08e6b809c993b4",
+      "semantics": "Quotient modulo a.e. equality; representatives need not agree pointwise."
+    },
+    {
+      "artifact": "Mathlib/MeasureTheory/Function/LpSpace/Basic.lean",
+      "first_line": 89,
+      "last_line": 121,
+      "lf_sha256": "c333a6caa56906c6203cad3e3214be2114a65728fcfdf95ae639992abefb373f",
+      "literal_source_excerpt": "def Lp {α} (E : Type*) {m : MeasurableSpace α} [NormedAddCommGroup E] (p : ℝ≥0∞)\n    (μ : Measure α := by volume_tac) : AddSubgroup (α →ₘ[μ] E) where\n  carrier := { f | eLpNorm f p μ < ∞ }\n  zero_mem' := by simp [eLpNorm_congr_ae AEEqFun.coeFn_zero, eLpNorm_zero]\n  add_mem' {f g} hf hg := by\n    simp [eLpNorm_congr_ae (AEEqFun.coeFn_add f g),\n      eLpNorm_add_lt_top ⟨f.aestronglyMeasurable, hf⟩ ⟨g.aestronglyMeasurable, hg⟩]\n  neg_mem' {f} hf := by rwa [Set.mem_ofPred_eq, eLpNorm_congr_ae (AEEqFun.coeFn_neg f), eLpNorm_neg]\n\n/-- `α →₁[μ] E` is the type of `L¹` or integrable functions from `α` to `E`. -/\nscoped notation:25 α' \" →₁[\" μ \"] \" E => MeasureTheory.Lp (α := α') E 1 μ\n/-- `α →₂[μ] E` is the type of `L²` or square-integrable functions from `α` to `E`. -/\nscoped notation:25 α' \" →₂[\" μ \"] \" E => MeasureTheory.Lp (α := α') E 2 μ\n\nnamespace MemLp\n\n/-- make an element of Lp from a function verifying `MemLp` -/\ndef toLp (f : α → E) (h_mem_ℒp : MemLp f p μ) : Lp E p μ :=\n  ⟨AEEqFun.mk f h_mem_ℒp.1, h_mem_ℒp.eLpNorm_mk_lt_top⟩\n\ntheorem toLp_val {f : α → E} (h : MemLp f p μ) : (toLp f h).1 = AEEqFun.mk f h.1 := rfl\n\ntheorem coeFn_toLp {f : α → E} (hf : MemLp f p μ) : hf.toLp f =ᵐ[μ] f :=\n  AEEqFun.coeFn_mk _ _\n\nset_option backward.isDefEq.respectTransparency.types false in\ntheorem toLp_congr {f g : α → E} (hf : MemLp f p μ) (hg : MemLp g p μ) (hfg : f =ᵐ[μ] g) :\n    hf.toLp f = hg.toLp g := by simp [toLp, hfg]\n\nset_option backward.isDefEq.respectTransparency.types false in\n@[simp]\ntheorem toLp_eq_toLp_iff {f g : α → E} (hf : MemLp f p μ) (hg : MemLp g p μ) :\n    hf.toLp f = hg.toLp g ↔ f =ᵐ[μ] g := by simp [toLp]",
+      "name": "Lp and MemLp.toLp",
+      "raw_sha256": "f1047ee229a4dc2669e1e8515ef1b65c8c04e142a642059addffae2abc18700f",
+      "semantics": "Lp is the finite-norm subgroup of a.e.-equality classes; toLp embeds the literal function with a MemLp proof."
+    },
+    {
+      "artifact": "Mathlib/MeasureTheory/Function/LpSpace/Basic.lean",
+      "first_line": 621,
+      "last_line": 637,
+      "lf_sha256": "c333a6caa56906c6203cad3e3214be2114a65728fcfdf95ae639992abefb373f",
+      "literal_source_excerpt": "variable (𝕜 : Type*) [NormedRing 𝕜] [Module 𝕜 E] [IsBoundedSMul 𝕜 E]\n\n/-- `MeasureTheory.Lp.compMeasurePreserving` as a linear map. -/\n@[simps]\ndef compMeasurePreservingₗ (f : α → β) (hf : MeasurePreserving f μ μb) :\n    Lp E p μb →ₗ[𝕜] Lp E p μ where\n  __ := compMeasurePreserving f hf\n  map_smul' c g := by rcases g with ⟨⟨_⟩, _⟩; rfl\n\n/-- `MeasureTheory.Lp.compMeasurePreserving` as a linear isometry. -/\n@[simps!]\ndef compMeasurePreservingₗᵢ [Fact (1 ≤ p)] (f : α → β) (hf : MeasurePreserving f μ μb) :\n    Lp E p μb →ₗᵢ[𝕜] Lp E p μ where\n  toLinearMap := compMeasurePreservingₗ 𝕜 f hf\n  norm_map' := (norm_compMeasurePreserving · hf)\n\nend Lp",
+      "name": "Lp.compMeasurePreserving linear isometry",
+      "raw_sha256": "f1047ee229a4dc2669e1e8515ef1b65c8c04e142a642059addffae2abc18700f",
+      "semantics": "Used only as a producer dependency. Composition with fst transports actual classes isometrically."
+    },
+    {
+      "artifact": "Mathlib/MeasureTheory/Function/L2Space.lean",
+      "first_line": 132,
+      "last_line": 139,
+      "lf_sha256": "7dd0542490f2841e8a91d2258a903d328383d7305915375d99d589fae40de399",
+      "literal_source_excerpt": "open scoped ComplexConjugate\n\ninstance : Inner 𝕜 (α →₂[μ] E) :=\n  ⟨fun f g => ∫ a, ⟪f a, g a⟫ ∂μ⟩\n\ntheorem inner_def (f g : α →₂[μ] E) : ⟪f, g⟫ = ∫ a : α, ⟪f a, g a⟫ ∂μ :=\n  rfl\n",
+      "name": "L2 inner product",
+      "raw_sha256": "b27eb9c9823a58a229a17f69860c5bcf3defb433c23ff3bab335f864676df3b5",
+      "semantics": "Hilbert inner product equals the integral of pointwise inner products of any representatives, with a.e. invariance."
+    },
+    {
+      "artifact": "Mathlib/MeasureTheory/Integral/Bochner/Basic.lean",
+      "first_line": 149,
+      "last_line": 160,
+      "lf_sha256": "f81a06eab17faccbc4b671a93e7af73332f5fd3946f7690e7c2a3cfee77d28c8",
+      "literal_source_excerpt": "\nvariable [NormedAddCommGroup E] [NormedDivisionRing 𝕜]\n  [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]\n  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]\n\nopen scoped Classical in\n/-- The Bochner integral -/\nirreducible_def integral {_ : MeasurableSpace α} (μ : Measure α) (f : α → G) : G :=\n  if _ : CompleteSpace G then\n    if hf : Integrable f μ then L1.integral (hf.toL1 f) else 0\n  else 0\n",
+      "name": "Bochner integral",
+      "raw_sha256": "38acb9930511f4fda15584cc7be30bb37d0d8ab0406a6cc2b32229c730440463",
+      "semantics": "Total definition has a fallback outside integrability/completeness. Every public scalar/feature integral here is proved integrable in a complete target."
+    },
+    {
+      "artifact": "Mathlib/Analysis/Calculus/Gradient/Basic.lean",
+      "first_line": 48,
+      "last_line": 83,
+      "lf_sha256": "89f93934750efd40fd2eb8e261b888be4566d34a293eda1436f43ff5500817a8",
+      "literal_source_excerpt": "\nnoncomputable section\n\nvariable {𝕜 F : Type*} [RCLike 𝕜]\nvariable [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]\nvariable {f : F → 𝕜} {f' x y : F}\n\n/-- A function `f` has the gradient `f'` as derivative along the filter `L` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` when `x'` converges along the filter `L`. -/\ndef HasGradientAtFilter (f : F → 𝕜) (f' x : F) (L : Filter F) :=\n  HasFDerivAtFilter f (toDual 𝕜 F f') (L ×ˢ pure x)\n\n/-- `f` has the gradient `f'` at the point `x` within the subset `s` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef HasGradientWithinAt (f : F → 𝕜) (f' : F) (s : Set F) (x : F) :=\n  HasGradientAtFilter f f' x (𝓝[s] x)\n\n/-- `f` has the gradient `f'` at the point `x` if\n  `f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef HasGradientAt (f : F → 𝕜) (f' x : F) :=\n  HasGradientAtFilter f f' x (𝓝 x)\n\n/-- Gradient of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.\n\nIf the derivative exists (i.e., `∃ f', HasGradientWithinAt f f' s x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x` inside `s`. -/\ndef gradientWithin (f : F → 𝕜) (s : Set F) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderivWithin 𝕜 f s x)\n\n/-- Gradient of `f` at the point `x`, if it exists.  Zero otherwise.\nDenoted as `∇` within the Gradient namespace.\n\nIf the derivative exists (i.e., `∃ f', HasGradientAt f f' x`), then\n`f x' = f x + ⟨f', x' - x⟩ + o (x' - x)` where `x'` converges to `x`. -/\ndef gradient (f : F → 𝕜) (x : F) : F :=\n  (toDual 𝕜 F).symm (fderiv 𝕜 f x)",
+      "name": "HasGradientAt and gradient",
+      "raw_sha256": "5511a0fa7fb4dd2c2b74e19fc7cd3cfabfe1774a7ae5e65c3972981eb4c1a78d",
+      "semantics": "Gradient is the Riesz inverse of fderiv; HasGradientAt is concluded at every ambient point, so no off-differentiability default is used."
+    },
+    {
+      "artifact": "Mathlib/Analysis/Calculus/FDeriv/Defs.lean",
+      "first_line": 107,
+      "last_line": 122,
+      "lf_sha256": "82628404673d0691bdfdfb757cce7308a628abcdff75f1909611efa44d105a9b",
+      "literal_source_excerpt": "@[mk_iff hasFDerivAtFilter_iff_isLittleOTVS]\nstructure HasFDerivAtFilter (f : E → F) (f' : E →L[𝕜] F) (L : Filter (E × E)) : Prop where\n  of_isLittleOTVS ::\n    isLittleOTVS : (fun p ↦ f p.1 - f p.2 - f' (p.1 - p.2)) =o[𝕜; L] (fun p ↦ p.1 - p.2)\n\n/-- A function `f` has the continuous linear map `f'` as derivative at `x` within a set `s` if\n`f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x` inside `s`. -/\n@[fun_prop]\ndef HasFDerivWithinAt (f : E → F) (f' : E →L[𝕜] F) (s : Set E) (x : E) :=\n  HasFDerivAtFilter f f' (𝓝[s] x ×ˢ pure x)\n\n/-- A function `f` has the continuous linear map `f'` as derivative at `x` if\n`f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x`. -/\n@[fun_prop]\ndef HasFDerivAt (f : E → F) (f' : E →L[𝕜] F) (x : E) :=\n  HasFDerivAtFilter f f' (𝓝 x ×ˢ pure x)",
+      "name": "HasFDerivAt",
+      "raw_sha256": "d3eef88863cfdb6c1169b957335ff87ff6e06116f45dae96ad0e220a2f5da0da",
+      "semantics": "Frechet differentiability at every ambient w with the displayed continuous real-linear derivative, in the norm topology."
+    },
+    {
+      "artifact": "Mathlib/Analysis/InnerProductSpace/Adjoint.lean",
+      "first_line": 110,
+      "last_line": 128,
+      "lf_sha256": "f28b5896638f712605265a69ffe4469f1f42e1b78b10ade0844738aeecd2b2a2",
+      "literal_source_excerpt": "\n/-- The adjoint of a bounded operator `A` from a Hilbert space `E` to another Hilbert space `F`,\n  denoted as `A†`. -/\n@[wikidata Q1509647]\ndef adjoint : (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] F →L[𝕜] E :=\n  LinearIsometryEquiv.ofSurjective { adjointAux with norm_map' := adjointAux_norm } fun A =>\n    ⟨adjointAux A, adjointAux_adjointAux A⟩\n\n@[inherit_doc]\nscoped[InnerProduct] postfix:1000 \"†\" => ContinuousLinearMap.adjoint\nopen InnerProduct\n\n/-- The fundamental property of the adjoint. -/\ntheorem adjoint_inner_left (A : E →L[𝕜] F) (x : E) (y : F) : ⟪(A†) y, x⟫ = ⟪y, A x⟫ :=\n  adjointAux_inner_left A x y\n\n/-- The fundamental property of the adjoint. -/\ntheorem adjoint_inner_right (A : E →L[𝕜] F) (x : E) (y : F) : ⟪x, (A†) y⟫ = ⟪A x, y⟫ :=\n  adjointAux_inner_right A x y",
+      "name": "ContinuousLinearMap.adjoint",
+      "raw_sha256": "cd08a35a983128b670cb963be36cca8df64c23e2b2ddbabb801a9424399967f5",
+      "semantics": "The Hilbert adjoint is characterized by inner(x,A* y)=inner(A x,y)."
+    },
+    {
+      "artifact": "Mathlib/Probability/Distributions/Gaussian/Multivariate.lean",
+      "first_line": 52,
+      "last_line": 73,
+      "lf_sha256": "1fec35cf781da1009c37db80a96b05d70f2296ca7768e19bfc0b6314c9b43d49",
+      "literal_source_excerpt": "\n/-! ### Standard Gaussian measure over a Euclidean space -/\n\nvariable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]\n  [MeasurableSpace E]\n\nvariable (E) in\n/-- Standard Gaussian distribution on a finite-dimensional real inner product space `E`.\nThis is the random vector whose coordinates in an orthonormal basis are independent standard\nGaussian.\n\nThe definition uses `stdOrthonormalBasis ℝ E` but does not actually depend on the\nbasis, see `stdGaussian_eq_map_pi_orthonormalBasis`. -/\nnoncomputable\ndef stdGaussian : Measure E :=\n  (Measure.pi (fun _ : Fin (Module.finrank ℝ E) ↦ gaussianReal 0 1)).map\n    (fun x ↦ ∑ i, x i • stdOrthonormalBasis ℝ E i)\n\nvariable [BorelSpace E]\n\ninstance isProbabilityMeasure_stdGaussian : IsProbabilityMeasure (stdGaussian E) :=\n  Measure.isProbabilityMeasure_map (Measurable.aemeasurable (by fun_prop))",
+      "name": "stdGaussian",
+      "raw_sha256": "bf27cc682e22025ede23f8bf9b2eec2bb6549867f8eb9465bace8f75ec50bd30",
+      "semantics": "Pushforward of independent standard scalar Gaussians along an orthonormal basis; actual covariance normalization."
+    }
+  ],
+  "mathlib_commit": "db584cd6d46c92f209a44c0f1c829460d327499d",
+  "measurable_spaces": [
+    "E carries the supplied Borel structure.",
+    "E x real uses its product structure.",
+    "S uses the subtype structure.",
+    "P is the measure in every Lp/label/derivative/residual class.",
+    "rho is only the sphere-parameter measure in predictor and Bochner mean."
+  ],
+  "representation_rules": [
+    "Equality in H means equality of P-a.e. classes.",
+    "MemLp witnesses are proofs, not independent feature functions.",
+    "D(w)v is tied to the literal pprime directional feature class.",
+    "No sphere-valued map or density representation is involved."
+  ],
+  "schema": "source-read-definition-closure-v1",
+  "status": "Exact current library source excerpts, not compiler prints; compiler-bound closure will be generated only after interface approval."
+}

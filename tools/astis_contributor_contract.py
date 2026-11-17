@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -107,7 +108,8 @@ def scope(base: str, items: list[dict]) -> tuple[set[str], set[str]]:
     return names, cells
 
 
-def validate_cell(name: str, cell: dict, lesson: dict | None = None) -> list[str]:
+def validate_cell(name: str, cell: dict, lesson: dict | None = None,
+                  *, canonical_owner: str | None = None) -> list[str]:
     errors = []
     label = f"{name} ({cell.get('cell_id', 'missing cell')})"
     reader = cell.get("reader_contract")
@@ -146,7 +148,7 @@ def validate_cell(name: str, cell: dict, lesson: dict | None = None) -> list[str
             if missing:
                 errors.append(f"{label}: proof parents missing from reuse_plan: {missing}")
         if cell.get("shared_floor_audit", {}).get("decision") == "new_canonical_shared" and new_shared is not None:
-            if name not in new_shared:
+            if (canonical_owner or name) not in new_shared:
                 errors.append(f"{label}: canonical shared target missing from new_shared_declarations")
             if len(set((known or []) + (planned or []))) < 2:
                 errors.append(f"{label}: new shared declaration needs at least two consumers")
@@ -200,8 +202,92 @@ def validate_targets(targets: set[str], items: list[dict], data: dict,
             name = cell.get("shared_floor_audit", {}).get("canonical_declaration") or cell_id
             errors += validate_cell(name, cell)
     for name in sorted(targets - seen):
-        errors.append(f"{name}: changed declaration/metadata lacks contributor-contract publication binding")
+        try:
+            cell, owner = associated_private_cell(name, items, data)
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            errors.append(f"{name}: {exc}")
+        else:
+            # Keep the private target in scope and check its actual lesson too.
+            # This does not add a public binding, graph node, or theorem credit.
+            errors += validate_cell(name, cell, data["lessons"].get(name, {}), canonical_owner=owner)
     return errors
+
+
+def associated_private_cell(name: str, items: list[dict], data: dict) -> tuple[dict, str]:
+    """Cover an explicitly associated private consumer with both fresh reviews.
+
+    A label alone cannot exempt a changed lesson. The unique public owner must
+    pass publication validation, and the explicit private registry must pass the
+    complete existing semantic contract against the exact current module/lesson.
+    """
+    associations = [(item, row) for item in items
+                    for row in item.get("associated_private_consumers", [])
+                    if row.get("declaration") == name]
+    if len(associations) != 1:
+        raise ValueError("changed declaration/metadata lacks unique contributor-contract publication binding or private association")
+    item, row = associations[0]
+    owner = row["owner_public_declaration"]
+    bindings = [b for i in items for b in i["bindings"] if b["declaration"] == owner]
+    if (len(bindings) != 1 or bindings[0] not in item["bindings"]
+            or row.get("separate_public_node") is not False
+            or any(b["declaration"] == name for i in items for b in i["bindings"])):
+        raise ValueError("private association must have one public owner and no public consumer binding")
+    binding = bindings[0]
+    cell = data["cells"][binding["cell"]]
+    locators = [r for r in cell.get("associated_private_consumer_audits", [])
+                if r.get("declaration") == name]
+    if len(locators) != 1 or locators[0].get("audit_id") != row.get("audit_id"):
+        raise ValueError("private association needs one explicit matching audit locator")
+    relative = Path(locators[0]["registry"])
+    path = ROOT / relative
+    if (relative.is_absolute() or ".." in relative.parts or path.is_symlink()
+            or not path.resolve().is_relative_to((ROOT / "research-wiki").resolve()) or not path.is_file()):
+        raise ValueError("private registry must be an explicit regular research-wiki file")
+    registry = publication.roundtrip.load_registry(path)
+    violations = publication.roundtrip.validate_registry(registry)
+    if violations:
+        raise ValueError("private semantic contract failed: " + "; ".join(violations))
+    audits = [a for a in registry["audits"] if a["id"] == row["audit_id"]]
+    if len(audits) != 1:
+        raise ValueError("private registry lacks unique associated audit")
+    audit = audits[0]
+    decl = data["declarations"][name]
+    lesson = data["lessons"].get(name)
+    if not lesson or decl.has_placeholder:
+        raise ValueError("private consumer needs an authored lesson and a declaration without placeholders")
+    for dependency in lesson.get("astis_dependencies", []) + lesson.get("helpers", []):
+        if dependency not in data["declarations"]:
+            raise ValueError(f"unknown lesson dependency {dependency}; use an exact declaration id, not explanatory prose")
+    clean = publication.astis_site.sanitize_lean(decl.source_text)
+    header = re.match(r"\s*(?:@\[[^\]]*\]\s*)*((?:(?:noncomputable|private|protected|local|unsafe)\s+)*)(theorem|lemma)\s+", clean)
+    if not header or "private" not in header.group(1).split():
+        raise ValueError("associated consumer must be an actual private theorem or lemma")
+    public_audit = data["audits"].get(binding.get("audit_id"), {})
+    if (public_audit.get("state") not in {"accepted", "source-reviewed"}
+            or public_audit.get("source_review", {}).get("state") != "accepted"
+            or publication.validate([item], data, strict_names={owner})):
+        raise ValueError("private association has no fresh accepted public owner review")
+    context = audit["publication_context"]
+    associated = context["associated_private_consumer"]
+    module = associated["whole_module"]
+    whole_review = audit["source_review"]["whole_module_review"]
+    module_text = (ROOT / decl.source_file).read_text(encoding="utf-8")
+    module_sha = publication.file_digest(decl.source_file)
+    if (audit.get("state") not in {"accepted", "source-reviewed"}
+            or audit["source_review"].get("state") != "accepted"
+            or audit["lean"]["declaration"] != name or audit["lean"]["file"] != decl.source_file
+            or associated.get("owner_public_declaration") != owner
+            or associated.get("separate_public_node") is not False
+            or module["file"] != decl.source_file or module["text"] != module_text or module["sha256"] != module_sha
+            or whole_review["file"] != decl.source_file or whole_review["sha256"] != module_sha
+            or whole_review.get("all_helpers_imports_scoped_context_reviewed") is not True
+            or whole_review.get("new_axiom_or_placeholder_found") is not False
+            or associated["lesson"] != data["lessons"].get(name)
+            or associated["lean_statement"] != audit["lean"]["statement"]
+            or context["binding"]["declaration"] != owner
+            or audit["publication_binding_sha256"] != publication.binding_digest(item, binding, data)):
+        raise ValueError("private association review is stale or does not match current code, lesson, owner and binding")
+    return cell, owner
 
 
 def validate(base: str | None) -> list[str]:

@@ -338,3 +338,26 @@ posterior laws, TV/approximate-oracle sampling, the \(2T\) hidden-block bridge,
 C.6/Lemma 4.4 and both complete main lower bounds remain open (0/2). Shared
 main/Registry/global graph and production-site integration, final purification
 and whole-Goal acceptance remain with the held stabilization work.
+
+## Independently verified batched oracle simulation — 2026-11-18
+
+A fixed batch of \(m>0\) primitive oracle calls can implement one exact
+oracle reply. The simulation preserves the returned state and optional result.
+It makes exactly \(m\) primitive calls for each direct oracle query and
+records every request and reply. Each label count is its multiplicity in one
+batch times the actual number of direct queries.
+
+For the Gaussian block family, the two concrete instances implement the
+first-order and gradient-only oracles using their own adaptive policies.
+Their checked conclusions include the readback law, exact total and per-block
+query counts, and expected query costs. [Paper appendix B.1](https://arxiv.org/html/2610.20492v1#A2.SS1)
+
+The exact Lean files come from mathematical commit `4801128001945b1657dada3a9a15f2bc7962c5a7`.
+An independent verifier checked the original eight-module native build,
+the source reviews and the isolated reader acceptance, then recorded the
+`VERIFIED` transition against metadata carrier `1cf0d1b71c8fe3a592192d173a73097ec6ce6c06`.
+The five ledger events for this result are appended in their original bytes.
+
+This review snapshot includes selected original receipts and their scope.
+The larger archive containers remain in local custody. Full repository
+integration, the posterior Haar law, and the two main lower bounds remain open.

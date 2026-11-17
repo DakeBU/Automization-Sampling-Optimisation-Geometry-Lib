@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "task": "blind-theorem-reconstruction",
+  "packet_id": "ASTIS-BLIND-93e74178e4ab4536",
+  "non_disclosure": {
+    "source_text_included": false,
+    "source_anchor_included": false,
+    "source_identity_included": false,
+    "audit_identity_included": false,
+    "lean_declaration_identity_included": false,
+    "forbidden_inputs": [
+      "original theorem text",
+      "source title, theorem number, or anchor",
+      "audit id or source-facing Lean declaration name",
+      "source semantic audit or fidelity verdict",
+      "repair proposal"
+    ]
+  },
+  "input_artifacts": [
+    "lean-statement",
+    "approved-definition-context"
+  ],
+  "lean": {
+    "statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {P : Type uP} {J : Type uJ} [DecidableEq J]\n    (m : ℕ) (hm : 0 < m) (blank : A)\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (primitive : P → A) (target : Q → B)\n    (plan : Q → Fin m → P) (decode : Q → (Fin m → A) → B)\n    (label : P → J) (slot : Fin m → J),\n    (∀ q, decode q (fun i => primitive (plan q i)) = target q) →\n    (∀ q i, label (plan q i) = slot i) →\n    ∀ (fuel : ℕ) (s : S),\n      let Micro := S × (Fin m → A) × Fin m × List (P × A)\n      let nextB : Micro → Sum X P := fun z =>\n        match next z.1 with\n        | .inl x => .inl x\n        | .inr q => .inr (plan q z.2.2.1)\n      let updateB : Micro → P → A → Micro := fun z p a =>\n        match next z.1 with\n        | .inl _ => z\n        | .inr q =>\n          let answers := Function.update z.2.1 z.2.2.1 a\n          let history := (p, a) :: z.2.2.2\n          if h : z.2.2.1.val + 1 < m then\n            (z.1, answers, ⟨z.2.2.1.val + 1, h⟩, history)\n          else\n            (update z.1 q (decode q answers), (fun _ => blank), ⟨0, hm⟩, history)\n      let batch := run nextB updateB primitive (m * fuel)\n        (s, (fun _ => blank), ⟨0, hm⟩, [])\n      let direct := run next update target fuel s\n      (((batch.1.1.1, batch.1.2), batch.2 / m) = direct) ∧\n      batch.2 = m * direct.2 ∧\n      direct.2 ≤ fuel ∧\n      (∀ j : J,\n        batch.1.1.2.2.2.countP (fun pa => decide (label pa.1 = j)) =\n          (List.ofFn slot).countP (fun v => decide (v = j)) * direct.2)\n",
+    "statement_sha256": "93e74178e4ab45361a3abb672e23fdb18072efbcff36d2e6f2237f64461cbf37",
+    "compiled": true,
+    "approved_definition_context": [
+      "def run {S Q A X : Type*} (next : S → Sum X Q) (update : S → Q → A → S)\n    (oracle : Q → A) : ℕ → S → (S × Option X) × ℕ\n  | fuel, s => match next s with\n    | .inl x => ((s, some x), 0)\n    | .inr q => match fuel with\n      | 0 => ((s, none), 0)\n      | n+1 =>\n        let answer := oracle q\n        let tail := run next update oracle n (update s q answer)\n        (tail.1, tail.2+1)",
+      "Products associate to the right. A value of type Sum X Q is either Sum.inl x or Sum.inr q. Option X has the constructors none and some. List.countP counts the entries satisfying its Boolean predicate; List.ofFn enumerates a function on Fin m; Function.update changes only the indicated coordinate."
+    ]
+  },
+  "output_contract": {
+    "reconstructed_theorem_text": "",
+    "reconstructed_text_sha256": "",
+    "objects": "",
+    "domains": "",
+    "quantifiers": "",
+    "assumptions": "",
+    "conclusion": "",
+    "scopes": "",
+    "constant_dependencies": "",
+    "decoder": "",
+    "decoder_run_sha256": "",
+    "source_text_visible": false
+  },
+  "packet_sha256": "26fce7046cc8759a4e0826bce2adf082e9d070aed599201b832c99083f086062"
+}

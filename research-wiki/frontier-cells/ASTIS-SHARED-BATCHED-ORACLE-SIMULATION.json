@@ -1,0 +1,670 @@
+{
+  "schema_version": 3,
+  "cell_id": "ASTIS-SHARED-BATCHED-ORACLE-SIMULATION",
+  "route": "shared",
+  "mode": "faithfulPaper",
+  "title": "Finite batched oracle simulation with actual trace and label costs",
+  "source_anchor": "arXiv2610.20492v1 A2.SS1.p1 strict 2T<n and A2.SS1.SSS0.Px1.p1 operational oracle-reduction/budget paragraph; S2 exact real FO/gradient/matvec and Borel conventions; S3.E4/E5; S3.SS1.p3.2 zero residual.",
+  "target_statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {P : Type uP} {J : Type uJ} [DecidableEq J]\n    (m : ℕ) (hm : 0 < m) (blank : A)\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (primitive : P → A) (target : Q → B)\n    (plan : Q → Fin m → P) (decode : Q → (Fin m → A) → B)\n    (label : P → J) (slot : Fin m → J),\n    (∀ q, decode q (fun i => primitive (plan q i)) = target q) →\n    (∀ q i, label (plan q i) = slot i) →\n    ∀ (fuel : ℕ) (s : S),\n      let Micro := S × (Fin m → A) × Fin m × List (P × A)\n      let nextB : Micro → Sum X P := fun z =>\n        match next z.1 with\n        | .inl x => .inl x\n        | .inr q => .inr (plan q z.2.2.1)\n      let updateB : Micro → P → A → Micro := fun z p a =>\n        match next z.1 with\n        | .inl _ => z\n        | .inr q =>\n          let answers := Function.update z.2.1 z.2.2.1 a\n          let history := (p, a) :: z.2.2.2\n          if h : z.2.2.1.val + 1 < m then\n            (z.1, answers, ⟨z.2.2.1.val + 1, h⟩, history)\n          else\n            (update z.1 q (decode q answers), (fun _ => blank), ⟨0, hm⟩, history)\n      let batch := run nextB updateB primitive (m * fuel)\n        (s, (fun _ => blank), ⟨0, hm⟩, [])\n      let direct := run next update target fuel s\n      (((batch.1.1.1, batch.1.2), batch.2 / m) = direct) ∧\n      batch.2 = m * direct.2 ∧\n      direct.2 ≤ fuel ∧\n      (∀ j : J,\n        batch.1.1.2.2.2.countP (fun pa => decide (label pa.1 = j)) =\n          (List.ofFn slot).countP (fun v => decide (v = j)) * direct.2)\n",
+  "private_consumer_statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d),\n    ∀ {κ : ℝ} (hκ : 4 ≤ κ),\n    letI : MeasurableSpace (EuclideanSpace ℝ (Fin d)) := borel _\n    letI : MeasurableSpace (EuclideanSpace ℝ (Fin n)) := borel _\n    letI : MeasurableSpace (Option (EuclideanSpace ℝ (Fin d))) :=\n      MeasurableSpace.comap\n        (fun x : Option (EuclideanSpace ℝ (Fin d)) =>\n          x.elim (Sum.inl () : Unit ⊕ EuclideanSpace ℝ (Fin d)) Sum.inr) inferInstance\n    ∀ {S : Type uS} {Ω : Type uΩ} [MeasurableSpace S] [MeasurableSpace Ω]\n      (μ : Measure Ω) [IsProbabilityMeasure μ]\n      (next : S → Sum (EuclideanSpace ℝ (Fin d)) (EuclideanSpace ℝ (Fin d)))\n      (updateFO : S → EuclideanSpace ℝ (Fin d) →\n        (ℝ × EuclideanSpace ℝ (Fin d)) → S)\n      (updateGrad : S → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) → S)\n      (initial : Ω → S),\n      Measurable next →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        (ℝ × EuclideanSpace ℝ (Fin d)) => updateFO p.1 p.2.1 p.2.2) →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        EuclideanSpace ℝ (Fin d) => updateGrad p.1 p.2.1 p.2.2) →\n      Measurable initial →\n      ∀ (fuel : ℕ), 2 * fuel < n →\n        let k := d / n\n        let m := k * 2\n        let zero : Fin m := ⟨0, Nat.mul_pos (Nat.div_pos hnd (by omega)) (by decide)⟩\n        let e : ((Fin n × Fin k) ⊕ Fin (d % n)) ≃ Fin d :=\n          ((Equiv.sumCongr\n            ((Equiv.prodComm (Fin n) (Fin k)).trans finProdFinEquiv)\n            (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n            (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n        let Ed := EuclideanSpace ℝ (Fin d)\n        let En := EuclideanSpace ℝ (Fin n)\n        let Primitive := Fin k × En × Bool\n        letI : MeasurableSpace (List (Primitive × En)) :=\n          MeasurableSpace.comap\n            (fun l : List (Primitive × En) =>\n              (⟨l.length, fun i : Fin l.length => l.get i⟩ :\n                Σ t : ℕ, Fin t → Primitive × En)) inferInstance\n        let Micro := S × (Fin m → En) × Fin m × List (Primitive × En)\n        let xb : Ed → Fin k → En := fun x j =>\n          WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n        let plan : Ed → Fin m → Primitive := fun x i =>\n          let ij : Fin k × Fin 2 := finProdFinEquiv.symm i\n          (ij.1, xb x ij.1, decide (ij.2.val = 1))\n        let reconstruct : Ed → (Fin m → En) → Ed := fun x replies =>\n          let gb : Fin k → En := fun j =>\n            ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n              (replies (finProdFinEquiv (j, (0 : Fin 2))) +\n                replies (finProdFinEquiv (j, (1 : Fin 2))))\n          WithLp.toLp 2 (fun a => Sum.elim\n            (fun ij => gb ij.2 ij.1)\n            (fun i => x (e (Sum.inr i))) (e.symm a))\n        let decodeFO : Ed → (Fin m → En) → ℝ × Ed := fun x replies =>\n          (inner ℝ x (reconstruct x replies) / 2, reconstruct x replies)\n        let nextB : Micro → Sum Ed Primitive := fun z =>\n          match next z.1 with\n          | .inl x => .inl x\n          | .inr x => .inr (plan x z.2.2.1)\n        let updateBFO : Micro → Primitive → En → Micro := fun z p a =>\n          match next z.1 with\n          | .inl _ => z\n          | .inr x =>\n            let answers := Function.update z.2.1 z.2.2.1 a\n            let history := (p, a) :: z.2.2.2\n            if h : z.2.2.1.val + 1 < m then\n              (z.1, answers, ⟨z.2.2.1.val + 1, h⟩, history)\n            else\n              (updateFO z.1 x (decodeFO x answers), (fun _ => 0), zero, history)\n        let updateBGrad : Micro → Primitive → En → Micro := fun z p a =>\n          match next z.1 with\n          | .inl _ => z\n          | .inr x =>\n            let answers := Function.update z.2.1 z.2.2.1 a\n            let history := (p, a) :: z.2.2.2\n            if h : z.2.2.1.val + 1 < m then\n              (z.1, answers, ⟨z.2.2.1.val + 1, h⟩, history)\n            else\n              (updateGrad z.1 x (reconstruct x answers), (fun _ => 0), zero, history)\n        let start : Ω → Micro := fun ω => (initial ω, (fun _ => 0), zero, [])\n        let readback : (Micro × Option Ed) × ℕ → (S × Option Ed) × ℕ := fun r =>\n          ((r.1.1.1, r.1.2), r.2 / m)\n        let blockCalls : Fin k → ((Micro × Option Ed) × ℕ) → ℕ := fun j r =>\n          r.1.1.2.2.2.countP (fun pa => decide (pa.1.1 = j))\n        ∀ (Os : Fin k → Matrix.orthogonalGroup (Fin n) ℝ),\n          let A := blockPrecision κ Os\n          let f : Ed → ℝ := fun x =>\n            (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n          let primitive : Primitive → En := fun p =>\n            WithLp.toLp 2 (if p.2.2 then\n              (Os p.1 : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp p.2.1\n            else (Os p.1 : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp p.2.1)\n          let fo : Ed → ℝ × Ed := fun x => (f x, gradient f x)\n          let grad : Ed → Ed := fun x => gradient f x\n          let directFO := fun ω => run next updateFO fo fuel (initial ω)\n          let batchFO := fun ω => run nextB updateBFO primitive (m * fuel) (start ω)\n          let directGrad := fun ω => run next updateGrad grad fuel (initial ω)\n          let batchGrad := fun ω => run nextB updateBGrad primitive (m * fuel) (start ω)\n          Measurable primitive ∧ Measurable nextB ∧\n          Measurable (fun p : Micro × Primitive × En => updateBFO p.1 p.2.1 p.2.2) ∧\n          Measurable (fun p : Micro × Primitive × En => updateBGrad p.1 p.2.1 p.2.2) ∧\n          Measurable start ∧\n          Measurable batchFO ∧ Measurable directFO ∧\n          (∀ ω, readback (batchFO ω) = directFO ω ∧\n            (batchFO ω).2 = m * (directFO ω).2 ∧\n            (directFO ω).2 ≤ fuel ∧\n            (batchFO ω).2 ≤ m * fuel ∧\n            ∀ j : Fin k, blockCalls j (batchFO ω) = 2 * (directFO ω).2 ∧\n              blockCalls j (batchFO ω) ≤ 2 * fuel ∧\n              blockCalls j (batchFO ω) < n) ∧\n          μ.map (fun ω => readback (batchFO ω)) = μ.map directFO ∧\n          IsProbabilityMeasure (μ.map directFO) ∧\n          Integrable (fun ω => ((directFO ω).2 : ℝ)) μ ∧\n          Integrable (fun ω => ((batchFO ω).2 : ℝ)) μ ∧\n          (∫ ω, ((batchFO ω).2 : ℝ) ∂μ) =\n            (m : ℝ) * (∫ ω, ((directFO ω).2 : ℝ) ∂μ) ∧\n          (∫ ω, ((batchFO ω).2 : ℝ) ∂μ) ≤ (m * fuel : ℕ) ∧\n          (∀ j : Fin k,\n            Integrable (fun ω => (blockCalls j (batchFO ω) : ℝ)) μ ∧\n            (∫ ω, (blockCalls j (batchFO ω) : ℝ) ∂μ) =\n              2 * (∫ ω, ((directFO ω).2 : ℝ) ∂μ) ∧\n            (∫ ω, (blockCalls j (batchFO ω) : ℝ) ∂μ) ≤ (2 * fuel : ℕ)) ∧\n          Measurable batchGrad ∧ Measurable directGrad ∧\n          (∀ ω, readback (batchGrad ω) = directGrad ω ∧\n            (batchGrad ω).2 = m * (directGrad ω).2 ∧\n            (directGrad ω).2 ≤ fuel ∧\n            (batchGrad ω).2 ≤ m * fuel ∧\n            ∀ j : Fin k, blockCalls j (batchGrad ω) = 2 * (directGrad ω).2 ∧\n              blockCalls j (batchGrad ω) ≤ 2 * fuel ∧\n              blockCalls j (batchGrad ω) < n) ∧\n          μ.map (fun ω => readback (batchGrad ω)) = μ.map directGrad ∧\n          IsProbabilityMeasure (μ.map directGrad) ∧\n          Integrable (fun ω => ((directGrad ω).2 : ℝ)) μ ∧\n          Integrable (fun ω => ((batchGrad ω).2 : ℝ)) μ ∧\n          (∫ ω, ((batchGrad ω).2 : ℝ) ∂μ) =\n            (m : ℝ) * (∫ ω, ((directGrad ω).2 : ℝ) ∂μ) ∧\n          (∫ ω, ((batchGrad ω).2 : ℝ) ∂μ) ≤ (m * fuel : ℕ) ∧\n          (∀ j : Fin k,\n            Integrable (fun ω => (blockCalls j (batchGrad ω) : ℝ)) μ ∧\n            (∫ ω, (blockCalls j (batchGrad ω) : ℝ) ∂μ) =\n              2 * (∫ ω, ((directGrad ω).2 : ℝ) ∂μ) ∧\n            (∫ ω, (blockCalls j (batchGrad ω) : ℝ) ∂μ) ≤ (2 * fuel : ℕ))\n",
+  "status": "independently_verified",
+  "owner_id": "huanjian_20261116_batched_oracle_simulation",
+  "advance_id": "ASTIS-SA-20261116-BatchedOracleSimulation",
+  "base_commit": "73d9cc4d25c5fa258412296126a190f754ba2f25",
+  "parents": [
+    "ASTIS-SHARED-counted-oracle-execution",
+    "ASTIS-SHARED-ADAPTIVE-ORACLE-SIMULATION",
+    "ASTIS-SW-GAUSSIAN-COMPLEXITY-first-order-query"
+  ],
+  "parent_scope": {
+    "public_P_literal_reused_definition": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+    "public_P_planned_ASTIS_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+    ],
+    "private_T_planned_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query"
+    ],
+    "private_T_only_existing_cells": [
+      "ASTIS-SHARED-ADAPTIVE-ORACLE-SIMULATION",
+      "ASTIS-SW-GAUSSIAN-COMPLEXITY-first-order-query"
+    ],
+    "actual_elaborated_value_dependencies": {
+      "native_report": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/independent-native-selected-originals/native-report.v1.json",
+        "bytes": 7129,
+        "sha256": "4ed960d94b0aa3f106147b85d9e0493ecbc6ddb52e0f9c93a39e6182da93fea9"
+      },
+      "inventory_original": "Independent native entire-changed-PT-inventory.json; exact selector/custody pending.",
+      "P_direct_project_definition": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+      ],
+      "T_direct_project_calls": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+      ],
+      "literal_T_matrix_definition": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision (owning module BlockFamily)",
+      "material_P_consumer_roles": "Generic local policy contains genuine P invocation and is instantiated separately as hFO and hGrad. No count from aliases/text scans is substituted for mathematical use; four independent audit-only T domain applications add no extra public theorem credit."
+    }
+  },
+  "consumers": [
+    "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs [actual material branch 1: actual FO program via block primitive batch; own updateFO policy]",
+    "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs [actual material branch 2: actual gradient-only program via block primitive batch; own updateGrad policy]"
+  ],
+  "consumer_scope": "Two distinct sealed own-policy private T branches, planned realistic material instances; neither compiled calls nor two new public nodes.",
+  "shared_floor_audit": {
+    "searched": [
+      "Samplinglib/ASTIS bounded R19 declaration-name/header floor only: .astis/semantic-neutral-20261116/gc_batch_oracle_namefloor_73bd/canonical-name-header-floor.v1.json SHA662217d384366c592d152aea21239042c1b0625c33b52cdb8d1daad34eb609f1, 21 headers and 6 selected frontier records; exact existing canonical run/R18 P/FirstOrderQuery context pins in current seal. No implementation/proof search or global absence claim.",
+      "Mathlib bounded name/header floor in that same inventory is a candidate substrate inventory only; no target-specific theorem route or target API has been accepted or counted as implemented."
+    ],
+    "classification": "adapt",
+    "decision": "new_canonical_shared",
+    "canonical_declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs",
+    "canonical_shared_cell": "ASTIS-SHARED-BATCHED-ORACLE-SIMULATION",
+    "status": "author plan only; no target proof/API search or global absence conclusion"
+  },
+  "reuse_plan": {
+    "searched_existing": [
+      "Samplinglib/ASTIS bounded R19 declaration-name/header floor only: .astis/semantic-neutral-20261116/gc_batch_oracle_namefloor_73bd/canonical-name-header-floor.v1.json SHA662217d384366c592d152aea21239042c1b0625c33b52cdb8d1daad34eb609f1, 21 headers and 6 selected frontier records; exact existing canonical run/R18 P/FirstOrderQuery context pins in current seal. No implementation/proof search or global absence claim.",
+      "Mathlib bounded name/header floor in that same inventory is a candidate substrate inventory only; no target-specific theorem route or target API has been accepted or counted as implemented.",
+      "ROOT after exact preproof admission used actual pinned Mathlib APIs: List.equivSigmaTuple, MeasurableSpace.measurableSet_iInf, MeasurableEmbedding.prodMap, measurable_comap_iff, measurable_pi_iff, MeasurableEquiv.prodSumDistrib, measurable_from_prod_countable_left/right, List.nodup_ofFn_ofInjective and card_eq_countP, integral_mono/integral_const_mul; canonical run/R18/FirstOrderQuery reused. No global absence claim."
+    ],
+    "planned_public_P_ASTIS_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+    ],
+    "planned_private_T_inputs": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query"
+    ],
+    "reused_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query"
+    ],
+    "new_shared_declarations": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs"
+    ],
+    "planned_consumers": [],
+    "known_compiled_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs [actual material branch 1: actual FO program via block primitive batch; own updateFO policy]",
+      "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs [actual material branch 2: actual gradient-only program via block primitive batch; own updateGrad policy]"
+    ],
+    "actual_value_dependencies": {
+      "native_report": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/independent-native-selected-originals/native-report.v1.json",
+        "bytes": 7129,
+        "sha256": "4ed960d94b0aa3f106147b85d9e0493ecbc6ddb52e0f9c93a39e6182da93fea9"
+      },
+      "inventory_original": "Independent native entire-changed-PT-inventory.json; exact selector/custody pending.",
+      "P_direct_project_definition": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+      ],
+      "T_direct_project_calls": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+        "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run"
+      ],
+      "literal_T_matrix_definition": "AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantFamily.blockPrecision (owning module BlockFamily)",
+      "material_P_consumer_roles": "Generic local policy contains genuine P invocation and is instantiated separately as hFO and hGrad. No count from aliases/text scans is substituted for mathematical use; four independent audit-only T domain applications add no extra public theorem credit."
+    },
+    "duplicate_interpreter": "No replacement of canonical run; exact literal Micro compiler is the sealed new finite-batch interface, not an already existing one-reply theorem restatement.",
+    "known_consumers": [
+      "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs [actual material branch 1: actual FO program via block primitive batch; own updateFO policy]",
+      "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs [actual material branch 2: actual gradient-only program via block primitive batch; own updateGrad policy]"
+    ],
+    "no_duplicate_wrapper": true,
+    "decision_reason": "P proves actual one-to-many interpreter refinement with scratch phase, full real query/reply history, source-state/tagged-output readback and exact total/label costs. It is distinct from R18 measurable one-to-one reply simulation; concrete T invokes both, proving internal true-gradient/decoder/callback/measurability and cost-law adapters for two own-policy instances.",
+    "associated_private_consumer_reuse_scope": {
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs": "Actual private T consumer dependency, not a self-dependency of public P or an extra public node",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost": "Actual private T consumer dependency, not a self-dependency of public P or an extra public node",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query": "Actual private T consumer dependency, not a self-dependency of public P or an extra public node"
+    }
+  },
+  "reader_contract": {
+    "chapter": "textbook/chapter-01/section-1-3.html",
+    "status": "Exact isolated current v5 reader independently ACCEPTED with no required reader residuals; actual2516checks0false, all72PNG/all98raw readiness/source/graph/touch independently reviewed. Canonical production/main integration and normal PL/V remain separate.",
+    "requirements": [
+      "Concise attributed exact statement and explicit Option none exhaustion/early halt",
+      "All assumptions and proof/code folds; complete adjacent P/T Lean and closed local source navigation",
+      "One public P node; associated private T branches do not become public theorem nodes",
+      "Actual isolated desktop/mobile formula/graph/source checks and independent reader acceptance complete for M480/B688/current v5; no main/production acceptance"
+    ],
+    "reference_standard": "textbook/chapter-01/section-1-3.html",
+    "source_ordered": true,
+    "source_statement_adjacent": true,
+    "natural_language_formula_proof": true,
+    "hidden_assumptions_visible": true,
+    "lean_collapsed": true,
+    "external_dependencies_visible": true
+  },
+  "graph_contribution": {
+    "lean_view": "new-node",
+    "overview_view": "no-change-with-reason",
+    "functor_view": "none-found",
+    "edge_semantics": "formal-solid; overlays-dashed",
+    "color_semantics": "evidence-status; library-scope",
+    "focus_targets": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs"
+    ],
+    "visual_review": "Independent actual isolated nine-node/thirteen-edge branch and full-ID detail/source-navigation desktop/mobile acceptance: reader-current-originals/actual-reader-acceptance.json5f157696…; this is not canonical global graph regeneration or main/site integration.",
+    "qualification": "One actual canonical public P node; actual private T uses P/R18/genuineFO. Module imports/declares remain solid structural edges; source-reference scans remain dashed, not theorem implication. Global graph/Registry/source index production unchanged."
+  },
+  "conceptual_mirror_audit": {
+    "status": "none-found",
+    "discovery_ids": [],
+    "evidence": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/reuse-and-conceptual-mirror-audit.root.v1.json",
+    "evidence_sha256": "e241cc9d630387dcfee89e60af0b6f245952ec3a099b65dd4324d1be3024f581",
+    "scope": "No NEW cross-domain bridge/discovery. Exact finite-batch refinement is a new canonical formal lemma node; its same compiled node has actual FO and gradient-only consumer applications. Already-recorded oracle-reduction and pointwise factorization mechanisms are retained by reference, with this bounded adapter and explicit exclusions. No second copy or false cross-route Lean implication."
+  },
+  "learning_contract": {
+    "control_plane_math_authority": false,
+    "process_memory_checked": true,
+    "process_memory_ids": [
+      "ASTIS-PM-QUADRATIC-TILT-MEASURE-ROLES",
+      "ASTIS-NK-GRADIENT-FLOW-ZERO-TIME",
+      "ASTIS-NK-GD-INVERSE-DOMAIN"
+    ],
+    "process_memory_scope": "Current three process-only entry identities inspected; no mathematical authority transferred.",
+    "failure_class": "NONE",
+    "salvage": {
+      "required": true,
+      "status": "completed",
+      "reason": "Unused history-shift helpers and redundant application/tactics audited before deletion; exact actual compiled predecessors preserved locally; no extra credit.",
+      "promoted_fragments": [],
+      "discarded_fragments": [],
+      "prior_non_schema_status_preserved": "recorded-local",
+      "original_audit_artifacts": [
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0002-history-prefix/executed-source.lean.txt",
+          "bytes": 4552,
+          "sha256": "8a30f5c0f77bb35fa4f8c56905b543adcf8d3781bcb4aee34b100206cffdcf73"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0002-history-prefix/receipt.json",
+          "bytes": 882,
+          "sha256": "ed3d34ede2b36f70f02d33bc31ea6f60e3f411cb3c7c18cbef8148b3a582b145"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0002-history-prefix/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0002-history-prefix/stdout.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0030-actual-run-extensional-refinement/executed-source.lean.txt",
+          "bytes": 35616,
+          "sha256": "7d3709b4198c86a1224ea1ec98625a5022fd1a8587766c3687419710e637c551"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0030-actual-run-extensional-refinement/receipt.json",
+          "bytes": 868,
+          "sha256": "9ef9d12b5a883cbc0524542db448c84266fc8268b9ecee328ec41176da21ee47"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0030-actual-run-extensional-refinement/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/0030-actual-run-extensional-refinement/stdout.raw",
+          "bytes": 3205,
+          "sha256": "8941c68b753a7cd15e94d8b841095026e032c05e569453ca33c5c8b36464937b"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/salvage-audit-redundant-local-callback.v1.json",
+          "bytes": 817,
+          "sha256": "4f01dd1d3b8ac5f8d1a99452ce092dbf47a1c397bddfc4aaa24da076737ee097"
+        },
+        {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/salvage-originals.v1/salvage-audit-unreachable-history-shift.v1.json",
+          "bytes": 1334,
+          "sha256": "00e80c4a897bc4079a92e15a5e2257fb646c2419d121f3da8b5265de26221a91"
+        }
+      ],
+      "scope": "Existing salvage audit completed; originals and historical actual source/streams carried byte-identically. These discarded unpromoted fragments have no current P/T consumer or new theorem credit; no fresh build or source review."
+    },
+    "parallelism": {
+      "decision": "serial",
+      "direction_fingerprints": [],
+      "expected_information_gain": "ROOT is the sole prover; independent source graph/topology roles address distinct preproof source uncertainty.",
+      "shared_verified_context_digest": ""
+    },
+    "cross_route_blind_spot_audit": {
+      "required": false,
+      "status": "not-applicable",
+      "evidence": "",
+      "canonical_route": "",
+      "selection_reason": "No competing target proof routes at prepare-only stage."
+    },
+    "reader_backpressure": {
+      "purification_status": "pending",
+      "exposition_seal_status": "pending",
+      "exposition_evidence": "",
+      "source_expansion_nodes": [],
+      "lean_expansion_nodes": [],
+      "assumptions_preserved": false,
+      "boundary_preserved": false
+    }
+  },
+  "source_detail_audit": {
+    "primary_edition": "arXiv2610.20492v1 pinned HTML SHA6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+    "primary_anchor": "arXiv2610.20492v1 A2.SS1.p1 strict 2T<n and A2.SS1.SSS0.Px1.p1 operational oracle-reduction/budget paragraph; S2 exact real FO/gradient/matvec and Borel conventions; S3.E4/E5; S3.SS1.p3.2 zero residual.",
+    "detail_status": "omitted",
+    "gap": "P is Level B author-derived generic positive finite-batch infrastructure, not a printed generic paper theorem. Sealed T formalizes the bounded operational reduction, not all B.1 indistinguishability or a universal representation theorem.",
+    "consulted": [
+      {
+        "source": "Existing canonical counted interpreter",
+        "anchor": "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle.run",
+        "hypothesis_adapter": "Reuse exact run definition; P decoder commutation and slot label invariance are its generic authored data contract, not additional T premises."
+      },
+      {
+        "source": "Existing R18 measurable single-reply law/cost interface",
+        "anchor": "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation.measurable_simulation_joint_law_and_cost",
+        "hypothesis_adapter": "Planned private T law/measurability/cost input only; not an extra public P assumption or claim of already implemented batch simulation."
+      },
+      {
+        "source": "Existing genuine block first-order producer",
+        "anchor": "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery.actual_first_order_query",
+        "hypothesis_adapter": "Planned private T internal genuine derivative/reply producer; gradient identity is not a caller-supplied premise."
+      }
+    ],
+    "fidelity_boundary": "Exact sealed pure positive finite-batch compiler reuses canonical run, retains actual reverse-chronological primitive request/reply history, and proves source-state/Option/macro-count readback and actual total/label costs. Private T has two own-policy FO and gradient-only material instances for every full orthogonal block family with 3≤n≤d, κ≥4 and 2*fuel<n, with same μ/program data before Os; genuine gradient, measurability, integrability and cost identities must be produced internally. No premise changes. No universal source-algorithm encoding, guaranteed successful sample or elimination of none, Q_G/class-uniform complexity equivalence, Haar/posterior/sign response law, padded Eq13 law, finite precision/noisy/TV guarantee, C6/L44/main lower bound, production/main integration, purification or Goal completion. Exact P/T are now locally proved, separately from type formation; independent implementation/source/native/reader acceptance is pending. Original SG v1 HOLD TC2-G1/G2 is preserved; exact SG v2 and independent TC Phase3 now admit unchanged P/T preproof work. No independent postproof acceptance, normal PL/V, main integration or completion credit is implied.",
+    "postproof_acceptance": {
+      "P": "Independently classified author-derived Level B, not printed generic source theorem.",
+      "T": "Bounded associated private operational/probability realization accepted equivalent-after-elaboration.",
+      "remaining": "Universal source-Alg/QG representation, non-exhaustion/successfulsample, Haar/posterior/paddedEq13/TV/precision/runtime/main lower bounds remain outside; visual/site integration and normalPL/V distinct."
+    }
+  },
+  "statement_seal": {
+    "file": "research-wiki/technical-lemmas/batched-oracle-simulation-statement-seal.json",
+    "sha256": "2bb44b0b12e5d04e032cbeae90defe3cf102733d749e784e66617dfb9a4ba3bc",
+    "planned_canonical_file": "research-wiki/technical-lemmas/batched-oracle-simulation-statement-seal.json",
+    "original_file": ".astis/huanjian-gc-batched-oracle-simulation-20261116/statement-seal.v1.json",
+    "original_sha256": "08c20608efdb73a5003b8c1abb3a0d416e748a159f8b0d1457239563703eac9f",
+    "binder_audit": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/sealed-originals/binder-definition-audit.sealed.v2.json",
+    "binder_audit_sha256": "fbfd12000d098cb17a1f2de50f6d6ad7557c991afbb4506581737b6599e861ce",
+    "signature_sha256": "93e74178e4ab45361a3abb672e23fdb18072efbcff36d2e6f2237f64461cbf37",
+    "private_consumer_signature_sha256": "5823e635825e637149a79a0a225f7db5a58c87b769008dff6018d2057f281066",
+    "status": "EXACT_STATEMENT_ADMITTED_AND_LOCALLY_PROVED_INDEPENDENT_ACCEPTANCE_PENDING",
+    "P_T_unchanged_from_v1": true
+  },
+  "preproof_admission": {
+    "status": "ADMITTED",
+    "source_graph": {
+      "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/source-graph-originals/source-graph.v2.json",
+      "bytes": 33396,
+      "sha256": "bd1c63914322c90c04b3003a969b9c13cd808bf70b7a1b9b75293e2d54bbe746"
+    },
+    "topology_review": {
+      "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/topology-originals/phase3/phase3.receipt.v1.json",
+      "bytes": 4036,
+      "sha256": "34235fcdf9bfe0ac5a004693ca857f55b673708e7a5baf1f88cd9e7dfc90ef0d"
+    },
+    "root_admission": {
+      "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/implementation-admission.v1.json",
+      "bytes": 2978,
+      "sha256": "d72efc3178fa54952c31cd45324c9b426ed0431d957d218eb9b5f3c95f18952d"
+    },
+    "known_predecessor_state": "Original SG v1 HOLD TC2-G1/G2 preserved; exact repaired SG v2 and independent TC Phase3 now admit only this unchanged P/T preproof boundary.",
+    "provenance_only_v2": {
+      "file": "statement-seal.v1.json",
+      "sha256": "08c20608efdb73a5003b8c1abb3a0d416e748a159f8b0d1457239563703eac9f",
+      "accepted_patch_sha256": "660564d310adc5f124b062e1e9535f6be6ae220f320d7cfa86906589c5ec1e47",
+      "independent_TC_patch_review_sha256": "400d001fdf34417b80180d9a13eccb61c7bebfa1f850419e23da9bd1c64713ef",
+      "P_T_statement_bytes_unchanged": true
+    },
+    "provenance_scope": "Accepted metadata clarifies n=2T+1 at T≥1 and 2T+1≤d (not n(d,κ)), plus exact zero-dimensional residual locator. Both P/T unchanged. No source lower-bound scale or full topology acceptance inferred."
+  },
+  "semantic_roundtrip": {
+    "required": true,
+    "audit_id": "huanjian-batched-oracle-simulation",
+    "state": "source-reviewed",
+    "private_consumer_audit_id": "huanjian-batched-oracle-simulation-private",
+    "original_independent_source_custody": {
+      "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/independent-source-review-custody.root.v1.json",
+      "sha256": "4f537db8d4368413764dccc423a4674ae550d7a2cc18d23d9bce9749ceb5e169"
+    }
+  },
+  "evidence": {
+    "focused_checks": [
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/public-P/receipt.json",
+        "sha256": "c6d8f72d0a9750c39584237d34da8e582d85d08ddcf19af902be94029fc99e41",
+        "bytes": 869
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/public-P/stdout.raw",
+        "sha256": "4f10ebc7d452c7726c7da3b48d67d1e9d3823fc5a44e19e74edbebe7f3c4b211",
+        "bytes": 139
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/public-P/stderr.raw",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/consumer-T/receipt.json",
+        "sha256": "fedbedafaf3bc3d2f11bf65feba13555951e68f6c0877be8297f22b479d50be4",
+        "bytes": 852
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/consumer-T/stdout.raw",
+        "sha256": "8880f6fdf339a93b10b8e17bfedd850d4aad371fef3cb8334cfb76bf2f8c1470",
+        "bytes": 122
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/consumer-T/stderr.raw",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/boundary-probes/receipt.json",
+        "sha256": "7286385f9a93eab65e4629183a5507e0245d68526ae64f9498c53789ce6a11b0",
+        "bytes": 882
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/boundary-probes/stdout.raw",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/boundary-probes/stderr.raw",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-compiled-originals/boundary-probes/executed-source.lean.txt",
+        "sha256": "d43701212d52cab8a84a74d406e239ab1489abb5545074ed2ccb8be759e10095",
+        "bytes": 1941
+      }
+    ],
+    "independent_verification": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/normal-VERIFIED.receipt.json",
+    "root_build": "Actual focused P module build0009 and final clean T module build0035; full root aggregate not yet asserted.",
+    "graph_regeneration": "",
+    "pr": "",
+    "type_only_formation": {
+      "phase": "EXACT_P_T_STATEMENT_FORMATION_ONLY_NO_TARGET_PROOF",
+      "utc_start": "2026-11-16T04:23:56.288783+00:00",
+      "exit_code": 0,
+      "source_sha256": "e1e3ffdb24a964c852caa996fccf271c6f3ca4efdbd9aabeef7a4bc60baee441",
+      "P_statement_sha256": "93e74178e4ab45361a3abb672e23fdb18072efbcff36d2e6f2237f64461cbf37",
+      "T_statement_sha256": "5823e635825e637149a79a0a225f7db5a58c87b769008dff6018d2057f281066",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "no_target_theorem_proof_or_implementation_API_search": true,
+      "scratch_Lean_probe_deleted": true
+    },
+    "normal_intake": {
+      "actual_exit_code": 0,
+      "normal_advance_calls": 3,
+      "Discovery_calls": 0,
+      "normal_PL": 0,
+      "normal_V": 0,
+      "receipt": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/normal-intake-originals/receipt.json",
+      "receipt_sha256": "9e3259aaa657ca592b55c7260ffde2290235564a1e03c2fcf31eb54ff9f340ff",
+      "exact_append_sha256": "a9d787d966a936b978a133c3dc3eb9fdd3a673d80572dd9aead9cd32607fac6e",
+      "all_postguards_passed": true
+    },
+    "target_proof": "The exact sealed P/T files compiled at 4801128001945b1657dada3a9a15f2bc7962c5a7. Independent native, source, isolated reader and normal verification evidence is recorded below.",
+    "native": {
+      "status": "PASS_BOUNDED_NATIVE_ONLY",
+      "math_commit": "4801128001945b1657dada3a9a15f2bc7962c5a7",
+      "report": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/independent-native-selected-originals/native-report.v1.json",
+        "bytes": 7129,
+        "sha256": "4ed960d94b0aa3f106147b85d9e0493ecbc6ddb52e0f9c93a39e6182da93fea9"
+      },
+      "scope": "8 fresh direct-native modules,51 P/T values,34806 logical types/32898 available values checked;unsafe0 partial0 in logical closure;3standardaxioms. Canonical compiler partial run._unsafe_rec value retained, not safe kernel-value checked. No aggregate Lake/source/reader/normalV authority.",
+      "selected_custody": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/independent-native-originals.selected.v1.tar.gz",
+        "sha256": "fc271fe333c72aad24b49606cdb88c0b9d9c6ad828b584e274f48fee6f6d8bec",
+        "logical_members": 424,
+        "raw_physical_headers": {
+          "regular": 424,
+          "PAX": 42
+        },
+        "critical_originals_portable_with_explicit_omissions": true,
+        "all442_originals_portable": false
+      }
+    },
+    "source_implementation_review": {
+      "status": "INDEPENDENT_EQUIVALENT_AFTER_ELABORATION_BOUNDED_P_AND_T",
+      "binding": "688fbe1886695fea1b119ee57e6c8ef7f1ff1508593847c71489675b6d9f86b8",
+      "original_custody": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/independent-source-review-custody.root.v1.json",
+        "sha256": "4f537db8d4368413764dccc423a4674ae550d7a2cc18d23d9bce9749ceb5e169"
+      },
+      "whole_module_helpers_and_five_math_spans": true,
+      "visual_or_normalV_authority": false
+    },
+    "reader_acceptance": {
+      "status": "INDEPENDENT_ACCEPT_ISOLATED_CURRENT_READER_ONLY",
+      "mathematical_commit": "4801128001945b1657dada3a9a15f2bc7962c5a7",
+      "binding": "688fbe1886695fea1b119ee57e6c8ef7f1ff1508593847c71489675b6d9f86b8",
+      "independent_original": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/reader-current-originals/actual-reader-acceptance.json",
+        "bytes": 371131,
+        "sha256": "5f157696475041ae7c61d997a6f61b81e717cb68b314322a1ba260310bbf25bf"
+      },
+      "actual_primary_result": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/reader-current-originals/actual-result.v5.json",
+        "bytes": 13961366,
+        "sha256": "0cb982f111cd0008a918de302c09c5e7f16e2b027ed093309e856823062b5357"
+      },
+      "checks": 2516,
+      "false_checks": 0,
+      "all72_actual_PNGs_individually_viewed": true,
+      "all98_lossless_raw_refs_and226_check_refs_independently_read_and_recomputed": true,
+      "required_reader_residuals": [],
+      "portable_original_archive": {
+        "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/reader-current-originals.selected.v5.tar.gz",
+        "sha256": "39befb9259c4a9327b0bc3b16a343e43088913ae9188a80176e87451d06a85ad",
+        "logical_regular_members": 353,
+        "physical_regular_headers": 353,
+        "physical_PAX_headers": 6,
+        "complete113_served_fixture_and_actual_runtime_selected": true,
+        "full121_generator_input_tree_portable": false
+      },
+      "prior_v3_and_earlier_failure_original": {
+        "status": "FAIL_HOLD_V3_ONLY_FONT_READINESS_V4B_UNEXECUTED",
+        "actual_primary_result_local_file": ".astis/huanjian-gc-batched-oracle-simulation-20261116/primary-reader-runtime-v3/actual-result.json",
+        "actual_primary_result_sha256": "a98d8253f61422f561d110af2a8e2d78368ed4b51cb25cca4876a0801fd0e4c6",
+        "primary_checks": 2418,
+        "false_checks": 2,
+        "actual_PNGs": 72,
+        "actual_readiness_traces": 98,
+        "independent_failure_review_sha256": "3555f55b2d8017ce1b42afbe40e7f3c66fd0e0c5d60512ca56a30895d6ceae32",
+        "independent_all72_views_and_raw_recomputation": true,
+        "failure_scope": "Only strict startup/fonts-complete at desktop graph-P trace40 and mobile trace89: actual fontsBefore loaded then fontsAfter loading. All old glyph/native/source/navigation/graph/touch checks true; no specified face/promise-epoch/recovery observed.",
+        "minimal_next_step": "Bounded font readiness waits with real loaded/promise identity samples and exact final fontsAfter predicate retained; original v4 preparation HOLD deadline branch repaired only in new v4b disabled draft. No v4 actual execution or acceptance yet.",
+        "independent_bounded_control_review_sha256": "132e1cea6e1857035e0c5b3d91add2dc8611398cd3fe7f4ff4966db9a721dabc",
+        "prior_v2_failure_original": {
+          "status": "FAIL_HOLD_V2_ACTUAL_ORIGINALS_PRESERVED_DIAGNOSTIC_PENDING",
+          "actual_primary_result_local_file": ".astis/huanjian-gc-batched-oracle-simulation-20261116/primary-reader-runtime-v2/actual-result.json",
+          "actual_primary_result_sha256": "fd058283dc5f228f97be650b9a486704334231713501477fe9e0a977c4e32b5d",
+          "primary_checks": 2290,
+          "false_checks": 27,
+          "actual_PNGs": 72,
+          "independent_review": "FAIL/HOLD: all72 screenshots actually viewed/hash-matched; all49 owners per viewport and234 current input/served pins inspected. No reader acceptance.",
+          "failure_scope": "All27 are added all-glyphs-inside-when-actual-span-fits-at-right; original six v1 failure names now pass. All start/restored/old strict last/vertical/font/native checks pass. Intrinsic excess scroll cause has not been isolated.",
+          "next_action": "New bounded startup-only versus one-extra-global-typeset DOM/CSS/49-owner diagnostic, not another same-shape full runtime or larger-padding guess. No diagnostic executed or result claimed.",
+          "prior_v1_failure_original": {
+            "status": "FAIL_HOLD_V1_ORIGINALS_PRESERVED_V2_UNEXECUTED",
+            "actual_primary_result_sha256": "750eb48b8aba823628a7cdab01e741c43ee3b7bf49c6c52d203bc95d77d94df7",
+            "primary_checks": 1504,
+            "false_checks": 6,
+            "actual_PNGs": 64,
+            "independent_all64_views": true,
+            "independent_failure_review_sha256": "799e0ebe4f773862acde4ca1f99821393ed733f31d71e2ffd36238a96c492aff",
+            "archive": {
+              "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/reader-failure-originals.selected.v1.tar.gz",
+              "sha256": "a0fff3c715c6a585138065cef91483a19cbf9615cd1b75f8ca1bcf7748bcb180",
+              "logical_members": 111
+            },
+            "cause": "Two broad descendant main-formula counters include nested assistive MathJax containers; four short complete m/N glyphs fail strict1px after local maxscroll2. All49owner beforestates/viewport are scroll0 and allvisibleglyphs initially fit1px; no negative-bearing-at-rest finding.",
+            "minimal_unexecuted_successor": "Direct-owner expected2 count with actual DOM probe; scoped border-box and .125em horizontal padding; same1px first/start/all-fit/last/end/nativeML checks and exact local scroll restoration. No source/math/binding change."
+          },
+          "normal_PL_V_or_mathematical_failure_credit": false,
+          "independent_failure_review_sha256": "7b39d6dd84b81530f7aef0e9458ad2420fa355580f58287594554aa13bb3b2d3",
+          "archive": {
+            "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/reader-failure-originals.selected.v2.tar.gz",
+            "sha256": "3896dcdacd5678690e0bb10c13760ccb616d38b40f8c84512a5bdb1cd489dd35",
+            "logical_members": 133,
+            "raw_regular_headers": 133,
+            "PAX_headers": 0,
+            "partial_portability_explicit": true
+          }
+        },
+        "reader_acceptance_or_normal_API_authority": false
+      },
+      "v4_failure_preserved": {
+        "primary_sha256": "7ba657685d46a0421204b4f20fee440118a70dd4946d3c728faefc1711f05b1e",
+        "independent_review_sha256": "882fb2a0ff41ae912e7f897037813cfdbeb3f3efb43fd10b160d756633a5a053",
+        "archive_file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/reader-failure-originals.selected.v4.tar.gz",
+        "archive_sha256": "74f5a7a3c32e8688972d45efef05f5bbea09ac24cef7efde132e95095c053390"
+      },
+      "diagnostic_full_PNG_capture_limit": "Four font-layout-control full-document original PNGs repeat top rows from16384 onward; preserved separately and excluded from full-document visual acceptance. Current72 selected reader PNGs have maxheight5201 and independent original inspection.",
+      "scope": "This exact isolated113-leaf reader only; emulated mobile, no physical-device/full-main/full-production-site/normalV/Goal authority."
+    },
+    "normal_PL": {
+      "normal_calls": 1,
+      "checked_metadata_commit": "1cf0d1b71c8fe3a592192d173a73097ec6ce6c06",
+      "originals": {
+        "actual-PROVED_LOCAL-append.exact.jsonl": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-normal-PL/actual-PROVED_LOCAL-append.exact.jsonl",
+          "bytes": 15794,
+          "sha256": "9cf7b83274450d4a5647e206fe1961969da3d75b745615f8a832f246005cb540"
+        },
+        "PROVED_LOCAL-evidence.full.original.json": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-normal-PL/PROVED_LOCAL-evidence.full.original.json",
+          "bytes": 18002,
+          "sha256": "00e0fb1e739c4e837cd6d59509c4a2dd38deedf91a85f871d81d3546bf77d93d"
+        },
+        "actual-normal-PL.outcome.json": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-normal-PL/actual-normal-PL.outcome.json",
+          "bytes": 904,
+          "sha256": "cf29ced2045c27b7f3fed37e24e9659b1fcdfdf30877dd0b09fceee81603bea0"
+        }
+      }
+    },
+    "normal_V": {
+      "state": "VERIFIED",
+      "actual_calls": 1,
+      "verifier_id": "huanjian_20261118_batched_oracle_independent_verifier",
+      "verified_source_carrier": "1cf0d1b71c8fe3a592192d173a73097ec6ce6c06",
+      "actual_math_build_identity": "4801128001945b1657dada3a9a15f2bc7962c5a7",
+      "originals": {
+        "actual-VERIFIED-append.exact.jsonl": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/actual-VERIFIED-append.exact.jsonl",
+          "bytes": 27973,
+          "sha256": "23bde6c4ba703c4709d6e8d03c6830a501f3e965fb0430fa5482ccca8bad587b"
+        },
+        "normal-VERIFIED.receipt.json": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/normal-VERIFIED.receipt.json",
+          "bytes": 1351,
+          "sha256": "85d61bd165516b330b77c5f417da8de07a3ded7b781332a3ba7cf23408069f15"
+        },
+        "normal-VERIFIED.stdout.raw": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/normal-VERIFIED.stdout.raw",
+          "bytes": 588,
+          "sha256": "00de4517e840c576c4fec21b4a0c859e18175be0e1edbb0b969a1c7f8866f3b2"
+        },
+        "normal-VERIFIED.stderr.raw": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/normal-VERIFIED.stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "original-audit.receipt.json": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/original-audit.receipt.json",
+          "bytes": 1245,
+          "sha256": "05f6df1e90e15be80eadc3c299352193e9619e9323b326a1e108a6f1df19343f"
+        },
+        "original-audit.stdout.raw": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/original-audit.stdout.raw",
+          "bytes": 585,
+          "sha256": "2f2a3303a0d6b0c454c4808b4473fa00261cddc9f515f8fbb7a6cc444c2d2cd6"
+        },
+        "original-audit.stderr.raw": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/original-audit.stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reviewed-publication.receipt.json": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/reviewed-publication.receipt.json",
+          "bytes": 1267,
+          "sha256": "7ca7e5bec1387bfa0a4b1e300e35ae18febdd73f83712deaf7c564ec4fb62f50"
+        },
+        "reviewed-publication.stdout.raw": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/reviewed-publication.stdout.raw",
+          "bytes": 86,
+          "sha256": "4d0bc242617f9c16c7207ada2c77bc8da756233e384104e3f17d442d93b37da4"
+        },
+        "reviewed-publication.stderr.raw": {
+          "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/actual-independent-V/reviewed-publication.stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "root_V": 0,
+    "current_normal_stage": "VERIFIED",
+    "local_mathematics_checkpoint": {
+      "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/local-mathematics-checkpoint.root.v1.json",
+      "sha256": "baf5b933d298032c3805173fdfaf149bceb9322a554cb9bde744cde30e360da8"
+    },
+    "latest_main_boundary": {
+      "file": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/latest-main-boundary.root.actual-v1.json",
+      "sha256": "d4a2f517d8ad9afae929d2470e75c46efcb88d087fdfdcb2648c579b3b882ec0",
+      "fetched_origin_main": "b6e72203c006f5a6a1a8ddaadef867b02f97d18c",
+      "foreign_held_owners_retained": true,
+      "no_cleanport_build_or_integration_claim": true
+    }
+  },
+  "purification": {
+    "status": "pending",
+    "exposition_seal": "pending"
+  },
+  "blocked": {
+    "reason": ""
+  },
+  "ownership_boundary": {
+    "held_main_owners": [
+      "ASTIS-SA-20261110-SlcLsiWeightedRadialMGF literal owner_id=/root; OTHERCHAT held",
+      "ASTIS-SA-20261109-StatOTGaussianMixtureWasserstein owner_id=root_statot_gaussian_mixture_wasserstein_20261109; integration_worker=root_statot_ex6_stabilization_20261109 held"
+    ],
+    "main_ref_oid": "6c5eee2b6867a383881518d6e4758a814a3887f3",
+    "release_or_takeover": false,
+    "foreign_queues": "All PBPS/SPHMC/other-chat/foreign frontier and A/D states preserved; global root imports/Tests.lean/Registry/sourceIndex/graphs/site unchanged."
+  },
+  "owned_future_scope": [
+    "AutoSamplingTheory/TechnicalLemmas/Analysis/BatchedOracleSimulation.lean",
+    "Tests/GaussianComplexityBatchedPrimitiveSimulation.lean",
+    "research-wiki/frontier-cells/ASTIS-SHARED-BATCHED-ORACLE-SIMULATION.json",
+    "research-wiki/technical-lemmas/batched-oracle-simulation-statement-seal.json",
+    "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/",
+    "website/content/declaration_lessons/huanjian-batched-oracle-simulation.json",
+    "website/content/publications/huanjian-batched-oracle-simulation.json",
+    "research-wiki/semantic-roundtrip/audits/huanjian-batched-oracle-simulation.json"
+  ],
+  "phase_snapshot": "The independent native, source fidelity, isolated reader, and normal proof verification gates passed for the exact sealed batch result. The posterior Haar law and lower-bound composition remain open.",
+  "registration_stage": "Normal independent VERIFIED for the sealed batch simulation and its two private concrete policy instances.",
+  "mathematical_source_commit": "4801128001945b1657dada3a9a15f2bc7962c5a7",
+  "associated_private_consumer_audits": [
+    {
+      "declaration": "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs",
+      "audit_id": "huanjian-batched-oracle-simulation-private",
+      "registry": "research-wiki/technical-lemmas/batched-oracle-simulation-semantic-evidence/private-consumer-audit.registry.draft.v1.json",
+      "scope": "Exact associated private consumer only; no public node or binding. Whole-module and semantic reviews remain original independent evidence."
+    }
+  ]
+}

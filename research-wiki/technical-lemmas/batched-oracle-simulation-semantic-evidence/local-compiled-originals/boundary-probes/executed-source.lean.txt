@@ -1,0 +1,34 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation
+open AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle
+namespace R19ActualBoundaryProbes
+private abbrev M := ℕ × (Fin 2 → ℕ) × Fin 2 × List (ℕ × ℕ)
+private def nextB (threshold : ℕ) (z : M) : Sum ℕ ℕ :=
+  if threshold ≤ z.1 then .inl z.1 else .inr (z.1 + z.2.2.1.val)
+private def updateB (threshold : ℕ) (z : M) (p a : ℕ) : M :=
+  if threshold ≤ z.1 then z else
+    let answers := Function.update z.2.1 z.2.2.1 a
+    let history := (p,a) :: z.2.2.2
+    if h : z.2.2.1.val+1<2 then
+      (z.1,answers,⟨z.2.2.1.val+1,h⟩,history)
+    else (answers 0 + answers 1,(fun _ => 0),0,history)
+private def start (s : ℕ) : M := (s,(fun _ => 0),0,[])
+-- Actual replies drive the terminal state. An available budget of six produces
+-- only two primitive interactions, including exact query/reply trace.
+example :
+    let r := run (nextB 3) (updateB 3) (fun q => q+1) 6 (start 0)
+    r.1.1.1=3 ∧ r.1.2=some 3 ∧ r.2=2 ∧ r.1.1.2.2.2=[(1,2),(0,1)] := by
+  norm_num [run,nextB,updateB,start,Function.update]
+-- Zero fuel distinguishes a pending query from an already halted program.
+example : (run (nextB 3) (updateB 3) (fun q => q+1) 0 (start 0)).1.2 = none ∧
+    (run (nextB 3) (updateB 3) (fun q => q+1) 0 (start 0)).2 = 0 := by
+  norm_num [run,nextB,start]
+example : (run (nextB 3) (updateB 3) (fun q => q+1) 0 (start 3)).1.2 = some 3 ∧
+    (run (nextB 3) (updateB 3) (fun q => q+1) 0 (start 3)).2 = 0 := by
+  norm_num [run,nextB,start]
+-- A complete batch at the final budget updates the source state, but preserves
+-- none when that state still requests another macro query.
+example :
+    let r := run (nextB 100) (updateB 100) (fun q => q+1) 2 (start 0)
+    r.1.1.1=3 ∧ r.1.2=none ∧ r.2=2 ∧ r.1.1.2.2.2=[(1,2),(0,1)] := by
+  norm_num [run,nextB,updateB,start,Function.update]
+end R19ActualBoundaryProbes

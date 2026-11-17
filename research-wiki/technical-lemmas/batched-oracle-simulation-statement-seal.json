@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "seal_version": "R19-BatchedOracleSimulation-P-T-v2-provenance-only",
+  "status": "STATEMENT_SEALED_AWAITING_INDEPENDENT_SOURCE_BINDER_TOPOLOGY_ADMISSION",
+  "utc": "2026-11-16T04:27:21.722814+00:00",
+  "source_version": "arxiv:2610.20492v1",
+  "source_file": ".astis/huanjian-resume-20261103/2610.20492v1.html",
+  "source_sha256": "6bc5ddc1e19cea9ba1dfe862fa79bc69fe861dff045d6ad1c7baa4a113c37915",
+  "source_anchors": [
+    "A2.SS1.p1 strict2T<n",
+    "A2.SS1.SSS0.Px1.p1 wholeOracle reduction paragraph including last operational budget sentence",
+    "S2 exact FO/gradient/matvec and Borel randomized algorithm conventions",
+    "S3.E4",
+    "S3.E5",
+    "S3.SS1.p3.2 zero-dimensional residual identity-block omission when kn=d"
+  ],
+  "P": {
+    "level": "B canonical infrastructure, authored exact nonempty finite-batch simulation contract; not printed generic theorem",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Analysis/BatchedOracleSimulation.lean",
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation.batch_simulation_with_trace_and_label_costs",
+    "statement": "∀ {S : Type uS} {Q : Type uQ} {A : Type uA} {B : Type uB}\n    {X : Type uX} {P : Type uP} {J : Type uJ} [DecidableEq J]\n    (m : ℕ) (hm : 0 < m) (blank : A)\n    (next : S → Sum X Q) (update : S → Q → B → S)\n    (primitive : P → A) (target : Q → B)\n    (plan : Q → Fin m → P) (decode : Q → (Fin m → A) → B)\n    (label : P → J) (slot : Fin m → J),\n    (∀ q, decode q (fun i => primitive (plan q i)) = target q) →\n    (∀ q i, label (plan q i) = slot i) →\n    ∀ (fuel : ℕ) (s : S),\n      let Micro := S × (Fin m → A) × Fin m × List (P × A)\n      let nextB : Micro → Sum X P := fun z =>\n        match next z.1 with\n        | .inl x => .inl x\n        | .inr q => .inr (plan q z.2.2.1)\n      let updateB : Micro → P → A → Micro := fun z p a =>\n        match next z.1 with\n        | .inl _ => z\n        | .inr q =>\n          let answers := Function.update z.2.1 z.2.2.1 a\n          let history := (p, a) :: z.2.2.2\n          if h : z.2.2.1.val + 1 < m then\n            (z.1, answers, ⟨z.2.2.1.val + 1, h⟩, history)\n          else\n            (update z.1 q (decode q answers), (fun _ => blank), ⟨0, hm⟩, history)\n      let batch := run nextB updateB primitive (m * fuel)\n        (s, (fun _ => blank), ⟨0, hm⟩, [])\n      let direct := run next update target fuel s\n      (((batch.1.1.1, batch.1.2), batch.2 / m) = direct) ∧\n      batch.2 = m * direct.2 ∧\n      direct.2 ≤ fuel ∧\n      (∀ j : J,\n        batch.1.1.2.2.2.countP (fun pa => decide (label pa.1 = j)) =\n          (List.ofFn slot).countP (fun v => decide (v = j)) * direct.2)\n",
+    "statement_sha256": "93e74178e4ab45361a3abb672e23fdb18072efbcff36d2e6f2237f64461cbf37",
+    "imports": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularizationOracle"
+    ]
+  },
+  "T": {
+    "level": "private genuine source consumer, two distinct FO and gradient-only programs, two material P instantiations; no extra public node",
+    "file": "Tests/GaussianComplexityBatchedPrimitiveSimulation.lean",
+    "declaration": "AutoSamplingTheory.Tests.GaussianComplexityBatchedPrimitiveSimulation.actual_block_first_order_primitive_simulation_laws_and_costs",
+    "statement": "∀ {d n : ℕ} (hn : 3 ≤ n) (hnd : n ≤ d),\n    ∀ {κ : ℝ} (hκ : 4 ≤ κ),\n    letI : MeasurableSpace (EuclideanSpace ℝ (Fin d)) := borel _\n    letI : MeasurableSpace (EuclideanSpace ℝ (Fin n)) := borel _\n    letI : MeasurableSpace (Option (EuclideanSpace ℝ (Fin d))) :=\n      MeasurableSpace.comap\n        (fun x : Option (EuclideanSpace ℝ (Fin d)) =>\n          x.elim (Sum.inl () : Unit ⊕ EuclideanSpace ℝ (Fin d)) Sum.inr) inferInstance\n    ∀ {S : Type uS} {Ω : Type uΩ} [MeasurableSpace S] [MeasurableSpace Ω]\n      (μ : Measure Ω) [IsProbabilityMeasure μ]\n      (next : S → Sum (EuclideanSpace ℝ (Fin d)) (EuclideanSpace ℝ (Fin d)))\n      (updateFO : S → EuclideanSpace ℝ (Fin d) →\n        (ℝ × EuclideanSpace ℝ (Fin d)) → S)\n      (updateGrad : S → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) → S)\n      (initial : Ω → S),\n      Measurable next →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        (ℝ × EuclideanSpace ℝ (Fin d)) => updateFO p.1 p.2.1 p.2.2) →\n      Measurable (fun p : S × EuclideanSpace ℝ (Fin d) ×\n        EuclideanSpace ℝ (Fin d) => updateGrad p.1 p.2.1 p.2.2) →\n      Measurable initial →\n      ∀ (fuel : ℕ), 2 * fuel < n →\n        let k := d / n\n        let m := k * 2\n        let zero : Fin m := ⟨0, Nat.mul_pos (Nat.div_pos hnd (by omega)) (by decide)⟩\n        let e : ((Fin n × Fin k) ⊕ Fin (d % n)) ≃ Fin d :=\n          ((Equiv.sumCongr\n            ((Equiv.prodComm (Fin n) (Fin k)).trans finProdFinEquiv)\n            (Equiv.refl (Fin (d % n)))).trans finSumFinEquiv).trans\n            (finCongr (by simpa [Nat.mul_comm] using Nat.div_add_mod d n))\n        let Ed := EuclideanSpace ℝ (Fin d)\n        let En := EuclideanSpace ℝ (Fin n)\n        let Primitive := Fin k × En × Bool\n        letI : MeasurableSpace (List (Primitive × En)) :=\n          MeasurableSpace.comap\n            (fun l : List (Primitive × En) =>\n              (⟨l.length, fun i : Fin l.length => l.get i⟩ :\n                Σ t : ℕ, Fin t → Primitive × En)) inferInstance\n        let Micro := S × (Fin m → En) × Fin m × List (Primitive × En)\n        let xb : Ed → Fin k → En := fun x j =>\n          WithLp.toLp 2 (fun i => x (e (Sum.inl (i, j))))\n        let plan : Ed → Fin m → Primitive := fun x i =>\n          let ij : Fin k × Fin 2 := finProdFinEquiv.symm i\n          (ij.1, xb x ij.1, decide (ij.2.val = 1))\n        let reconstruct : Ed → (Fin m → En) → Ed := fun x replies =>\n          let gb : Fin k → En := fun j =>\n            ((κ + 1) / 2) • xb x j - ((κ - 1) / 4) •\n              (replies (finProdFinEquiv (j, (0 : Fin 2))) +\n                replies (finProdFinEquiv (j, (1 : Fin 2))))\n          WithLp.toLp 2 (fun a => Sum.elim\n            (fun ij => gb ij.2 ij.1)\n            (fun i => x (e (Sum.inr i))) (e.symm a))\n        let decodeFO : Ed → (Fin m → En) → ℝ × Ed := fun x replies =>\n          (inner ℝ x (reconstruct x replies) / 2, reconstruct x replies)\n        let nextB : Micro → Sum Ed Primitive := fun z =>\n          match next z.1 with\n          | .inl x => .inl x\n          | .inr x => .inr (plan x z.2.2.1)\n        let updateBFO : Micro → Primitive → En → Micro := fun z p a =>\n          match next z.1 with\n          | .inl _ => z\n          | .inr x =>\n            let answers := Function.update z.2.1 z.2.2.1 a\n            let history := (p, a) :: z.2.2.2\n            if h : z.2.2.1.val + 1 < m then\n              (z.1, answers, ⟨z.2.2.1.val + 1, h⟩, history)\n            else\n              (updateFO z.1 x (decodeFO x answers), (fun _ => 0), zero, history)\n        let updateBGrad : Micro → Primitive → En → Micro := fun z p a =>\n          match next z.1 with\n          | .inl _ => z\n          | .inr x =>\n            let answers := Function.update z.2.1 z.2.2.1 a\n            let history := (p, a) :: z.2.2.2\n            if h : z.2.2.1.val + 1 < m then\n              (z.1, answers, ⟨z.2.2.1.val + 1, h⟩, history)\n            else\n              (updateGrad z.1 x (reconstruct x answers), (fun _ => 0), zero, history)\n        let start : Ω → Micro := fun ω => (initial ω, (fun _ => 0), zero, [])\n        let readback : (Micro × Option Ed) × ℕ → (S × Option Ed) × ℕ := fun r =>\n          ((r.1.1.1, r.1.2), r.2 / m)\n        let blockCalls : Fin k → ((Micro × Option Ed) × ℕ) → ℕ := fun j r =>\n          r.1.1.2.2.2.countP (fun pa => decide (pa.1.1 = j))\n        ∀ (Os : Fin k → Matrix.orthogonalGroup (Fin n) ℝ),\n          let A := blockPrecision κ Os\n          let f : Ed → ℝ := fun x =>\n            (WithLp.ofLp x) ⬝ᵥ (A *ᵥ WithLp.ofLp x) / 2\n          let primitive : Primitive → En := fun p =>\n            WithLp.toLp 2 (if p.2.2 then\n              (Os p.1 : Matrix (Fin n) (Fin n) ℝ).transpose *ᵥ WithLp.ofLp p.2.1\n            else (Os p.1 : Matrix (Fin n) (Fin n) ℝ) *ᵥ WithLp.ofLp p.2.1)\n          let fo : Ed → ℝ × Ed := fun x => (f x, gradient f x)\n          let grad : Ed → Ed := fun x => gradient f x\n          let directFO := fun ω => run next updateFO fo fuel (initial ω)\n          let batchFO := fun ω => run nextB updateBFO primitive (m * fuel) (start ω)\n          let directGrad := fun ω => run next updateGrad grad fuel (initial ω)\n          let batchGrad := fun ω => run nextB updateBGrad primitive (m * fuel) (start ω)\n          Measurable primitive ∧ Measurable nextB ∧\n          Measurable (fun p : Micro × Primitive × En => updateBFO p.1 p.2.1 p.2.2) ∧\n          Measurable (fun p : Micro × Primitive × En => updateBGrad p.1 p.2.1 p.2.2) ∧\n          Measurable start ∧\n          Measurable batchFO ∧ Measurable directFO ∧\n          (∀ ω, readback (batchFO ω) = directFO ω ∧\n            (batchFO ω).2 = m * (directFO ω).2 ∧\n            (directFO ω).2 ≤ fuel ∧\n            (batchFO ω).2 ≤ m * fuel ∧\n            ∀ j : Fin k, blockCalls j (batchFO ω) = 2 * (directFO ω).2 ∧\n              blockCalls j (batchFO ω) ≤ 2 * fuel ∧\n              blockCalls j (batchFO ω) < n) ∧\n          μ.map (fun ω => readback (batchFO ω)) = μ.map directFO ∧\n          IsProbabilityMeasure (μ.map directFO) ∧\n          Integrable (fun ω => ((directFO ω).2 : ℝ)) μ ∧\n          Integrable (fun ω => ((batchFO ω).2 : ℝ)) μ ∧\n          (∫ ω, ((batchFO ω).2 : ℝ) ∂μ) =\n            (m : ℝ) * (∫ ω, ((directFO ω).2 : ℝ) ∂μ) ∧\n          (∫ ω, ((batchFO ω).2 : ℝ) ∂μ) ≤ (m * fuel : ℕ) ∧\n          (∀ j : Fin k,\n            Integrable (fun ω => (blockCalls j (batchFO ω) : ℝ)) μ ∧\n            (∫ ω, (blockCalls j (batchFO ω) : ℝ) ∂μ) =\n              2 * (∫ ω, ((directFO ω).2 : ℝ) ∂μ) ∧\n            (∫ ω, (blockCalls j (batchFO ω) : ℝ) ∂μ) ≤ (2 * fuel : ℕ)) ∧\n          Measurable batchGrad ∧ Measurable directGrad ∧\n          (∀ ω, readback (batchGrad ω) = directGrad ω ∧\n            (batchGrad ω).2 = m * (directGrad ω).2 ∧\n            (directGrad ω).2 ≤ fuel ∧\n            (batchGrad ω).2 ≤ m * fuel ∧\n            ∀ j : Fin k, blockCalls j (batchGrad ω) = 2 * (directGrad ω).2 ∧\n              blockCalls j (batchGrad ω) ≤ 2 * fuel ∧\n              blockCalls j (batchGrad ω) < n) ∧\n          μ.map (fun ω => readback (batchGrad ω)) = μ.map directGrad ∧\n          IsProbabilityMeasure (μ.map directGrad) ∧\n          Integrable (fun ω => ((directGrad ω).2 : ℝ)) μ ∧\n          Integrable (fun ω => ((batchGrad ω).2 : ℝ)) μ ∧\n          (∫ ω, ((batchGrad ω).2 : ℝ) ∂μ) =\n            (m : ℝ) * (∫ ω, ((directGrad ω).2 : ℝ) ∂μ) ∧\n          (∫ ω, ((batchGrad ω).2 : ℝ) ∂μ) ≤ (m * fuel : ℕ) ∧\n          (∀ j : Fin k,\n            Integrable (fun ω => (blockCalls j (batchGrad ω) : ℝ)) μ ∧\n            (∫ ω, (blockCalls j (batchGrad ω) : ℝ) ∂μ) =\n              2 * (∫ ω, ((directGrad ω).2 : ℝ) ∂μ) ∧\n            (∫ ω, (blockCalls j (batchGrad ω) : ℝ) ∂μ) ≤ (2 * fuel : ℕ))\n",
+    "statement_sha256": "5823e635825e637149a79a0a225f7db5a58c87b769008dff6018d2057f281066",
+    "imports": [
+      "AutoSamplingTheory.TechnicalLemmas.Analysis.BatchedOracleSimulation",
+      "AutoSamplingTheory.TechnicalLemmas.Probability.AdaptiveOracleSimulation",
+      "AutoSamplingTheory.ExampleCases.GaussianComplexity.FirstOrderQuery"
+    ]
+  },
+  "binder_definition_audit": {
+    "file": "binder-definition-audit.sealed.v2.json",
+    "sha256": "fbfd12000d098cb17a1f2de50f6d6ad7557c991afbb4506581737b6599e861ce"
+  },
+  "critical_existing_context_exact_whole_file_pins_not_implementation_topology": {
+    "AutoSamplingTheory/TechnicalLemmas/Analysis/QuadraticRegularizationOracle.lean": {
+      "bytes": 3033,
+      "sha256": "90f4fd2b792fe585b1e8a2c7adfac2295cb20f8fc9a46f46db27e43238eaa729"
+    },
+    "AutoSamplingTheory/TechnicalLemmas/Probability/AdaptiveOracleSimulation.lean": {
+      "bytes": 8853,
+      "sha256": "9c0f0c9134aa4360f8bc8384d73f311826224dbe056adb56658d4c393cd33e25"
+    },
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/FirstOrderQuery.lean": {
+      "bytes": 7679,
+      "sha256": "6311ee7bafc04e6cd84925fbfd48533f44a4b8d4a963a5c2211f363e5c99b3b0"
+    },
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/BlockFamily.lean": {
+      "bytes": 5703,
+      "sha256": "79661674e9b934d948242c80b1f1a0bb7b71c1b87c5293dc8468a3457ae7d2df"
+    },
+    "AutoSamplingTheory/ExampleCases/GaussianComplexity/DeterminantFamily.lean": {
+      "bytes": 3891,
+      "sha256": "10ea9afafdee6f10a92e95d8e1570f56f7037c9362c06037c2c6523c58b78dd4"
+    },
+    "lean-toolchain": {
+      "bytes": 25,
+      "sha256": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b"
+    },
+    "lake-manifest.json": {
+      "bytes": 3138,
+      "sha256": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37"
+    },
+    "lakefile.lean": {
+      "bytes": 243,
+      "sha256": "1757b85b37f0a68972791443e3a8da33fd97ede414732fabb8e7d747b070c51c"
+    }
+  },
+  "formation_only": {
+    "phase": "EXACT_P_T_STATEMENT_FORMATION_ONLY_NO_TARGET_PROOF",
+    "utc_start": "2026-11-16T04:23:56.288783+00:00",
+    "exit_code": 0,
+    "source_sha256": "e1e3ffdb24a964c852caa996fccf271c6f3ca4efdbd9aabeef7a4bc60baee441",
+    "P_statement_sha256": "93e74178e4ab45361a3abb672e23fdb18072efbcff36d2e6f2237f64461cbf37",
+    "T_statement_sha256": "5823e635825e637149a79a0a225f7db5a58c87b769008dff6018d2057f281066",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "no_target_theorem_proof_or_implementation_API_search": true,
+    "scratch_Lean_probe_deleted": true
+  },
+  "ownership_and_normal_intake": "not yet claimed/intaken; independent currentenvironment/remoteownership receipt pending, preserve other ASTIS/PBPS/SPHMC lanes",
+  "source_topology": "independent source-only SG and distinct TC must admit exactsource/binder/coverage/consumer before any newtarget implementation/API/proof search",
+  "proof": false,
+  "normal_API_calls": 0,
+  "new_goal": false,
+  "truth_boundary": [
+    "universal source-algorithm representation",
+    "always successful halting or sample law eliminating none",
+    "class-uniformQ_G complexity equality",
+    "random Os/Haar/component/posterior/sign-independent response laws",
+    "padded transcript law Eq13",
+    "finite precision/noisy oracle/TV sampling accuracy",
+    "C6/L44/either main lower bound",
+    "main/globalsite integration/purification/wholeGoal"
+  ],
+  "provenance_predecessor": {
+    "file": "statement-seal.v1.json",
+    "sha256": "08c20608efdb73a5003b8c1abb3a0d416e748a159f8b0d1457239563703eac9f",
+    "accepted_patch_sha256": "660564d310adc5f124b062e1e9535f6be6ae220f320d7cfa86906589c5ec1e47",
+    "independent_TC_patch_review_sha256": "400d001fdf34417b80180d9a13eccb61c7bebfa1f850419e23da9bd1c64713ef",
+    "P_T_statement_bytes_unchanged": true
+  }
+}

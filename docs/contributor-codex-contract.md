@@ -60,6 +60,17 @@ For a source-facing theorem, use the canonical semantic round trip:
 
 The formalizer, blind decoder, and source reviewer must be distinct actors. Source repairs never silently mutate `faithfulPaper`.
 
+An authored lesson for an associated private consumer remains a changed target.
+It may inherit its unique public owner's Frontier Cell without gaining a public
+binding or graph node only when the publication explicitly lists that association
+and the cell supplies an `associated_private_consumer_audits` locator with the
+same declaration and audit id. The contributor gate validates the complete
+explicit semantic registry, the fresh public owner review, the actual private
+declaration, and the exact reviewed current consumer module and lesson against
+the same publication binding. The consumer's own lesson, dependencies and reader
+contract are still checked; the existing public owner remains the canonical
+shared declaration. Missing, ambiguous or stale evidence fails closed.
+
 ## 4. Four mathematical graph views, plus Overview navigation
 
 Every source-facing Anchor follows the four-view proof-digestion stack from `docs/proof-digestion-protocol.md` and the evidence-routed learning contract from `docs/evidence-routed-memory-protocol.md`; the existing `graph_contribution` Frontier-Cell fields remain the machine-readable integration contract during schema migration.

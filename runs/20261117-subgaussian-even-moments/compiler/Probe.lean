@@ -1,0 +1,9 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.SubgaussianEvenMoments
+set_option pp.deepTerms true
+set_option pp.proofs true
+set_option pp.universes true
+set_option format.width 120
+#check @AutoSamplingTheory.TechnicalLemmas.Probability.SubgaussianEvenMoments.integrable_even_moment_le_of_hasSubgaussianMGF
+#print ProbabilityTheory.HasSubgaussianMGF
+#print ProbabilityTheory.mgf
+#print axioms AutoSamplingTheory.TechnicalLemmas.Probability.SubgaussianEvenMoments.integrable_even_moment_le_of_hasSubgaussianMGF

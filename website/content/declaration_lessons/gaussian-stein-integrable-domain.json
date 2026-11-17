@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianIntegrationByParts.lean",
+      "source_line": 71,
+      "short_name": "standard_gaussian_stein_of_integrable_fderiv",
+      "title": "Gaussian integration by parts on its integrable domain",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product space with its Borel structure, and let \\(\\gamma=\\operatorname{stdGaussian}(E)\\). Fix a function \\(f:E\\to\\mathbb R\\) that is Fréchet differentiable everywhere and any direction \\(v\\in E\\). Assume that each of \\(f\\), \\(x\\mapsto\\langle x,v\\rangle f(x)\\), and \\(x\\mapsto Df(x)[v]\\) is absolutely integrable under \\(\\gamma\\). Then the weighted value and the directional derivative have the same Gaussian integral. No positive-dimension or unit-direction restriction is imposed.",
+      "formula": "\\int_E\\langle x,v\\rangle f(x)\\,d\\gamma(x)=\\int_E Df(x)[v]\\,d\\gamma(x).",
+      "assumptions": [
+        "\\(E\\) is a real inner-product normed space of finite dimension, with its Borel measurable structure. Its completeness is derived.",
+        "\\(\\gamma\\) is the actual centered Gaussian probability with identity covariance on \\(E\\).",
+        "\\(f:E\\to\\mathbb R\\) is Fréchet differentiable at every point, and \\(v\\in E\\) is arbitrary, including zero.",
+        "\\(\\int_E|f|\\,d\\gamma<\\infty\\), \\(\\int_E|\\langle x,v\\rangle f(x)|\\,d\\gamma<\\infty\\), and \\(\\int_E|Df(x)[v]|\\,d\\gamma<\\infty\\). All three belong to this theorem’s stated domain."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Identify and differentiate the actual Gaussian density",
+          "text": "Write \\(d=\\dim_{\\mathbb R}E\\). The existing Gaussian density theorem identifies \\(\\gamma\\) with \\(\\omega\\,dx\\). Differentiating the exponential of the squared norm gives the directional derivative shown below; the normalizing constant is independent of the evaluation point.",
+          "formula": "\\omega(x)=\\bigl(\\sqrt{2\\pi}^{\\,-1}\\bigr)^d e^{-\\|x\\|^2/2},\\qquad \\gamma=\\omega\\,dx,\\qquad D\\omega(x)[v]=-\\omega(x)\\langle x,v\\rangle.",
+          "lean": "private def standardWeight (x : E) : ℝ :=\n  ((Real.sqrt (2 * Real.pi))⁻¹) ^ Module.finrank ℝ E * Real.exp (-‖x‖^2 / 2)\n\nprivate theorem standardWeight_pos (x : E) : 0 < standardWeight x := by\n  dsimp [standardWeight]\n  positivity\n\nprivate theorem standardGaussian_density :\n    stdGaussian E = (volume : Measure E).withDensity\n      (fun x => ENNReal.ofReal (standardWeight x)) := by\n  have h := AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity\n    (E := E) 1 (by norm_num)\n  simpa only [Real.sqrt_one, one_smul, Measure.map_id', mul_one,\n    standardWeight] using h\n",
+          "detail": "Literal density definition and identification. The density derivative is proved in the same module at lines 50–67 and is used in the next excerpt."
+        },
+        {
+          "number": 2,
+          "title": "Transfer the stated integrability domain to Lebesgue measure",
+          "text": "Because \\(\\omega\\) is positive, Gaussian integrability of a scalar function gives Lebesgue integrability after multiplication by \\(\\omega\\). Apply this to the three assumed functions. The density derivative identifies the third weighted product, with its minus sign.",
+          "formula": "\\omega f,\\quad\\omega Df[ v ],\\quad D\\omega[v]f=-\\omega\\langle x,v\\rangle f\\quad\\text{are Lebesgue integrable}.",
+          "lean": "  let : CompleteSpace E := FiniteDimensional.complete ℝ E\n  have hDw (x : E) : fderiv ℝ (standardWeight : E → ℝ) x v =\n      -standardWeight x*inner ℝ x v := by\n    rw [(standardWeight_hasFDerivAt x).fderiv]\n    simp only [smul_apply, smul_eq_mul, innerSL_apply_apply]\n  have hwp := standardGaussian_weighted_integrable hfi\n  have hwdf := standardGaussian_weighted_integrable hdf\n  have hwxf := standardGaussian_weighted_integrable hxf\n  have hDwf : Integrable (fun x => fderiv ℝ (standardWeight : E → ℝ) x v*f x)\n      (volume : Measure E) := by\n    convert hwxf.neg using 1\n    ext x\n    rw [hDw]\n    simp only [Pi.neg_apply]\n    ring\n",
+          "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+        },
+        {
+          "number": 3,
+          "title": "Move the derivative and cancel the sign",
+          "text": "The two differentiable functions \\(\\omega\\) and \\(f\\) satisfy the full-space integration-by-parts domain. Transfer the derivative from \\(f\\) to \\(\\omega\\), substitute the derivative from step 1, and convert both weighted Lebesgue integrals back to Gaussian integrals.",
+          "formula": "\\int_E\\omega Df[v]\\,dx=-\\int_E D\\omega[v]f\\,dx=\\int_E\\omega\\langle x,v\\rangle f\\,dx.",
+          "lean": "  have hparts := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hDwf hwdf hwp\n    (fun x _ => (standardWeight_hasFDerivAt x).differentiableAt)\n    (fun x _ => hf x)\n  rw [standardGaussian_weighted_integral, standardGaussian_weighted_integral]\n  calc\n    (∫ x, standardWeight x*(inner ℝ x v*f x)) =\n        -(∫ x, fderiv ℝ (standardWeight : E → ℝ) x v*f x) := by\n      rw [← integral_neg]\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hDw]\n      ring\n    _ = ∫ x, standardWeight x*fderiv ℝ f x v := hparts.symm\n",
+          "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+        }
+      ],
+      "lean_statement": "The folded exact declaration retains differentiability and all three integrability hypotheses. The derivative is the actual ambient Fréchet derivative, and the same Gaussian measure occurs throughout.",
+      "lean_proof": "Read the three formula steps in order. The exact adjacent Lean excerpts and the complete proof use the existing closed disclosures.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity"
+      ],
+      "mathlib_dependencies": [
+        "integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable",
+        "MeasureTheory.integrable_withDensity_iff",
+        "MeasureTheory.integral_withDensity_eq_integral_toReal_smul",
+        "FiniteDimensional.complete"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/927e5e7582caa98e8f43a2e256e2a46a64e9e189/runs/20261117-gaussian-hermite-product/source-only-stein.json",
+          "label": "Original generic Gaussian integration-by-parts supplement, 2026-11-17",
+          "scope": "Complete source statement, definitions, assumptions and proof topology for admission of this existing proof; not a retrospective pre-proof seal."
+        }
+      ],
+      "boundary": [
+        "This theorem supplies an equality on its stated integrable domain. It does not establish that domain for every Gaussian observable.",
+        "No global Lipschitz, compact-support or additional decay assumption is introduced. Zero direction and zero dimension are allowed."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the integration identity used in the Hermite product calculation. Proof strategy: Identify and differentiate the actual Gaussian density; Transfer the stated integrability domain to Lebesgue measure; Move the derivative and cancel the sign."
+    }
+  ]
+}

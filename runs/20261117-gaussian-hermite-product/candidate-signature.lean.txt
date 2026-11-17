@@ -1,0 +1,13 @@
+open MeasureTheory ProbabilityTheory
+open scoped InnerProductSpace
+
+theorem gaussian_hermite_ridge_gram
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (u v : E) (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (i j : ℕ) :
+    let G : E → ℝ := fun x =>
+      Polynomial.aeval ⟪u,x⟫_ℝ (Polynomial.hermite i) *
+        Polynomial.aeval ⟪v,x⟫_ℝ (Polynomial.hermite j)
+    Integrable G (stdGaussian E) ∧
+      (∫ x, G x ∂stdGaussian E) =
+        if i = j then (i.factorial : ℝ) * ⟪u,v⟫_ℝ ^ i else 0

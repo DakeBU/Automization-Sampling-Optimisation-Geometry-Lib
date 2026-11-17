@@ -1,0 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram
+
+#print axioms AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv
+#print axioms AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram

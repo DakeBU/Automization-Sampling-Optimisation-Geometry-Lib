@@ -6078,6 +6078,26 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.gaussian-stein-integrable-domain",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv",
+    upstreamDecl := "Complete source-only-stein.json statement and proof topology.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/927e5e7582caa98e8f43a2e256e2a46a64e9e189/runs/20261117-gaussian-hermite-product/source-only-stein.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "shared"],
+    saldUse := "Gaussian integration by parts on its integrable domain",
+    note := "Existing historical proof admitted once with current independent audits. This theorem supplies an equality on its stated integrable domain. It does not establish that domain for every Gaussian observable. No global Lipschitz, compact-support or additional decay assumption is introduced. Zero direction and zero dimension are allowed."
+  },
+  {
+    key := "shared.gaussian-hermite-product",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram",
+    upstreamDecl := "Complete source-only.json statement and proof topology.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/927e5e7582caa98e8f43a2e256e2a46a64e9e189/runs/20261117-gaussian-hermite-product/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "shared"],
+    saldUse := "Hermite products of correlated Gaussian projections",
+    note := "Existing historical proof admitted once with current independent audits. This exact integral identity does not by itself establish a full Hermite expansion, derivative bounds for a series, or an application-specific force estimate. Gaussian polynomial moments and the Stein domain are discharged in the proof, not added as public Hermite hypotheses."
+  },
+  {
     key := "shared.gaussian-feature-gradient-representation",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient.gaussian_polynomial_joint_feature_gradient_representation",
     upstreamDecl := "Complete source-only.json: A1-A4, D1-D6, C1-C7 and T1-T6.",

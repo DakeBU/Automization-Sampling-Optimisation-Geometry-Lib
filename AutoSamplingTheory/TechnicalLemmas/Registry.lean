@@ -6590,6 +6590,26 @@ def variationalMemory : List LemmaMemoryEntry := [
 
 def geometryMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.sphere-ibp-sphere-product-tangential-integration-by-parts",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereTangentialIntegration.sphere_product_tangential_integration_by_parts",
+    upstreamDecl := "Main integration-by-parts identity",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/f88499d338218e1ada259ec615aa15f5e15a6202/runs/20261117-sphere-tangential-integration/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["geometry", "sphere", "integration-by-parts", "shared"],
+    saldUse := "Integration by parts on a finite product of unit spheres",
+    note := "Actual normalized product measure and intrinsic operators, with exact independently reviewed source boundary. This is a static integration identity for the specified normalized polar measure and its finite product. It gives no derivative in time, entropy evolution, diffusion existence, or density PDE. Identifying another supplied measure, gradient, divergence, or model generator with these definitions is a separate application obligation. The proof derives the required radial regularity from the intrinsic hypotheses. It neither assumes nor asserts that the totalized radial extension is continuous or differentiable at the origin. All integrals are ordinary finite real integrals. The conclusions include integrability, and no almost-everywhere-in-time or finite-horizon convention is involved. The zero-dimensional sphere and empty product are included. The proof retains the radial factor \\(r^n/r\\) on positive radii; it does not replace the exponent by truncated natural subtraction. The stated regularity is classical C¹/C². No weak-gradient, Sobolev, nonsmooth-weight, or arbitrary-measure extension is claimed."
+  },
+  {
+    key := "shared.sphere-ibp-sphere-product-weighted-gradient-integration-by-parts",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereTangentialIntegration.sphere_product_weighted_gradient_integration_by_parts",
+    upstreamDecl := "Weighted-gradient specialization",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/f88499d338218e1ada259ec615aa15f5e15a6202/runs/20261117-sphere-tangential-integration/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["geometry", "sphere", "integration-by-parts", "shared"],
+    saldUse := "Weighted gradient integration by parts on product spheres",
+    note := "Actual normalized product measure and intrinsic operators, with exact independently reviewed source boundary. This is a static integration identity for the specified normalized polar measure and its finite product. It gives no derivative in time, entropy evolution, diffusion existence, or density PDE. Identifying another supplied measure, gradient, divergence, or model generator with these definitions is a separate application obligation. The proof derives the required radial regularity from the intrinsic hypotheses. It neither assumes nor asserts that the totalized radial extension is continuous or differentiable at the origin. All integrals are ordinary finite real integrals. The conclusions include integrability, and no almost-everywhere-in-time or finite-horizon convention is involved. The zero-dimensional sphere and empty product are included. The proof retains the radial factor \\(r^n/r\\) on positive radii; it does not replace the exponent by truncated natural subtraction. The stated regularity is classical C¹/C². No weak-gradient, Sobolev, nonsmooth-weight, or arbitrary-measure extension is claimed. If \\(\\rho\\) is later called a probability density, its nonnegativity and normalization must be supplied by that application. The present geometric identity does not assert them."
+  },
+  {
     key := "shared.unit-sphere-induced-path-distance",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance.unit_sphere_induced_riemannianEDist_eq_arccos",
     upstreamDecl := "units[0], complete statement, definitions and six proof regions in runs/20261116-sphere-distance/source-only.json",

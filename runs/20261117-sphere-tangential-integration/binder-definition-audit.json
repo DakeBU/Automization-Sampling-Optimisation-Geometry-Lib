@@ -1,0 +1,179 @@
+{
+  "author": "source-contract-preparer-a-20261116",
+  "binders": [
+    {
+      "meaning": "Sphere dimension n, ambient dimension n+1, Fin N product; no positivity binder needed.",
+      "name": "n,N",
+      "scope": "Both target types",
+      "type": "Nat"
+    },
+    {
+      "meaning": "Actual scalar function and ambient-valued components on the actual compact product sphere.",
+      "name": "f,V",
+      "scope": "Main target",
+      "type": "f:M->R; V:Fin N->M->E"
+    },
+    {
+      "meaning": "Intrinsic chartwise C1 regularity; not C1 of any globally supplied extension.",
+      "name": "hf,hV",
+      "scope": "Main target",
+      "type": "ContMDiff J I 1 with J=ModelWithCorners.pi(const(standard sphere model R^n))"
+    },
+    {
+      "meaning": "Actual tangent hyperplane at every state; no a.e. or coordinate-only weakening.",
+      "name": "hTangent",
+      "scope": "Main target",
+      "type": "forall x i, inner(x_i,V_i(x))=0"
+    },
+    {
+      "meaning": "rho may be signed for this geometric identity; no density interpretation is silently assumed.",
+      "name": "f,rho,g,hf,hrho,hg",
+      "scope": "Weighted specialization only",
+      "type": "M->R; intrinsic C1,C1,C2 respectively"
+    }
+  ],
+  "compiler_status": "No compiler output exists; no elaboration or proof acceptance is claimed.",
+  "definition_bodies_and_meaning": [
+    {
+      "body": "ModelWithCorners.pi (fun _ : Fin N => R^n standard model)",
+      "meaning": "Product of stereographic sphere chart models; piChartedSpace supplies the corresponding charted-space structure.",
+      "name": "sphereProductModel"
+    },
+    {
+      "body": "(volume : Measure E).toSphere",
+      "meaning": "Literal polar surface measure, not ambient volume restricted to S.",
+      "name": "sphereSurfaceMeasure"
+    },
+    {
+      "body": "(sphereSurfaceMeasure n univ)^(-1) smul sphereSurfaceMeasure n",
+      "meaning": "Exact ENNReal reciprocal mass scaling. Finiteness and positive mass are to be proved from ambient dimension n+1.",
+      "name": "sphereUniformMeasure"
+    },
+    {
+      "body": "Measure.pi (fun _ : Fin N => sphereUniformMeasure n)",
+      "meaning": "Actual independent finite product reference measure; no arbitrary sigma binder.",
+      "name": "sphereProductMeasure"
+    },
+    {
+      "body": "if x=0 then 0 else f((homeomorphUnitSphereProd E)(x, x!=0)).fst",
+      "meaning": "At nonzero x this is f(x/||x||). The origin branch is totalization only. The target never assumes or concludes C1 at the origin. An annular cutoff, constructed in the proof, must produce any globally C1 ambient field used by a producer.",
+      "name": "sphereRadialExtension"
+    },
+    {
+      "body": "starProjection onto (span{x})^orthogonal applied to gradient(sphereRadialExtension f)(x)",
+      "meaning": "Actual induced Euclidean tangent Riesz representative after derived local differentiability, not a gradient identifier supplied by the caller.",
+      "name": "sphereTangentGradient"
+    },
+    {
+      "body": "Divergence.coordinateDivergence(sphereRadialExtension V)(x)",
+      "meaning": "Concrete ambient coordinate trace of the canonical radial extension. For a tangent C1 field its equality with actual intrinsic divergence through the tangent trace is a mandatory bridge; it is not asserted solely by the chosen name. For arbitrary ambient-valued fields this total scalar formula is not identified with the intrinsic divergence of their tangent projection.",
+      "name": "sphereTangentDivergence"
+    },
+    {
+      "body": "sphereTangentGradient (fun y=>f(update x i y)) (x i)",
+      "meaning": "Differentiate in one sphere coordinate with all others fixed.",
+      "name": "sphereProductGradient"
+    },
+    {
+      "body": "sum_i sphereTangentDivergence (fun y=>V i(update x i y)) (x i)",
+      "meaning": "Product divergence with no N^-1 normalization.",
+      "name": "sphereProductDivergence"
+    }
+  ],
+  "existing_definition_context": [
+    {
+      "declarations": [
+        "Measure.toSphere",
+        "Measure.toSphere_apply_univ",
+        "Measure.measurePreserving_homeomorphUnitSphereProd"
+      ],
+      "path": "Mathlib/MeasureTheory/Constructions/HaarToSphere.lean",
+      "raw_sha256": "5cfbae9bf1ba2f60a2590d466cb50eff4d2cf9ffb398b0bb9b341c27e0051d5e"
+    },
+    {
+      "declarations": [
+        "homeomorphUnitSphereProd"
+      ],
+      "path": "Mathlib/Analysis/Normed/Module/Ball/RadialEquiv.lean",
+      "raw_sha256": "bcabcfb1deef9e16c8645b769bec9d692aa030b06797549616c6f694f10aebc1"
+    },
+    {
+      "declarations": [
+        "EuclideanSpace.instChartedSpaceSphere",
+        "contMDiff_coe_sphere",
+        "ContMDiff.codRestrict_sphere"
+      ],
+      "path": "Mathlib/Geometry/Manifold/Instances/Sphere.lean",
+      "raw_sha256": "1298b1123b369111eb36da4c8b9d5bffb16bbaf5ffbbe662cef5d888084c0a2b"
+    },
+    {
+      "declarations": [
+        "ModelWithCorners.pi"
+      ],
+      "path": "Mathlib/Geometry/Manifold/IsManifold/Basic.lean",
+      "raw_sha256": "b60d1b9a4f22b38c94b47527ce30550db748d1ae15a6b704cdba3121453dc4dc"
+    },
+    {
+      "declarations": [
+        "piChartedSpace"
+      ],
+      "path": "Mathlib/Geometry/Manifold/ChartedSpace.lean",
+      "raw_sha256": "537e6fc2fa678d3ffec5c23312844401c853d56e19901ee5a193244c895367f6"
+    },
+    {
+      "declarations": [
+        "Submodule.starProjection",
+        "Submodule.inner_starProjection_left_eq_right",
+        "Submodule.starProjection_inner_eq_zero"
+      ],
+      "path": "Mathlib/Analysis/InnerProductSpace/Projection/Basic.lean",
+      "raw_sha256": "73aaeb8e69d046c2762530638b5f8fd465007745a71b4845c01551c590d098b4"
+    },
+    {
+      "declarations": [
+        "measurePreserving_piFinSuccAbove",
+        "measurePreserving_piUnique",
+        "measurePreserving_pi_empty"
+      ],
+      "path": "Mathlib/MeasureTheory/Constructions/Pi.lean",
+      "raw_sha256": "24a9a3184f561c7aa7b172c7a808937ea2a1d6293e32e309ee008a24b42e3cbe"
+    },
+    {
+      "declarations": [
+        "integral_prod",
+        "integral_integral"
+      ],
+      "path": "Mathlib/MeasureTheory/Integral/Prod.lean",
+      "raw_sha256": "d68e4adccef0f68268149915258237b989505b90ae596d0ced458080ee045c21"
+    }
+  ],
+  "forbidden_extra_inputs": [
+    "hIBP or hDivergenceIntegralZero",
+    "Global C1/C2 ambient extension as a replacement for intrinsic hypotheses",
+    "A field assumed to have the desired ambient divergence factorization",
+    "Caller-supplied integrability, compact support or zero face terms",
+    "An arbitrary sigma accompanied only by a claimed surface-measure name",
+    "A result-equivalent derivative/trace characterization supplied as a premise"
+  ],
+  "implementation_risks_for_independent_preproof_review": [
+    "The finite product model and piChartedSpace are present. The searched general ContMDiff finite-manifold-product construction API is incomplete or not directly named; establish any required chartwise product smoothness internally, without adding an IsManifold/smoothness hypothesis to the source.",
+    "The exact implicit models/ENorms are not compiler-verified yet. The proposed types must be elaborated only after independent source/signature acceptance.",
+    "Check n=0 and N=0 branches explicitly; annular radial weight is chi(r)/r*r^n, not an unjustified truncated power r^(n-1).",
+    "Weighted-gradient regularity must be joint in the full configuration, not merely separately differentiable in each coordinate."
+  ],
+  "off_source_semantics_audit": {
+    "ambient_extension": "No global ambient extension appears as an input. If an implementation starts with such a theorem, source fulfillment still requires deriving a suitable extension from the intrinsic data.",
+    "coordinate_chart_semantics": "Stereographic/product charts and their induced tangent differential must be identified explicitly; a named operator alone is insufficient.",
+    "probability_normalization": "Both surface mass and its inverse are fixed by definitions, not unconstrained constants.",
+    "tangency_for_intrinsic_divergence": "Intrinsic-divergence interpretation requires the existing pointwise hTangent premise. For W(x)=x on a positive-dimensional unit sphere, the radial-extension ambient trace is n while the tangent projection is zero; the definition is therefore not an intrinsic-divergence operator on arbitrary ambient-valued fields.",
+    "total_derivative_convention": "Mathlib gradient/fderiv are total functions. Under the intrinsic hypotheses, differentiability at every sphere point must be established before their use.",
+    "zero_branch_at_origin": "Not observable by sphere-local derivatives. Must prove eventual agreement on a nonzero neighborhood before using fderiv; never use the default zero derivative to manufacture an identity."
+  },
+  "schema": "candidate-binder-definition-audit-v1",
+  "signature_sha256": {
+    "candidate-signature.lean.txt": "0b809f21606e32d9d3631809cc650c9b3deb4eba77d60d90700cd066b031a6f9",
+    "weighted-specialization-signature.lean.txt": "c36ae8e7033fe95c93a7387c316f044568e197cbf42acbd5b94d60daec3fd2d1"
+  },
+  "source_sha256": "4ac1f73d7b8a6e584dfe65299989ad50b7c1a9de1112199627ca24be01956f93",
+  "status": "author audit; independent pre-proof review and elaboration pending"
+}

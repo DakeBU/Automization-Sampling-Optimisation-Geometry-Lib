@@ -1,0 +1,28 @@
+-- DERIVED SPECIALIZATION TYPE SHEET. NOT COMPILED. NO PROOF BODY.
+-- Uses the exact transparent definitions in candidate-signature.lean.txt.
+-- This is the weighted specialization of the same geometric unit, not an
+-- additional model premise or a replacement for the main tangent-field theorem.
+open MeasureTheory Metric Set
+open scoped BigOperators Manifold RealInnerProductSpace
+namespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereTangentialIntegration
+
+theorem sphere_product_weighted_gradient_integration_by_parts
+    {n N : ℕ}
+    (f rho g : SphereConfiguration n N → ℝ)
+    (hf : ContMDiff (sphereProductModel n N) 𝓘(ℝ, ℝ) 1 f)
+    (hrho : ContMDiff (sphereProductModel n N) 𝓘(ℝ, ℝ) 1 rho)
+    (hg : ContMDiff (sphereProductModel n N) 𝓘(ℝ, ℝ) 2 g) :
+    let V : Fin N → SphereConfiguration n N → SphereAmbient n :=
+      fun i x => rho x • sphereProductGradient g i x
+    Integrable (sphereProductDivergence V) (sphereProductMeasure n N) ∧
+    Integrable (fun x => f x * sphereProductDivergence V x)
+      (sphereProductMeasure n N) ∧
+    Integrable (fun x => rho x *
+      ∑ i : Fin N, inner ℝ (sphereProductGradient f i x) (sphereProductGradient g i x))
+      (sphereProductMeasure n N) ∧
+    (∫ x, sphereProductDivergence V x ∂(sphereProductMeasure n N)) = 0 ∧
+    (∫ x, f x * sphereProductDivergence V x ∂(sphereProductMeasure n N)) =
+      -(∫ x, rho x *
+        ∑ i : Fin N, inner ℝ (sphereProductGradient f i x) (sphereProductGradient g i x)
+        ∂(sphereProductMeasure n N))
+-- END CANDIDATE TYPE: no := proof, no sorry, no axiom. Elaboration pending.

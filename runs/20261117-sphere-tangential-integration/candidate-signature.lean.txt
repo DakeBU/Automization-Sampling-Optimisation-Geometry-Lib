@@ -1,0 +1,82 @@
+-- SOURCE-FIRST CANDIDATE TYPE SHEET. NOT COMPILED. NO THEOREM PROOF BODY.
+-- Definitions are proposed transparent bodies, not new axioms or supplied identities.
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence
+import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BallFlux
+import Mathlib.Geometry.Manifold.Instances.Sphere
+import Mathlib.Geometry.Manifold.ContMDiff.Constructions
+import Mathlib.MeasureTheory.Constructions.HaarToSphere
+import Mathlib.MeasureTheory.Integral.Pi
+import Mathlib.Analysis.InnerProductSpace.Projection.Basic
+
+open MeasureTheory Metric Set
+open scoped BigOperators Manifold RealInnerProductSpace
+
+namespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereTangentialIntegration
+
+abbrev SphereAmbient (n : ℕ) := EuclideanSpace ℝ (Fin (n + 1))
+abbrev SpherePoint (n : ℕ) := Metric.sphere (0 : SphereAmbient n) 1
+abbrev SphereConfiguration (n N : ℕ) := Fin N → SpherePoint n
+
+noncomputable def sphereProductModel (n N : ℕ) :
+    ModelWithCorners ℝ (Fin N → EuclideanSpace ℝ (Fin n))
+      (ModelPi (fun _ : Fin N => EuclideanSpace ℝ (Fin n))) :=
+  ModelWithCorners.pi (fun _ : Fin N => 𝓡 n)
+
+noncomputable def sphereSurfaceMeasure (n : ℕ) : Measure (SpherePoint n) :=
+  (volume : Measure (SphereAmbient n)).toSphere
+
+noncomputable def sphereUniformMeasure (n : ℕ) : Measure (SpherePoint n) :=
+  (sphereSurfaceMeasure n Set.univ)⁻¹ • sphereSurfaceMeasure n
+
+noncomputable def sphereProductMeasure (n N : ℕ) :
+    Measure (SphereConfiguration n N) :=
+  Measure.pi (fun _ : Fin N => sphereUniformMeasure n)
+
+-- The origin branch is arbitrary totalization, never an input regularity claim.
+noncomputable def sphereRadialExtension {n : ℕ} {A : Type*} [Zero A]
+    (f : SpherePoint n → A) (x : SphereAmbient n) : A :=
+  if hx : x = 0 then 0
+  else f ((homeomorphUnitSphereProd (SphereAmbient n)) ⟨x, hx⟩).1
+
+noncomputable def sphereTangentGradient {n : ℕ}
+    (f : SpherePoint n → ℝ) (x : SpherePoint n) : SphereAmbient n :=
+  ((Submodule.span ℝ ({(x : SphereAmbient n)} : Set (SphereAmbient n)))ᗮ).starProjection
+    (gradient (sphereRadialExtension f) (x : SphereAmbient n))
+
+noncomputable def sphereTangentDivergence {n : ℕ}
+    (V : SpherePoint n → SphereAmbient n) (x : SpherePoint n) : ℝ :=
+  AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.Divergence.coordinateDivergence
+    (sphereRadialExtension V) (x : SphereAmbient n)
+
+noncomputable def sphereProductGradient {n N : ℕ}
+    (f : SphereConfiguration n N → ℝ) (i : Fin N)
+    (x : SphereConfiguration n N) : SphereAmbient n :=
+  sphereTangentGradient (fun y => f (Function.update x i y)) (x i)
+
+noncomputable def sphereProductDivergence {n N : ℕ}
+    (V : Fin N → SphereConfiguration n N → SphereAmbient n)
+    (x : SphereConfiguration n N) : ℝ :=
+  ∑ i : Fin N,
+    sphereTangentDivergence (fun y => V i (Function.update x i y)) (x i)
+
+-- Main geometric theorem. All canonical radial C1 facts, finiteness/probability
+-- of the measure, operator identifications and integrability are proof obligations.
+-- None is an extra binder. Ambient global extensions are not supplied.
+theorem sphere_product_tangential_integration_by_parts
+    {n N : ℕ}
+    (f : SphereConfiguration n N → ℝ)
+    (V : Fin N → SphereConfiguration n N → SphereAmbient n)
+    (hf : ContMDiff (sphereProductModel n N) 𝓘(ℝ, ℝ) 1 f)
+    (hV : ∀ i, ContMDiff (sphereProductModel n N) 𝓘(ℝ, SphereAmbient n) 1 (V i))
+    (hTangent : ∀ (x : SphereConfiguration n N) (i : Fin N),
+      inner ℝ (x i : SphereAmbient n) (V i x) = 0) :
+    Integrable (sphereProductDivergence V) (sphereProductMeasure n N) ∧
+    Integrable (fun x => f x * sphereProductDivergence V x)
+      (sphereProductMeasure n N) ∧
+    Integrable (fun x => ∑ i : Fin N, inner ℝ (sphereProductGradient f i x) (V i x))
+      (sphereProductMeasure n N) ∧
+    (∫ x, sphereProductDivergence V x ∂(sphereProductMeasure n N)) = 0 ∧
+    (∫ x, f x * sphereProductDivergence V x ∂(sphereProductMeasure n N)) =
+      -(∫ x, ∑ i : Fin N, inner ℝ (sphereProductGradient f i x) (V i x)
+        ∂(sphereProductMeasure n N))
+-- END CANDIDATE TYPE: no := proof, no sorry, no axiom. Elaboration pending.

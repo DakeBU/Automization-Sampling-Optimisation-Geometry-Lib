@@ -361,6 +361,8 @@ class BenchTests(unittest.TestCase):
         self.assertIn('not part of the binary Lean judgment', bench.prompts([core])[1]['question'])
         self.assertIn('conditional-budget-transfer.lean', page)
         self.assertIn('padded-budget-counterexample.lean', page)
+        self.assertIn('/blob/ffd1ee02652c961a0230182b2cda550dc0de005d/', page)
+        self.assertNotIn('/blob/main/', page)
         self.assertNotIn('this question has no aligned fixed Lean reconstruction task', page)
 
     def test_common_kernel_reference_retains_credit_but_not_answer_in_prompt(self):

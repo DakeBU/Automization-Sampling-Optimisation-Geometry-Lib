@@ -492,8 +492,10 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
             + astis_site.code_html(core['lean_reference']) + '</div>'
             '<p><a href="downloads/lean/' + core['id'] + '-reference.lean" download>Download runnable reference</a></p>')
     if composed:
-        source_root = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/main/'
-        candidate_root = source_root + 'benchmarks/samplingoptimisationgeometrybench/candidates/'
+        github = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/'
+        bench_folder = 'benchmarks/samplingoptimisationgeometrybench/'
+        owned_revision = 'ffd1ee02652c961a0230182b2cda550dc0de005d'
+        candidate_root = github + 'blob/' + owned_revision + '/' + bench_folder + 'candidates/'
         lean = (
             '<h3>How the formula proof maps to Lean</h3><ol>'
             '<li><strong>Prefix likelihood and its square bound.</strong> '
@@ -508,9 +510,9 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
             '<li><strong>Counterexample.</strong> <code>binary_padded_averaged_budget_counterexample</code> '
             'pushes two finite probability laws to infinite paths and checks their actual prefix tables, '
             'budget and charge. There is no Lean obligation for the final sampler applicability audit.</li></ol>'
-            '<p><a href="' + candidate_root + 'conditional-budget-transfer.lean">Owned positive proof</a> · '
-            '<a href="' + candidate_root + 'padded-budget-counterexample.lean">Owned negative proof</a> · '
-            '<a href="' + source_root + 'benchmarks/samplingoptimisationgeometrybench/reviews/formal-25-stopped-work/README.md">'
+            '<p><a href="' + candidate_root + 'conditional-budget-transfer.lean#L685">Owned positive proof</a> · '
+            '<a href="' + candidate_root + 'padded-budget-counterexample.lean#L215">Owned negative proof</a> · '
+            '<a href="' + github + 'tree/main/' + bench_folder + 'reviews/formal-25-stopped-work">'
             'Exact independent review and test scope</a></p>' + lean)
     if not bench.has_lean(core):
         lean = prose(core['lean_explanation'])

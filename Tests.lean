@@ -1,3 +1,4 @@
+import Tests.GaussianFiniteFeatures
 import Tests.SmoothBoundedTimeCoefficients
 import Tests.SphereFeatureLawGradient
 import Tests.FeatureDifferentiationTransport

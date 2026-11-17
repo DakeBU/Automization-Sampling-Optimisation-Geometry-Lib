@@ -1,0 +1,5 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore
+set_option pp.explicit true
+set_option pp.fullNames true
+#print AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2
+#print AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2

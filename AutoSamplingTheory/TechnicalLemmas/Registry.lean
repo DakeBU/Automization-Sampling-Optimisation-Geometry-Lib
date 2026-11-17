@@ -6078,6 +6078,56 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.gaussian-polynomial-ridge-smooth",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth",
+    upstreamDecl := "F1 in source-only.json; proof topology P1, P2.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/363bc328763a66f4177eef1abb2f45fdd0b41568/runs/20261117-gaussian-finite-features/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "hermite", "shared"],
+    saldUse := "Smooth polynomial features in Gaussian L²",
+    note := "Existing proof admitted once with independently audited actual Gaussian feature semantics. These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+  },
+  {
+    key := "shared.gaussian-hermite-ridge-c2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2_contDiff",
+    upstreamDecl := "F4 in source-only.json; proof topology P3.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/363bc328763a66f4177eef1abb2f45fdd0b41568/runs/20261117-gaussian-finite-features/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "hermite", "shared"],
+    saldUse := "Global C² regularity of one Hermite class",
+    note := "Existing proof admitted once with independently audited actual Gaussian feature semantics. These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+  },
+  {
+    key := "shared.gaussian-hermite-ridge-representative",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2_ae",
+    upstreamDecl := "F5 in source-only.json; proof topology P3.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/363bc328763a66f4177eef1abb2f45fdd0b41568/runs/20261117-gaussian-finite-features/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "hermite", "shared"],
+    saldUse := "Literal representatives of Hermite classes",
+    note := "Existing proof admitted once with independently audited actual Gaussian feature semantics. These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+  },
+  {
+    key := "shared.gaussian-finite-hermite-gram",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2_inner",
+    upstreamDecl := "F6 in source-only.json; proof topology P4.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/363bc328763a66f4177eef1abb2f45fdd0b41568/runs/20261117-gaussian-finite-features/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "hermite", "shared"],
+    saldUse := "Finite Gaussian Hermite Gram formula",
+    note := "Existing proof admitted once with independently audited actual Gaussian feature semantics. These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+  },
+  {
+    key := "shared.gaussian-finite-hermite-c2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2_contDiff",
+    upstreamDecl := "F7 in source-only.json; proof topology P5.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/363bc328763a66f4177eef1abb2f45fdd0b41568/runs/20261117-gaussian-finite-features/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "hermite", "shared"],
+    saldUse := "Global C² regularity of finite Hermite features",
+    note := "Existing proof admitted once with independently audited actual Gaussian feature semantics. These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+  },
+  {
     key := "shared.gaussian-stein-integrable-domain",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv",
     upstreamDecl := "Complete source-only-stein.json statement and proof topology.",

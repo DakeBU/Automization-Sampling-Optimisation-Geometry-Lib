@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-9777fb3e8ae93251",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "admission-preparer-c-20261117",
+    "blind_decoder": "independent-decoder-b-20261117",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "generic-Gaussian-analysis-admission-0",
+    "anchor": "Complete stated interface",
+    "original_text": "{\n  \"schema\": \"original-generic-gaussian-stein-source-v1\",\n  \"title\": \"Gaussian integration by parts on an explicit integrable domain\",\n  \"status\": \"Authored admission source for an existing proof; not a retrospective pre-proof seal or independent acceptance\",\n  \"assumptions\": [\n    {\n      \"id\": \"A1\",\n      \"text\": \"E is a finite-dimensional real inner-product normed space with its Borel measurable structure. Completeness is derived.\"\n    },\n    {\n      \"id\": \"A2\",\n      \"text\": \"f:E->R is Frechet differentiable at every point. The direction v is any vector of E.\"\n    },\n    {\n      \"id\": \"A3\",\n      \"text\": \"f is absolutely Bochner integrable under gamma=stdGaussian(E).\"\n    },\n    {\n      \"id\": \"A4\",\n      \"text\": \"x |-> <x,v> f(x) is absolutely Bochner integrable under that same gamma.\"\n    },\n    {\n      \"id\": \"A5\",\n      \"text\": \"x |-> Df(x)[v] is absolutely Bochner integrable under that same gamma.\"\n    }\n  ],\n  \"definitions\": [\n    {\n      \"id\": \"D1\",\n      \"text\": \"gamma is the actual centered identity-covariance Gaussian probability measure on E.\"\n    },\n    {\n      \"id\": \"D2\",\n      \"text\": \"Df(x)[v] is the actual ambient real Frechet derivative of f at x applied to the fixed vector v. Differentiability ensures that the total derivative API does not supply an off-domain default.\"\n    },\n    {\n      \"id\": \"D3\",\n      \"text\": \"For the proof, put d=dim_R E and omega(x)=(sqrt(2*pi)^(-1))^d exp(-||x||²/2). The existing Gaussian density theorem identifies gamma with omega times canonical Lebesgue measure. This density identity is derived, not an extra public input.\"\n    }\n  ],\n  \"conclusion\": {\n    \"id\": \"C1\",\n    \"text\": \"integral_E <x,v> f(x) d gamma(x) = integral_E Df(x)[v] d gamma(x).\",\n    \"quantifier_order\": \"E and its structures; f and v; differentiability and the three Gaussian integrability hypotheses; exact scalar integral equality.\"\n  },\n  \"proof_topology\": [\n    {\n      \"id\": \"T1\",\n      \"text\": \"Apply the existing standard Gaussian density formula. Differentiate omega to obtain Domega(x)[v]=-omega(x)<x,v>.\"\n    },\n    {\n      \"id\": \"T2\",\n      \"text\": \"Transfer the three Gaussian integrability assumptions to Lebesgue integrability of omega f, omega Df[v], and Domega[v] f. Positivity of omega justifies the density conversion.\"\n    },\n    {\n      \"id\": \"T3\",\n      \"text\": \"Apply full-space scalar Frechet integration by parts, integral omega Df[v] = -integral Domega[v] f. Substitute the density derivative and transfer both integrals back to gamma.\"\n    }\n  ],\n  \"boundaries\": [\n    \"The direction can be zero; no unit-vector hypothesis is present.\",\n    \"All finite dimensions, including zero, are allowed. There is no positive-rank hypothesis.\",\n    \"No compact support, global Lipschitz bound, separate boundary decay or supplied Stein identity is assumed.\",\n    \"The theorem has an explicit analytic domain. It does not establish the three integrability conditions for an arbitrary observable.\",\n    \"When used by the Hermite product theorem, all three integrability conditions and differentiability are proved from polynomial Gaussian L2 membership; none becomes an extra Hermite hypothesis.\"\n  ]\n}",
+    "text_sha256": "a336bf8de3952db75c298e786659ef2fcd201a81b2a52d1787841cdcca4b7a27"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianIntegrationByParts.lean",
+    "statement": "anonymous_statement.{u_1}\n  {E : Type u_1} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E]\n  [BorelSpace E] (f : E → ℝ) (v : E) (hf : Differentiable ℝ f)\n  (hfi : MeasureTheory.Integrable f (ProbabilityTheory.stdGaussian E))\n  (hxf : MeasureTheory.Integrable (fun x => inner ℝ x v * f x) (ProbabilityTheory.stdGaussian E))\n  (hdf : MeasureTheory.Integrable (fun x => (fderiv ℝ f x) v) (ProbabilityTheory.stdGaussian E)) :\n  ∫ (x : E), inner ℝ x v * f x ∂ProbabilityTheory.stdGaussian E =\n    ∫ (x : E), (fderiv ℝ f x) v ∂ProbabilityTheory.stdGaussian E\n",
+    "statement_sha256": "d330477fd612ec533279d9ec808bec19e62db336a44f2ba8dbe1ec19146c35b4",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let E be an arbitrary finite-dimensional real inner-product space with its compatible norm and Borel measurable structure. Write gamma_E for the measure defined by stdGaussian E. Concretely, if (e_k) is the standard orthonormal basis used in the definition, gamma_E is the pushforward of the finite product of real Gaussian laws gaussianReal(0,1) by (z_k) -> sum_k z_k e_k. The supplied density fixes each coordinate law as (2*pi)^(-1/2) exp(-t^2/2) dt: the mean is zero and the variance is one. Thus the Gaussian normalization is specified, not an unspecified scale. All integrals below are real Bochner/Lebesgue integrals over the whole E with respect to this same gamma_E.\n\nFor every scalar function f:E -> R and every fixed vector v in E, assume:\n (1) f is real Frechet differentiable at every x in E;\n (2) f is integrable with respect to gamma_E;\n (3) x -> <x,v> f(x) is integrable with respect to gamma_E;\n (4) x -> Df(x)[v] is integrable with respect to gamma_E.\nHere Df(x):E ->L_R R is the Frechet derivative. The supplied Differentiable and DifferentiableAt definitions assert existence of an actual derivative at every point, and HasFDerivAt.fderiv identifies the literal fderiv_R f x with that derivative. Hence the right-hand integrand is the real linear derivative applied to the same fixed v.\n\nThen\n integral_E <x,v> f(x) d gamma_E(x)\n   = integral_E Df(x)[v] d gamma_E(x).\n\nAll three integrability conditions are explicit assumptions and are retained in this reconstruction. They mean almost-everywhere strong measurability and finite integral of the absolute value for these real functions. Differentiability holds everywhere, not only almost everywhere; continuity of the derivative, a C^1 hypothesis, compact support, boundary decay, and integrability of the entire derivative norm are not additional premises. The directional derivative integrability is for this chosen v only, not simultaneously for every direction. The vector v is arbitrary, with no nonzero or unit-norm restriction. There is no positive-dimension premise. There are no existential constants, error bounds, time horizons or limits. The conclusion is an equality of two finite real integrals, not a pointwise equality of the integrands or an equality of chosen quotient representatives.\n",
+    "text_sha256": "779f8d8bac35d7750b1e01a1c10605e3cafdf00780252432a3d0922f6eb8fb18",
+    "decoder": "independent-decoder-b-20261117",
+    "decoder_packet_sha256": "e798f7a45764f44f5dd336ac25e4e7f70d2f0614c46a7f4dd71f6e01e7c85f0f",
+    "decoder_run_sha256": "5b166405e299794df75706998126cd170d3faba4f137db40cef0cf2c5934b38e",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "packet_sha256": "94c455aeb3c615397706f595b77a1a7881407c90c9ba8fba75f44e775482d7fa"
+}

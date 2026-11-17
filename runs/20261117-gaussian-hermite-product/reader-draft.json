@@ -1,0 +1,301 @@
+{
+  "schema": "two-module-reader-draft-v1",
+  "status": "authored draft pending independent source/whole-module/reader review",
+  "lesson": {
+    "schema_version": 1,
+    "units": [
+      {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv",
+        "kind": "theorem",
+        "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts",
+        "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianIntegrationByParts.lean",
+        "source_line": 71,
+        "short_name": "standard_gaussian_stein_of_integrable_fderiv",
+        "title": "Gaussian integration by parts on its integrable domain",
+        "classification": "original shared Gaussian-analysis supplement",
+        "statement": "Let \\(E\\) be a finite-dimensional real inner-product space with its Borel structure, and let \\(\\gamma=\\operatorname{stdGaussian}(E)\\). Fix a function \\(f:E\\to\\mathbb R\\) that is Fréchet differentiable everywhere and any direction \\(v\\in E\\). Assume that each of \\(f\\), \\(x\\mapsto\\langle x,v\\rangle f(x)\\), and \\(x\\mapsto Df(x)[v]\\) is absolutely integrable under \\(\\gamma\\). Then the weighted value and the directional derivative have the same Gaussian integral. No positive-dimension or unit-direction restriction is imposed.",
+        "formula": "\\int_E\\langle x,v\\rangle f(x)\\,d\\gamma(x)=\\int_E Df(x)[v]\\,d\\gamma(x).",
+        "assumptions": [
+          "\\(E\\) is a real inner-product normed space of finite dimension, with its Borel measurable structure. Its completeness is derived.",
+          "\\(\\gamma\\) is the actual centered Gaussian probability with identity covariance on \\(E\\).",
+          "\\(f:E\\to\\mathbb R\\) is Fréchet differentiable at every point, and \\(v\\in E\\) is arbitrary, including zero.",
+          "\\(\\int_E|f|\\,d\\gamma<\\infty\\), \\(\\int_E|\\langle x,v\\rangle f(x)|\\,d\\gamma<\\infty\\), and \\(\\int_E|Df(x)[v]|\\,d\\gamma<\\infty\\). All three belong to this theorem’s stated domain."
+        ],
+        "steps": [
+          {
+            "number": 1,
+            "title": "Identify and differentiate the actual Gaussian density",
+            "text": "Write \\(d=\\dim_{\\mathbb R}E\\). The existing Gaussian density theorem identifies \\(\\gamma\\) with \\(\\omega\\,dx\\). Differentiating the exponential of the squared norm gives the directional derivative shown below; the normalizing constant is independent of the evaluation point.",
+            "formula": "\\omega(x)=\\bigl(\\sqrt{2\\pi}^{\\,-1}\\bigr)^d e^{-\\|x\\|^2/2},\\qquad \\gamma=\\omega\\,dx,\\qquad D\\omega(x)[v]=-\\omega(x)\\langle x,v\\rangle.",
+            "lean": "private def standardWeight (x : E) : ℝ :=\n  ((Real.sqrt (2 * Real.pi))⁻¹) ^ Module.finrank ℝ E * Real.exp (-‖x‖^2 / 2)\n\nprivate theorem standardWeight_pos (x : E) : 0 < standardWeight x := by\n  dsimp [standardWeight]\n  positivity\n\nprivate theorem standardGaussian_density :\n    stdGaussian E = (volume : Measure E).withDensity\n      (fun x => ENNReal.ofReal (standardWeight x)) := by\n  have h := AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity\n    (E := E) 1 (by norm_num)\n  simpa only [Real.sqrt_one, one_smul, Measure.map_id', mul_one,\n    standardWeight] using h\n",
+            "detail": "Literal density definition and identification. The density derivative is proved in the same module at lines 50–67 and is used in the next excerpt."
+          },
+          {
+            "number": 2,
+            "title": "Transfer the stated integrability domain to Lebesgue measure",
+            "text": "Because \\(\\omega\\) is positive, Gaussian integrability of a scalar function gives Lebesgue integrability after multiplication by \\(\\omega\\). Apply this to the three assumed functions. The density derivative identifies the third weighted product, with its minus sign.",
+            "formula": "\\omega f,\\quad\\omega Df[ v ],\\quad D\\omega[v]f=-\\omega\\langle x,v\\rangle f\\quad\\text{are Lebesgue integrable}.",
+            "lean": "  let : CompleteSpace E := FiniteDimensional.complete ℝ E\n  have hDw (x : E) : fderiv ℝ (standardWeight : E → ℝ) x v =\n      -standardWeight x*inner ℝ x v := by\n    rw [(standardWeight_hasFDerivAt x).fderiv]\n    simp only [smul_apply, smul_eq_mul, innerSL_apply_apply]\n  have hwp := standardGaussian_weighted_integrable hfi\n  have hwdf := standardGaussian_weighted_integrable hdf\n  have hwxf := standardGaussian_weighted_integrable hxf\n  have hDwf : Integrable (fun x => fderiv ℝ (standardWeight : E → ℝ) x v*f x)\n      (volume : Measure E) := by\n    convert hwxf.neg using 1\n    ext x\n    rw [hDw]\n    simp only [Pi.neg_apply]\n    ring\n",
+            "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+          },
+          {
+            "number": 3,
+            "title": "Move the derivative and cancel the sign",
+            "text": "The two differentiable functions \\(\\omega\\) and \\(f\\) satisfy the full-space integration-by-parts domain. Transfer the derivative from \\(f\\) to \\(\\omega\\), substitute the derivative from step 1, and convert both weighted Lebesgue integrals back to Gaussian integrals.",
+            "formula": "\\int_E\\omega Df[v]\\,dx=-\\int_E D\\omega[v]f\\,dx=\\int_E\\omega\\langle x,v\\rangle f\\,dx.",
+            "lean": "  have hparts := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hDwf hwdf hwp\n    (fun x _ => (standardWeight_hasFDerivAt x).differentiableAt)\n    (fun x _ => hf x)\n  rw [standardGaussian_weighted_integral, standardGaussian_weighted_integral]\n  calc\n    (∫ x, standardWeight x*(inner ℝ x v*f x)) =\n        -(∫ x, fderiv ℝ (standardWeight : E → ℝ) x v*f x) := by\n      rw [← integral_neg]\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hDw]\n      ring\n    _ = ∫ x, standardWeight x*fderiv ℝ f x v := hparts.symm\n",
+            "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+          }
+        ],
+        "lean_statement": "The folded exact declaration retains differentiability and all three integrability hypotheses. The derivative is the actual ambient Fréchet derivative, and the same Gaussian measure occurs throughout.",
+        "lean_proof": "Read the three formula steps in order. The exact adjacent Lean excerpts and the complete proof use the existing closed disclosures.",
+        "astis_dependencies": [
+          "AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity"
+        ],
+        "mathlib_dependencies": [
+          "integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable",
+          "MeasureTheory.integrable_withDensity_iff",
+          "MeasureTheory.integral_withDensity_eq_integral_toReal_smul",
+          "FiniteDimensional.complete"
+        ],
+        "sources": [
+          {
+            "url": "runs/20261117-gaussian-hermite-product/source-only-stein.json",
+            "label": "Original generic Gaussian integration-by-parts supplement, 2026-11-17",
+            "scope": "Complete statement and proof topology. Relative source destination is staged; immutable canonical binding remains pending."
+          }
+        ],
+        "boundary": [
+          "This theorem supplies an equality on its stated integrable domain. It does not establish that domain for every Gaussian observable.",
+          "No global Lipschitz, compact-support or additional decay assumption is introduced. Zero direction and zero dimension are allowed."
+        ],
+        "reading_layout": "progressive",
+        "reader_note": "Begin with the statement and all three domain conditions. Open a proof step for its formula and the optional exact Lean."
+      },
+      {
+        "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram",
+        "kind": "theorem",
+        "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram",
+        "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteGram.lean",
+        "source_line": 137,
+        "short_name": "gaussian_hermite_ridge_gram",
+        "title": "Hermite products of correlated Gaussian projections",
+        "classification": "original shared Gaussian-analysis supplement",
+        "statement": "Let \\(E\\) be a finite-dimensional real inner-product space with its Borel structure, and let \\(\\gamma=\\operatorname{stdGaussian}(E)\\). Let \\(u,v\\in E\\) satisfy \\(\\|u\\|=\\|v\\|=1\\), and put \\(\\rho=\\langle u,v\\rangle\\). Let \\(H_k\\) denote the unnormalized probabilists’ Hermite polynomial, defined by \\(H_0=1\\) and \\(H_{k+1}(t)=tH_k(t)-H_k^{\\prime}(t)\\). For every pair of natural degrees \\(i,j\\), the literal product \\(x\\mapsto H_i(\\langle u,x\\rangle)H_j(\\langle v,x\\rangle)\\) is absolutely integrable under \\(\\gamma\\). Its integral is \\(i!\\rho^i\\) if \\(i=j\\), and zero if \\(i\\ne j\\). Both degrees can be zero, and coincident or antipodal unit directions are included.",
+        "formula": "\\int_E H_i(\\langle u,x\\rangle)H_j(\\langle v,x\\rangle)\\,d\\gamma(x)=\\begin{cases}i!\\,\\rho^i,&i=j,\\\\0,&i\\ne j,\\end{cases}\\qquad\\rho=\\langle u,v\\rangle.",
+        "assumptions": [
+          "\\(E\\) is a finite-dimensional real inner-product normed space with its Borel measurable structure; \\(\\gamma\\) is its centered identity-covariance Gaussian probability.",
+          "\\(u,v\\) are actual unit vectors in the same carrier. There is no linear-independence, orthogonality or nonsingular two-dimensional density assumption.",
+          "\\(i,j\\in\\mathbb N\\) are arbitrary. The polynomials have integer coefficients evaluated in \\(\\mathbb R\\) through the canonical coefficient map.",
+          "The correlation is the actual inner product \\(\\rho\\in[-1,1]\\). Both endpoint values and zero are allowed. Product integrability is a conclusion."
+        ],
+        "conventions": [
+          "When \\(i=j=0\\), the natural zeroth power gives integral one, even if \\(\\rho=0\\). At \\(u=v\\), the equal-degree value is \\(i!\\); at \\(u=-v\\), it is \\(i!(-1)^i\\).",
+          "Dimension one is allowed. In dimension zero no unit vectors exist, so the unit-vector hypotheses are vacuous; the theorem does not create such vectors."
+        ],
+        "steps": [
+          {
+            "number": 1,
+            "title": "Obtain integrability from polynomial Gaussian moments",
+            "text": "Every real polynomial ridge belongs to \\(L^2(\\gamma)\\) by the existing Gaussian polynomial theorem. The product of any two such ridges is integrable by Cauchy–Schwarz. An extra factor \\(\\langle u,x\\rangle\\) is absorbed into the first polynomial, so the same result will supply the weighted Stein integrand.",
+            "formula": "p(\\langle u,\\cdot\\rangle),q(\\langle v,\\cdot\\rangle)\\in L^2(\\gamma)\\ \\Longrightarrow\\ p(\\langle u,\\cdot\\rangle)q(\\langle v,\\cdot\\rangle)\\in L^1(\\gamma).",
+            "lean": "private theorem ridge_L2 (p : Polynomial ℝ) (w : E) :\n    MemLp (fun x => p.eval ⟪w,x⟫_ℝ) 2 (stdGaussian E) := by\n  obtain ⟨hf, _⟩ :=\n    GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative\n      (E := E) p\n  exact hf w\n\nprivate theorem ridge_product_integrable (p q : Polynomial ℝ) (u v : E) :\n    Integrable (fun x => p.eval ⟪u,x⟫_ℝ * q.eval ⟪v,x⟫_ℝ) (stdGaussian E) :=\n  (ridge_L2 p u).integrable_mul (ridge_L2 q v)\n",
+            "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+          },
+          {
+            "number": 2,
+            "title": "Supply the full Stein domain for the product",
+            "text": "For a real polynomial \\(q\\), set \\(f(x)=H_i(\\langle u,x\\rangle)q(\\langle v,x\\rangle)\\). The chain and product rules give its derivative in direction \\(u\\). Unit length makes the first inner-product factor one, while the second is \\(\\rho\\). Each derivative term is a product of polynomial ridges, so step 1 establishes all three integrability conditions of the shared Stein theorem.",
+            "formula": "Df(x)[u]=H_i^{\\prime}(\\langle u,x\\rangle)q(\\langle v,x\\rangle)+\\rho H_i(\\langle u,x\\rangle)q^{\\prime}(\\langle v,x\\rangle).",
+            "lean": "  have hB (x : E) : HasFDerivAt B (BD x • innerSL ℝ v) x := by\n    exact (q.hasDerivAt ⟪v,x⟫_ℝ).comp_hasFDerivAt x (innerSL ℝ v).hasFDerivAt\n  have hf (x : E) := (hA x).mul (hB x)\n  have hf' : (fun x => fderiv ℝ f x u) = fun x => AD x * B x + ρ * (A x * BD x) := by\n    funext x\n    change fderiv ℝ (A * B) x u = _\n    rw [(hf x).fderiv]\n    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,\n      innerSL_apply_apply, real_inner_self_eq_norm_sq, hu, one_pow, mul_one,\n      real_inner_comm u v, ρ]\n    ring\n  have hx : (fun x => ⟪x,u⟫_ℝ * f x) = XB := by\n    funext x\n    rw [real_inner_comm u x]\n    simp only [XB, f, A, eval_mul, eval_X, mul_assoc]\n  have hi : Integrable XB (stdGaussian E) := ridge_product_integrable (X*p) q u v\n  have hAd : Integrable (fun x => AD x * B x) (stdGaussian E) :=\n    ridge_product_integrable p.derivative q u v\n  have hBd : Integrable (fun x => A x * BD x) (stdGaussian E) :=\n    ridge_product_integrable p q.derivative u v\n  have hs := GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv f u\n    (fun x => (hf x).differentiableAt)\n    (ridge_product_integrable p q u v) (hx.symm ▸ hi)\n    (hf'.symm ▸ (hAd.add (hBd.const_mul ρ)))\n  rw [hx, hf', integral_add hAd (hBd.const_mul ρ), integral_const_mul] at hs\n",
+            "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+          },
+          {
+            "number": 3,
+            "title": "Cancel the first derivative by the Hermite recurrence",
+            "text": "Apply Stein in direction \\(u\\). Subtract the term containing \\(H_i^{\\prime}\\) and use \\(H_{i+1}(t)=tH_i(t)-H_i^{\\prime}(t)\\). Only the derivative of the second polynomial remains.",
+            "formula": "\\int H_{i+1}(\\langle u,x\\rangle)q(\\langle v,x\\rangle)\\,d\\gamma=\\rho\\int H_i(\\langle u,x\\rangle)q^{\\prime}(\\langle v,x\\rangle)\\,d\\gamma.",
+            "lean": "  calc\n    _ = ∫ x, XB x - AD x * B x ∂stdGaussian E := by\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hermiteR_succ]\n      simp only [p, B, AD, XB, eval_sub]\n      ring\n    _ = _ := by\n      rw [integral_sub hi hAd]\n      linarith only [hs]\n",
+            "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+          },
+          {
+            "number": 4,
+            "title": "Iterate the adjoint identity",
+            "text": "Apply step 3 repeatedly, replacing \\(q\\) by its derivative at each step. The base case uses \\(H_0=1\\). After \\(i\\) iterations the entire Hermite factor has been moved onto an ordinary derivative of \\(q\\), with one factor of \\(\\rho\\) at each iteration.",
+            "formula": "\\int H_i(\\langle u,x\\rangle)q(\\langle v,x\\rangle)\\,d\\gamma=\\rho^i\\int q^{(i)}(\\langle v,x\\rangle)\\,d\\gamma.",
+            "lean": "private theorem hermite_adjoint_iterate (u v : E) (hu : ‖u‖ = 1)\n    (i : ℕ) (q : Polynomial ℝ) :\n    (∫ x, (hermiteR i).eval ⟪u,x⟫_ℝ * q.eval ⟪v,x⟫_ℝ ∂stdGaussian E) =\n      ⟪u,v⟫_ℝ ^ i * ∫ x, (derivative^[i] q).eval ⟪v,x⟫_ℝ ∂stdGaussian E := by\n  induction i generalizing q with\n  | zero => simp [hermiteR, hermite_zero]\n  | succ i ih =>\n      rw [hermite_adjoint_step u v hu, ih q.derivative,\n        Function.iterate_succ_apply, pow_succ]\n      ring\n",
+            "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+          },
+          {
+            "number": 5,
+            "title": "Evaluate the equal- and lower-degree cases",
+            "text": "Take \\(q=H_j\\). If \\(i=j\\), monicity and degree give \\(H_i^{(i)}=i!\\), whose Gaussian probability integral is \\(i!\\). If \\(i>j\\), the derivative order exceeds the polynomial degree, so the integral is zero. This includes the degree-zero case.",
+            "formula": "H_i^{(i)}=i!,\\qquad H_j^{(i)}=0\\quad(i>j).",
+            "lean": "private theorem hermite_gram_le (u v : E) (hu : ‖u‖ = 1)\n    (i j : ℕ) (hji : j ≤ i) :\n    (∫ x, (hermiteR i).eval ⟪u,x⟫_ℝ * (hermiteR j).eval ⟪v,x⟫_ℝ ∂stdGaussian E) =\n      if i = j then (i.factorial : ℝ) * ⟪u,v⟫_ℝ ^ i else 0 := by\n  rw [hermite_adjoint_iterate u v hu]\n  by_cases h : i = j\n  · subst j\n    rw [hermiteR_top_iterate_derivative]\n    simp [mul_comm]\n  · have hn : (hermiteR j).natDegree < i :=\n      (hermiteR_degree_le j).trans_lt (lt_of_le_of_ne hji (Ne.symm h))\n    rw [iterate_derivative_eq_zero hn]\n    simp [h]\n",
+            "detail": "Literal degree-comparison excerpt. The top-derivative identity is proved coefficientwise in the same module at lines 32–42, using the actual monic polynomial coefficients."
+          },
+          {
+            "number": 6,
+            "title": "Exchange the two projections when the first degree is smaller",
+            "text": "If \\(i<j\\), commute the two factors and apply step 5 with directions and degrees exchanged. The second unit hypothesis supplies the needed unit direction. Combine this with the integrability from step 1. There is no division by \\(\\rho\\) or \\(1-\\rho^2\\), so the endpoint correlations need no additional assumptions.",
+            "formula": "\\int H_i(\\langle u,x\\rangle)H_j(\\langle v,x\\rangle)\\,d\\gamma=\\int H_j(\\langle v,x\\rangle)H_i(\\langle u,x\\rangle)\\,d\\gamma.",
+            "lean": "  dsimp only\n  simp_rw [← hermiteR_eval]\n  refine ⟨ridge_product_integrable (hermiteR i) (hermiteR j) u v, ?_⟩\n  rcases le_total j i with h | h\n  · exact hermite_gram_le u v hu i j h\n  · have hc :\n        (∫ x, (hermiteR i).eval ⟪u,x⟫_ℝ * (hermiteR j).eval ⟪v,x⟫_ℝ ∂stdGaussian E) =\n        ∫ x, (hermiteR j).eval ⟪v,x⟫_ℝ * (hermiteR i).eval ⟪u,x⟫_ℝ ∂stdGaussian E := by\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall fun _ => mul_comm _ _\n    rw [hc, hermite_gram_le v u hv j i h]\n    by_cases hij : i = j\n    · subst j\n      simp [real_inner_comm u v]\n    · simp [hij, Ne.symm hij]\n",
+            "detail": "Literal excerpt from the unchanged historical public-path candidate. The complete module supplies the named local facts and remains available for whole-module review."
+          }
+        ],
+        "lean_statement": "The exact folded statement returns product integrability and the integral identity together. It quantifies over all natural degrees and both actual unit vectors; no covariance or derivative identity is supplied as a hypothesis.",
+        "lean_proof": "The six formula steps expand the existing three-step historical explanation without changing its proof. The exact excerpts and complete proof remain initially folded.",
+        "astis_dependencies": [
+          "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv",
+          "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative"
+        ],
+        "mathlib_dependencies": [
+          "Polynomial.hermite_succ",
+          "Polynomial.coeff_hermite_self",
+          "Polynomial.natDegree_hermite",
+          "Polynomial.coeff_iterate_derivative",
+          "Polynomial.iterate_derivative_eq_zero",
+          "MeasureTheory.MemLp.integrable_mul",
+          "Polynomial.hasDerivAt"
+        ],
+        "sources": [
+          {
+            "url": "runs/20261117-gaussian-hermite-product/source-only.json",
+            "label": "Original generic Hermite-product supplement, 2026-11-17",
+            "scope": "Complete natural statement, normalization, edge cases and six proof moves; immutable canonical binding pending."
+          }
+        ],
+        "boundary": [
+          "This exact integral identity does not by itself establish a full Hermite expansion, derivative bounds for a series, or an application-specific force estimate.",
+          "Gaussian polynomial moments and the Stein domain are discharged in the proof, not added as public Hermite hypotheses."
+        ],
+        "reading_layout": "progressive",
+        "reader_note": "Read the exact integral formula and normalization first. Open the six proof steps for the argument; every Lean excerpt is adjacent and optional."
+      }
+    ]
+  },
+  "old_reader_binding": {
+    "artifact": "historical-gram/reader-draft.json",
+    "raw_sha256": "3cf340bf43990108275a89be6b34b8e57b71dd49ee6872b30d60fcbf8d7590de",
+    "lf_sha256": "3cf340bf43990108275a89be6b34b8e57b71dd49ee6872b30d60fcbf8d7590de"
+  },
+  "reuse_decision": "Reuse the historical mathematical argument and verified literal excerpts. The old JSON cannot be installed unchanged: declaration/dependency names are abbreviated, sources are empty, prose variables lack current math delimiters, and tests/proof fields use old conventions.",
+  "bounded_changes": [
+    "Full canonical declaration/module/dependency identifiers.",
+    "Full Stein domain and dimension boundary.",
+    "Current inline math delimiters and prime superscripts.",
+    "Three Stein and six Gram formula steps, matched to the accepted source topology.",
+    "Existing progressive reader and closed exact-Lean disclosures.",
+    "Staged relative source locators, with canonical immutable binding still pending."
+  ],
+  "old_excerpt_checks": [
+    {
+      "module": "GaussianIntegrationByParts",
+      "old_step": 1,
+      "literal_excerpt_still_present": true
+    },
+    {
+      "module": "GaussianIntegrationByParts",
+      "old_step": 2,
+      "literal_excerpt_still_present": true
+    },
+    {
+      "module": "GaussianHermiteGram",
+      "old_step": 1,
+      "literal_excerpt_still_present": true
+    },
+    {
+      "module": "GaussianHermiteGram",
+      "old_step": 2,
+      "literal_excerpt_still_present": true
+    },
+    {
+      "module": "GaussianHermiteGram",
+      "old_step": 3,
+      "literal_excerpt_still_present": true
+    }
+  ],
+  "literal_excerpt_bindings": [
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianIntegrationByParts.lean",
+      "first_line": 18,
+      "last_line": 31,
+      "purpose": "proof step 1: Identify and differentiate the actual Gaussian density",
+      "text": "private def standardWeight (x : E) : ℝ :=\n  ((Real.sqrt (2 * Real.pi))⁻¹) ^ Module.finrank ℝ E * Real.exp (-‖x‖^2 / 2)\n\nprivate theorem standardWeight_pos (x : E) : 0 < standardWeight x := by\n  dsimp [standardWeight]\n  positivity\n\nprivate theorem standardGaussian_density :\n    stdGaussian E = (volume : Measure E).withDensity\n      (fun x => ENNReal.ofReal (standardWeight x)) := by\n  have h := AutoSamplingTheory.TechnicalLemmas.Measure.IsotropicGaussianDensity.map_sqrt_smul_stdGaussian_eq_withDensity\n    (E := E) 1 (by norm_num)\n  simpa only [Real.sqrt_one, one_smul, Measure.map_id', mul_one,\n    standardWeight] using h\n",
+      "lf_text_sha256": "4e0f9773a2fbbdbb5ffbd417a605bf8a1f1c8ce5a0510eae1977f4e160c13853"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianIntegrationByParts.lean",
+      "first_line": 80,
+      "last_line": 94,
+      "purpose": "proof step 2: Transfer the stated integrability domain to Lebesgue measure",
+      "text": "  let : CompleteSpace E := FiniteDimensional.complete ℝ E\n  have hDw (x : E) : fderiv ℝ (standardWeight : E → ℝ) x v =\n      -standardWeight x*inner ℝ x v := by\n    rw [(standardWeight_hasFDerivAt x).fderiv]\n    simp only [smul_apply, smul_eq_mul, innerSL_apply_apply]\n  have hwp := standardGaussian_weighted_integrable hfi\n  have hwdf := standardGaussian_weighted_integrable hdf\n  have hwxf := standardGaussian_weighted_integrable hxf\n  have hDwf : Integrable (fun x => fderiv ℝ (standardWeight : E → ℝ) x v*f x)\n      (volume : Measure E) := by\n    convert hwxf.neg using 1\n    ext x\n    rw [hDw]\n    simp only [Pi.neg_apply]\n    ring\n",
+      "lf_text_sha256": "1f0fdfb5eedb3c42629b7b3164089060aa7ccbeab10cee41f2cfe898c66538b1"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianIntegrationByParts.lean",
+      "first_line": 95,
+      "last_line": 107,
+      "purpose": "proof step 3: Move the derivative and cancel the sign",
+      "text": "  have hparts := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable hDwf hwdf hwp\n    (fun x _ => (standardWeight_hasFDerivAt x).differentiableAt)\n    (fun x _ => hf x)\n  rw [standardGaussian_weighted_integral, standardGaussian_weighted_integral]\n  calc\n    (∫ x, standardWeight x*(inner ℝ x v*f x)) =\n        -(∫ x, fderiv ℝ (standardWeight : E → ℝ) x v*f x) := by\n      rw [← integral_neg]\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hDw]\n      ring\n    _ = ∫ x, standardWeight x*fderiv ℝ f x v := hparts.symm\n",
+      "lf_text_sha256": "54e5f6deae931ab0d9d44a5442cdea4df83ab91e862e73bdbbd7e8dafadd0692"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteGram.lean",
+      "first_line": 49,
+      "last_line": 58,
+      "purpose": "proof step 1: Obtain integrability from polynomial Gaussian moments",
+      "text": "private theorem ridge_L2 (p : Polynomial ℝ) (w : E) :\n    MemLp (fun x => p.eval ⟪w,x⟫_ℝ) 2 (stdGaussian E) := by\n  obtain ⟨hf, _⟩ :=\n    GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_frechet_derivative\n      (E := E) p\n  exact hf w\n\nprivate theorem ridge_product_integrable (p q : Polynomial ℝ) (u v : E) :\n    Integrable (fun x => p.eval ⟪u,x⟫_ℝ * q.eval ⟪v,x⟫_ℝ) (stdGaussian E) :=\n  (ridge_L2 p u).integrable_mul (ridge_L2 q v)\n",
+      "lf_text_sha256": "0b0e33da2826802cede1b5284946bd2e962a0af9e9ea1f5221c3b633206c4bd1"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteGram.lean",
+      "first_line": 74,
+      "last_line": 98,
+      "purpose": "proof step 2: Supply the full Stein domain for the product",
+      "text": "  have hB (x : E) : HasFDerivAt B (BD x • innerSL ℝ v) x := by\n    exact (q.hasDerivAt ⟪v,x⟫_ℝ).comp_hasFDerivAt x (innerSL ℝ v).hasFDerivAt\n  have hf (x : E) := (hA x).mul (hB x)\n  have hf' : (fun x => fderiv ℝ f x u) = fun x => AD x * B x + ρ * (A x * BD x) := by\n    funext x\n    change fderiv ℝ (A * B) x u = _\n    rw [(hf x).fderiv]\n    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,\n      innerSL_apply_apply, real_inner_self_eq_norm_sq, hu, one_pow, mul_one,\n      real_inner_comm u v, ρ]\n    ring\n  have hx : (fun x => ⟪x,u⟫_ℝ * f x) = XB := by\n    funext x\n    rw [real_inner_comm u x]\n    simp only [XB, f, A, eval_mul, eval_X, mul_assoc]\n  have hi : Integrable XB (stdGaussian E) := ridge_product_integrable (X*p) q u v\n  have hAd : Integrable (fun x => AD x * B x) (stdGaussian E) :=\n    ridge_product_integrable p.derivative q u v\n  have hBd : Integrable (fun x => A x * BD x) (stdGaussian E) :=\n    ridge_product_integrable p q.derivative u v\n  have hs := GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv f u\n    (fun x => (hf x).differentiableAt)\n    (ridge_product_integrable p q u v) (hx.symm ▸ hi)\n    (hf'.symm ▸ (hAd.add (hBd.const_mul ρ)))\n  rw [hx, hf', integral_add hAd (hBd.const_mul ρ), integral_const_mul] at hs\n",
+      "lf_text_sha256": "2bfc02df00aa1343f2850d36055d7bd17dd9bd7fa011d65134a529b44dd4b418"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteGram.lean",
+      "first_line": 99,
+      "last_line": 108,
+      "purpose": "proof step 3: Cancel the first derivative by the Hermite recurrence",
+      "text": "  calc\n    _ = ∫ x, XB x - AD x * B x ∂stdGaussian E := by\n      apply integral_congr_ae\n      filter_upwards with x\n      rw [hermiteR_succ]\n      simp only [p, B, AD, XB, eval_sub]\n      ring\n    _ = _ := by\n      rw [integral_sub hi hAd]\n      linarith only [hs]\n",
+      "lf_text_sha256": "5ded1c7ba06dcc87f198126cb3a2ff7ec56bc6c2c40b0b4ad4559e66cfdbefc6"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteGram.lean",
+      "first_line": 110,
+      "last_line": 119,
+      "purpose": "proof step 4: Iterate the adjoint identity",
+      "text": "private theorem hermite_adjoint_iterate (u v : E) (hu : ‖u‖ = 1)\n    (i : ℕ) (q : Polynomial ℝ) :\n    (∫ x, (hermiteR i).eval ⟪u,x⟫_ℝ * q.eval ⟪v,x⟫_ℝ ∂stdGaussian E) =\n      ⟪u,v⟫_ℝ ^ i * ∫ x, (derivative^[i] q).eval ⟪v,x⟫_ℝ ∂stdGaussian E := by\n  induction i generalizing q with\n  | zero => simp [hermiteR, hermite_zero]\n  | succ i ih =>\n      rw [hermite_adjoint_step u v hu, ih q.derivative,\n        Function.iterate_succ_apply, pow_succ]\n      ring\n",
+      "lf_text_sha256": "5405ca9168518bf4d8091b7318942e16378c56f8145b3e368e35dac3accbcb3b"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteGram.lean",
+      "first_line": 121,
+      "last_line": 133,
+      "purpose": "proof step 5: Evaluate the equal- and lower-degree cases",
+      "text": "private theorem hermite_gram_le (u v : E) (hu : ‖u‖ = 1)\n    (i j : ℕ) (hji : j ≤ i) :\n    (∫ x, (hermiteR i).eval ⟪u,x⟫_ℝ * (hermiteR j).eval ⟪v,x⟫_ℝ ∂stdGaussian E) =\n      if i = j then (i.factorial : ℝ) * ⟪u,v⟫_ℝ ^ i else 0 := by\n  rw [hermite_adjoint_iterate u v hu]\n  by_cases h : i = j\n  · subst j\n    rw [hermiteR_top_iterate_derivative]\n    simp [mul_comm]\n  · have hn : (hermiteR j).natDegree < i :=\n      (hermiteR_degree_le j).trans_lt (lt_of_le_of_ne hji (Ne.symm h))\n    rw [iterate_derivative_eq_zero hn]\n    simp [h]\n",
+      "lf_text_sha256": "2baf5bc12b56c639072f581067ccba14ca634ffc2a229651167c2be2367929e3"
+    },
+    {
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteGram.lean",
+      "first_line": 147,
+      "last_line": 161,
+      "purpose": "proof step 6: Exchange the two projections when the first degree is smaller",
+      "text": "  dsimp only\n  simp_rw [← hermiteR_eval]\n  refine ⟨ridge_product_integrable (hermiteR i) (hermiteR j) u v, ?_⟩\n  rcases le_total j i with h | h\n  · exact hermite_gram_le u v hu i j h\n  · have hc :\n        (∫ x, (hermiteR i).eval ⟪u,x⟫_ℝ * (hermiteR j).eval ⟪v,x⟫_ℝ ∂stdGaussian E) =\n        ∫ x, (hermiteR j).eval ⟪v,x⟫_ℝ * (hermiteR i).eval ⟪u,x⟫_ℝ ∂stdGaussian E := by\n      apply integral_congr_ae\n      exact Filter.Eventually.of_forall fun _ => mul_comm _ _\n    rw [hc, hermite_gram_le v u hv j i h]\n    by_cases hij : i = j\n    · subst j\n      simp [real_inner_comm u v]\n    · simp [hij, Ne.symm hij]\n",
+      "lf_text_sha256": "9bbe2f4161abd3e7c9b0ff86bbe6177590664cb807e41060d9a2c91c5f9b658a"
+    }
+  ],
+  "placement_proposal": {
+    "library": "log-concave-sampling",
+    "chapter": "01",
+    "chapter_path": "textbook/chapter-01.html",
+    "reference_reader": "textbook/chapter-01/section-1-3.html",
+    "basis": "Adjacent existing original Gaussian polynomial ridge supplement; subject placement only, no chapter completion credit.",
+    "canonical_binding_owner": "root"
+  },
+  "compiler_or_render_run_this_task": false
+}

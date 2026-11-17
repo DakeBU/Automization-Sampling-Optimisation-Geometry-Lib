@@ -1,0 +1,98 @@
+AutoSamplingTheory.TechnicalLemmas.Probability.GaussianIntegrationByParts.standard_gaussian_stein_of_integrable_fderiv.{u_1}
+  {E : Type u_1} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E]
+  [BorelSpace E] (f : E → ℝ) (v : E) (hf : Differentiable ℝ f)
+  (hfi : MeasureTheory.Integrable f (ProbabilityTheory.stdGaussian E))
+  (hxf : MeasureTheory.Integrable (fun x => inner ℝ x v * f x) (ProbabilityTheory.stdGaussian E))
+  (hdf : MeasureTheory.Integrable (fun x => (fderiv ℝ f x) v) (ProbabilityTheory.stdGaussian E)) :
+  ∫ (x : E), inner ℝ x v * f x ∂ProbabilityTheory.stdGaussian E =
+    ∫ (x : E), (fderiv ℝ f x) v ∂ProbabilityTheory.stdGaussian E
+AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram.{u_1} {E : Type u_1}
+  [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] (u v : E)
+  (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) (i j : ℕ) :
+  have G := fun x =>
+    (Polynomial.aeval (inner ℝ u x)) (Polynomial.hermite i) * (Polynomial.aeval (inner ℝ v x)) (Polynomial.hermite j);
+  MeasureTheory.Integrable G (ProbabilityTheory.stdGaussian E) ∧
+    ∫ (x : E), G x ∂ProbabilityTheory.stdGaussian E = if i = j then ↑i.factorial * inner ℝ u v ^ i else 0
+def ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →
+  [inst : NormedAddCommGroup E] →
+    [inst_1 : InnerProductSpace ℝ E] → [FiniteDimensional ℝ E] → [inst : MeasurableSpace E] → MeasureTheory.Measure E :=
+fun E [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] =>
+  MeasureTheory.Measure.map (fun x => ∑ i, x i • (stdOrthonormalBasis ℝ E) i)
+    (MeasureTheory.Measure.pi fun x => ProbabilityTheory.gaussianReal 0 1)
+def ProbabilityTheory.gaussianReal : ℝ → NNReal → MeasureTheory.Measure ℝ :=
+fun μ v =>
+  if v = 0 then MeasureTheory.Measure.dirac μ else MeasureTheory.volume.withDensity (ProbabilityTheory.gaussianPDF μ v)
+def ProbabilityTheory.gaussianPDF : ℝ → NNReal → ℝ → ENNReal :=
+fun μ v x => ENNReal.ofReal (ProbabilityTheory.gaussianPDFReal μ v x)
+def ProbabilityTheory.gaussianPDFReal : ℝ → NNReal → ℝ → ℝ :=
+fun μ v x => (√(2 * Real.pi * ↑v))⁻¹ * Real.exp (-(x - μ) ^ 2 / (2 * ↑v))
+def Polynomial.hermite : ℕ → Polynomial ℤ :=
+fun x => Nat.brecOn x Polynomial.hermite._f
+def Polynomial.aeval.{u, z} : {R : Type u} →
+  {A : Type z} → [inst : CommSemiring R] → [inst_1 : Semiring A] → [inst_2 : Algebra R A] → A → Polynomial R →ₐ[R] A :=
+fun {R} {A} [CommSemiring R] [Semiring A] [Algebra R A] x => (Polynomial.aevalEquiv R A) x
+def Differentiable.{u_1, u_2, u_3} : (𝕜 : Type u_1) →
+  [inst : NontriviallyNormedField 𝕜] →
+    {E : Type u_2} →
+      [inst_1 : AddCommGroup E] →
+        [Module 𝕜 E] →
+          [TopologicalSpace E] →
+            {F : Type u_3} → [inst_4 : AddCommGroup F] → [Module 𝕜 F] → [TopologicalSpace F] → (E → F) → Prop :=
+fun 𝕜 [NontriviallyNormedField 𝕜] {E} [AddCommGroup E] [Module 𝕜 E] [TopologicalSpace E] {F} [AddCommGroup F]
+    [Module 𝕜 F] [TopologicalSpace F] f =>
+  ∀ (x : E), DifferentiableAt 𝕜 f x
+def DifferentiableAt.{u_1, u_2, u_3} : (𝕜 : Type u_1) →
+  [inst : NontriviallyNormedField 𝕜] →
+    {E : Type u_2} →
+      [inst_1 : AddCommGroup E] →
+        [Module 𝕜 E] →
+          [TopologicalSpace E] →
+            {F : Type u_3} → [inst_4 : AddCommGroup F] → [Module 𝕜 F] → [TopologicalSpace F] → (E → F) → E → Prop :=
+fun 𝕜 [NontriviallyNormedField 𝕜] {E} [AddCommGroup E] [Module 𝕜 E] [TopologicalSpace E] {F} [AddCommGroup F]
+    [Module 𝕜 F] [TopologicalSpace F] f x =>
+  ∃ f', HasFDerivAt f f' x
+def HasFDerivAt.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  [inst : NontriviallyNormedField 𝕜] →
+    {E : Type u_2} →
+      [inst_1 : AddCommGroup E] →
+        [inst_2 : Module 𝕜 E] →
+          [inst_3 : TopologicalSpace E] →
+            {F : Type u_3} →
+              [inst_4 : AddCommGroup F] →
+                [inst_5 : Module 𝕜 F] → [inst_6 : TopologicalSpace F] → (E → F) → (E →L[𝕜] F) → E → Prop :=
+fun {𝕜} [NontriviallyNormedField 𝕜] {E} [AddCommGroup E] [Module 𝕜 E] [TopologicalSpace E] {F} [AddCommGroup F]
+    [Module 𝕜 F] [TopologicalSpace F] f f' x =>
+  HasFDerivAtFilter f f' (nhds x ×ˢ pure x)
+@[irreducible] def fderiv.{u_4, u_5, u_6} : (𝕜 : Type u_4) →
+  [inst : NontriviallyNormedField 𝕜] →
+    {E : Type u_5} →
+      [inst_1 : AddCommGroup E] →
+        [inst_2 : Module 𝕜 E] →
+          [inst_3 : TopologicalSpace E] →
+            {F : Type u_6} →
+              [inst_4 : AddCommGroup F] →
+                [inst_5 : Module 𝕜 F] → [inst_6 : TopologicalSpace F] → (E → F) → E → E →L[𝕜] F :=
+wrapped✝.1
+@[irreducible] def fderivWithin.{u_4, u_5, u_6} : (𝕜 : Type u_4) →
+  [inst : NontriviallyNormedField 𝕜] →
+    {E : Type u_5} →
+      [inst_1 : AddCommGroup E] →
+        [inst_2 : Module 𝕜 E] →
+          [inst_3 : TopologicalSpace E] →
+            {F : Type u_6} →
+              [inst_4 : AddCommGroup F] →
+                [inst_5 : Module 𝕜 F] → [inst_6 : TopologicalSpace F] → (E → F) → Set E → E → E →L[𝕜] F :=
+wrapped✝.1
+def MeasureTheory.Integrable.{u_5, u_8} : {ε : Type u_5} →
+  [inst : TopologicalSpace ε] →
+    [ContinuousENorm ε] →
+      {α : Type u_8} →
+        {x : MeasurableSpace α} →
+          (α → ε) → autoParam (MeasureTheory.Measure α) MeasureTheory.Integrable._auto_1 → Prop :=
+fun {ε} [TopologicalSpace ε] [ContinuousENorm ε] {α} {x} f μ =>
+  MeasureTheory.AEStronglyMeasurable f μ ∧ MeasureTheory.HasFiniteIntegral f μ
+@[irreducible] def MeasureTheory.integral.{u_6, u_7} : {α : Type u_6} →
+  {G : Type u_7} →
+    [inst : NormedAddCommGroup G] →
+      [NormedSpace ℝ G] → {x : MeasurableSpace α} → MeasureTheory.Measure α → (α → G) → G :=
+MeasureTheory.wrapped✝.1

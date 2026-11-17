@@ -1,0 +1,43 @@
+@AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient.gaussian_polynomial_joint_feature_gradient_representation : ∀
+  {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]
+  [inst_3 : MeasurableSpace E] [BorelSpace E] (P : MeasureTheory.Measure (E × ℝ))
+  [MeasureTheory.IsProbabilityMeasure P],
+  MeasureTheory.Measure.map Prod.fst P = ProbabilityTheory.stdGaussian E →
+    ∀ (p : Polynomial ℝ) (hlabel : MeasureTheory.MemLp (fun (z : E × ℝ) => z.2) 2 P),
+      let S := { w : E // ‖w‖ = 1 };
+      have f := fun (w : E) (z : E × ℝ) => Polynomial.eval (inner ℝ w z.1) p;
+      have df := fun (w v : E) (z : E × ℝ) => Polynomial.eval (inner ℝ w z.1) (Polynomial.derivative p) * inner ℝ v z.1;
+      have predictor := fun (ρ : MeasureTheory.Measure S) (x : E) => ∫ (w : S), Polynomial.eval (inner ℝ (↑w) x) p ∂ρ;
+      have V := fun (ρ : MeasureTheory.Measure S) (w : E) =>
+        2 * ∫ (z : E × ℝ), (predictor ρ z.1 - z.2) * Polynomial.eval (inner ℝ w z.1) p ∂P;
+      ∃ (hf : ∀ (w : E), MeasureTheory.MemLp (f w) 2 P) (hdf : ∀ (w v : E), MeasureTheory.MemLp (df w v) 2 P) (D :
+        E → E →L[ℝ] ↥(MeasureTheory.Lp ℝ 2 P)) (M₁ : ℝ) (M₂ : ℝ),
+        have F := fun (w : E) => MeasureTheory.MemLp.toLp (f w) ⋯;
+        have label := MeasureTheory.MemLp.toLp (fun (z : E × ℝ) => z.2) hlabel;
+        have K := fun (w : S) => F ↑w;
+        have mean := fun (ρ : MeasureTheory.Measure S) => ∫ (w : S), K w ∂ρ;
+        have G := fun (ρ : MeasureTheory.Measure S) (w : E) => gradient (V ρ) w - inner ℝ (gradient (V ρ) w) w • w;
+        0 < M₁ ∧
+          0 < M₂ ∧
+            (∀ (w v : E), (D w) v = MeasureTheory.MemLp.toLp (df w v) ⋯) ∧
+              (∀ (w : E), HasFDerivAt F (D w) w) ∧
+                (∀ (w : E), ‖w‖ ≤ 1 → ‖D w‖ ≤ M₁) ∧
+                  (∀ (w u : E), ‖w‖ ≤ 1 → ‖u‖ ≤ 1 → ‖D w - D u‖ ≤ M₂ * ‖w - u‖) ∧
+                    ∀ (ρ : MeasureTheory.Measure S),
+                      MeasureTheory.IsProbabilityMeasure ρ →
+                        (∀ (x : E), MeasureTheory.Integrable (fun (w : S) => Polynomial.eval (inner ℝ (↑w) x) p) ρ) ∧
+                          MeasureTheory.Integrable K ρ ∧
+                            (∃ (hpred : MeasureTheory.MemLp (fun (z : E × ℝ) => predictor ρ z.1) 2 P),
+                                MeasureTheory.MemLp.toLp (fun (z : E × ℝ) => predictor ρ z.1) hpred = mean ρ) ∧
+                              (V ρ = fun (w : E) => 2 * inner ℝ (mean ρ - label) (F w)) ∧
+                                (∀ (w : E),
+                                    MeasureTheory.Integrable
+                                        (fun (z : E × ℝ) => (predictor ρ z.1 - z.2) * Polynomial.eval (inner ℝ w z.1) p)
+                                        P ∧
+                                      HasGradientAt (V ρ) (2 • (ContinuousLinearMap.adjoint (D w)) (mean ρ - label)) w ∧
+                                        gradient (V ρ) w = 2 • (ContinuousLinearMap.adjoint (D w)) (mean ρ - label)) ∧
+                                  ∀ (w : S),
+                                    G ρ ↑w =
+                                      2 •
+                                        ((ContinuousLinearMap.adjoint (D ↑w)) (mean ρ - label) -
+                                          inner ℝ ((ContinuousLinearMap.adjoint (D ↑w)) (mean ρ - label)) ↑w • ↑w)

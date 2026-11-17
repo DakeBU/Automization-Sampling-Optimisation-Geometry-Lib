@@ -6078,6 +6078,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.gaussian-feature-gradient-representation",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient.gaussian_polynomial_joint_feature_gradient_representation",
+    upstreamDecl := "Complete source-only.json: A1-A4, D1-D6, C1-C7 and T1-T6.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/af662b3d5c83ba82d34be9ab69ce5e7bc67bd0c0/runs/20261116-gaussian-feature-gradient-representation/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "gradient", "shared"],
+    saldUse := "Actual Gaussian polynomial features, Bochner means and ambient potential gradients.",
+    note := "One reusable representation extracted from, and consumed by, the existing angular gradient theorem. This interface supplies actual L² classes, their Bochner mean, an ambient gradient and its explicit unit-sphere projection. An installed manifold-gradient identification is separate. No transport estimate, numerical operator constant, empirical rate, stochastic process or convergence theorem is added. The polynomial and actual response L² assumptions remain explicit. The result is a shared mathematical supplement and carries no primary-textbook chapter completion claim."
+  },
+  {
     key := "shared.gaussian-joint-potential-gradient-supplement",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient.gaussian_polynomial_joint_potential_projected_gradient_transport_control",
     upstreamDecl := "Original complete statement, conditions, definitions and seven proof steps in units[0] at immutable source commit 9ebb4f57fbdcb8db51701547ed0e0043ef743b4f.",

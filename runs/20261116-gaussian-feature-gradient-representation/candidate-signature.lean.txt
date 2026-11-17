@@ -1,0 +1,63 @@
+-- Declaration type proposal only. No proof body, elaboration, or compilation is claimed.
+-- Proposed module: AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialFeatureGradient.lean
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging
+import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient
+import Mathlib.Analysis.Calculus.Gradient.Basic
+import Mathlib.Analysis.Normed.Module.FiniteDimension
+import Mathlib.MeasureTheory.Function.L2Space
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+open MeasureTheory ProbabilityTheory
+open scoped InnerProductSpace ENNReal
+
+noncomputable section
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient
+
+theorem gaussian_polynomial_joint_feature_gradient_representation
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]
+    (hGaussian : P.map Prod.fst = ProbabilityTheory.stdGaussian E)
+    (p : Polynomial ℝ) (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :
+    let S := {w : E // ‖w‖ = 1}
+    let f : E → E × ℝ → ℝ := fun w z => p.eval ⟪w,z.1⟫_ℝ
+    let df : E → E → E × ℝ → ℝ := fun w v z =>
+      p.derivative.eval ⟪w,z.1⟫_ℝ * ⟪v,z.1⟫_ℝ
+    let predictor : Measure S → E → ℝ := fun ρ x =>
+      ∫ w : S, p.eval ⟪w.1,x⟫_ℝ ∂ρ
+    let V : Measure S → E → ℝ := fun ρ w =>
+      2 * ∫ z : E × ℝ, (predictor ρ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ ∂P
+    ∃ hf : ∀ w : E, MemLp (f w) 2 P,
+    ∃ hdf : ∀ w v : E, MemLp (df w v) 2 P,
+    ∃ D : E → E →L[ℝ] Lp ℝ 2 P,
+    ∃ M₁ M₂ : ℝ,
+      let F : E → Lp ℝ 2 P := fun w => (hf w).toLp (f w)
+      let label : Lp ℝ 2 P := hlabel.toLp (fun z : E × ℝ => z.2)
+      let K : S → Lp ℝ 2 P := fun w => F w.1
+      let mean : Measure S → Lp ℝ 2 P := fun ρ => ∫ w : S, K w ∂ρ
+      let G : Measure S → E → E := fun ρ w =>
+        gradient (V ρ) w-⟪gradient (V ρ) w,w⟫_ℝ • w
+      0 < M₁ ∧ 0 < M₂ ∧
+      (∀ w v : E, D w v = (hdf w v).toLp (df w v)) ∧
+      (∀ w : E, HasFDerivAt F (D w) w) ∧
+      (∀ w : E, ‖w‖ ≤ 1 → ‖D w‖ ≤ M₁) ∧
+      (∀ w u : E, ‖w‖ ≤ 1 → ‖u‖ ≤ 1 →
+        ‖D w-D u‖ ≤ M₂*‖w-u‖) ∧
+      ∀ ρ : Measure S, IsProbabilityMeasure ρ →
+        (∀ x : E, Integrable (fun w : S => p.eval ⟪w.1,x⟫_ℝ) ρ) ∧
+        Integrable K ρ ∧
+        (∃ hpred : MemLp (fun z : E × ℝ => predictor ρ z.1) 2 P,
+          hpred.toLp (fun z : E × ℝ => predictor ρ z.1) = mean ρ) ∧
+        (V ρ = fun w : E => 2 * ⟪mean ρ-label,F w⟫_ℝ) ∧
+        (∀ w : E,
+          Integrable (fun z : E × ℝ =>
+            (predictor ρ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ) P ∧
+          HasGradientAt (V ρ) ((2 : ℝ) • (D w).adjoint (mean ρ-label)) w ∧
+          gradient (V ρ) w = (2 : ℝ) • (D w).adjoint (mean ρ-label)) ∧
+        ∀ w : S,
+          G ρ w.1 = (2 : ℝ) • ((D w.1).adjoint (mean ρ-label) -
+            ⟪(D w.1).adjoint (mean ρ-label),w.1⟫_ℝ • w.1)
+
+-- Intentionally ends at the exact proposed declaration type.
+-- No `sorry`, axiom, or proof-shaped placeholder is introduced into production.

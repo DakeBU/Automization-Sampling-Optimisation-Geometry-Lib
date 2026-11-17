@@ -1066,7 +1066,7 @@ def page(
     <aside id="site-sidebar" class="site-sidebar" aria-label="Samplinglib contents">
       <a class="brand" href="{prefix}index.html">
         <span class="brand-mark">S</span>
-        <span><strong>Samplinglib</strong><small>Verified Sampling Theory in Lean</small></span>
+        <span><strong>Samplinglib</strong><small>Sampling · Optimisation · Geometry</small></span>
       </a>
       <div class="search-shell">
         <label class="sr-only" for="global-search">Search declarations and modules</label>
@@ -3230,7 +3230,7 @@ def build_site(output: Path = DEFAULT_OUTPUT) -> dict[str, object]:
         "project": "Auto-Sampling-Theory-In-Sleep",
         "short_name": "ASTIS",
         "public_library": "Samplinglib",
-        "tagline": "Verified sampling theory in Lean, from textbook foundations to AI-assisted formalization.",
+        "tagline": "Sampling, optimisation, and geometry in Lean, from textbook foundations to AI-assisted formalization.",
         "organizers": [],
         "source_book": {
             "author": source_edition["author"],

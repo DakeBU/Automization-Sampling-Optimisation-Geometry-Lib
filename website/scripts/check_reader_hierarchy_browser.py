@@ -88,6 +88,7 @@ def main():
             for rel,label in routes:
                 page.set_viewport_size({'width':1440,'height':1000})
                 assert page.goto(base+rel).status==200
+                assert 'Sampling · Optimisation · Geometry' in page.locator('#site-sidebar').inner_text()
                 assert page.locator('.sidebar-graphs a').count()==2
                 assert page.locator('.sidebar-benches [data-bench-collection]').count()==3
                 assert page.locator('.library-source-hubs > a').count()==7

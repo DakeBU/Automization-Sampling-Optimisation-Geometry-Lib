@@ -6078,6 +6078,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 
 def probabilityMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.subgaussian-even-moments",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.SubgaussianEvenMoments.integrable_even_moment_le_of_hasSubgaussianMGF",
+    upstreamDecl := "HasSubgaussianMGF.memLp / HasSubgaussianMGF.mgf_le / Real.hasSum_cosh",
+    upstreamFile := "Mathlib.Probability.Moments.SubGaussian; Mathlib.Analysis.SpecialFunctions.Trigonometric.Series",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "subgaussian", "moments", "shared"],
+    saldUse := "Quantitative even absolute moments for bounded observables and independent sums",
+    note := "Assumes the standard two-sided subgaussian MGF with variance proxy c; produces moment integrability and the bound (2m)! exp(1/2) c^m, including c=0 and m=0."
+  },
+  {
     key := "shared.gaussian-polynomial-ridge-smooth",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth",
     upstreamDecl := "F1 in source-only.json; proof topology P1, P2.",

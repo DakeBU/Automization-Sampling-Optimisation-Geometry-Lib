@@ -1,3 +1,4 @@
+import Tests.Shared.SubgaussianEvenMoments
 import Tests.GaussianFiniteFeatures
 import Tests.SmoothBoundedTimeCoefficients
 import Tests.SphereFeatureLawGradient

@@ -1,0 +1,174 @@
+BEGIN_NEW_TARGET
+@AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient.gaussian_polynomial_joint_feature_gradient_representation : ∀
+  {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]
+  [inst_3 : MeasurableSpace E] [BorelSpace E] (P : MeasureTheory.Measure (E × ℝ))
+  [MeasureTheory.IsProbabilityMeasure P],
+  MeasureTheory.Measure.map Prod.fst P = ProbabilityTheory.stdGaussian E →
+    ∀ (p : Polynomial ℝ) (hlabel : MeasureTheory.MemLp (fun (z : E × ℝ) => z.2) 2 P),
+      let S := { w : E // ‖w‖ = 1 };
+      have f := fun (w : E) (z : E × ℝ) => Polynomial.eval (inner ℝ w z.1) p;
+      have df := fun (w v : E) (z : E × ℝ) => Polynomial.eval (inner ℝ w z.1) (Polynomial.derivative p) * inner ℝ v z.1;
+      have predictor := fun (ρ : MeasureTheory.Measure S) (x : E) => ∫ (w : S), Polynomial.eval (inner ℝ (↑w) x) p ∂ρ;
+      have V := fun (ρ : MeasureTheory.Measure S) (w : E) =>
+        2 * ∫ (z : E × ℝ), (predictor ρ z.1 - z.2) * Polynomial.eval (inner ℝ w z.1) p ∂P;
+      ∃ (hf : ∀ (w : E), MeasureTheory.MemLp (f w) 2 P) (hdf : ∀ (w v : E), MeasureTheory.MemLp (df w v) 2 P) (D :
+        E → E →L[ℝ] ↥(MeasureTheory.Lp ℝ 2 P)) (M₁ : ℝ) (M₂ : ℝ),
+        have F := fun (w : E) => MeasureTheory.MemLp.toLp (f w) ⋯;
+        have label := MeasureTheory.MemLp.toLp (fun (z : E × ℝ) => z.2) hlabel;
+        have K := fun (w : S) => F ↑w;
+        have mean := fun (ρ : MeasureTheory.Measure S) => ∫ (w : S), K w ∂ρ;
+        have G := fun (ρ : MeasureTheory.Measure S) (w : E) => gradient (V ρ) w - inner ℝ (gradient (V ρ) w) w • w;
+        0 < M₁ ∧
+          0 < M₂ ∧
+            (∀ (w v : E), (D w) v = MeasureTheory.MemLp.toLp (df w v) ⋯) ∧
+              (∀ (w : E), HasFDerivAt F (D w) w) ∧
+                (∀ (w : E), ‖w‖ ≤ 1 → ‖D w‖ ≤ M₁) ∧
+                  (∀ (w u : E), ‖w‖ ≤ 1 → ‖u‖ ≤ 1 → ‖D w - D u‖ ≤ M₂ * ‖w - u‖) ∧
+                    ∀ (ρ : MeasureTheory.Measure S),
+                      MeasureTheory.IsProbabilityMeasure ρ →
+                        (∀ (x : E), MeasureTheory.Integrable (fun (w : S) => Polynomial.eval (inner ℝ (↑w) x) p) ρ) ∧
+                          MeasureTheory.Integrable K ρ ∧
+                            (∃ (hpred : MeasureTheory.MemLp (fun (z : E × ℝ) => predictor ρ z.1) 2 P),
+                                MeasureTheory.MemLp.toLp (fun (z : E × ℝ) => predictor ρ z.1) hpred = mean ρ) ∧
+                              (V ρ = fun (w : E) => 2 * inner ℝ (mean ρ - label) (F w)) ∧
+                                (∀ (w : E),
+                                    MeasureTheory.Integrable
+                                        (fun (z : E × ℝ) => (predictor ρ z.1 - z.2) * Polynomial.eval (inner ℝ w z.1) p)
+                                        P ∧
+                                      HasGradientAt (V ρ) (2 • (ContinuousLinearMap.adjoint (D w)) (mean ρ - label)) w ∧
+                                        gradient (V ρ) w = 2 • (ContinuousLinearMap.adjoint (D w)) (mean ρ - label)) ∧
+                                  ∀ (w : S),
+                                    G ρ ↑w =
+                                      2 •
+                                        ((ContinuousLinearMap.adjoint (D ↑w)) (mean ρ - label) -
+                                          inner ℝ ((ContinuousLinearMap.adjoint (D ↑w)) (mean ρ - label)) ↑w • ↑w)
+END_NEW_TARGET
+BEGIN_MATHLIB_DEFINITION_CONTEXT
+def MeasureTheory.MemLp.{u_1, u_2} : {α : Type u_1} →
+  {ε : Type u_2} →
+    {m0 : MeasurableSpace α} →
+      [ENorm ε] →
+        [TopologicalSpace ε] →
+          (α → ε) → ENNReal → autoParam (MeasureTheory.Measure α) MeasureTheory.MemLp._auto_1 → Prop :=
+fun {α : Type u_1} {ε : Type u_2} {m0 : MeasurableSpace α} [ENorm ε] [TopologicalSpace ε] (f : α → ε) (p : ENNReal)
+    (μ : MeasureTheory.Measure α) =>
+  MeasureTheory.AEStronglyMeasurable f μ ∧ MeasureTheory.eLpNorm f p μ < ⊤
+def MeasureTheory.AEEqFun.{u_1, u_2} : (α : Type u_1) →
+  (β : Type u_2) → [inst : MeasurableSpace α] → [TopologicalSpace β] → MeasureTheory.Measure α → Type (max u_1 u_2) :=
+fun (α : Type u_1) (β : Type u_2) [MeasurableSpace α] [TopologicalSpace β] (μ : MeasureTheory.Measure α) =>
+  Quotient (MeasureTheory.Measure.aeEqSetoid β μ)
+def MeasureTheory.Lp.{u_6, u_7} : {α : Type u_7} →
+  (E : Type u_6) →
+    {m : MeasurableSpace α} →
+      [inst : NormedAddCommGroup E] →
+        ENNReal → (μ : autoParam (MeasureTheory.Measure α) MeasureTheory.Lp._auto_1) → AddSubgroup (α →ₘ[μ] E) :=
+fun {α : Type u_7} (E : Type u_6) {m : MeasurableSpace α} [NormedAddCommGroup E] (p : ENNReal)
+    (μ : MeasureTheory.Measure α) =>
+  { carrier := {f : α →ₘ[μ] E | MeasureTheory.eLpNorm (↑f) p μ < ⊤}, add_mem' := ⋯, zero_mem' := ⋯, neg_mem' := ⋯ }
+def MeasureTheory.MemLp.toLp.{u_1, u_4} : {α : Type u_1} →
+  {E : Type u_4} →
+    {m : MeasurableSpace α} →
+      {p : ENNReal} →
+        {μ : MeasureTheory.Measure α} →
+          [inst : NormedAddCommGroup E] → (f : α → E) → MeasureTheory.MemLp f p μ → ↥(MeasureTheory.Lp E p μ) :=
+fun {α : Type u_1} {E : Type u_4} {m : MeasurableSpace α} {p : ENNReal} {μ : MeasureTheory.Measure α}
+    [NormedAddCommGroup E] (f : α → E) (h_mem_ℒp : MeasureTheory.MemLp f p μ) =>
+  ⟨MeasureTheory.AEEqFun.mk f ⋯, ⋯⟩
+@MeasureTheory.MemLp.coeFn_toLp : ∀ {α : Type u_1} {E : Type u_2} {m : MeasurableSpace α} {p : ENNReal}
+  {μ : MeasureTheory.Measure α} [inst : NormedAddCommGroup E] {f : α → E} (hf : MeasureTheory.MemLp f p μ),
+  ↑↑(MeasureTheory.MemLp.toLp f hf) =ᵐ[μ] f
+@MeasureTheory.L2.inner_def : ∀ {α : Type u_1} {E : Type u_2} {𝕜 : Type u_3} [inst : RCLike 𝕜] {m : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} [inst_1 : NormedAddCommGroup E] [inst_2 : InnerProductSpace 𝕜 E]
+  (f g : ↥(MeasureTheory.Lp E 2 μ)), inner 𝕜 f g = ∫ (a : α), inner 𝕜 (↑↑f a) (↑↑g a) ∂μ
+@[irreducible] def MeasureTheory.integral.{u_6, u_7} : {α : Type u_6} →
+  {G : Type u_7} →
+    [inst : NormedAddCommGroup G] →
+      [NormedSpace ℝ G] → {x : MeasurableSpace α} → MeasureTheory.Measure α → (α → G) → G :=
+MeasureTheory.wrapped✝.1
+structure HasFDerivAtFilter.{u_1, u_2, u_3} {𝕜 : Type u_1} [NontriviallyNormedField 𝕜] {E : Type u_2} [AddCommGroup E]
+  [_root_.Module 𝕜 E] [TopologicalSpace E] {F : Type u_3} [AddCommGroup F] [_root_.Module 𝕜 F] [TopologicalSpace F]
+  (f : E → F) (f' : E →L[𝕜] F) (L : Filter (E × E)) : Prop
+number of parameters: 13
+fields:
+  HasFDerivAtFilter.isLittleOTVS : (fun (p : E × E) => f p.1 - f p.2 - f' (p.1 - p.2)) =o[𝕜; L] fun (p : E × E) =>
+      p.1 - p.2
+constructor:
+  HasFDerivAtFilter.of_isLittleOTVS.{u_1, u_2, u_3} {𝕜 : Type u_1} [NontriviallyNormedField 𝕜] {E : Type u_2}
+    [AddCommGroup E] [_root_.Module 𝕜 E] [TopologicalSpace E] {F : Type u_3} [AddCommGroup F] [_root_.Module 𝕜 F]
+    [TopologicalSpace F] {f : E → F} {f' : E →L[𝕜] F} {L : Filter (E × E)}
+    (isLittleOTVS : (fun (p : E × E) => f p.1 - f p.2 - f' (p.1 - p.2)) =o[𝕜; L] fun (p : E × E) => p.1 - p.2) :
+    HasFDerivAtFilter f f' L
+def HasFDerivAt.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  [inst : NontriviallyNormedField 𝕜] →
+    {E : Type u_2} →
+      [inst_1 : AddCommGroup E] →
+        [inst_2 : _root_.Module 𝕜 E] →
+          [inst_3 : TopologicalSpace E] →
+            {F : Type u_3} →
+              [inst_4 : AddCommGroup F] →
+                [inst_5 : _root_.Module 𝕜 F] → [inst_6 : TopologicalSpace F] → (E → F) → (E →L[𝕜] F) → E → Prop :=
+fun {𝕜 : Type u_1} [NontriviallyNormedField 𝕜] {E : Type u_2} [AddCommGroup E] [_root_.Module 𝕜 E] [TopologicalSpace E]
+    {F : Type u_3} [AddCommGroup F] [_root_.Module 𝕜 F] [TopologicalSpace F] (f : E → F) (f' : E →L[𝕜] F) (x : E) =>
+  HasFDerivAtFilter f f' (nhds x ×ˢ pure x)
+def HasGradientAtFilter.{u_1, u_2} : {𝕜 : Type u_1} →
+  {F : Type u_2} →
+    [inst : RCLike 𝕜] →
+      [inst_1 : NormedAddCommGroup F] →
+        [InnerProductSpace 𝕜 F] → [CompleteSpace F] → (F → 𝕜) → F → F → Filter F → Prop :=
+fun {𝕜 : Type u_1} {F : Type u_2} [RCLike 𝕜] [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]
+    (f : F → 𝕜) (f' x : F) (L : Filter F) =>
+  HasFDerivAtFilter f ((InnerProductSpace.toDual 𝕜 F) f') (L ×ˢ pure x)
+def HasGradientAt.{u_1, u_2} : {𝕜 : Type u_1} →
+  {F : Type u_2} →
+    [inst : RCLike 𝕜] →
+      [inst_1 : NormedAddCommGroup F] → [InnerProductSpace 𝕜 F] → [CompleteSpace F] → (F → 𝕜) → F → F → Prop :=
+fun {𝕜 : Type u_1} {F : Type u_2} [RCLike 𝕜] [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]
+    (f : F → 𝕜) (f' x : F) =>
+  HasGradientAtFilter f f' x (nhds x)
+def gradient.{u_1, u_2} : {𝕜 : Type u_1} →
+  {F : Type u_2} →
+    [inst : RCLike 𝕜] →
+      [inst_1 : NormedAddCommGroup F] → [InnerProductSpace 𝕜 F] → [CompleteSpace F] → (F → 𝕜) → F → F :=
+fun {𝕜 : Type u_1} {F : Type u_2} [RCLike 𝕜] [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]
+    (f : F → 𝕜) (x : F) =>
+  (InnerProductSpace.toDual 𝕜 F).symm (fderiv 𝕜 f x)
+def ContinuousLinearMap.adjoint.{u_1, u_2, u_3} : {𝕜 : Type u_1} →
+  {E : Type u_2} →
+    {F : Type u_3} →
+      [inst : RCLike 𝕜] →
+        [inst_1 : NormedAddCommGroup E] →
+          [inst_2 : NormedAddCommGroup F] →
+            [inst_3 : InnerProductSpace 𝕜 E] →
+              [inst_4 : InnerProductSpace 𝕜 F] →
+                [CompleteSpace E] → [CompleteSpace F] → (E →L[𝕜] F) ≃ₗᵢ⋆[𝕜] F →L[𝕜] E :=
+fun {𝕜 : Type u_1} {E : Type u_2} {F : Type u_3} [RCLike 𝕜] [NormedAddCommGroup E] [NormedAddCommGroup F]
+    [InnerProductSpace 𝕜 E] [InnerProductSpace 𝕜 F] [CompleteSpace E] [CompleteSpace F] =>
+  LinearIsometryEquiv.ofSurjective
+    (let __src := ContinuousLinearMap.adjointAux✝;
+    { toLinearMap := ↑__src, norm_map' := ⋯ })
+    ⋯
+@ContinuousLinearMap.adjoint_inner_right : ∀ {𝕜 : Type u_1} {E : Type u_2} {F : Type u_3} [inst : RCLike 𝕜]
+  [inst_1 : NormedAddCommGroup E] [inst_2 : NormedAddCommGroup F] [inst_3 : InnerProductSpace 𝕜 E]
+  [inst_4 : InnerProductSpace 𝕜 F] [inst_5 : CompleteSpace E] [inst_6 : CompleteSpace F] (A : E →L[𝕜] F) (x : E)
+  (y : F), inner 𝕜 x ((ContinuousLinearMap.adjoint A) y) = inner 𝕜 (A x) y
+def ProbabilityTheory.stdGaussian.{u_2} : (E : Type u_2) →
+  [inst : NormedAddCommGroup E] →
+    [inst_1 : InnerProductSpace ℝ E] → [FiniteDimensional ℝ E] → [inst : MeasurableSpace E] → MeasureTheory.Measure E :=
+fun (E : Type u_2) [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] =>
+  MeasureTheory.Measure.map
+    (fun (x : Fin (Module.finrank ℝ E) → ℝ) => ∑ i : Fin (Module.finrank ℝ E), x i • (stdOrthonormalBasis ℝ E) i)
+    (MeasureTheory.Measure.pi fun (x : Fin (Module.finrank ℝ E)) => ProbabilityTheory.gaussianReal 0 1)
+END_MATHLIB_DEFINITION_CONTEXT
+BEGIN_AXIOMS
+'AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient.gaussian_polynomial_joint_feature_gradient_representation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient.gaussian_polynomial_joint_potential_projected_gradient_transport_control' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+END_AXIOMS
+OLD_CONSUMER_DIRECTLY_USES_NEW_PRODUCER: true
+OLD_CONSUMER_DIRECTLY_USES_LAW_GRADIENT: true
+NEW_PRODUCER_DIRECT_DEPENDENCY: AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_derivative_bounds
+NEW_PRODUCER_DIRECT_DEPENDENCY: AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.gaussian_polynomial_parameter_average_L2
+NEW_PRODUCER_DIRECT_DEPENDENCY: AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureTangentGradient.quadratic_feature_potential_tangent_gradient

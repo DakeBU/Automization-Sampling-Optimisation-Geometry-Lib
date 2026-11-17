@@ -28,6 +28,18 @@ A `new_canonical_shared` declaration must name at least two real consumers.
 
 ## 2. Reader standard: Chapter 1.3 is the reference
 
+Samplinglib covers sampling, optimisation, and geometry. Use mathematical
+examples and terminology from those domains in shared reader templates,
+tutorials and benchmark tasks. Other projects belong in attribution or an
+explicitly labelled related-work comparison, not in Samplinglib's identity.
+
+English is the public website language. Write page copy, proof walkthroughs,
+Lean and non-Lean Bench material, navigation, accessibility labels, and
+client-rendered explanations and messages in English at the source. Do not
+switch languages based on browser locale or saved preferences. Preserve exact
+Lean snippets, mathematical notation, names, and bibliographic identifiers.
+The final site check and browser smoke tests cover the English reader contract.
+
 Use `textbook/chapter-01/section-1-3.html` as the presentation reference. A theorem is not publication-ready when its webpage is only a code listing, theorem inventory, status table, or giant detached proof dump.
 
 For every source statement represented by the contribution, the reader must keep the following adjacent and in source order:

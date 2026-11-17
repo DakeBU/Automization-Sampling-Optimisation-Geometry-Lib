@@ -90,9 +90,8 @@
 
     // Focus is a visual overlay, not a graph filter. Keep the current textbook /
     // frontier / Lean / semantic context visible, then force the selected branch
-    // and its immediate neighborhood into the canvas. This mirrors the
-    // QuantumComputinglib interaction and makes highlighted versus muted edges
-    // visually meaningful.
+    // and its immediate neighborhood into the canvas so highlighted versus
+    // muted edges remain visually meaningful.
     const priority = new Set();
     if (state.focus) {
       priority.add(state.focus); selected.add(state.focus);

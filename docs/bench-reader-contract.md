@@ -6,6 +6,10 @@ backend. Canonical questions, families, splits and source reviews are unchanged.
 
 ## Navigation and reading depth
 
+Write public Bench questions, proofs, rubrics and UI text in English, including
+interactive prompts and optional Lean explanations. Use examples from sampling,
+optimisation, and geometry; apply the shared [Samplinglib reader standard](contributor-codex-contract.md#2-reader-standard-chapter-13-is-the-reference).
+
 - Public name: **Sampling-Optimisation-Geometry-Bench**. Keep existing URLs and
   machine identifiers compatible. SamplingBench, OptimisationBench and
   GeometryBench are three views of the same catalog. Riemannian and other shared

@@ -20,47 +20,47 @@
     .replace(/"/g, "&quot;");
 
   const syntax = [
-    ["theorem/lemma", /\b(?:theorem|lemma)\b/, "这里声明一个要被 Lean 检查的命题；冒号右侧是命题，证明通常从 `:= by` 开始。"],
-    ["def", /\bdef\b/, "这里定义一个数学对象或函数，而不是证明一个命题。"],
-    ["{…}", /\{[^}]*\}/, "隐式参数：通常由上下文推断，调用时往往不用显式填写。"],
-    ["[…]", /\[[^\]]*\]/, "typeclass 假设：例如测度空间、拓扑、范数空间；Lean 会自动搜索实例。"],
-    ["(…)", /\([^)]*\)/, "显式参数：对应纸面数学里明确给出的对象或假设。"],
-    ["→", /→|->/, "蕴含或函数箭头。在命题里读作“如果左边成立，那么右边成立”。"],
-    ["↔", /↔|<->/, "当且仅当，证明时通常要给两个方向。"],
-    ["∀", /∀/, "全称量词“对任意”。证明时常用 `intro` 把任意对象放进上下文。"],
-    ["∃", /∃/, "存在量词。证明时必须给 witness，并证明 witness 满足性质。"],
-    ["by", /\bby\b/, "进入 tactic proof；从当前目标出发逐步构造证明项。"],
-    ["intro", /\bintro\b/, "把任意变量或蕴含前提引入当前上下文。"],
-    ["apply", /\bapply\b/, "反向使用已有定理：把当前目标化成该定理需要的前提。"],
-    ["exact", /\bexact\b/, "直接给出类型恰好等于当前目标的证明项。"],
-    ["have", /\bhave\b/, "先证明一个局部中间结论，之后重复使用。"],
-    ["rw", /\brw\b/, "利用等式重写当前目标或假设。"],
-    ["simp/simpa", /\b(?:simp|simpa)\b/, "使用简化规则把表达式规范化；`simpa` 还尝试直接关闭目标。"],
-    ["calc", /\bcalc\b/, "按纸面数学风格写连续的等式或不等式推导。"],
-    ["rfl", /\brfl\b/, "两边定义展开后相同，用自反性关闭等式。"],
-    ["∫ / ∫⁻", /∫|∫⁻/, "积分；`∫⁻` 是非负扩展实值 lintegral，常用于 Tonelli 和可积性论证。"],
-    ["=ᵐ", /=ᵐ/, "几乎处处相等；具体是相对于命题里写出的那个测度。"],
-    ["Tendsto", /\bTendsto\b/, "用 filter 表达极限，是 Lean/Mathlib 分析里最常见的收敛接口。"],
-    ["Measurable", /\b(?:Measurable|StronglyMeasurable|AEMeasurable)\b/, "可测性条件。Lean 会强迫纸面证明中常被省略的可测性前提显式出现。"],
-    ["Integrable / MemLp", /\b(?:Integrable|MemLp)\b/, "可积性或 Lp 条件；公式写得出来不代表积分自动存在。"],
-    ["Continuous", /\b(?:Continuous|ContinuousOn)\b/, "连续性条件；`ContinuousOn` 只要求在指定集合上连续。"]
+    ["theorem/lemma", /\b(?:theorem|lemma)\b/, "Declares a proposition. Read the hypotheses, then the conclusion after the colon."],
+    ["def", /\bdef\b/, "Defines a mathematical object or function."],
+    ["{…}", /\{[^}]*\}/, "Braces mark implicit parameters that Lean usually infers."],
+    ["[…]", /\[[^\]]*\]/, "Brackets mark typeclass assumptions, such as a measurable or normed space."],
+    ["(…)", /\([^)]*\)/, "Parentheses usually mark explicit parameters."],
+    ["→", /→|->/, "Function arrow; in a proposition, read it as implication."],
+    ["↔", /↔|<->/, "If and only if. Prove both directions."],
+    ["∀", /∀/, "Universal quantifier: for every object in the indicated type."],
+    ["∃", /∃/, "Existential quantifier: give a witness and prove its property."],
+    ["by", /\bby\b/, "Starts a tactic proof."],
+    ["intro", /\bintro\b/, "Introduces an arbitrary object or an implication hypothesis."],
+    ["apply", /\bapply\b/, "Applies an existing result backwards, turning its premises into subgoals."],
+    ["exact", /\bexact\b/, "Supplies a term that proves the current goal."],
+    ["have", /\bhave\b/, "Proves a local intermediate fact for later use."],
+    ["rw", /\brw\b/, "Rewrites the goal or a hypothesis using an equality."],
+    ["simp/simpa", /\b(?:simp|simpa)\b/, "Applies simplification rules. `simpa` also tries to close the simplified goal."],
+    ["calc", /\bcalc\b/, "Writes a chain of equalities or inequalities."],
+    ["rfl", /\brfl\b/, "Proves equality when both sides reduce to the same term."],
+    ["∫ / ∫⁻", /∫|∫⁻/, "`∫⁻` is the nonnegative extended-real integral, used in Tonelli arguments."],
+    ["=ᵐ", /=ᵐ/, "Equality almost everywhere with respect to the indicated measure."],
+    ["Tendsto", /\bTendsto\b/, "Expresses convergence via filters."],
+    ["Measurable", /\b(?:Measurable|StronglyMeasurable|AEMeasurable)\b/, "Measurability is a hypothesis, not a consequence of writing an integral."],
+    ["Integrable / MemLp", /\b(?:Integrable|MemLp)\b/, "These express integrability or an Lp condition; check the measure and exponent."],
+    ["Continuous", /\b(?:Continuous|ContinuousOn)\b/, "`ContinuousOn` requires continuity on the specified set."]
   ];
 
   function lineAction(line) {
     const t = line.trim();
-    if (!t) return "空行，只用于把证明分段。";
-    if (/^--|^\/-/.test(t)) return "注释：只给读者看，不进入证明项。";
-    if (/\b(?:theorem|lemma)\b/.test(t)) return "先把这一行读成一个完整数学句子：名字、任意对象、结构假设、显式假设、最后的结论。";
-    if (/\bdef\b/.test(t)) return "这一行在定义纸面证明里会反复使用的对象。";
-    if (/\bintro\b/.test(t)) return "证明动作：把“任意对象/若 P 则 Q”的左侧内容放进上下文。";
-    if (/\bapply\b/.test(t)) return "证明动作：选择一个已有定理作为路线，把它的前提变成接下来要证明的子目标。";
-    if (/\bexact\b/.test(t)) return "证明动作：当前目标已经和一个现成证明项完全匹配，因此直接关闭。";
-    if (/\b(?:rw|simp|simpa)\b/.test(t)) return "证明动作：用等式或标准化规则把目标改写成更简单的等价形式。";
-    if (/\b(?:constructor|cases|rcases)\b/.test(t)) return "证明动作：拆开逻辑结构/数据构造器，或选择相应构造器来组装目标。";
-    if (/\bhave\b/.test(t)) return "证明动作：先建立一个局部中间 lemma，让主证明的逻辑更接近纸面推导。";
-    if (/\bcalc\b/.test(t)) return "证明动作：开始一条逐步等式/不等式链。";
-    if (/\bby\b/.test(t)) return "从 theorem statement 切换到 tactic proof。";
-    return "继续构造当前证明项。先问：这行是在引入信息、重写目标、应用已有 lemma，还是构造最终 witness？";
+    if (!t) return "Blank line between proof steps.";
+    if (/^--|^\/-/.test(t)) return "Comment for the reader; it is not part of the proof term.";
+    if (/\b(?:theorem|lemma)\b/.test(t)) return "Read the declaration as a mathematical sentence: identify its name, objects, assumptions, and conclusion.";
+    if (/\bdef\b/.test(t)) return "Identifies an object that will be used in the argument.";
+    if (/\bintro\b/.test(t)) return "Introduce an arbitrary object or an implication hypothesis.";
+    if (/\bapply\b/.test(t)) return "Use a known result backwards: prove the remaining premises.";
+    if (/\bexact\b/.test(t)) return "Supply an existing proof term that matches the goal.";
+    if (/\b(?:rw|simp|simpa)\b/.test(t)) return "Rewrite the goal, or simplify it using known rules.";
+    if (/\b(?:constructor|cases|rcases)\b/.test(t)) return "Split into cases or build the result using a constructor.";
+    if (/\bhave\b/.test(t)) return "Prove an intermediate fact before returning to the main goal.";
+    if (/\bcalc\b/.test(t)) return "Start a chain of equalities or inequalities.";
+    if (/\bby\b/.test(t)) return "Start the tactic proof after the statement.";
+    return "Ask whether this line introduces information, rewrites the goal, applies a result, or constructs a witness.";
   }
 
   function makeTutor(details) {
@@ -77,14 +77,14 @@
     panel.className = "module-lean-tutor-panel";
     panel.dataset.moduleLeanTutor = "true";
     panel.innerHTML = `
-      <summary>Learn this declaration · Lean 逐行讲解</summary>
+      <summary>Read this declaration line by line</summary>
       <div class="module-tutor-body">
-        <div class="note"><strong>先读数学，不背语法。</strong> <code>${esc(name)}</code> 是这个 module 里的精确 Lean 声明。下面只解释这段源码实际出现的语法；不会因为教学需要改变定理的正式含义。</div>
+        <div class="note"><strong>Read the mathematics first.</strong> <code>${esc(name)}</code> is the exact Lean declaration in this module. The guide explains the syntax used here without changing what the declaration says.</div>
         <div class="module-tutor-route">
-          <div><strong>① 名字</strong><span>${esc(name.split(".").pop())}</span></div>
-          <div><strong>② 参数与结构</strong><span>圆括号是显式对象，花括号通常可推断，方括号通常由 typeclass search 提供。</span></div>
-          <div><strong>③ 命题</strong><span>对 theorem/lemma，从冒号开始翻译成纸面数学；对 def，则读右侧构造。</span></div>
-          <div><strong>④ 证明</strong><span><code>by</code> 之后每一行都应能翻译成一个数学证明动作。</span></div>
+          <div><strong>1. Name</strong><span>${esc(name.split(".").pop())}</span></div>
+          <div><strong>2. Parameters and structures</strong><span>Parentheses mark explicit objects. Lean usually infers parameters in braces and uses typeclass search for brackets.</span></div>
+          <div><strong>3. Statement</strong><span>For a theorem or lemma, read the proposition after the colon. For a definition, read the construction on the right.</span></div>
+          <div><strong>4. Proof</strong><span>After <code>by</code>, identify which mathematical step each tactic implements.</span></div>
         </div>
         ${theoremLink
           ? `<p class="module-tutor-graph-link"><a class="button" href="${esc(theoremLink.getAttribute("href"))}">Open full proof tree / dependency network →</a></p>`

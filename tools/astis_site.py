@@ -2184,7 +2184,11 @@ def render_maintenance(count: int) -> str:
     )
     body = f"""
 <section class="page-hero compact"><div class="eyebrow">Contributor guide</div>
-<h1>Build and Maintain the Site</h1><p class="lede">The site is a generated view of Lean source and reviewed route metadata, not a second proof database.</p></section>
+<h1>Build and Maintain the Site</h1><p class="lede">Samplinglib presents sampling, optimisation, and geometry through readable mathematics and exact Lean evidence.</p></section>
+<section><h2>Public reader standard</h2>
+<p>Write all public text in English, including navigation, proof explanations, Bench tasks, accessibility labels, and interactive controls. Keep exact Lean source and mathematical notation unchanged.</p>
+<p>State the objects, assumptions, and conclusion before the formula proof. Put optional Lean beside the corresponding result, and distinguish library proofs, external dependencies, and open claims. See the <a href="contribute/index.html">contributor guide</a>.</p>
+</section>
 <section class="two-column">
   <div><h2>Build and certify</h2>{build_commands}
   <p>The ignored gate record is valid only for the exact commit and Lean-source digest that passed the canonical ASTIS check.</p></div>

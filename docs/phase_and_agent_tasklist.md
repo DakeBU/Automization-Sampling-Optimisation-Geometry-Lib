@@ -1,7 +1,9 @@
 # ASTIS Phase And Agent Task List
 
-ASTIS follows the public Quantum automation reference:
-https://github.com/DakeBU/Quantum-Computing-Block-Encoding/tree/wip/ghl2025-faithful-20260518-0201
+This historical task list describes proof work in Samplinglib: sampling,
+optimisation, and geometry. Follow [AGENTS.md](../AGENTS.md) for the current
+workflow and the [contributor contract](contributor-codex-contract.md) for
+English public readers.
 
 ASTIS also records MathCode as a workflow reference for proof diagnostics and
 theorem reuse discipline:

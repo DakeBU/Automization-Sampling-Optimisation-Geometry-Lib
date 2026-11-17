@@ -64,6 +64,16 @@ def packet(core: dict) -> dict[str, bytes]:
             raise ValueError('Expected exactly one canonical anonymous task')
         return result
     task, oracle = named(core['lean_task']), named(core['lean_reference'])
+    fixed_challenge = None
+    if core.get('fixed_candidate') == 'sogb-035':
+        from sog_bench_candidate_native import sources
+        exact = sources(ROOT)
+        reference = exact['reference']
+        if (not reference.startswith(oracle + "\n/--\ninfo:")
+                or bench.sha(reference.encode()) != core['named_reference_sha256']):
+            raise ValueError('Stopped-work reference drift from its audited native candidate')
+        oracle = reference
+        fixed_challenge = exact['challenge']
     if core.get('reference_helpers'):
         target_start = '\ntheorem ' + p['target_name']
         task_prefix, task_marker, _ = task.partition(target_start)
@@ -82,7 +92,7 @@ def packet(core: dict) -> dict[str, bytes]:
         raise ValueError('Unexpected canonical proof slot')
     # This is a verifier-only statement baseline, never a submitted/accepted proof.
     # Importing it cannot solve the task: its sorryAx is not permitted in solutions.
-    challenge = task[:-len(slot)] + 'by\n  sorry\n'
+    challenge = fixed_challenge if fixed_challenge is not None else task[:-len(slot)] + 'by\n  sorry\n'
     prompts = [row for row in bench.prompts([core]) if row['track']=='lean']
     files = {'agent/prompt.json':bench.encoded(prompts[0]),
              'agent/Solution.lean.txt':task.encode(),

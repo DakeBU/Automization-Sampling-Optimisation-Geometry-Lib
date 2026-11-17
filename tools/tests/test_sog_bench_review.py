@@ -107,8 +107,18 @@ class EditorialReviewTests(unittest.TestCase):
             directory = review.BASE/'reviews'/round_name
             rows = review.prose_statuses(self.cores, directory)
             self.assertEqual(set(rows), expected)
-            self.assertTrue(all(row['editorial'] == 'accepted' and row['formal_alignment'] == 'no-aligned-view'
-                                for row in rows.values()))
+            for identity, row in rows.items():
+                if identity == 'sogb-035' and bench.has_lean(next(c for c in self.cores if c['id'] == identity)):
+                    self.assertEqual(row['editorial'], 'stale')
+                    self.assertEqual(row['formal_alignment'], 'not-reviewed')
+                    packet = json.loads((directory / 'packets/prose-input.json').read_bytes())
+                    original = packet['mathematical_cores'][0]
+                    prior = review.prose_statuses([original], directory)[identity]
+                    self.assertEqual(prior['formal_alignment'], 'no-aligned-view')
+                    self.assertEqual(prior['report_sha256'], review.LEGACY_STOPPED_WORK_PROSE)
+                else:
+                    self.assertEqual((row['editorial'], row['formal_alignment']),
+                                     ('accepted', 'no-aligned-view'))
             changed = deepcopy(self.cores)
             for core in changed:
                 if core['id'] in expected:

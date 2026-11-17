@@ -42,6 +42,14 @@ def check_core_source(core: dict, split: str) -> None:
     path = Path(source)
     if path.is_absolute() or '..' in path.parts or '\\' in source:
         raise ValueError('Source path must be repository-relative')
+    if 'fixed_candidate' in core and (
+            core['id'] != 'sogb-035' or core['fixed_candidate'] != 'sogb-035'
+            or split != 'public-dev' or core.get('lean_enabled') is not True
+            or core.get('support_source_view') or 'reference_helpers' in core
+            or core.get('textbook_exercise_id')
+            or source != 'AutoSamplingTheory/TechnicalLemmas/Probability/KernelHybridTelescope.lean'
+            or core.get('declaration') != 'AutoSamplingTheory.TechnicalLemmas.Probability.KernelHybridTelescope.abs_real_comp_commonSuffix_sub_le_integral_eventBound'):
+        raise ValueError('Only the exact public stopped-work candidate can use a composed target')
     if source.startswith('AutoSamplingTheory/TechnicalLemmas/'):
         return
     if owned_exercise_example_source(source):
@@ -167,6 +175,14 @@ def materialize(data: dict | None = None) -> list[dict]:
                                 'source_line': support.source_line,
                                 'source_sha256_lf': text_hash(ROOT / support.source_file)})
             extra['supporting_declarations'] = sources
+        if core.get('fixed_candidate') == 'sogb-035':
+            from sog_bench_candidate_native import catalogue_lean
+            bound = {**core, **extra, **catalogue_lean(), 'split': data['split'],
+                     'source_sha256_lf': text_hash(ROOT / core['source_file']),
+                     'source_line': declaration.source_line}
+            bound['binding_sha256'] = sha(encoded(bound))
+            result.append(bound)
+            continue
         if not has_lean(core):
             if 'reference_helpers' in core:
                 raise ValueError('Reference helpers require an aligned Lean task')
@@ -211,6 +227,10 @@ def prompts(cores: list[dict]) -> list[dict]:
             common['exercise_source'] = sog_bench_exercises.source_prompt(core['textbook_exercise'])
         for track, level in core['track_levels'].items():
             question = core['question'] if track == 'natural-language' else (
+                'Prove both conjuncts of the fixed target using the supplied Mathlib-only model. '
+                'Keep the definitions unchanged. Verify the specified counterexample family. '
+                'The natural-language sampler audit is not part of the binary Lean judgment.\n\n' + core['lean_task']
+                if core.get('fixed_candidate') == 'sogb-035' else
                 'Complete the fixed Lean target below. Keep its imports, context and proposition unchanged. '
                 'Use the repository-pinned Lean/Mathlib. This is open-library reconstruction; '
                 'the target module is not imported directly.\n\n' + core['lean_task'])
@@ -388,6 +408,9 @@ def task_assets(cores: list[dict], graphs: list[dict], *, graph_ids: set[str] | 
                           'related_owned_results': related,
                           'boundary': mathematical_scope(core),
                           'edge_semantics': 'position only; no inferred proof-dependency or necessity'})
+        if core.get('fixed_candidate') == 'sogb-035':
+            positions[-1]['edge_semantics'] = 'source comparison only; the fixed Lean proof does not use this anchor'
+            positions[-1]['candidate_owned_proof_sources_sha256_lf'] = core['candidate_sources_sha256_lf']
     assets['task-index.json'] = encoded({'schema_version': 2, 'name': 'SamplingOptimisationGeometryBench',
         'catalog_version': load()['version'], 'split': 'public-dev', 'hidden_test': False,
         'tasks': index, 'note': 'Only currently editorially admitted tasks. Family identity is not a train/test split.'})
@@ -577,7 +600,7 @@ def check_lean(cores: list[dict]) -> int:
         raise ValueError('Pilot requires the repository-pinned Lean 4.33.0')
     if run(['lake', 'env', 'lean', '--version']) or not re.search(r'version 4\.33\.0(?:[, )])', compiler_version):
         raise ValueError('Effective compiler differs from Lean 4.33.0; check ELAN_TOOLCHAIN/overrides')
-    imports = sorted({m for c in cores for m in c['imports']} |
+    imports = sorted({m for c in cores for m in [*c['imports'], *c.get('reference_imports', [])]} |
                      {r['source_file'].removesuffix('.lean').replace('/', '.') for r in answers.values()})
     if run(['lake', 'build', *imports]):
         return 1

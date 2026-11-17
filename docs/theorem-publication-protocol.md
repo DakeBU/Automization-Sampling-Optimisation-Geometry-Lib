@@ -73,6 +73,12 @@ The hosting agent follows the instructions below; mechanical CI verifies them.
    statement and proof in source: the renderer extracts them into separate,
    initially closed disclosures immediately beside the statement and proof.
    List actual ASTIS calls separately from Mathlib calls and external provenance.
+   Put the short strategy and significance before the full derivation, but keep
+   each assumption and critical estimate accessible. For an algorithm specify
+   the input/oracle model, error metric and units of each stated cost; separate
+   any unverified implementation or empirical comparison. Identify source
+   edition, exact location and preprint status when known. A source comparison
+   link is not a checked Lean dependency.
 3. Add a source item/binding in `website/content/publications/*.json` (schema 1;
    `optimisation.json` is the concrete example). Store the full attributed source
    statement once, with formulas, version and exact anchor. Bind its individual

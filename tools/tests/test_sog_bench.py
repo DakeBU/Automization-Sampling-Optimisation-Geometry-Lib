@@ -347,6 +347,22 @@ class BenchTests(unittest.TestCase):
         self.assertIn(r'\right|\\&amp;=\left|', reader.prose(estimate))
         self.assertEqual(bench.encoded(core), before)
 
+    def test_research_question_reader_separates_proof_from_comparison_links(self):
+        core = next(c for c in self.cores if c['id'] == 'sogb-035')
+        source = 'decl:' + core['declaration']
+        page = reader.core_page(core, False, {source}, structural=[])
+        for href in ('assumptions', 'natural-language', 'lean', 'verification-scope'):
+            self.assertIn('href="#' + href + '"', page)
+            self.assertIn('id="' + href + '"', page)
+        self.assertLess(page.index('id="assumptions"'), page.index('id="natural-language"'))
+        self.assertIn('Mathlib-only model', page)
+        self.assertIn('How the formula proof maps to Lean', page)
+        self.assertIn('comparison anchors (not Lean proof calls)', page)
+        self.assertIn('not part of the binary Lean judgment', bench.prompts([core])[1]['question'])
+        self.assertIn('conditional-budget-transfer.lean', page)
+        self.assertIn('padded-budget-counterexample.lean', page)
+        self.assertNotIn('this question has no aligned fixed Lean reconstruction task', page)
+
     def test_common_kernel_reference_retains_credit_but_not_answer_in_prompt(self):
         core = next(c for c in self.cores if c['id'] == 'sogb-037')
         self.assertEqual(core['family'], 'adaptive-hybrid-cost-boundary')

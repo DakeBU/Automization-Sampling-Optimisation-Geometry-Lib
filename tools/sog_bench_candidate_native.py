@@ -47,9 +47,15 @@ def load_sources(root: Path) -> tuple[str, str, str]:
     # The full catalog may legitimately change; compare the exact reviewed item.
     core, = (item for item in json.loads((root / BENCH / "cores.json").read_bytes())["cores"]
              if item["id"] == ID)
-    if (core.get("lean_enabled") is not False or
-            any(core.get(key) != value for key, value in record["original_source"].items())):
-        raise ValueError("Expected the reviewed, still-unpaired prose question")
+    original = record["original_source"]
+    fixed = core.get("fixed_candidate")
+    changes = {"boundary", "track_levels", "dependencies"} if fixed == ID else set()
+    if (any(core.get(key) != value for key, value in original.items() if key not in changes)
+            or (fixed is None and core.get("lean_enabled") is not False)
+            or (fixed is not None and (fixed != ID or core.get("lean_enabled") is not True
+                or core["track_levels"].get("natural-language") != original["track_levels"]["natural-language"]
+                or core["dependencies"]["astis"] != original["dependencies"]["astis"]))):
+        raise ValueError("Expected the reviewed prose question and original track")
     loaded = []
     for path in (*paths, Path("lean-toolchain"), Path("lake-manifest.json")):
         source = (root / path).read_text(encoding="utf-8")
@@ -143,6 +149,39 @@ run_cmd
     if any(len(result[key].encode()) > policy["limits"]["submission_bytes"] for key in EXPECTED):
         raise ValueError("Controlled candidate fixture exceeds current submission limit")
     return result
+
+
+def catalogue_lean() -> dict:
+    """Adapt the exact owned candidate to the existing anonymous packet format.
+
+    The runtime renames the reference back to the candidate's fixed target.
+    No catalogue status or independent review is granted by materialization.
+    """
+    generated = sources(runtime.ROOT)
+    target = runtime.policy()["target_name"]
+    needle = f"\ntheorem {target} : SogBenchCandidate.ProposedTarget := by\n  -- Supply both proofs.\n\nend\n"
+    if not generated["starter"].endswith(needle):
+        raise ValueError("Unexpected proofless candidate starter")
+    model = generated["starter"][:-len(needle)]
+    task = model + "\nend\n\nexample : SogBenchCandidate.ProposedTarget := by\n  -- Replace this comment with your proof.\n"
+    reference, count = re.subn(rf"(?m)^theorem {re.escape(target)}\b", "example", generated["reference"])
+    if count != 1:
+        raise ValueError("Expected one exact reviewed candidate target")
+    # Its named axiom guard refers to the theorem restored by the native packet.
+    # The host's anonymous example is type-checked without the name-based guard.
+    anonymous = reference.split(f"\n/--\ninfo: '{target}' depends on axioms:", 1)[0]
+    if "#print axioms" in anonymous or not anonymous.endswith("\n"):
+        raise ValueError("Unexpected reference audit guard layout")
+    return {
+        "imports": re.findall(r"(?m)^import (Mathlib\.[\w.]+)$", model),
+        "reference_imports": re.findall(r"(?m)^import (Mathlib\.[\w.]+)$", anonymous),
+        "lean_task": task, "lean_reference": anonymous,
+        "named_reference_sha256": runtime.bench.sha(generated["reference"].encode()),
+        "candidate_sources_sha256_lf": {
+            name: runtime.bench.text_hash(runtime.ROOT / BENCH / "candidates" / name)
+            for name in SOURCES
+        },
+    }
 
 
 def freeze(output: Path) -> dict:

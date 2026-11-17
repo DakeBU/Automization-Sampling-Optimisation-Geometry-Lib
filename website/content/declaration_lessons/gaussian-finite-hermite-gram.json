@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2_inner",
+      "kind": "theorem",
+      "title": "Finite Gaussian Hermite Gram formula",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteFeatureCore.lean",
+      "source_line": 40,
+      "short_name": "finiteGaussianHermiteRidgeL2_inner",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. Let \\(H_j\\) be the unnormalized probabilists Hermite polynomial and put \\(h_j(w)=[x\\mapsto H_j(\\langle w,x\\rangle)]\\in L^2(\\gamma_E)\\). For a finite set \\(S\\subset\\mathbb N\\) and real coefficients \\(c_j\\), put \\(F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w)\\). For every finite \\(S\\), arbitrary real \\(c_j\\), and actual unit vectors \\(w,z\\), the Hilbert inner product is the following diagonal sum. Signed correlations, both endpoint correlations, degree zero and empty support are included.",
+      "formula": "\\langle F_{S,c}(w),F_{S,c}(z)\\rangle_{L^2(\\gamma_E)}=\\sum_{j\\in S}j!c_j^2\\langle w,z\\rangle^j.",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "Both directions satisfy \\(\\|w\\|=\\|z\\|=1\\). They need not be independent or orthogonal.",
+        "\\(S\\) and the real coefficients are arbitrary; no parity, positivity, or total-mass normalization is imposed."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Identify each class inner product with its Gaussian integral",
+          "text": "Use the actual \\(L^2\\) inner-product formula and the almost-everywhere representatives. Apply the existing mixed Hermite product theorem, including its endpoint and zero-degree cases.",
+          "formula": "\\langle h_i(w),h_j(z)\\rangle=\\mathbf1_{i=j}\\,i!\\langle w,z\\rangle^i.",
+          "lean": "  let k : ℕ → ℝ := fun j => ((j.factorial : ℝ) * (c j)^2) * ⟪w,z⟫_ℝ ^ j\n  have hinner (i j : ℕ) : ⟪gaussianHermiteRidgeL2 i w, gaussianHermiteRidgeL2 j z⟫_ℝ =\n      if i = j then (i.factorial : ℝ) * ⟪w,z⟫_ℝ ^ i else 0 := by\n    rw [MeasureTheory.L2.inner_def]\n    calc\n      _ = ∫ x, aeval ⟪w,x⟫_ℝ (hermite i) * aeval ⟪z,x⟫_ℝ (hermite j)\n          ∂stdGaussian E := by\n        apply integral_congr_ae\n        filter_upwards [gaussianHermiteRidgeL2_ae i w, gaussianHermiteRidgeL2_ae j z] with x h1 h2\n        rw [Real.inner_apply, h1, h2]\n      _ = _ :=\n        (AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram\n          w z hw hz i j).2\n  have hdiag (i j : ℕ) :\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 2,
+          "title": "Extract the coefficients",
+          "text": "Bilinearity moves the two real coefficients outside the class inner product. On the diagonal their product is \\(c_i^2\\); off the diagonal the Gaussian inner product vanishes.",
+          "formula": "\\langle c_ih_i(w),c_jh_j(z)\\rangle=\\mathbf1_{i=j}\\,i!c_i^2\\langle w,z\\rangle^i.",
+          "lean": "      ⟪c i • gaussianHermiteRidgeL2 i w, c j • gaussianHermiteRidgeL2 j z⟫_ℝ =\n        if i = j then k i else 0 := by\n    rw [real_inner_smul_left, inner_smul_right, hinner]\n    by_cases h : i = j\n    · subst j\n      simp [k]\n      ring\n    · simp [h]\n  unfold finiteGaussianHermiteRidgeL2\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 3,
+          "title": "Collapse the finite double sum",
+          "text": "Expand the finite feature inner product in both coordinates. For each outer degree, only its identical inner degree contributes; that degree belongs to the same finite support.",
+          "formula": "\\sum_{i\\in S}\\sum_{j\\in S}\\mathbf1_{i=j}\\,i!c_i^2\\langle w,z\\rangle^i=\\sum_{i\\in S}i!c_i^2\\langle w,z\\rangle^i.",
+          "lean": "  rw [sum_inner]\n  apply Finset.sum_congr rfl\n  intro i hi\n  rw [inner_sum]\n  simp_rw [hdiag]\n  rw [Finset.sum_eq_single_of_mem i hi]\n  · simp [k]\n  · intro j _ hij\n    simp [Ne.symm hij]\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2_ae",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.L2.inner_def",
+        "MeasureTheory.integral_congr_ae",
+        "Finset.sum_eq_single_of_mem"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/363bc328763a66f4177eef1abb2f45fdd0b41568/runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F6; explicit admission statement and proof topology for existing proofs, not a retrospective pre-proof seal."
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the regularity or moment identity needed to use actual Gaussian feature classes. Proof strategy: Identify each class inner product with its Gaussian integral; Extract the coefficients; Collapse the finite double sum.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    }
+  ]
+}

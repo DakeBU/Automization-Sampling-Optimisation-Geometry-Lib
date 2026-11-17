@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth",
+      "kind": "theorem",
+      "title": "Smooth polynomial features in Gaussian L²",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialRidgeSmooth.lean",
+      "source_line": 64,
+      "short_name": "standard_gaussian_polynomial_ridge_L2_smooth",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. For every real polynomial \\(p\\) and every \\(w\\in E\\), the literal function \\(x\\mapsto p(\\langle w,x\\rangle)\\) belongs to \\(L^2(\\gamma_E)\\). Its equivalence-class map is globally \\(C^\\infty\\) on all of \\(E\\). The membership witnesses are produced by the proof and used to form these actual classes.",
+      "formula": "E\\longrightarrow L^2(\\gamma_E),\\qquad w\\longmapsto[x\\mapsto p(\\langle w,x\\rangle)]\\quad\\text{is }C^\\infty.",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "\\(p\\) has arbitrary real coefficients and arbitrary finite degree; \\(w\\) is any ambient vector."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Build smooth powers in every finite integrability exponent",
+          "text": "Prove the power claim simultaneously for every finite \\(q\\ge1\\). Constants give degree zero. Gaussian projection moments supply a linear map into \\(L^{2q}\\); finite-dimensionality makes it continuous and smooth. Multiply the lower power and the projection by the continuous Hölder bilinear map.",
+          "formula": "L^{2q}(\\gamma_E)\\times L^{2q}(\\gamma_E)\\longrightarrow L^q(\\gamma_E),\\qquad(f,g)\\longmapsto fg.",
+          "lean": "private theorem smooth_power_ridge (n : ℕ) (q : ℝ≥0∞) [Fact (1 ≤ q)] (hqtop : q ≠ ⊤) :\n    ∃ F : E → Lp ℝ q (stdGaussian E), ContDiff ℝ (∞ : ℕ∞ω) F ∧\n      ∀ w, (F w : E → ℝ) =ᵐ[stdGaussian E] fun x => ⟪w, x⟫_ℝ ^ n := by\n  let μ := stdGaussian E\n  induction n generalizing q with\n  | zero =>\n    have h : MemLp (fun _ : E => (1 : ℝ)) q μ := memLp_const _\n    exact ⟨fun _ => h.toLp _, contDiff_const, fun w => by\n      simpa only [pow_zero] using h.coeFn_toLp⟩\n  | succ n ih =>\n    have hq' : 1 ≤ 2 * q := (Fact.out : 1 ≤ q).trans (by rw [two_mul]; exact le_add_of_nonneg_right bot_le)\n    have hq'top : 2 * q ≠ ⊤ := ENNReal.mul_ne_top (by norm_num) hqtop\n    have : Fact (1 ≤ 2 * q) := ⟨hq'⟩\n    have : ENNReal.HolderTriple (2 * q) (2 * q) q := ⟨by\n      rw [ENNReal.mul_inv (.inl (by norm_num : (2 : ℝ≥0∞) ≠ 0))\n        (.inl (by norm_num : (2 : ℝ≥0∞) ≠ ⊤)), ← add_mul, ← two_mul,\n        ENNReal.mul_inv_cancel (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by norm_num), one_mul]⟩\n    obtain ⟨F, hF, hFa⟩ := ih (2 * q) hq'top\n    have hlin (w : E) : MemLp (fun x : E => ⟪w, x⟫_ℝ) (2 * q) μ :=\n      IsGaussian.memLp_dual μ (innerSL ℝ w) (2 * q) hq'top\n    let L : E →ₗ[ℝ] Lp ℝ (2 * q) μ :=\n      { toFun := fun w => (hlin w).toLp _\n        map_add' := by\n          intro u v\n          apply Lp.ext\n          filter_upwards [(hlin (u + v)).coeFn_toLp, (hlin u).coeFn_toLp,\n            (hlin v).coeFn_toLp, Lp.coeFn_add ((hlin u).toLp _) ((hlin v).toLp _)]\n            with x huv hu hv hsum\n          rw [huv, hsum, Pi.add_apply, hu, hv, inner_add_left]\n        map_smul' := by\n          intro c w\n          apply Lp.ext\n          filter_upwards [(hlin (c • w)).coeFn_toLp, (hlin w).coeFn_toLp,\n            Lp.coeFn_smul c ((hlin w).toLp _)] with x hcw hw hsmul\n          rw [RingHom.id_apply, hcw, hsmul, Pi.smul_apply, hw, real_inner_smul_left, smul_eq_mul] }\n    let B := ContinuousLinearMap.mul ℝ ℝ\n    let M := B.holderL μ (2 * q) (2 * q) q\n    refine ⟨fun w => M (F w) (L w), ?_, ?_⟩\n    · exact (M.contDiff.comp hF).clm_apply L.toContinuousLinearMap.contDiff\n    · intro w\n      change ⇑(B.holder q (F w) ((hlin w).toLp _)) =ᵐ[μ] _\n      filter_upwards [B.coeFn_holder (r := q) (F w) ((hlin w).toLp _), hFa w, (hlin w).coeFn_toLp]\n        with x hmul hf hl\n      rw [hmul, hf, hl, pow_succ]\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 2,
+          "title": "Assemble the polynomial",
+          "text": "Polynomial induction builds the map using sums and scalar multiples of the smooth power maps. The almost-everywhere representative formulas are preserved at each step.",
+          "formula": "[p(\\langle w,\\cdot\\rangle)]=\\sum_{j\\in\\operatorname{supp}p}p_j[\\langle w,\\cdot\\rangle^j].",
+          "lean": "    induction p using Polynomial.induction_on' with\n    | add p r hp hr =>\n      obtain ⟨F, hF, hFa⟩ := hp\n      obtain ⟨G, hG, hGa⟩ := hr\n      refine ⟨fun w => F w + G w, hF.add hG, fun w => ?_⟩\n      filter_upwards [Lp.coeFn_add (F w) (G w), hFa w, hGa w] with x hsum hf hg\n      simp only [hsum, Pi.add_apply, hf, hg, Polynomial.eval_add]\n    | monomial n c =>\n      obtain ⟨F, hF, hFa⟩ := smooth_power_ridge (E := E) n 2 (by norm_num)\n      refine ⟨fun w => c • F w, hF.const_smul c, fun w => ?_⟩\n      filter_upwards [Lp.coeFn_smul c (F w), hFa w] with x hsmul hf\n      simp only [hsmul, Pi.smul_apply, smul_eq_mul, hf, Polynomial.eval_monomial]\n  obtain ⟨F, hF, hFa⟩ := representation\n  let h : ∀ w : E, MemLp (fun x : E => p.eval ⟪w, x⟫_ℝ) 2 (stdGaussian E) :=\n    fun w => (memLp_congr_ae (hFa w)).1 (Lp.memLp (F w))\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 3,
+          "title": "Identify the literal L² class",
+          "text": "The constructed map has the literal polynomial ridge as an almost-everywhere representative. Transfer square integrability along that equality and use extensionality of the quotient to identify the produced map with the stated class map.",
+          "formula": "F(w)=[x\\mapsto p(\\langle w,x\\rangle)]\\quad\\text{in }L^2(\\gamma_E).",
+          "lean": "  refine ⟨h, ?_⟩\n  convert hF using 1\n  funext w\n  exact Lp.ext ((h w).coeFn_toLp.trans (hFa w).symm)\n\n#print axioms standard_gaussian_polynomial_ridge_L2_smooth\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IsGaussian.memLp_dual",
+        "LinearMap.toContinuousLinearMap",
+        "ContinuousLinearMap.holderL",
+        "ContDiff.clm_apply",
+        "MeasureTheory.MemLp.coeFn_toLp"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/363bc328763a66f4177eef1abb2f45fdd0b41568/runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F1; explicit admission statement and proof topology for existing proofs, not a retrospective pre-proof seal."
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the regularity or moment identity needed to use actual Gaussian feature classes. Proof strategy: Build smooth powers in every finite integrability exponent; Assemble the polynomial; Identify the literal L² class.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    }
+  ]
+}

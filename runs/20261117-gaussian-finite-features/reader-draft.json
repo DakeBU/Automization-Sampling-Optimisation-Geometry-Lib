@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth",
+      "kind": "theorem",
+      "title": "Smooth polynomial features in Gaussian L²",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialRidgeSmooth.lean",
+      "source_line": 64,
+      "short_name": "standard_gaussian_polynomial_ridge_L2_smooth",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. For every real polynomial \\(p\\) and every \\(w\\in E\\), the literal function \\(x\\mapsto p(\\langle w,x\\rangle)\\) belongs to \\(L^2(\\gamma_E)\\). Its equivalence-class map is globally \\(C^\\infty\\) on all of \\(E\\). The membership witnesses are produced by the proof and used to form these actual classes.",
+      "formula": "E\\longrightarrow L^2(\\gamma_E),\\qquad w\\longmapsto[x\\mapsto p(\\langle w,x\\rangle)]\\quad\\text{is }C^\\infty.",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "\\(p\\) has arbitrary real coefficients and arbitrary finite degree; \\(w\\) is any ambient vector."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Build smooth powers in every finite integrability exponent",
+          "text": "Prove the power claim simultaneously for every finite \\(q\\ge1\\). Constants give degree zero. Gaussian projection moments supply a linear map into \\(L^{2q}\\); finite-dimensionality makes it continuous and smooth. Multiply the lower power and the projection by the continuous Hölder bilinear map.",
+          "formula": "L^{2q}(\\gamma_E)\\times L^{2q}(\\gamma_E)\\longrightarrow L^q(\\gamma_E),\\qquad(f,g)\\longmapsto fg.",
+          "lean": "private theorem smooth_power_ridge (n : ℕ) (q : ℝ≥0∞) [Fact (1 ≤ q)] (hqtop : q ≠ ⊤) :\n    ∃ F : E → Lp ℝ q (stdGaussian E), ContDiff ℝ (∞ : ℕ∞ω) F ∧\n      ∀ w, (F w : E → ℝ) =ᵐ[stdGaussian E] fun x => ⟪w, x⟫_ℝ ^ n := by\n  let μ := stdGaussian E\n  induction n generalizing q with\n  | zero =>\n    have h : MemLp (fun _ : E => (1 : ℝ)) q μ := memLp_const _\n    exact ⟨fun _ => h.toLp _, contDiff_const, fun w => by\n      simpa only [pow_zero] using h.coeFn_toLp⟩\n  | succ n ih =>\n    have hq' : 1 ≤ 2 * q := (Fact.out : 1 ≤ q).trans (by rw [two_mul]; exact le_add_of_nonneg_right bot_le)\n    have hq'top : 2 * q ≠ ⊤ := ENNReal.mul_ne_top (by norm_num) hqtop\n    have : Fact (1 ≤ 2 * q) := ⟨hq'⟩\n    have : ENNReal.HolderTriple (2 * q) (2 * q) q := ⟨by\n      rw [ENNReal.mul_inv (.inl (by norm_num : (2 : ℝ≥0∞) ≠ 0))\n        (.inl (by norm_num : (2 : ℝ≥0∞) ≠ ⊤)), ← add_mul, ← two_mul,\n        ENNReal.mul_inv_cancel (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by norm_num), one_mul]⟩\n    obtain ⟨F, hF, hFa⟩ := ih (2 * q) hq'top\n    have hlin (w : E) : MemLp (fun x : E => ⟪w, x⟫_ℝ) (2 * q) μ :=\n      IsGaussian.memLp_dual μ (innerSL ℝ w) (2 * q) hq'top\n    let L : E →ₗ[ℝ] Lp ℝ (2 * q) μ :=\n      { toFun := fun w => (hlin w).toLp _\n        map_add' := by\n          intro u v\n          apply Lp.ext\n          filter_upwards [(hlin (u + v)).coeFn_toLp, (hlin u).coeFn_toLp,\n            (hlin v).coeFn_toLp, Lp.coeFn_add ((hlin u).toLp _) ((hlin v).toLp _)]\n            with x huv hu hv hsum\n          rw [huv, hsum, Pi.add_apply, hu, hv, inner_add_left]\n        map_smul' := by\n          intro c w\n          apply Lp.ext\n          filter_upwards [(hlin (c • w)).coeFn_toLp, (hlin w).coeFn_toLp,\n            Lp.coeFn_smul c ((hlin w).toLp _)] with x hcw hw hsmul\n          rw [RingHom.id_apply, hcw, hsmul, Pi.smul_apply, hw, real_inner_smul_left, smul_eq_mul] }\n    let B := ContinuousLinearMap.mul ℝ ℝ\n    let M := B.holderL μ (2 * q) (2 * q) q\n    refine ⟨fun w => M (F w) (L w), ?_, ?_⟩\n    · exact (M.contDiff.comp hF).clm_apply L.toContinuousLinearMap.contDiff\n    · intro w\n      change ⇑(B.holder q (F w) ((hlin w).toLp _)) =ᵐ[μ] _\n      filter_upwards [B.coeFn_holder (r := q) (F w) ((hlin w).toLp _), hFa w, (hlin w).coeFn_toLp]\n        with x hmul hf hl\n      rw [hmul, hf, hl, pow_succ]\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 2,
+          "title": "Assemble the polynomial",
+          "text": "Polynomial induction builds the map using sums and scalar multiples of the smooth power maps. The almost-everywhere representative formulas are preserved at each step.",
+          "formula": "[p(\\langle w,\\cdot\\rangle)]=\\sum_{j\\in\\operatorname{supp}p}p_j[\\langle w,\\cdot\\rangle^j].",
+          "lean": "    induction p using Polynomial.induction_on' with\n    | add p r hp hr =>\n      obtain ⟨F, hF, hFa⟩ := hp\n      obtain ⟨G, hG, hGa⟩ := hr\n      refine ⟨fun w => F w + G w, hF.add hG, fun w => ?_⟩\n      filter_upwards [Lp.coeFn_add (F w) (G w), hFa w, hGa w] with x hsum hf hg\n      simp only [hsum, Pi.add_apply, hf, hg, Polynomial.eval_add]\n    | monomial n c =>\n      obtain ⟨F, hF, hFa⟩ := smooth_power_ridge (E := E) n 2 (by norm_num)\n      refine ⟨fun w => c • F w, hF.const_smul c, fun w => ?_⟩\n      filter_upwards [Lp.coeFn_smul c (F w), hFa w] with x hsmul hf\n      simp only [hsmul, Pi.smul_apply, smul_eq_mul, hf, Polynomial.eval_monomial]\n  obtain ⟨F, hF, hFa⟩ := representation\n  let h : ∀ w : E, MemLp (fun x : E => p.eval ⟪w, x⟫_ℝ) 2 (stdGaussian E) :=\n    fun w => (memLp_congr_ae (hFa w)).1 (Lp.memLp (F w))\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 3,
+          "title": "Identify the literal L² class",
+          "text": "The constructed map has the literal polynomial ridge as an almost-everywhere representative. Transfer square integrability along that equality and use extensionality of the quotient to identify the produced map with the stated class map.",
+          "formula": "F(w)=[x\\mapsto p(\\langle w,x\\rangle)]\\quad\\text{in }L^2(\\gamma_E).",
+          "lean": "  refine ⟨h, ?_⟩\n  convert hF using 1\n  funext w\n  exact Lp.ext ((h w).coeFn_toLp.trans (hFa w).symm)\n\n#print axioms standard_gaussian_polynomial_ridge_L2_smooth\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [],
+      "mathlib_dependencies": [
+        "ProbabilityTheory.IsGaussian.memLp_dual",
+        "LinearMap.toContinuousLinearMap",
+        "ContinuousLinearMap.holderL",
+        "ContDiff.clm_apply",
+        "MeasureTheory.MemLp.coeFn_toLp"
+      ],
+      "sources": [
+        {
+          "url": "runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F1"
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the regularity or moment identity needed to use actual Gaussian feature classes. Proof strategy: Build smooth powers in every finite integrability exponent; Assemble the polynomial; Identify the literal L² class.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2",
+      "kind": "def",
+      "title": "The actual Gaussian Hermite class",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteFeatureCore.lean",
+      "source_line": 12,
+      "short_name": "gaussianHermiteRidgeL2",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. For each natural degree \\(j\\) and ambient vector \\(w\\), define the actual Gaussian \\(L^2\\) class of \\(H_j(\\langle w,\\cdot\\rangle)\\). Here \\(H_j\\) is the unnormalized probabilists Hermite polynomial. Its integer coefficients are mapped canonically to the reals, and the proved polynomial membership witness forms the quotient class.",
+      "formula": "h_j(w)=[x\\mapsto H_j(\\langle w,x\\rangle)]\\in L^2(\\gamma_E).",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "\\(j\\in\\mathbb N\\) and \\(w\\in E\\) are arbitrary. This defines a class; pointwise values of its chosen representative are not specified."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Read the literal class construction",
+          "text": "The polynomial smoothness theorem supplies membership for the real image of \\(H_j\\). Apply its membership witness at \\(w\\) to form the actual class of the literal ridge.",
+          "formula": "h_j(w)=\\operatorname{toLp}(x\\mapsto H_j(\\langle w,x\\rangle)).",
+          "lean": "noncomputable def gaussianHermiteRidgeL2 (j : ℕ) (w : E) : Lp ℝ 2 (stdGaussian E) :=\n  let p := (hermite j).map (algebraMap ℤ ℝ)\n  (Classical.choose\n    (AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth (E := E) p) w).toLp\n      (fun x : E => p.eval ⟪w,x⟫_ℝ)\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.MemLp.toLp",
+        "Polynomial.hermite"
+      ],
+      "sources": [
+        {
+          "url": "runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F2"
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This fixes the actual feature object used by later moment and differential calculations. Proof strategy: Read the literal class construction.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2",
+      "kind": "def",
+      "title": "Finite Gaussian Hermite feature sums",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteFeatureCore.lean",
+      "source_line": 18,
+      "short_name": "finiteGaussianHermiteRidgeL2",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. Let \\(H_j\\) be the unnormalized probabilists Hermite polynomial and put \\(h_j(w)=[x\\mapsto H_j(\\langle w,x\\rangle)]\\in L^2(\\gamma_E)\\). For a finite set \\(S\\subset\\mathbb N\\) and real coefficients \\(c_j\\), put \\(F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w)\\). This declaration defines the indicated finite sum in the actual Hilbert space. It imposes no unit-vector, parity, positivity or normalization condition.",
+      "formula": "F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w).",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "\\(S\\) is any finite set of natural degrees, including the empty set. The coefficients are arbitrary real numbers."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Read the finite linear combination",
+          "text": "Sum the constant scalar multiples of the degreewise classes in the same Gaussian Hilbert space. Empty support gives its zero element.",
+          "formula": "F_{\\varnothing,c}(w)=0,\\qquad F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w).",
+          "lean": "noncomputable def finiteGaussianHermiteRidgeL2 (s : Finset ℕ) (c : ℕ → ℝ)\n    (w : E) : Lp ℝ 2 (stdGaussian E) :=\n  ∑ j ∈ s, c j • gaussianHermiteRidgeL2 j w\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2"
+      ],
+      "mathlib_dependencies": [
+        "Finset.sum"
+      ],
+      "sources": [
+        {
+          "url": "runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F3"
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This fixes the actual feature object used by later moment and differential calculations. Proof strategy: Read the finite linear combination.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2_contDiff",
+      "kind": "theorem",
+      "title": "Global C² regularity of one Hermite class",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteFeatureCore.lean",
+      "source_line": 22,
+      "short_name": "gaussianHermiteRidgeL2_contDiff",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. Let \\(H_j\\) be the unnormalized probabilists Hermite polynomial and put \\(h_j(w)=[x\\mapsto H_j(\\langle w,x\\rangle)]\\in L^2(\\gamma_E)\\). For a finite set \\(S\\subset\\mathbb N\\) and real coefficients \\(c_j\\), put \\(F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w)\\). For every natural degree \\(j\\), the actual class map \\(h_j\\) is globally twice continuously Fréchet differentiable on all of \\(E\\).",
+      "formula": "h_j\\in C^2(E;L^2(\\gamma_E)).",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "\\(j\\) is arbitrary; the parameter vector is not restricted to the sphere."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Specialize polynomial smoothness and lower the order",
+          "text": "Apply the polynomial theorem to the real image of \\(H_j\\). The class definition uses exactly the same membership witness, so the smooth map is the desired map. Smoothness implies \\(C^2\\).",
+          "formula": "C^\\infty(E;L^2(\\gamma_E))\\subset C^2(E;L^2(\\gamma_E)).",
+          "lean": "theorem gaussianHermiteRidgeL2_contDiff (j : ℕ) :\n    ContDiff ℝ 2 (gaussianHermiteRidgeL2 (E := E) j) := by\n  exact (Classical.choose_spec\n    (AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth\n      (E := E) ((hermite j).map (algebraMap ℤ ℝ)))).of_le (ENat.natCast_le_of_coe_top_le_withTop le_rfl 2)\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2"
+      ],
+      "mathlib_dependencies": [
+        "ContDiff.of_le"
+      ],
+      "sources": [
+        {
+          "url": "runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F4"
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the regularity or moment identity needed to use actual Gaussian feature classes. Proof strategy: Specialize polynomial smoothness and lower the order.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2_ae",
+      "kind": "theorem",
+      "title": "Literal representatives of Hermite classes",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteFeatureCore.lean",
+      "source_line": 28,
+      "short_name": "gaussianHermiteRidgeL2_ae",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. Let \\(H_j\\) be the unnormalized probabilists Hermite polynomial and put \\(h_j(w)=[x\\mapsto H_j(\\langle w,x\\rangle)]\\in L^2(\\gamma_E)\\). For a finite set \\(S\\subset\\mathbb N\\) and real coefficients \\(c_j\\), put \\(F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w)\\). For every degree \\(j\\) and every ambient \\(w\\), the representative of \\(h_j(w)\\) equals the literal Hermite ridge almost everywhere under \\(\\gamma_E\\).",
+      "formula": "h_j(w)(x)=H_j(\\langle w,x\\rangle)\\quad\\text{for }\\gamma_E\\text{-almost every }x.",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "\\(j\\) and \\(w\\) are arbitrary. The equality is almost everywhere, not a pointwise choice of representatives."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Use the toLp representative identity",
+          "text": "Unfold the class definition and apply the almost-everywhere representative theorem for \\(\\operatorname{toLp}\\). Evaluation after the coefficient map is the same as real algebra evaluation of the integer polynomial.",
+          "formula": "\\operatorname{eval}_{\\mathbb R}(\\operatorname{map}_{\\mathbb Z\\to\\mathbb R}H_j,t)=\\operatorname{aeval}_t(H_j).",
+          "lean": "theorem gaussianHermiteRidgeL2_ae (j : ℕ) (w : E) :\n    (gaussianHermiteRidgeL2 j w : E → ℝ) =ᵐ[stdGaussian E]\n      fun x => aeval ⟪w,x⟫_ℝ (hermite j) := by\n  unfold gaussianHermiteRidgeL2\n  filter_upwards [MemLp.coeFn_toLp (f := fun x : E =>\n    ((hermite j).map (algebraMap ℤ ℝ)).eval ⟪w,x⟫_ℝ)\n    (Classical.choose\n      (AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth\n        (E := E) ((hermite j).map (algebraMap ℤ ℝ))) w)] with x hx\n  rw [hx]\n  exact eval_map_algebraMap _ _\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.MemLp.coeFn_toLp",
+        "Polynomial.eval_map_algebraMap"
+      ],
+      "sources": [
+        {
+          "url": "runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F5"
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the regularity or moment identity needed to use actual Gaussian feature classes. Proof strategy: Use the toLp representative identity.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2_inner",
+      "kind": "theorem",
+      "title": "Finite Gaussian Hermite Gram formula",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteFeatureCore.lean",
+      "source_line": 40,
+      "short_name": "finiteGaussianHermiteRidgeL2_inner",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. Let \\(H_j\\) be the unnormalized probabilists Hermite polynomial and put \\(h_j(w)=[x\\mapsto H_j(\\langle w,x\\rangle)]\\in L^2(\\gamma_E)\\). For a finite set \\(S\\subset\\mathbb N\\) and real coefficients \\(c_j\\), put \\(F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w)\\). For every finite \\(S\\), arbitrary real \\(c_j\\), and actual unit vectors \\(w,z\\), the Hilbert inner product is the following diagonal sum. Signed correlations, both endpoint correlations, degree zero and empty support are included.",
+      "formula": "\\langle F_{S,c}(w),F_{S,c}(z)\\rangle_{L^2(\\gamma_E)}=\\sum_{j\\in S}j!c_j^2\\langle w,z\\rangle^j.",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "Both directions satisfy \\(\\|w\\|=\\|z\\|=1\\). They need not be independent or orthogonal.",
+        "\\(S\\) and the real coefficients are arbitrary; no parity, positivity, or total-mass normalization is imposed."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Identify each class inner product with its Gaussian integral",
+          "text": "Use the actual \\(L^2\\) inner-product formula and the almost-everywhere representatives. Apply the existing mixed Hermite product theorem, including its endpoint and zero-degree cases.",
+          "formula": "\\langle h_i(w),h_j(z)\\rangle=\\mathbf1_{i=j}\\,i!\\langle w,z\\rangle^i.",
+          "lean": "  let k : ℕ → ℝ := fun j => ((j.factorial : ℝ) * (c j)^2) * ⟪w,z⟫_ℝ ^ j\n  have hinner (i j : ℕ) : ⟪gaussianHermiteRidgeL2 i w, gaussianHermiteRidgeL2 j z⟫_ℝ =\n      if i = j then (i.factorial : ℝ) * ⟪w,z⟫_ℝ ^ i else 0 := by\n    rw [MeasureTheory.L2.inner_def]\n    calc\n      _ = ∫ x, aeval ⟪w,x⟫_ℝ (hermite i) * aeval ⟪z,x⟫_ℝ (hermite j)\n          ∂stdGaussian E := by\n        apply integral_congr_ae\n        filter_upwards [gaussianHermiteRidgeL2_ae i w, gaussianHermiteRidgeL2_ae j z] with x h1 h2\n        rw [Real.inner_apply, h1, h2]\n      _ = _ :=\n        (AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram\n          w z hw hz i j).2\n  have hdiag (i j : ℕ) :\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 2,
+          "title": "Extract the coefficients",
+          "text": "Bilinearity moves the two real coefficients outside the class inner product. On the diagonal their product is \\(c_i^2\\); off the diagonal the Gaussian inner product vanishes.",
+          "formula": "\\langle c_ih_i(w),c_jh_j(z)\\rangle=\\mathbf1_{i=j}\\,i!c_i^2\\langle w,z\\rangle^i.",
+          "lean": "      ⟪c i • gaussianHermiteRidgeL2 i w, c j • gaussianHermiteRidgeL2 j z⟫_ℝ =\n        if i = j then k i else 0 := by\n    rw [real_inner_smul_left, inner_smul_right, hinner]\n    by_cases h : i = j\n    · subst j\n      simp [k]\n      ring\n    · simp [h]\n  unfold finiteGaussianHermiteRidgeL2\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        },
+        {
+          "number": 3,
+          "title": "Collapse the finite double sum",
+          "text": "Expand the finite feature inner product in both coordinates. For each outer degree, only its identical inner degree contributes; that degree belongs to the same finite support.",
+          "formula": "\\sum_{i\\in S}\\sum_{j\\in S}\\mathbf1_{i=j}\\,i!c_i^2\\langle w,z\\rangle^i=\\sum_{i\\in S}i!c_i^2\\langle w,z\\rangle^i.",
+          "lean": "  rw [sum_inner]\n  apply Finset.sum_congr rfl\n  intro i hi\n  rw [inner_sum]\n  simp_rw [hdiag]\n  rw [Finset.sum_eq_single_of_mem i hi]\n  · simp [k]\n  · intro j _ hij\n    simp [Ne.symm hij]\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2_ae",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteGram.gaussian_hermite_ridge_gram"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.L2.inner_def",
+        "MeasureTheory.integral_congr_ae",
+        "Finset.sum_eq_single_of_mem"
+      ],
+      "sources": [
+        {
+          "url": "runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F6"
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the regularity or moment identity needed to use actual Gaussian feature classes. Proof strategy: Identify each class inner product with its Gaussian integral; Extract the coefficients; Collapse the finite double sum.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    },
+    {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2_contDiff",
+      "kind": "theorem",
+      "title": "Global C² regularity of finite Hermite features",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianHermiteFeatureCore.lean",
+      "source_line": 77,
+      "short_name": "finiteGaussianHermiteRidgeL2_contDiff",
+      "classification": "original shared Gaussian-analysis supplement",
+      "statement": "Let \\(E\\) be a finite-dimensional real inner-product normed space with its Borel structure, and let \\(\\gamma_E=\\operatorname{stdGaussian}(E)\\) be the centered identity-covariance Gaussian probability. Let \\(H_j\\) be the unnormalized probabilists Hermite polynomial and put \\(h_j(w)=[x\\mapsto H_j(\\langle w,x\\rangle)]\\in L^2(\\gamma_E)\\). For a finite set \\(S\\subset\\mathbb N\\) and real coefficients \\(c_j\\), put \\(F_{S,c}(w)=\\sum_{j\\in S}c_jh_j(w)\\). Every finite feature map \\(F_{S,c}\\) is globally twice continuously Fréchet differentiable on the entire ambient space.",
+      "formula": "F_{S,c}\\in C^2(E;L^2(\\gamma_E)).",
+      "assumptions": [
+        "The finite-dimensional real inner-product and Borel structures are the actual structures on the same carrier \\(E\\).",
+        "\\(\\gamma_E\\) is the centered identity-covariance Gaussian probability. No positive dimension restriction is imposed.",
+        "\\(S\\) is finite and \\(c_j\\) are arbitrary real coefficients. No unit-vector or series-convergence hypothesis is needed."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Sum the smooth scalar multiples",
+          "text": "Each degreewise map is \\(C^2\\). Constant scalar multiplication preserves that regularity, and the sum is finite.",
+          "formula": "F_{S,c}=\\sum_{j\\in S}c_jh_j,\\qquad h_j\\in C^2\\ \\Longrightarrow\\ F_{S,c}\\in C^2.",
+          "lean": "theorem finiteGaussianHermiteRidgeL2_contDiff (s : Finset ℕ) (c : ℕ → ℝ) :\n    ContDiff ℝ 2 (finiteGaussianHermiteRidgeL2 (E := E) s c) := by\n  unfold finiteGaussianHermiteRidgeL2\n  exact ContDiff.sum fun j _ => (gaussianHermiteRidgeL2_contDiff j).const_smul (c j)\n\n",
+          "detail": "Exact contiguous excerpt. The complete module supplies the surrounding parameters and local facts."
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.finiteGaussianHermiteRidgeL2",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatures.gaussianHermiteRidgeL2_contDiff"
+      ],
+      "mathlib_dependencies": [
+        "ContDiff.sum",
+        "ContDiff.const_smul"
+      ],
+      "sources": [
+        {
+          "url": "runs/20261117-gaussian-finite-features/source-only.json",
+          "label": "Generic Gaussian feature admission source",
+          "scope": "F7"
+        }
+      ],
+      "boundary": [
+        "These are finite polynomial and actual Gaussian Hilbert-space results. Infinite-series limits and application-specific force identities require separate proofs."
+      ],
+      "reading_layout": "progressive",
+      "reader_note": "This supplies the regularity or moment identity needed to use actual Gaussian feature classes. Proof strategy: Sum the smooth scalar multiples.",
+      "lean_statement": "The exact source declaration and all its scoped parameters are shown in the adjacent folded Lean.",
+      "lean_proof": "The exact excerpts below show each proof or literal-construction step; Lean is initially folded."
+    }
+  ]
+}

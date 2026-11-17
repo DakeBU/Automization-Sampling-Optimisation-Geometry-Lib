@@ -234,6 +234,42 @@ complete public-dev run is not evidence of held-out generalization.
 
 #### Optional foreground model comparison
 
+**Without an API key:** the pinned local CPU pilot uses the same paired
+JSONL suite. It reuses the previously recorded Qwen2.5-0.5B-Instruct revision,
+asset hashes and inference packages; no automatic model download or model
+selection is performed. Supply a local directory matching that pin.
+
+```bash
+python tools/sog_bench_graph_local.py plan --task-id sogb-g007 --task-id sogb-g010 --max-lookups 8 --output .astis/my-local-graph-pilot
+python tools/sog_bench_graph_local.py run --output .astis/my-local-graph-pilot --plan-sha256 SAVED_DIGEST --model-directory PATH_TO_PINNED_ASSETS
+python tools/sog_bench_graph_local.py replay --output .astis/my-local-graph-pilot --plan-sha256 SAVED_DIGEST
+```
+
+Save the printed digest before inference. The two conditions use fresh
+conversations; the lookup condition lets the model choose its queries.
+Only the selected prompt and actual lookup observations reach the model.
+Raw generations and token IDs are preserved: no JSON repair, fence removal,
+answer retry or extra evidence is inserted. Multiline output is consumed as
+the emitted JSONL stream, including invalid lines, and the first final stops
+the collector. Unconsumed output remains in the raw model record.
+
+The fixed pilot allows 192 new tokens per turn and 8192 input tokens.
+These small-model limits are experimental conditions, not recommended
+limits for stronger models. A model-load/inference failure stops the run;
+unfinished/unstarted cases remain unscored in `sog_bench_graph_suite.py
+account`, not model failures. Complete replay checks messages, raw actions,
+actual observations and deterministic scoring; it does not authenticate
+inference or check that recorded token IDs decode to the text. An independent
+tokenizer readback is a separate check. This runs graph JSON only, never
+submitted Lean or generated commands. No held-out or calibrated result follows.
+
+The [first recorded local graph diagnostic](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/tree/main/runs/20261117-bench-local-graph-first)
+retains two families under both conditions. All four outputs violated the
+action format: no valid final or lookup was made. Each condition records 0/2,
+not evidence about mathematical ability or the effect of graph access. Raw
+generations, actual observations and replayable accounting are available;
+failures were not repaired or dropped.
+
 With `OPENAI_API_KEY` configured outside Git, the separate adapter can run
 both evidence conditions for one admitted task. Set an actual requested model
 and its exact expected returned snapshot; neither is inferred from an alias.

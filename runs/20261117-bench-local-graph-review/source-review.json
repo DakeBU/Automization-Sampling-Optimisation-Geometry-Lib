@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "kind": "independent-local-graph-code-evaluation-semantics-review",
+  "reviewed_at": "2026-11-17T11:02:00+08:00",
+  "author": "/root",
+  "reviewer": "/root/graph_local_protocol_review",
+  "independent_of_author": true,
+  "base_commit": "0bc16280ea58c0a1965d1bf85aea5f2e6392d239",
+  "branch": "codex/sog-bench-local-graph-pilot",
+  "reviewed_state": "Working tree; exact reviewed files are bound below, not merely the base commit.",
+  "verdict": "accepted-for-bounded-code-scope",
+  "blocking_findings": [],
+  "scope": [
+    "Prompt/gold isolation through the local adapter and paired-suite projections",
+    "Unrepaired raw-generation JSONL consumption and first-final/no-retry behavior",
+    "Fresh conversations for every task and access condition",
+    "Reuse of pinned local asset/package checks and offline-only CPU inference loading",
+    "Infrastructure interruption accounting as null, not model failure",
+    "Deterministic transcript replay, archive validation, and stated evidentiary limitations",
+    "New tests, CI registration, and EVALUATION.md local-pilot claims"
+  ],
+  "reviewed_sha256_bytes": {
+    "tools/sog_bench_graph_local.py": "6796e1da65c61e73b11bb3ebd53b02c3aee59c9038a196627f32e9e673ce2514",
+    "tools/tests/test_sog_bench_graph_local.py": "1495ded7b917c6162e93c7a37dd533966047766ea1994b453cb90d74475773ce",
+    "tools/sog_bench_graph_suite.py": "0265ac332a2bad02c34076244eeae483343311940739a8c80098999165c24718",
+    "tools/sog_bench_graph_search.py": "90477ced7bb582164cf3e10422c60fd7e6457edb4646ac9f58a98c5ac305d76e",
+    "tools/sog_bench_lean_local.py": "c22572a1c283d002f978f5dbb6c09e6310c29dc0a5244c6b5f03bdced26f861d",
+    "tools/sog_bench_graph_model_replay.py": "c16df9479a7f9f80308d7f8a8cd11e36dd27cb2b714ce3c9bf7aae16825cc16e",
+    "tools/tests/test_sog_bench_graph_suite.py": "2fb80fafa1eb44674376f7e8badb74abcecfdd73abdce056b2ef089d7608c15c",
+    "tools/tests/test_sog_bench_graph_search.py": "9538cc89507a1ae3ef67b048c937a67cde77356e7f75a162b1a935fb89a6c1da",
+    "benchmarks/samplingoptimisationgeometrybench/EVALUATION.md": "06e207e03a56f1204eb2a094c53072bc450cff1a8ed7deac1edfaba1f36f5d94",
+    ".github/workflows/sog-bench.yml": "547dac1a5d0c071fdd253da8b23c56e3cd41ad94c44dd64ec3d462d58b390776"
+  },
+  "hash_normalization": "All listed reviewed file byte hashes also equal bench.text_hash LF-normalized hashes in this working tree.",
+  "checks": [
+    {
+      "area": "isolation",
+      "result": "pass",
+      "basis": "suite.visible_prompt uses the graph prompt allowlist and condition-specific evidence projection. The model receives only system, visible prompt, its own raw outputs, and actual collector observations. Gold, answer-binding hashes, operator records, and scores are not passed to generate. A new Agent owns each condition's messages; reusing stateless model weights does not share conversation history."
+    },
+    {
+      "area": "wire_and_terminal_policy",
+      "result": "pass",
+      "basis": "Agent preserves raw_text, appends exactly one LF, and consumes its BytesIO in order. Fences, empty lines, and invalid JSON are not repaired. Queued lines do not trigger another generation. The engine stops at the first parsed submit even for an invalid answer, or at declared budget/oversize termination. Remaining generated text stays in the capture. A generated trailing LF therefore creates an additional blank wire line under the explicitly declared policy; this is not normalized away."
+    },
+    {
+      "area": "pinning_and_failures",
+      "result": "pass-for-code-scope",
+      "basis": "Plan pins adapter/inference source, model identity, revision, asset hashes, package versions, seed, threads, limits, and system text. run checks local assets before inference. CpuModel checks package versions and requests local_files_only, trust_remote_code=False, Safetensors, float32 CPU greedy inference with offline flags. The suite reserves each case before generation. An inference exception leaves no completed result, so suite accounting retains null for unfinished/unstarted cases; repeated run cannot overwrite the first case."
+    },
+    {
+      "area": "replay",
+      "result": "pass-for-declared-scope",
+      "basis": "Replay regenerates exact visible messages and observations from the raw output stream, compares recorded message histories and per-case actions/results, rejects extra/missing capture entries, and applies the current frozen suite/task/source bindings. Captures have bounded text and token-vector validation. This establishes consistency, not inference authenticity."
+    },
+    {
+      "area": "claims",
+      "result": "pass",
+      "basis": "The source and EVALUATION.md limit the result to operator-recorded public-dev graph diagnostics, not Lean execution, held-out generalization, calibrated difficulty, or a general tool-effect estimate. The reviewed default/example is eight lookups. Actual local model/runtime evidence remains separate."
+    }
+  ],
+  "reviewer_executed_controlled_checks": [
+    {
+      "command": "python -m unittest tools.tests.test_sog_bench_graph_search tools.tests.test_sog_bench_graph_model tools.tests.test_sog_bench_graph_model_replay tools.tests.test_sog_bench_graph_suite tools.tests.test_sog_bench_graph_local",
+      "exit_code": 0,
+      "tests": 27,
+      "elapsed_seconds_reported_by_unittest": 9.733,
+      "result": "OK; controlled software fixtures only, no model measurement"
+    },
+    {
+      "kind": "in-memory controlled multiline first-final probe",
+      "exit_code": 0,
+      "result": "A scripted generation containing a null submit followed by a correct submit yielded one generation, one consumed action, first-final termination, and zero points. Both lines remained in the assistant raw-text capture. No actual model was loaded."
+    }
+  ],
+  "nonblocking_limits": [
+    "Replay validates token-vector shape and bounds but does not check tokenizer encoding/decoding correspondence; tokenization_checked remains false. An independent pinned-tokenizer readback is separate evidence.",
+    "Replay recomputes canonical accounting and exact-checks per-case results, but does not compare the optional saved top-level accounting.json. That file is a derived report, not a verified replay input; consumers should use the returned recomputed report or compare it explicitly.",
+    "Neither source hashes nor a consistent archive authenticate model execution, chronology, or an operator against a coherently rewritten archive. inference_authenticated and related measurement-certification fields correctly remain false.",
+    "The inference input/output-token limits and graph lookup/action limits are bounded, but this adapter does not impose an independent wall-clock process timeout or hard memory sandbox on local inference. No such runtime isolation is certified here.",
+    "Appending one LF is part of the declared wire format; a raw generation already ending with LF can consume an additional invalid blank action when the collector continues. Reporting must preserve this behavior rather than silently repair the generation."
+  ],
+  "not_performed_or_certified": [
+    "No new model inference or provider calls",
+    "No runtime inspection or independent hash verification of the actual local model asset directory",
+    "No independent tokenizer readback",
+    "No new Lean execution, compiled-graph extraction, mathematical source admission, or theorem verification",
+    "No CI execution, deployment, held-out evaluation, calibration, or broad model-performance conclusion"
+  ],
+  "changes_by_reviewer": [
+    "Created only this review JSON; no source, tests, mathematics, or other repository files edited."
+  ]
+}

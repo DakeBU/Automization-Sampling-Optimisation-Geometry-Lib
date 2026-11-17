@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "reviewer": "independent-tool-compatibility-reviewer-c-20261116",
+  "review_kind": "bounded independent read-only code review",
+  "decision": "accepted",
+  "findings": [],
+  "scope": {
+    "files": [
+      "tools/astis_publication.py",
+      "tools/astis_semantic_roundtrip.py",
+      "tools/tests/test_astis_publication.py",
+      "tools/tests/test_astis_semantic_roundtrip.py"
+    ],
+    "base_commit": "6c5eee2b6867a383881518d6e4758a814a3887f3",
+    "combined_diff_sha256": "a7abe2e2bb538700875de18175f9a7fa73401502b5fa133772495bf275de972b",
+    "file_bytes_sha256": {
+      "tools/astis_publication.py": "58dc8821dd8d6951516c8c144c557e53d282d1bb10ed617fcb403c159d851bc6",
+      "tools/astis_semantic_roundtrip.py": "a781b29f1019eb6f8532378b1b6dd3a323d1ee6fd60b4e1102027167ea181f84",
+      "tools/tests/test_astis_publication.py": "32926c951799d2753575a5b17aa935b0cdd5db95c703eae867188dae9eca6402",
+      "tools/tests/test_astis_semantic_roundtrip.py": "4dbc66c48f1b59afa62aeea3bf05712a7a553c3bd10b5fc4ca70fb5181331a38"
+    },
+    "mathematical_artifacts_reaudited": false,
+    "production_modified_by_reviewer": false
+  },
+  "declaration_gate_assessment": {
+    "decision": "accepted",
+    "evidence": [
+      "tools/astis_publication.py:314",
+      "tools/astis_publication.py:321",
+      "tools/astis_publication.py:333",
+      "tools/astis_publication.py:335",
+      "tools/tests/test_astis_publication.py:567"
+    ],
+    "reason": "The new set contains only the character offsets of instance inside the precisely recognized attribute [instance] or attribute [local instance] form, with whitespace allowed. The scanner skips only that exact token; it does not discard the line, the attribute target, a command range or the rest of the file.",
+    "unchanged_guards": [
+      "Every other declaration token still passes the existing inventory lookup.",
+      "Unindexed def/axiom/instance commands continue to raise.",
+      "Anonymous public instances remain rejected.",
+      "Private axioms remain rejected and private implementation ownership still needs the existing fresh whole-module review.",
+      "The changed-module result still includes its indexed public declarations, so registering an existing declaration as an instance does not avoid module review."
+    ],
+    "limitations": "This is a bounded review of the compatibility diff, not a claim that the pre-existing regex scanner parses every Lean syntax extension. Unrecognized attribute forms remain conservative."
+  },
+  "decoder_binding_assessment": {
+    "decision": "accepted",
+    "evidence": [
+      "tools/astis_semantic_roundtrip.py:52",
+      "tools/astis_semantic_roundtrip.py:68",
+      "tools/tests/test_astis_semantic_roundtrip.py:23",
+      "tools/tests/test_astis_semantic_roundtrip.py:208"
+    ],
+    "reason": "A sole standard decoder_packet_sha256 or legacy packet_sha256 supplies the same reconstruction binding field; equal dual aliases are accepted and unequal aliases are rejected before audit construction. An explicitly present invalid standard value is not silently replaced by the legacy alias. The original decoder_run_sha256 and run-artifact reference are carried through unchanged.",
+    "unchanged_guards": "No core validation path, source visibility field, decoder identity, input artifact list, reconstruction text or signed run is rewritten by this change. Canonical packet and run validation are still delegated to the unchanged validator.",
+    "limitations": "The newly added adapter tests directly establish alias selection, conflict rejection and signed-run preservation. This review does not replace the final publication gate or the complete test suite."
+  },
+  "validation": {
+    "command": "python -B -m unittest tools.tests.test_astis_publication.PrivateImplementationCoverageTest.test_instance_attribute_is_not_a_new_instance_or_a_command_bypass tools.tests.test_astis_semantic_roundtrip.ArtifactDecoderHashTests",
+    "exit_code": 0,
+    "tests_run": 3,
+    "result": "passed",
+    "cases": "Single-line local/global and multiline instance attributes; appended anonymous instance, unindexed def and axiom rejection; legacy, standard and equal-dual packet-hash forms; unequal-dual rejection; original signed run preserved.",
+    "full_suite": "Not rerun by this reviewer; the coordinator is running it separately."
+  },
+  "review_sha256": "e9ff8383d825953e1350780b1ed1098c18e1076bddf1bb07022a41e73ec6f6f0"
+}

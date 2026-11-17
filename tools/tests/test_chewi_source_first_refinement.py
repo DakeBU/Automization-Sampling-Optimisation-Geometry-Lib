@@ -86,6 +86,27 @@ class BlockAwareMathLintTests(unittest.TestCase):
         )
         self.assertEqual(refinement._scan_visible_math(contract, html), [])
 
+    def test_configured_dollar_math_is_not_raw_prose(self) -> None:
+        html = (r'<p>The martingale $M_t$ starts at $M_0=0$.</p>'
+                r'<p>$$X_t=X_0+B_t$$</p>')
+        self.assertEqual(refinement._scan_visible_math(contract, html), [])
+
+    def test_dollar_math_does_not_hide_raw_or_unmatched_prose(self) -> None:
+        for text in (r'$M_t$ but F_t is raw', r'$M_t is unclosed',
+                     r'\$M_t \$ is escaped', r'$$M_t is unclosed'):
+            with self.subTest(text=text):
+                self.assertTrue(refinement._scan_visible_math(contract, '<p>'+text+'</p>'))
+
+    def test_dollar_math_handles_escapes_and_line_breaks(self) -> None:
+        for text in (r'$M_t+\$1$', '$M_t\n+N_t$', r'\\$M_t$',
+                     r'$$M_t+\$1$$', r'\\$$M_t$$'):
+            with self.subTest(text=text):
+                self.assertEqual(refinement._scan_visible_math(contract, '<p>'+text+'</p>'), [])
+        for text in (r'\$M_t\$', r'\\\$M_t\$', r'\$$M_t\$$',
+                     r'$M_t+\$1$ outside F_t', r'$$M_t+\$1$$ outside F_t'):
+            with self.subTest(text=text):
+                self.assertTrue(refinement._scan_visible_math(contract, '<p>'+text+'</p>'))
+
 
 if __name__ == "__main__":
     unittest.main()

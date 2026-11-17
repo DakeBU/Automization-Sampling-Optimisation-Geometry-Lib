@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-610c60cb03cbbe74",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-a-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-compact-euclidean-formula-f08f7b6e",
+    "anchor": "Original Samplinglib supplement: Smooth Itô formula at the terminal horizon. Exact assumptions and formula below.",
+    "original_text": "For the actual Euclidean process built from initialized progressive time integrals and completed stochastic integrals, suppose its path lies in a compact K throughout the horizon almost surely. A scalar test twice continuously Fréchet differentiable at every point of K satisfies the terminal Itô identity almost surely, with the genuine completed derivative martingale starting at zero.\n\nThe horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.\nThe state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.\nThe compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].\nEach initial coordinate is strongly measurable at time zero. Each drift coordinate is strongly progressive and has almost surely integrable time sections on the horizon.\nThe scalar test is twice continuously Fréchet differentiable at every point of K.\n\nf(X_T)-f(X_0)=\\int_{[0,T]}Df(X_s)[b(s)]\\,ds+\\int_{[0,T]}\\tfrac12\\sum_jD^2f(X_s)[\\sigma_j(s),\\sigma_j(s)]\\,ds+M_T\\quad\\mu\\text{-a.s.}",
+    "text_sha256": "258077420a383575fcb9821f3f9b0a9a15332bdd7011ff8a02114ea632276d6d"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula.ito_formula_compact_euclidean_at_horizon",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoCompactEuclideanFormula.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2, u_3}\n  {Ω : Type u_1} {I : Type u_2} {J : Type u_3} [MeasurableSpace Ω] [Fintype I] [DecidableEq I] [Fintype J]\n  [DecidableEq J] {filtration : MeasureTheory.Filtration NNReal inferInstance} {μ : MeasureTheory.Measure Ω}\n  [MeasureTheory.IsFiniteMeasure μ] {T : NNReal} {B : NNReal → Ω → EuclideanSpace ℝ J}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration μ)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration μ)\n  (η :\n    I → J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration μ T)\n  (x : Ω → I → ℝ) (hx : ∀ (i : I), MeasureTheory.StronglyMeasurable fun ω => x ω i) (b : I → NNReal → Ω → ℝ)\n  (hb : ∀ (i : I), MeasureTheory.IsStronglyProgressive filtration (b i))\n  (hbi :\n    ∀ (i : I),\n      ∀ᵐ (ω : Ω) ∂μ,\n        MeasureTheory.Integrable (fun s => b i s ω)\n          (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T))\n  {K : Set (EuclideanSpace ℝ I)} (hK : IsCompact K) (fallback : ↑K) (f : EuclideanSpace ℝ I → ℝ)\n  (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x) :\n  have A := fun i t ω =>\n    x ω i +\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess (b i) t ω;\n  have X := fun t ω =>\n    WithLp.toLp 2 fun i =>\n      A i t ω +\n        ∑ j,\n          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (η i j) hT ⋯\n            hUsual t ω;\n  have v := fun t ω => WithLp.toLp 2 fun i => b i t ω;\n  have σ := fun j t ω => WithLp.toLp 2 fun i => (η i j).process t ω;\n  have H := fderiv ℝ (fderiv ℝ f);\n  (∀ᵐ (ω : Ω) ∂μ, ∀ t ≤ T, X t ω ∈ K) →\n    ∃ θ,\n      (∀ᵐ (ω : Ω) ∂μ,\n          ∀ (q : I × J) (t : NNReal),\n            (θ q).process t ω =\n              (fderiv ℝ f (X (Min.min t T) ω)) ((EuclideanSpace.basisFun I ℝ) q.1) * (η q.1 q.2).process t ω) ∧\n        have M := fun t ω =>\n          ∑ q,\n            AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (θ q) hT ⋯\n              hUsual t ω;\n        MeasureTheory.Martingale M filtration μ ∧\n          (∀ (ω : Ω), M 0 ω = 0) ∧\n            ∀ᵐ (ω : Ω) ∂μ,\n              f (X T ω) - f (X 0 ω) =\n                ∫ (s : NNReal),\n                      (fderiv ℝ f (X s ω))\n                        (v s ω) ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T +\n                    ∫ (s : NNReal),\n                      1 / 2 *\n                        ∑ j,\n                          ((H (X s ω)) (σ j s ω))\n                            (σ j s ω) ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T +\n                  M T ω",
+    "statement_sha256": "6f14e211dc4d4bdd6cc34d678305e93a20605e97ecca8c589d37b99e5d516c91",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let I,J be finite types with decidable equality, Omega a measurable space with finite measure mu, F a filtration satisfying the usual conditions, T>0, and B an R^J-valued standard Brownian motion with F. A vector standard Brownian motion with filtration F here starts at zero for every sample, has jointly independent increments over each finite family of disjoint half-open intervals, has centered Gaussian increment projections with variance (t-s)*||ell||^2 for every continuous linear functional ell and s<t, has almost surely continuous paths, is strongly F-adapted, and has each increment from s to t independent of F_s when s<=t. Usual conditions mean every null subset of Omega belongs to every F_t, and F is right-continuous. Write lambda_H for real Lebesgue measure restricted to [0,H] and transported to NNReal. A progressive L2 integrand on horizon H is a real strongly F-progressive process belonging to L2(mu product lambda_H), after ordering its arguments as (omega,t). Write I^H_j(h)(t) for its specified completed Ito integral against the coordinate B_j(t,omega) of B. This is the canonical elementary-approximation path limit, patched to zero on its exceptional null set and held constant after H. Let eta_ij, i in I,j in J, be progressive L2 integrands on [0,T]. Let x:Omega->R^I have every coordinate strongly F_0-measurable. Let b_i:[0,infinity) x Omega->R be strongly F-progressive, and for each i assume b_i(.,omega) is lambda_T-integrable for mu-almost every omega. Let K be a compact subset of R^I with a supplied fallback point k0 in K, and f:R^I->R be C2 at every point of K. Define\nX_i(t,omega)=x_i(omega)+integral_{[0,t]} b_i(s,omega)ds+sum_{j in J} I^T_j(eta_ij)(t,omega),\nv(t,omega)=(b_i(t,omega))_i, sigma_j(t,omega)=(eta_ij(t,omega))_i, H_f=D(Df).\nIf for mu-almost every omega, X(t,omega) lies in K for every t<=T, then there exists a family theta_{i,j} of progressive L2 integrands on [0,T] such that for mu-almost every omega, simultaneously for every (i,j) and every t>=0,\ntheta_{i,j}(t,omega)=Df(X(min(t,T),omega))[e_i]*eta_ij(t,omega).\nSet M(t,omega)=sum_{(i,j) in I x J} I^T_j(theta_{i,j})(t,omega). Then M is a martingale with respect to F and mu on all nonnegative times, M(0,omega)=0 for every omega, and for mu-almost every omega,\nf(X(T,omega))-f(X(0,omega))=integral_{[0,T]} Df(X(s,omega))[v(s,omega)]ds + integral_{[0,T]} (1/2)*sum_{j in J} H_f(X(s,omega))[sigma_j(s,omega)][sigma_j(s,omega)]ds + M(T,omega).\nThe theta equality uses a single full-measure event uniform over all its indices and all t>=0; the function derivative is evaluated at clipped time but eta at t itself.",
+    "text_sha256": "203530134faacd44c5dc80a7c09cdc8089bd775d438d45cd04de511df940ecda",
+    "decoder": "independent-decoder-a-20261116",
+    "decoder_packet_sha256": "f9cb21691d43b59cfc35bd35a2ae98440d70065620e13b7a610e3f653f7eeaa3",
+    "decoder_run_sha256": "479efdf33b7c15bba38bda68ad7d4fe6f3f7125caeaff10d63cf9396151995ce",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "afaf3cd922a9104568cfa5bf6fc5d662e66c4c57b7b7646735d2588aea593b63",
+  "candidate_publication_context": {
+    "file": "ffae23294efab83807cee6ecb35627dfc26d9c9e683e7b14179cdc4ee534ca37",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicLinearTerm\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoActualTaylorRemainder\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CountableConvergenceInMeasure\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula\n\nopen Filter MeasureTheory ProbabilityTheory Set\nopen scoped BigOperators NNReal Topology\nopen BrownianMotion ProgressiveL2 ElementaryItoIntegral SampledElementaryApproximation\n  DyadicElementaryRefinement EuclideanBrownianCoordinates ItoIntegralProcess\n  ProgressiveDriftIntegral ItoInitializedDrift ItoDyadicLinearTerm\n  ItoDyadicHessian ItoActualTaylorRemainder CountableConvergenceInMeasure\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder\n\nset_option maxHeartbeats 600000 in\n/-- Itô's formula at the horizon for an actual finite-dimensional process\nwith compact state range, with its derivative integrands and genuine martingale. -/\ntheorem ito_formula_compact_euclidean_at_horizon\n    {Ω I J : Type*} [MeasurableSpace Ω] [Fintype I] [DecidableEq I] [Fintype J] [DecidableEq J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    {μ : Measure Ω} [IsFiniteMeasure μ] {T : ℝ≥0}\n    {B : ℝ≥0 → Ω → EuclideanSpace ℝ J}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration μ) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration μ)\n    (η : I → J → ProgressiveL2Integrand filtration μ T)\n    (x : Ω → I → ℝ) (hx : ∀ i, StronglyMeasurable[filtration 0] (fun ω => x ω i))\n    (b : I → ℝ≥0 → Ω → ℝ) (hb : ∀ i, IsStronglyProgressive filtration (b i))\n    (hbi : ∀ i, ∀ᵐ ω ∂μ, Integrable (fun s => b i s ω) (TimeMeasure.upTo T))\n    {K : Set (EuclideanSpace ℝ I)} (hK : IsCompact K) (fallback : K) (f : EuclideanSpace ℝ I → ℝ)\n    (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x) :\n    let A := fun (i : I) (t : ℝ≥0) (ω : Ω) => x ω i + prefixIntegralProcess (b i) t ω\n    let X := fun (t : ℝ≥0) (ω : Ω) => WithLp.toLp 2 (fun i : I => A i t ω + ∑ j : J,\n      itoIntegralProcess (η i j) hT ((coordinateFamily hB).isBrownian j) hUsual t ω)\n    let v := fun (t : ℝ≥0) (ω : Ω) => WithLp.toLp 2 (fun i : I => b i t ω)\n    let σ := fun (j : J) (t : ℝ≥0) (ω : Ω) =>\n      WithLp.toLp 2 (fun i : I => (η i j).process t ω)\n    let H := fderiv ℝ (fderiv ℝ f)\n    (∀ᵐ ω ∂μ, ∀ t ≤ T, X t ω ∈ K) →\n    ∃ θ : (I × J) → ProgressiveL2Integrand filtration μ T,\n      (∀ᵐ ω ∂μ, ∀ q t, (θ q).process t ω =\n        fderiv ℝ f (X (min t T) ω) (EuclideanSpace.basisFun I ℝ q.1) *\n          (η q.1 q.2).process t ω) ∧\n      let M := fun (t : ℝ≥0) (ω : Ω) => ∑ q : I × J,\n        itoIntegralProcess (θ q) hT ((coordinateFamily hB).isBrownian q.2) hUsual t ω\n      Martingale M filtration μ ∧ (∀ ω, M 0 ω = 0) ∧\n      (∀ᵐ ω ∂μ, f (X T ω) - f (X 0 ω) =\n        (∫ s, fderiv ℝ f (X s ω) (v s ω) ∂(TimeMeasure.upTo T)) +\n        (∫ s, (1 / 2 : ℝ) * (∑ j : J, H (X s ω) (σ j s ω) (σ j s ω))\n          ∂(TimeMeasure.upTo T)) + M T ω) := by\n  intro A X v σ H hRange\n  have hf1 (y : EuclideanSpace ℝ I) (hy : y ∈ K) : ContDiffAt ℝ 1 f y :=\n    (hf y hy).of_le (by decide)\n  obtain ⟨θ, hθ, hM, h0, hLinear⟩ :=\n    tendstoInMeasure_dyadic_linear_ito_term hB hT hUsual η x hx b hb hbi hK fallback f hf1 hRange\n  let M (s : ℝ≥0) (ω : Ω) := ∑ q : I × J,\n    itoIntegralProcess (θ q) hT ((coordinateFamily hB).isBrownian q.2) hUsual s ω\n  refine ⟨θ, hθ, hM, h0, ?_⟩\n  have hDrift (i : I) := initialized_drift_progressive_continuous_boundedVariation\n    (fun ω => x ω i) (hx i) (b i) (hb i) (hbi i)\n  have hAmeas (i : I) (s : ℝ≥0) (_ : s ≤ T) : AEStronglyMeasurable (A i s) μ :=\n    (((hDrift i).1.stronglyAdapted s).mono (filtration.le s)).aestronglyMeasurable\n  have hAc (i : I) : ∀ᵐ ω ∂μ, ContinuousOn (fun s => A i s ω) (Icc 0 T) ∧\n      BoundedVariationOn (fun s => A i s ω) (Icc 0 T) := (hDrift i).2.2\n  have hHessian := tendstoInMeasure_dyadic_half_hessian_increments hB hT hUsual η A\n    hAmeas hAc hK fallback f hf hRange\n  have hRemainder := tendstoInMeasure_dyadic_actual_ito_taylor_remainder hB hT hUsual η A\n    hAmeas hAc hK fallback f hf hRange\n  let t (n : ℕ) := regularGridTimes (dyadicMesh T n) (2 ^ n)\n  let Δ (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) := X (t n i.succ) ω - X (t n i.castSucc) ω\n  let L (n : ℕ) (ω : Ω) := ∑ i : Fin (2 ^ n), fderiv ℝ f (X (t n i.castSucc) ω) (Δ n i ω)\n  let Q (n : ℕ) (ω : Ω) := ∑ i : Fin (2 ^ n),\n    (1 / 2 : ℝ) * H (X (t n i.castSucc) ω) (Δ n i ω) (Δ n i ω)\n  let R (n : ℕ) (ω : Ω) := ∑ i : Fin (2 ^ n), secondOrderRemainder f (X (t n i.castSucc) ω) (Δ n i ω)\n  let D (ω : Ω) := ∫ s, fderiv ℝ f (X s ω) (v s ω) ∂(TimeMeasure.upTo T)\n  let E (ω : Ω) := ∫ s, (1 / 2 : ℝ) * (∑ j : J, H (X s ω) (σ j s ω) (σ j s ω))\n    ∂(TimeMeasure.upTo T)\n  let F : Option Bool → ℕ → Ω → ℝ\n    | none => L\n    | some false => Q\n    | some true => R\n  let G : Option Bool → Ω → ℝ\n    | none => fun ω => D ω + M T ω\n    | some false => E\n    | some true => fun _ => 0\n  have hData (k : Option Bool) : TendstoInMeasure μ (F k) atTop (G k) := by\n    cases k with\n    | none => exact hLinear\n    | some b =>\n      cases b\n      · exact hHessian\n      · exact hRemainder\n  obtain ⟨k, _, hPath⟩ := exists_seq_tendsto_ae_of_countable hData\n  filter_upwards [hPath] with ω hω\n  have hTel (n : ℕ) : L n ω + Q n ω + R n ω = f (X T ω) - f (X 0 ω) := by\n    dsimp only [L, Q, R]\n    rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]\n    calc\n      _ = ∑ i : Fin (2 ^ n), (f (X (t n i.succ) ω) - f (X (t n i.castSucc) ω)) := by\n        apply Finset.sum_congr rfl\n        intro i _\n        have hInc : X (t n i.castSucc) ω + Δ n i ω = X (t n i.succ) ω := by\n          dsimp only [Δ]\n          abel\n        rw [secondOrderRemainder, hInc, smul_eq_mul]\n        dsimp only [H]\n        ring\n      _ = _ := by\n        let g (i : Fin (2 ^ n + 1)) := f (X (t n i) ω)\n        change (∑ i : Fin (2 ^ n), (g i.succ - g i.castSucc)) = _\n        have hFirst : t n 0 = 0 := by simp [t, regularGridTimes]\n        have hLast : t n (Fin.last (2 ^ n)) = T := regularDyadic_last_time T n\n        rw [← hFirst, ← hLast, Finset.sum_sub_distrib]\n        change (∑ i : Fin (2 ^ n), g i.succ) - (∑ i : Fin (2 ^ n), g i.castSucc) =\n          g (Fin.last (2 ^ n)) - g 0\n        linarith [Fin.sum_univ_succ g, Fin.sum_univ_castSucc g]\n  have hLim : Tendsto (fun n => L (k n) ω + Q (k n) ω + R (k n) ω) atTop\n      (𝓝 ((D ω + M T ω) + E ω + 0)) :=\n    ((hω none).add (hω (some false))).add (hω (some true))\n  have hConst : Tendsto (fun n => L (k n) ω + Q (k n) ω + R (k n) ω) atTop\n      (𝓝 (f (X T ω) - f (X 0 ω))) :=\n    (tendsto_congr' (Eventually.of_forall fun n => hTel (k n))).2 tendsto_const_nhds\n  change f (X T ω) - f (X 0 ω) = D ω + E ω + M T ω\n  rw [tendsto_nhds_unique hConst hLim]\n  ring\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-compact-euclidean-formula-f08f7b6e",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoCompactEuclideanFormula.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Smooth Itô formula at the terminal horizon. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "For the actual Euclidean process built from initialized progressive time integrals and completed stochastic integrals, suppose its path lies in a compact K throughout the horizon almost surely. A scalar test twice continuously Fréchet differentiable at every point of K satisfies the terminal Itô identity almost surely, with the genuine completed derivative martingale starting at zero.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "f(X_T)-f(X_0)=\\int_{[0,T]}Df(X_s)[b(s)]\\,ds+\\int_{[0,T]}\\tfrac12\\sum_jD^2f(X_s)[\\sigma_j(s),\\sigma_j(s)]\\,ds+M_T\\quad\\mu\\text{-a.s.}"
+      }
+    ],
+    "assumptions": [
+      "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.",
+      "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.",
+      "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].",
+      "Each initial coordinate is strongly measurable at time zero. Each drift coordinate is strongly progressive and has almost surely integrable time sections on the horizon.",
+      "The scalar test is twice continuously Fréchet differentiable at every point of K."
+    ],
+    "obligations": [
+      {
+        "id": "ito-compact-euclidean-formula-f08f7b6e",
+        "label": "Smooth Itô formula at the terminal horizon"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula.ito_formula_compact_euclidean_at_horizon",
+      "kind": "theorem",
+      "title": "Smooth Itô formula at the terminal horizon",
+      "statement": "For the actual Euclidean process built from initialized progressive time integrals and completed stochastic integrals, suppose its path lies in a compact K throughout the horizon almost surely. A scalar test twice continuously Fréchet differentiable at every point of K satisfies the terminal Itô identity almost surely, with the genuine completed derivative martingale starting at zero.",
+      "formula": "f(X_T)-f(X_0)=\\int_{[0,T]}Df(X_s)[b(s)]\\,ds+\\int_{[0,T]}\\tfrac12\\sum_jD^2f(X_s)[\\sigma_j(s),\\sigma_j(s)]\\,ds+M_T\\quad\\mu\\text{-a.s.}",
+      "assumptions": [
+        "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.",
+        "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.",
+        "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].",
+        "Each initial coordinate is strongly measurable at time zero. Each drift coordinate is strongly progressive and has almost surely integrable time sections on the horizon.",
+        "The scalar test is twice continuously Fréchet differentiable at every point of K."
+      ],
+      "notation": [
+        {
+          "symbol": "Actual process and diffusion",
+          "text": "The jth diffusion column has ith coordinate ηᵢⱼ.",
+          "formula": "X^i_t=x_i+\\int_0^t b_i(s)\\,ds+\\sum_j\\int_0^t\\eta_{ij}(s)\\,dB^j_s.\\qquad \\sigma_j(s)=(\\eta_{ij}(s))_i."
+        },
+        {
+          "symbol": "Martingale",
+          "text": "The derivative integrands are specified by the theorem and are progressively square-integrable. The completed sum has M₀=0 for every sample.",
+          "formula": "\\theta_{ij}(s,\\omega)=Df(X_{\\min(s,T)}(\\omega))[e_i]\\,\\eta_{ij}(s,\\omega)\\quad\\text{for a.e. }\\omega\\text{ and all }i,j,s,\\qquad M_t=\\sum_{i,j}\\int_0^{\\min(t,T)}\\theta_{ij}(s)\\,dB^j_s."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use the three actual Taylor limits",
+          "text": "The initialized drift supplies continuity, variation and measurability. Apply the first-order limit with its martingale, the half-Hessian limit and the Taylor residual limit. Choose one subsequence on which all three limits hold almost everywhere.",
+          "formula": "L_{n_\\ell}\\to \\int Df(X_s)[b(s)]\\,ds+M_T,\\qquad Q_{n_\\ell}\\to\\int\\tfrac12\\sum_jD^2 f(X_s)[\\sigma_j,\\sigma_j]\\,ds,\\qquad R_{n_\\ell}\\to0.",
+          "lean": "  intro A X v σ H hRange\n  have hf1 (y : EuclideanSpace ℝ I) (hy : y ∈ K) : ContDiffAt ℝ 1 f y :=\n    (hf y hy).of_le (by decide)\n  obtain ⟨θ, hθ, hM, h0, hLinear⟩ :=\n    tendstoInMeasure_dyadic_linear_ito_term hB hT hUsual η x hx b hb hbi hK fallback f hf1 hRange\n  let M (s : ℝ≥0) (ω : Ω) := ∑ q : I × J,\n    itoIntegralProcess (θ q) hT ((coordinateFamily hB).isBrownian q.2) hUsual s ω\n  refine ⟨θ, hθ, hM, h0, ?_⟩\n  have hDrift (i : I) := initialized_drift_progressive_continuous_boundedVariation\n    (fun ω => x ω i) (hx i) (b i) (hb i) (hbi i)\n  have hAmeas (i : I) (s : ℝ≥0) (_ : s ≤ T) : AEStronglyMeasurable (A i s) μ :=\n    (((hDrift i).1.stronglyAdapted s).mono (filtration.le s)).aestronglyMeasurable\n  have hAc (i : I) : ∀ᵐ ω ∂μ, ContinuousOn (fun s => A i s ω) (Icc 0 T) ∧\n      BoundedVariationOn (fun s => A i s ω) (Icc 0 T) := (hDrift i).2.2\n  have hHessian := tendstoInMeasure_dyadic_half_hessian_increments hB hT hUsual η A\n    hAmeas hAc hK fallback f hf hRange\n  have hRemainder := tendstoInMeasure_dyadic_actual_ito_taylor_remainder hB hT hUsual η A\n    hAmeas hAc hK fallback f hf hRange\n  let t (n : ℕ) := regularGridTimes (dyadicMesh T n) (2 ^ n)\n  let Δ (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) := X (t n i.succ) ω - X (t n i.castSucc) ω\n  let L (n : ℕ) (ω : Ω) := ∑ i : Fin (2 ^ n), fderiv ℝ f (X (t n i.castSucc) ω) (Δ n i ω)\n  let Q (n : ℕ) (ω : Ω) := ∑ i : Fin (2 ^ n),\n    (1 / 2 : ℝ) * H (X (t n i.castSucc) ω) (Δ n i ω) (Δ n i ω)\n  let R (n : ℕ) (ω : Ω) := ∑ i : Fin (2 ^ n), secondOrderRemainder f (X (t n i.castSucc) ω) (Δ n i ω)\n  let D (ω : Ω) := ∫ s, fderiv ℝ f (X s ω) (v s ω) ∂(TimeMeasure.upTo T)\n  let E (ω : Ω) := ∫ s, (1 / 2 : ℝ) * (∑ j : J, H (X s ω) (σ j s ω) (σ j s ω))\n    ∂(TimeMeasure.upTo T)\n  let F : Option Bool → ℕ → Ω → ℝ\n    | none => L\n    | some false => Q\n    | some true => R\n  let G : Option Bool → Ω → ℝ\n    | none => fun ω => D ω + M T ω\n    | some false => E\n    | some true => fun _ => 0\n  have hData (k : Option Bool) : TendstoInMeasure μ (F k) atTop (G k) := by\n    cases k with\n    | none => exact hLinear\n    | some b =>\n      cases b\n      · exact hHessian\n      · exact hRemainder\n  obtain ⟨k, _, hPath⟩ := exists_seq_tendsto_ae_of_countable hData\n  filter_upwards [hPath] with ω hω"
+        },
+        {
+          "title": "Telescope exactly at each dyadic level",
+          "text": "On each cell, adding the linear term, half the Hessian term and the signed remainder gives the test increment exactly. These increments telescope between the first and last grid points.",
+          "formula": "L_n+Q_n+R_n=\\sum_k\\bigl(f(X_{t_{k+1}})-f(X_{t_k})\\bigr)=f(X_T)-f(X_0).",
+          "lean": "  have hTel (n : ℕ) : L n ω + Q n ω + R n ω = f (X T ω) - f (X 0 ω) := by\n    dsimp only [L, Q, R]\n    rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]\n    calc\n      _ = ∑ i : Fin (2 ^ n), (f (X (t n i.succ) ω) - f (X (t n i.castSucc) ω)) := by\n        apply Finset.sum_congr rfl\n        intro i _\n        have hInc : X (t n i.castSucc) ω + Δ n i ω = X (t n i.succ) ω := by\n          dsimp only [Δ]\n          abel\n        rw [secondOrderRemainder, hInc, smul_eq_mul]\n        dsimp only [H]\n        ring\n      _ = _ := by\n        let g (i : Fin (2 ^ n + 1)) := f (X (t n i) ω)\n        change (∑ i : Fin (2 ^ n), (g i.succ - g i.castSucc)) = _\n        have hFirst : t n 0 = 0 := by simp [t, regularGridTimes]\n        have hLast : t n (Fin.last (2 ^ n)) = T := regularDyadic_last_time T n\n        rw [← hFirst, ← hLast, Finset.sum_sub_distrib]\n        change (∑ i : Fin (2 ^ n), g i.succ) - (∑ i : Fin (2 ^ n), g i.castSucc) =\n          g (Fin.last (2 ^ n)) - g 0\n        linarith [Fin.sum_univ_succ g, Fin.sum_univ_castSucc g]"
+        },
+        {
+          "title": "Identify the almost-sure limit",
+          "text": "The sum is the same for every grid level. On the event where the three terms converge, uniqueness of the limit gives the identity.",
+          "formula": "f(X_T)-f(X_0)=\\lim_{\\ell\\to\\infty}(L_{n_\\ell}+Q_{n_\\ell}+R_{n_\\ell}).",
+          "lean": "  have hLim : Tendsto (fun n => L (k n) ω + Q (k n) ω + R (k n) ω) atTop\n      (𝓝 ((D ω + M T ω) + E ω + 0)) :=\n    ((hω none).add (hω (some false))).add (hω (some true))\n  have hConst : Tendsto (fun n => L (k n) ω + Q (k n) ω + R (k n) ω) atTop\n      (𝓝 (f (X T ω) - f (X 0 ω))) :=\n    (tendsto_congr' (Eventually.of_forall fun n => hTel (k n))).2 tendsto_const_nhds\n  change f (X T ω) - f (X 0 ω) = D ω + E ω + M T ω\n  rw [tendsto_nhds_unique hConst hLim]\n  ring"
+        }
+      ],
+      "lean_statement": "The time integrals and the endpoint identity use the actual process. The derivative coefficients of the completed integrands agree for all times and coordinates on one event of full measure.",
+      "lean_proof": "Use the three proved limits and the exact telescoping identity at every level.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoInitializedDrift.initialized_drift_progressive_continuous_boundedVariation",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicLinearTerm.tendstoInMeasure_dyadic_linear_ito_term",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian.tendstoInMeasure_dyadic_half_hessian_increments",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoActualTaylorRemainder.tendstoInMeasure_dyadic_actual_ito_taylor_remainder",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CountableConvergenceInMeasure.exists_seq_tendsto_ae_of_countable"
+      ],
+      "mathlib_dependencies": [
+        "Fin.sum_univ_succ",
+        "Fin.sum_univ_castSucc",
+        "tendsto_nhds_unique"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Sinho Chewi, Log-Concave Sampling, August 9, 2026, §3.1",
+          "scope": "Textbook context for quadratic variation and the Itô correction. These results are Samplinglib supplements."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicHessian.lean",
+          "label": "Half-Hessian limit",
+          "scope": "The exact second-order term against the actual diffusion columns."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula.ito_formula_compact_euclidean_at_horizon",
+      "role": "prerequisite",
+      "supports": [
+        "ito-compact-euclidean-formula-f08f7b6e"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.",
+        "lean": "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure."
+      },
+      {
+        "source": "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.",
+        "lean": "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures."
+      },
+      {
+        "source": "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].",
+        "lean": "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T]."
+      },
+      {
+        "source": "Each initial coordinate is strongly measurable at time zero. Each drift coordinate is strongly progressive and has almost surely integrable time sections on the horizon.",
+        "lean": "Each initial coordinate is strongly measurable at time zero. Each drift coordinate is strongly progressive and has almost surely integrable time sections on the horizon."
+      },
+      {
+        "source": "The scalar test is twice continuously Fréchet differentiable at every point of K.",
+        "lean": "The scalar test is twice continuously Fréchet differentiable at every point of K."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "944bb5bceea6d1240802b789f81abaf17aa22352b754c61453028c3fa16b0c16"
+}

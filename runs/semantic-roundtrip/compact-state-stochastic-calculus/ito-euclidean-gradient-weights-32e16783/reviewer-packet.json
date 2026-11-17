@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-6bf0b2da70b0b94c",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-euclidean-gradient-weights-32e16783",
+    "anchor": "Original Samplinglib supplement: Derivative weights of the clipped Euclidean Itô process. Exact assumptions and formula below.",
+    "original_text": "Take actual completed Euclidean Itô rows with strongly progressive drifts and almost surely continuous drift paths. Evaluate the test derivative on a coordinate basis vector at the time-clipped state, using the fallback when the state is outside K. The weight is strongly progressive, almost surely continuous on the horizon and bounded there by a deterministic constant.\n\nThe horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.\nThe state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.\nThe compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].\nThe drift coordinates are strongly progressive with almost surely continuous paths on [0,T]. The scalar test is continuously Fréchet differentiable at each point of K.\n\nW_i(t)=Df(\\widetilde X_{\\min(t,T)})[e_i],\\qquad |W_i(t)|\\le C_i\\quad(0\\le t\\le T).",
+    "text_sha256": "9e097b8cb640e1e49b01bdfe81ca84da1be58933c41a477ddc819c2e60da14af"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanGradientWeights.euclidean_ito_gradient_weight_progressive_bounded",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoEuclideanGradientWeights.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2, u_3}\n  {Ω : Type u_1} {I : Type u_2} {J : Type u_3} [MeasurableSpace Ω] [Fintype I] [DecidableEq I] [Fintype J]\n  [DecidableEq J] {filtration : MeasureTheory.Filtration NNReal inferInstance} {μ : MeasureTheory.Measure Ω}\n  [MeasureTheory.IsFiniteMeasure μ] {T : NNReal} {B : NNReal → Ω → EuclideanSpace ℝ J}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration μ)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration μ)\n  (η :\n    I → J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration μ T)\n  (A : I → NNReal → Ω → ℝ) (hAp : ∀ (i : I), MeasureTheory.IsStronglyProgressive filtration (A i))\n  (hAc : ∀ (i : I), ∀ᵐ (ω : Ω) ∂μ, ContinuousOn (fun t => A i t ω) (Set.Icc 0 T)) {K : Set (EuclideanSpace ℝ I)}\n  (hK : IsCompact K) (fallback : ↑K) (f : EuclideanSpace ℝ I → ℝ) (hf : ∀ x ∈ K, ContDiffAt ℝ 1 f x) (i : I) :\n  have X := fun t ω =>\n    WithLp.toLp 2 fun k =>\n      A k t ω +\n        ∑ j,\n          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (η k j) hT ⋯\n            hUsual t ω;\n  have W := fun t ω =>\n    (fderiv ℝ f\n        ↑(local_symbol_9116fdf59d8e fallback\n            (X (Min.min t T) ω)))\n      ((EuclideanSpace.basisFun I ℝ) i);\n  (∀ᵐ (ω : Ω) ∂μ, ∀ t ≤ T, X t ω ∈ K) →\n    MeasureTheory.IsStronglyProgressive filtration W ∧\n      (∀ᵐ (ω : Ω) ∂μ, ContinuousOn (fun t => W t ω) (Set.Icc 0 T)) ∧ ∃ C, ∀ t ≤ T, ∀ (ω : Ω), |W t ω| ≤ C",
+    "statement_sha256": "ea81c181a63f018980e31035e831ea6f94d40adbc908fc2acce0235d39a0c8fa",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Finite state index I and Brownian index J; eta_ij, A_i, resulting X; compact K with fallback; ambient scalar f; selected state coordinate i; corrected derivative coefficient W.\n\nOmega is measurable with finite measure mu and a filtration F indexed by nonnegative reals. T>0 is fixed. The Euclidean coordinate type J is finite with decidable equality. B:[0,infinity)×Omega→R^J. lambda_T denotes the pullback under NNReal.toReal of Lebesgue measure restricted to [0,T]. I finite with decidable equality; i∈I; A_i scalar processes; f:R^I→R; K⊆R^I. The membership retraction r(y)=(y,proof) if y∈K, and r(y)=fallback otherwise.\n\nAssumptions: B starts at zero for every omega, has jointly independent increments over disjoint half-open intervals, every continuous real linear functional ell sends B_t-B_s (s<t) to a centered Gaussian of variance (t-s)||ell||², and paths are continuous mu-a.e. B is strongly adapted to F and B_t-B_s is independent of F_s for s≤t. F is right-continuous and every subset S⊆Omega with mu(S)=0 belongs to F_t for every t≥0. A progressive L² integrand is a real process a(t,omega), strongly progressive for F, for which (omega,t)↦a(t,omega) is in L²(mu⊗lambda_T). Each A_i is strongly progressive and has continuous paths on [0,T] mu-a.e.; no bounded-variation hypothesis. K is compact, fallback∈K, f is ambient C¹ at each point of K. Range inclusion holds mu-a.e. simultaneously for all t≤T.\n\nConclusion: I_j(a)(t,omega) denotes the specified completed Ito integral driven by the scalar coordinate B^j(t,omega)=(B(t,omega))_j. Its representative is the pointwise limit of chosen elementary stochastic integrals off the null complement of their uniform Cauchy event, and zero on that complement; it is held constant after T. Set X_k(t)=A_k(t)+∑_j I_j(eta_kj)(t) and W(t,omega)=Df(inclusion(r(X(min(t,T),omega))))[e_i]. Then W is strongly progressive for F; mu-a.e. omega, W(·,omega) is continuous on [0,T]; and there exists C∈R such that for every t≤T and every omega, |W(t,omega)|≤C.\n\nQuantifier order: For every setup, A,K,f and selected coordinate i, if mu-a.e. omega every t≤T satisfies X(t,omega)∈K, then W is strongly progressive, has a.e. continuous paths on [0,T], and there exists a real C bounding |W(t,omega)| for all t≤T and every omega.\n\nScope: The retraction is used even on exceptional sample points and is evaluated after stopping X at T. Progressivity is global on nonnegative time; continuity is a.e. on [0,T]; the bound is pointwise for all omega on that horizon.\n\nConstant dependencies: C is chosen after all data and selected i; it is uniform in t≤T and omega. The statement does not restrict its dependence further.",
+    "text_sha256": "fc5c2365ce43562b2bc223709b77c9b4e015d7f3c1df82560f549eab19357dc0",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "25f72756c9f781de314b9ecb6b3c34e1c223e4b4ca436741a87c665642b3adf7",
+    "decoder_run_sha256": "3fdb21a36dbf5cc22c5bb3346f9a058197d548216bb87c649edab6c33d1ebe04",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "352606a64c2c15ab9945f4116758d2f8c0266fd3db91e0da100514576d189967",
+  "candidate_publication_context": {
+    "file": "57c14ad6593dfebf61b28ef099b97f0857fb3b431dcf8332183f23341ff136e0",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactStateRepresentative\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanRowRegularity\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessAfterHorizon\nimport Mathlib.Analysis.Calculus.ContDiff.Comp\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanGradientWeights\n\nopen Filter MeasureTheory Set\nopen scoped BigOperators NNReal\nopen BrownianMotion ProgressiveL2 EuclideanBrownianCoordinates ItoIntegralProcess\n  ItoIntegralProcessAfterHorizon ItoEuclideanRowRegularity\n\nopen CompactStateRepresentative\n\n/-- Evaluating the derivative on a coordinate basis vector along the clipped\nactual process gives a bounded progressive weight with continuous paths. -/\ntheorem euclidean_ito_gradient_weight_progressive_bounded\n    {Ω I J : Type*} [MeasurableSpace Ω] [Fintype I] [DecidableEq I] [Fintype J] [DecidableEq J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    {μ : Measure Ω} [IsFiniteMeasure μ] {T : ℝ≥0}\n    {B : ℝ≥0 → Ω → EuclideanSpace ℝ J}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration μ) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration μ)\n    (η : I → J → ProgressiveL2Integrand filtration μ T) (A : I → ℝ≥0 → Ω → ℝ)\n    (hAp : ∀ i, IsStronglyProgressive filtration (A i))\n    (hAc : ∀ i, ∀ᵐ ω ∂μ, ContinuousOn (fun t => A i t ω) (Icc 0 T))\n    {K : Set (EuclideanSpace ℝ I)} (hK : IsCompact K) (fallback : K) (f : EuclideanSpace ℝ I → ℝ)\n    (hf : ∀ x ∈ K, ContDiffAt ℝ 1 f x) (i : I) :\n    let X := fun (t : ℝ≥0) (ω : Ω) => WithLp.toLp 2 (fun k : I => A k t ω + ∑ j : J,\n      itoIntegralProcess (η k j) hT ((coordinateFamily hB).isBrownian j) hUsual t ω)\n    let W := fun (t : ℝ≥0) (ω : Ω) =>\n      fderiv ℝ f (restrictState fallback (X (min t T) ω) : EuclideanSpace ℝ I) (EuclideanSpace.basisFun I ℝ i)\n    (∀ᵐ ω ∂μ, ∀ t ≤ T, X t ω ∈ K) →\n      IsStronglyProgressive filtration W ∧\n      (∀ᵐ ω ∂μ, ContinuousOn (fun t => W t ω) (Icc 0 T)) ∧\n      (∃ C : ℝ, ∀ t ≤ T, ∀ ω, |W t ω| ≤ C) := by\n  intro X W hRange\n  let e := EuclideanSpace.basisFun I ℝ i\n  let D (x : EuclideanSpace ℝ I) := fderiv ℝ f x e\n  have hD : ContinuousOn D K :=\n    (show ContinuousOn (fderiv ℝ f) K from fun x hx =>\n      ((hf x hx).continuousAt_fderiv (by decide)).continuousWithinAt).clm_apply continuousOn_const\n  let M (k : I) (j : J) := itoIntegralProcess (η k j) hT ((coordinateFamily hB).isBrownian j) hUsual\n  have hM (k : I) (j : J) : IsStronglyProgressive filtration (M k j) :=\n    (itoIntegralProcess_stronglyAdapted (η k j) hT ((coordinateFamily hB).isBrownian j)\n      hUsual).isStronglyProgressive_of_continuous\n        (itoIntegralProcess_continuous (η k j) hT ((coordinateFamily hB).isBrownian j) hUsual)\n  have hRow (k : I) : IsStronglyProgressive filtration\n      (fun t ω => A k t ω + ∑ j : J, M k j t ω) :=\n    (hAp k).add (IsStronglyProgressive.finsetSum (s := Finset.univ) (fun j _ => hM k j))\n  have hAmeas (k : I) (t : ℝ≥0) (_ : t ≤ T) : AEStronglyMeasurable (A k t) μ :=\n    (((hAp k).stronglyAdapted t).mono (filtration.le t)).aestronglyMeasurable\n  obtain ⟨_, hXc⟩ := measurable_continuousOn_euclidean_ito_rows\n    hB hT hUsual η A hAmeas hAc\n  refine ⟨?_, ?_, ?_⟩\n  · intro t\n    let _ : MeasurableSpace Ω := filtration t\n    let cut (p : Iic t × Ω) : Iic t × Ω :=\n      (⟨min (p.1 : ℝ≥0) T, mem_Iic.2\n        ((min_le_left (p.1 : ℝ≥0) T).trans (mem_Iic.1 p.1.property))⟩, p.2)\n    have hcut : Measurable cut :=\n      ((measurable_subtype_coe.comp measurable_fst).min measurable_const).subtype_mk.prodMk\n        measurable_snd\n    have hMeas : Measurable (fun p : Iic t × Ω => X (min (p.1 : ℝ≥0) T) p.2) := by\n      apply (MeasurableEquiv.toLp 2 (I → ℝ)).measurable.comp\n      apply measurable_pi_lambda\n      intro k\n      exact ((hRow k t).comp_measurable hcut).measurable\n    let Y (p : Iic t × Ω) : K := restrictState fallback (X (min (p.1 : ℝ≥0) T) p.2)\n    have hY : Measurable Y := (measurable_restrictState hK.isClosed.measurableSet fallback).comp hMeas\n    exact (hD.domRestrict.measurable.comp hY).stronglyMeasurable\n  · filter_upwards [hXc, hRange] with ω hω hr\n    have hComp := hD.comp hω (fun t ht => hr t ht.2)\n    refine hComp.congr fun t ht => ?_\n    change D (restrictState fallback (X (min t T) ω) : EuclideanSpace ℝ I) = D (X t ω)\n    rw [min_eq_left ht.2, coe_restrictState_of_mem fallback (hr t ht.2)]\n  · obtain ⟨C, hC⟩ := hK.bddAbove_image hD.abs\n    exact ⟨C, fun t _ ω => hC ⟨restrictState fallback (X (min t T) ω), (restrictState fallback _).property, rfl⟩⟩\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanGradientWeights\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-euclidean-gradient-weights-32e16783",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoEuclideanGradientWeights.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Derivative weights of the clipped Euclidean Itô process. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "Take actual completed Euclidean Itô rows with strongly progressive drifts and almost surely continuous drift paths. Evaluate the test derivative on a coordinate basis vector at the time-clipped state, using the fallback when the state is outside K. The weight is strongly progressive, almost surely continuous on the horizon and bounded there by a deterministic constant.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "W_i(t)=Df(\\widetilde X_{\\min(t,T)})[e_i],\\qquad |W_i(t)|\\le C_i\\quad(0\\le t\\le T)."
+      }
+    ],
+    "assumptions": [
+      "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.",
+      "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.",
+      "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].",
+      "The drift coordinates are strongly progressive with almost surely continuous paths on [0,T]. The scalar test is continuously Fréchet differentiable at each point of K."
+    ],
+    "obligations": [
+      {
+        "id": "ito-euclidean-gradient-weights-32e16783",
+        "label": "Derivative weights of the clipped Euclidean Itô process"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanGradientWeights.euclidean_ito_gradient_weight_progressive_bounded",
+      "kind": "theorem",
+      "title": "Derivative weights of the clipped Euclidean Itô process",
+      "statement": "Take actual completed Euclidean Itô rows with strongly progressive drifts and almost surely continuous drift paths. Evaluate the test derivative on a coordinate basis vector at the time-clipped state, using the fallback when the state is outside K. The weight is strongly progressive, almost surely continuous on the horizon and bounded there by a deterministic constant.",
+      "formula": "W_i(t)=Df(\\widetilde X_{\\min(t,T)})[e_i],\\qquad |W_i(t)|\\le C_i\\quad(0\\le t\\le T).",
+      "assumptions": [
+        "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.",
+        "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.",
+        "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].",
+        "The drift coordinates are strongly progressive with almost surely continuous paths on [0,T]. The scalar test is continuously Fréchet differentiable at each point of K."
+      ],
+      "steps": [
+        {
+          "title": "Clip time in the progressive domain",
+          "text": "Clip time at T, keep the state when it belongs to K and use the selected point otherwise. The state replacement is Borel measurable, and agrees with the original state throughout the horizon almost surely.",
+          "formula": "(t,\\omega)\\longmapsto(\\min(t,T),\\omega)\\longmapsto\\widetilde X_{\\min(t,T)}(\\omega)\\in K.",
+          "lean": "  · intro t\n    let _ : MeasurableSpace Ω := filtration t\n    let cut (p : Iic t × Ω) : Iic t × Ω :=\n      (⟨min (p.1 : ℝ≥0) T, mem_Iic.2\n        ((min_le_left (p.1 : ℝ≥0) T).trans (mem_Iic.1 p.1.property))⟩, p.2)\n    have hcut : Measurable cut :=\n      ((measurable_subtype_coe.comp measurable_fst).min measurable_const).subtype_mk.prodMk\n        measurable_snd\n    have hMeas : Measurable (fun p : Iic t × Ω => X (min (p.1 : ℝ≥0) T) p.2) := by\n      apply (MeasurableEquiv.toLp 2 (I → ℝ)).measurable.comp\n      apply measurable_pi_lambda\n      intro k\n      exact ((hRow k t).comp_measurable hcut).measurable\n    let Y (p : Iic t × Ω) : K := restrictState fallback (X (min (p.1 : ℝ≥0) T) p.2)\n    have hY : Measurable Y := (measurable_restrictState hK.isClosed.measurableSet fallback).comp hMeas\n    exact (hD.domRestrict.measurable.comp hY).stronglyMeasurable"
+        },
+        {
+          "title": "Compose with the derivative entry",
+          "text": "The derivative entry is continuous on K. Its composition is progressive and almost surely continuous on the horizon. Compactness of K bounds the absolute value uniformly over samples and times.",
+          "formula": "C_i\\ge\\sup_{z\\in K}|Df(z)[e_i]|.",
+          "lean": "  · filter_upwards [hXc, hRange] with ω hω hr\n    have hComp := hD.comp hω (fun t ht => hr t ht.2)\n    refine hComp.congr fun t ht => ?_\n    change D (restrictState fallback (X (min t T) ω) : EuclideanSpace ℝ I) = D (X t ω)\n    rw [min_eq_left ht.2, coe_restrictState_of_mem fallback (hr t ht.2)]\n  · obtain ⟨C, hC⟩ := hK.bddAbove_image hD.abs\n    exact ⟨C, fun t _ ω => hC ⟨restrictState fallback (X (min t T) ω), (restrictState fallback _).property, rfl⟩⟩"
+        }
+      ],
+      "lean_statement": "The weight uses the Borel state representative at min(t,T). Progressiveness holds for the entire nonnegative time index.",
+      "lean_proof": "Compose the progressive coordinate process with the deterministic clipping map and the continuous derivative entry.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanRowRegularity.measurable_continuousOn_euclidean_ito_rows",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess_stronglyAdapted",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessAfterHorizon.itoIntegralProcess_continuous",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactStateRepresentative.measurable_restrictState"
+      ],
+      "mathlib_dependencies": [
+        "ContDiffAt.continuousAt_fderiv",
+        "IsCompact.bddAbove_image"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Sinho Chewi, Log-Concave Sampling, August 9, 2026, §3.1",
+          "scope": "Textbook context for quadratic variation and the Itô correction. These results are Samplinglib supplements."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoEuclideanRowRegularity.lean",
+          "label": "Regularity of completed Euclidean rows",
+          "scope": "Slice measurability and path continuity of the actual process."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanGradientWeights.euclidean_ito_gradient_weight_progressive_bounded",
+      "role": "prerequisite",
+      "supports": [
+        "ito-euclidean-gradient-weights-32e16783"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure.",
+        "lean": "The horizon T is positive and the sample measure is finite. The filtration satisfies the usual conditions and the standard vector Brownian motion is relative to that filtration and measure."
+      },
+      {
+        "source": "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures.",
+        "lean": "The state and Brownian coordinate types are finite with decidable equality. Each diffusion entry is progressive and square-integrable in the product of sample and horizon time measures."
+      },
+      {
+        "source": "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T].",
+        "lean": "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T]."
+      },
+      {
+        "source": "The drift coordinates are strongly progressive with almost surely continuous paths on [0,T]. The scalar test is continuously Fréchet differentiable at each point of K.",
+        "lean": "The drift coordinates are strongly progressive with almost surely continuous paths on [0,T]. The scalar test is continuously Fréchet differentiable at each point of K."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "9ef2cd97a3c78787ff6bba2e14adaf83768b1c4310cad25d96ab65dd07c3ad57"
+}

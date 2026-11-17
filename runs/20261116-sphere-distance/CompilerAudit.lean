@@ -1,0 +1,11 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance
+
+open Manifold
+open scoped Manifold InnerProductSpace ENNReal
+
+set_option pp.all true in
+#check AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance.unit_sphere_induced_riemannianEDist_eq_arccos
+#print axioms AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance.unit_sphere_induced_riemannianEDist_eq_arccos
+#print Manifold.riemannianEDist
+#print Manifold.pathELength
+#print mvfderiv

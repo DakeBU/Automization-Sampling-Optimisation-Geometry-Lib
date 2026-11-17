@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-5d7c4796acd7671a",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-generator-integrability-2002299f",
+    "anchor": "Original Samplinglib supplement: When the two Itô generator terms are time integrable. Exact assumptions and formula below.",
+    "original_text": "Let $v$ be the vector with the given scalar drift rows and $\\sigma_j$ the vector with the $j$th given noise column. Both generator terms displayed below are integrable in time for almost every sample.\n\nThe sample measure $\\mu$ is finite. Time is nonnegative and the fixed horizon $T$ may equal zero. The coordinate set $I$ and noise index set $J$ are finite, with decidable equality on $I$. The filtration is indexed by nonnegative real time.\nEach drift coordinate has integrable time sections for $\\mu$-almost every sample. Each noise entry is a strongly progressive integrand with $L^2(\\mu\\otimes\\ell_T)$ membership, where $\\ell_T=\\mathrm{Leb}|_{[0,T]}$.\nThe Euclidean path $X$ is almost surely continuous on $[0,T]$ and almost surely stays in the set $K$ at all horizon times. The ambient test $f$ is $C^2$ at each point of $K$.\n\nDf(X_t)[v_t],\\qquad \\tfrac12\\sum_{j\\in J}D^2f(X_t)[\\sigma_{j,t},\\sigma_{j,t}]\\quad\\in L^1(\\ell_T)\\quad\\text{a.s.}",
+    "text_sha256": "bc010da272fada6cbea207404726e01bc77146afe1b3ca6ac2cecfd1fafe3725"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoGeneratorIntegrability.ae_integrable_euclidean_generator_terms",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoGeneratorIntegrability.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2, u_3}\n  {Ω : Type u_1} {I : Type u_2} {J : Type u_3} [MeasurableSpace Ω] [Fintype I] [DecidableEq I] [Fintype J]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} {μ : MeasureTheory.Measure Ω}\n  [MeasureTheory.IsFiniteMeasure μ] {T : NNReal}\n  (η :\n    I → J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration μ T)\n  (b : I → NNReal → Ω → ℝ)\n  (hbi :\n    ∀ (i : I),\n      ∀ᵐ (ω : Ω) ∂μ,\n        MeasureTheory.Integrable (fun t => b i t ω)\n          (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T))\n  (X : NNReal → Ω → EuclideanSpace ℝ I) (hX : ∀ᵐ (ω : Ω) ∂μ, ContinuousOn (fun t => X t ω) (Set.Icc 0 T))\n  {K : Set (EuclideanSpace ℝ I)} (hRange : ∀ᵐ (ω : Ω) ∂μ, ∀ t ≤ T, X t ω ∈ K) (f : EuclideanSpace ℝ I → ℝ)\n  (hf : ∀ w ∈ K, ContDiffAt ℝ 2 f w) :\n  have v := fun t ω => WithLp.toLp 2 fun i => b i t ω;\n  have σ := fun j t ω => WithLp.toLp 2 fun i => (η i j).process t ω;\n  ∀ᵐ (ω : Ω) ∂μ,\n    MeasureTheory.Integrable (fun t => (fderiv ℝ f (X t ω)) (v t ω))\n        (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T) ∧\n      MeasureTheory.Integrable (fun t => 1 / 2 * ∑ j, ((fderiv ℝ (fderiv ℝ f) (X t ω)) (σ j t ω)) (σ j t ω))\n        (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T)",
+    "statement_sha256": "52c0f59ba8830f40d550ce05fb1b59aa00fcf75a1661e545c9c60785298c1263",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Finite coordinate sets I and J; filtered finite measure space (Omega,m,mu,F); horizon T; integrands eta_ij; drift coordinates b_i; path X; set K; scalar f; v=(b_i), sigma_j=(eta_ij.process).\n\nI,J are finite types; I has decidable equality. T is any nonnegative real. X:[0,infinity)×Omega→R^I, b_i:[0,infinity)×Omega→R, f:R^I→R, K⊆R^I. Time measure lambda_T is Lebesgue measure on [0,T], represented on nonnegative reals.\n\nAssumptions: mu is finite. Each eta_ij is strongly progressive with (omega,t)↦eta_ij(t,omega) in L²(mu⊗lambda_T). For every i, b_i(·,omega) is lambda_T-integrable for mu-a.e. omega. X(·,omega) is continuous on [0,T] mu-a.e. and, on a mu-full set, X(t,omega)∈K for every t≤T. At every w∈K, f is C² at w in the ambient Euclidean space. There is no compactness assumption on K, no Brownian motion assumption, and no progressivity assumption on b or X.\n\nConclusion: For mu-a.e. omega, both t↦Df(X(t,omega))[v(t,omega)] and t↦(1/2)∑_{j∈J}D²f(X(t,omega))[sigma_j(t,omega),sigma_j(t,omega)] are integrable against lambda_T.\n\nQuantifier order: Universally quantify all listed data. For each i assume pathwise drift integrability mu-a.e.; assume path continuity and all-time range inclusion mu-a.e. Conclusion has one mu-a.e. omega quantifier covering both integrability assertions.\n\nScope: Pathwise absolute integrability on the fixed horizon [0,T]; not integrability over Omega of these time integrals. T may be zero. No stochastic equation linking X, b and eta is assumed.\n\nConstant dependencies: No existential numerical constants or rates.",
+    "text_sha256": "22e0b15238801cf09cb374d3f03ce34ef221ea1ddc45ac6ddabd92fcc861b617",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "b386954ef9331ce420b2df84bdb8ab332bc663c5b7878cd7b3b74e0d08c3443a",
+    "decoder_run_sha256": "4dd9d2d6bfb60b5888b178229dfb540dd009a78d5a1fec865ad0b9a5cc7ac6c8",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "879e251a81baac3cb25cc27d731b89913ebfd42969f8f8aba418caeaaf7f0d5a",
+  "candidate_publication_context": {
+    "file": "07aac3959c771c43fec2c69b37e949a8622282d991ca3e9d7fdc8b40e372b877",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates\nimport Mathlib.Analysis.Calculus.ContDiff.Comp\nimport Mathlib.MeasureTheory.Integral.Prod\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoGeneratorIntegrability\n\nopen Filter MeasureTheory Set\nopen scoped BigOperators NNReal\nopen ProgressiveL2\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates\n\nprivate theorem integrable_continuousOn_mul\n    {T : ℝ≥0} {W g : ℝ≥0 → ℝ}\n    (hW : ContinuousOn W (Icc 0 T)) (hg : Integrable g (TimeMeasure.upTo T)) :\n    Integrable (fun t => W t * g t) (TimeMeasure.upTo T) := by\n  let ν := TimeMeasure.upTo T\n  have hMem : ∀ᵐ t ∂ν, t ∈ Icc 0 T :=\n    (TimeMeasure.ae_mem_Ioc_zero_upTo T).mono fun _ ht => ⟨ht.1.le, ht.2⟩\n  have hRest : ν.restrict (Icc 0 T) = ν := Measure.restrict_eq_self_of_ae_mem hMem\n  have hm : AEStronglyMeasurable W ν := by\n    rw [← hRest]\n    exact hW.aestronglyMeasurable measurableSet_Icc\n  obtain ⟨C, hC⟩ := isCompact_Icc.bddAbove_image hW.norm\n  exact hg.bdd_mul hm (hMem.mono fun t ht => hC ⟨t, ht, rfl⟩)\n\n/-- Almost every continuous state path has integrable first- and second-order\nItô generator terms when the drift rows are pathwise integrable and the\nprogressive diffusion entries are square integrable in time and sample. -/\ntheorem ae_integrable_euclidean_generator_terms\n    {Ω I J : Type*} [MeasurableSpace Ω]\n    [Fintype I] [DecidableEq I] [Fintype J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    {μ : Measure Ω} [IsFiniteMeasure μ] {T : ℝ≥0}\n    (η : I → J → ProgressiveL2Integrand filtration μ T)\n    (b : I → ℝ≥0 → Ω → ℝ)\n    (hbi : ∀ i, ∀ᵐ ω ∂μ, Integrable (fun t => b i t ω) (TimeMeasure.upTo T))\n    (X : ℝ≥0 → Ω → EuclideanSpace ℝ I)\n    (hX : ∀ᵐ ω ∂μ, ContinuousOn (fun t => X t ω) (Icc 0 T))\n    {K : Set (EuclideanSpace ℝ I)}\n    (hRange : ∀ᵐ ω ∂μ, ∀ t ≤ T, X t ω ∈ K)\n    (f : EuclideanSpace ℝ I → ℝ) (hf : ∀ w ∈ K, ContDiffAt ℝ 2 f w) :\n    let v (t : ℝ≥0) (ω : Ω) := WithLp.toLp 2 (fun i : I => b i t ω)\n    let σ (j : J) (t : ℝ≥0) (ω : Ω) :=\n      WithLp.toLp 2 (fun i : I => (η i j).process t ω)\n    ∀ᵐ ω ∂μ,\n      Integrable (fun t => fderiv ℝ f (X t ω) (v t ω)) (TimeMeasure.upTo T) ∧\n      Integrable (fun t => (1 / 2 : ℝ) * ∑ j : J,\n        fderiv ℝ (fderiv ℝ f) (X t ω) (σ j t ω) (σ j t ω)) (TimeMeasure.upTo T) := by\n  intro v σ\n  have hProducts : ∀ᵐ ω ∂μ, ∀ i k : I, ∀ j : J,\n      Integrable (fun t => (η i j).process t ω * (η k j).process t ω) (TimeMeasure.upTo T) :=\n    ae_all_iff.2 fun i => ae_all_iff.2 fun k => ae_all_iff.2 fun j =>\n      ((η i j).memLp.integrable_mul (η k j).memLp).prod_right_ae\n  filter_upwards [ae_all_iff.2 hbi, hX, hRange, hProducts] with ω hDrift hPath hK hProduct\n  let E := EuclideanSpace ℝ I\n  let e := EuclideanSpace.basisFun I ℝ\n  let D (t : ℝ≥0) := fderiv ℝ f (X t ω)\n  let H (t : ℝ≥0) := fderiv ℝ (fderiv ℝ f) (X t ω)\n  have hm : MapsTo (fun t => X t ω) (Icc 0 T) K := fun _ ht => hK _ ht.2\n  have hD : ContinuousOn D (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ f) K from fun w hw =>\n      ((hf w hw).continuousAt_fderiv (by decide)).continuousWithinAt).comp hPath hm\n  have hH : ContinuousOn H (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ (fderiv ℝ f)) K from fun w hw =>\n      (((hf w hw).fderiv_right (m := 1) (by decide)).continuousAt_fderiv\n        (by decide)).continuousWithinAt).comp hPath hm\n  constructor\n  · have hi (i : I) : Integrable (fun t => D t (e i) * b i t ω) (TimeMeasure.upTo T) :=\n      integrable_continuousOn_mul (hD.clm_apply continuousOn_const) (hDrift i)\n    refine (integrable_finsetSum Finset.univ (fun i _ => hi i)).congr\n      (Eventually.of_forall fun t => ?_)\n    change (∑ i : I, D t (e i) * b i t ω) = D t (v t ω)\n    have hrepr : (∑ i : I, b i t ω • e i) = v t ω := by\n      simpa only [v, e, EuclideanSpace.basisFun_repr] using e.sum_repr (v t ω)\n    rw [← hrepr, map_sum]\n    simp only [map_smul, smul_eq_mul, mul_comm]\n  · have hi (j : J) (i k : I) :\n        Integrable (fun t => H t (e i) (e k) *\n          ((η i j).process t ω * (η k j).process t ω)) (TimeMeasure.upTo T) :=\n      integrable_continuousOn_mul\n        ((hH.clm_apply continuousOn_const).clm_apply continuousOn_const) (hProduct i k j)\n    have hj (j : J) : Integrable (fun t => H t (σ j t ω) (σ j t ω))\n        (TimeMeasure.upTo T) := by\n      refine (integrable_finsetSum Finset.univ (fun i _ =>\n        integrable_finsetSum Finset.univ (fun k _ => hi j i k))).congr\n        (Eventually.of_forall fun t => ?_)\n      change (∑ i : I, ∑ k : I, H t (e i) (e k) *\n        ((η i j).process t ω * (η k j).process t ω)) = H t (σ j t ω) (σ j t ω)\n      rw [euclidean_bilinear_eq_sum_basis]\n      simp only [e, σ, mul_comm]\n    exact (integrable_finsetSum Finset.univ (fun j _ => hj j)).const_mul _\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoGeneratorIntegrability\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-generator-integrability-2002299f",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoGeneratorIntegrability.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: When the two Itô generator terms are time integrable. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "Let $v$ be the vector with the given scalar drift rows and $\\sigma_j$ the vector with the $j$th given noise column. Both generator terms displayed below are integrable in time for almost every sample.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "Df(X_t)[v_t],\\qquad \\tfrac12\\sum_{j\\in J}D^2f(X_t)[\\sigma_{j,t},\\sigma_{j,t}]\\quad\\in L^1(\\ell_T)\\quad\\text{a.s.}"
+      }
+    ],
+    "assumptions": [
+      "The sample measure $\\mu$ is finite. Time is nonnegative and the fixed horizon $T$ may equal zero. The coordinate set $I$ and noise index set $J$ are finite, with decidable equality on $I$. The filtration is indexed by nonnegative real time.",
+      "Each drift coordinate has integrable time sections for $\\mu$-almost every sample. Each noise entry is a strongly progressive integrand with $L^2(\\mu\\otimes\\ell_T)$ membership, where $\\ell_T=\\mathrm{Leb}|_{[0,T]}$.",
+      "The Euclidean path $X$ is almost surely continuous on $[0,T]$ and almost surely stays in the set $K$ at all horizon times. The ambient test $f$ is $C^2$ at each point of $K$."
+    ],
+    "obligations": [
+      {
+        "id": "ito-generator-integrability-2002299f",
+        "label": "When the two Itô generator terms are time integrable"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoGeneratorIntegrability.ae_integrable_euclidean_generator_terms",
+      "kind": "theorem",
+      "title": "When the two Itô generator terms are time integrable",
+      "statement": "Let $v$ be the vector with the given scalar drift rows and $\\sigma_j$ the vector with the $j$th given noise column. Both generator terms displayed below are integrable in time for almost every sample.",
+      "formula": "Df(X_t)[v_t],\\qquad \\tfrac12\\sum_{j\\in J}D^2f(X_t)[\\sigma_{j,t},\\sigma_{j,t}]\\quad\\in L^1(\\ell_T)\\quad\\text{a.s.}",
+      "assumptions": [
+        "The sample measure $\\mu$ is finite. Time is nonnegative and the fixed horizon $T$ may equal zero. The coordinate set $I$ and noise index set $J$ are finite, with decidable equality on $I$. The filtration is indexed by nonnegative real time.",
+        "Each drift coordinate has integrable time sections for $\\mu$-almost every sample. Each noise entry is a strongly progressive integrand with $L^2(\\mu\\otimes\\ell_T)$ membership, where $\\ell_T=\\mathrm{Leb}|_{[0,T]}$.",
+        "The Euclidean path $X$ is almost surely continuous on $[0,T]$ and almost surely stays in the set $K$ at all horizon times. The ambient test $f$ is $C^2$ at each point of $K$."
+      ],
+      "steps": [
+        {
+          "title": "Control coordinate products",
+          "text": "Cauchy–Schwarz on the sample-time product gives integrability of each product of two entries in the same noise column. Fubini gives integrability of the time sections.",
+          "formula": "\\eta_{ij}\\eta_{kj}\\in L^1(\\mu\\otimes\\ell_T).",
+          "lean": "  have hProducts : ∀ᵐ ω ∂μ, ∀ i k : I, ∀ j : J,\n      Integrable (fun t => (η i j).process t ω * (η k j).process t ω) (TimeMeasure.upTo T) :=\n    ae_all_iff.2 fun i => ae_all_iff.2 fun k => ae_all_iff.2 fun j =>\n      ((η i j).memLp.integrable_mul (η k j).memLp).prod_right_ae\n  filter_upwards [ae_all_iff.2 hbi, hX, hRange, hProducts] with ω hDrift hPath hK hProduct",
+          "detail": "Apply MemLp.integrable_mul and Integrable.prod_right_ae."
+        },
+        {
+          "title": "Control the derivative weights",
+          "text": "Along each selected continuous path, each evaluation of the first or second derivative on basis vectors is continuous and bounded on the compact horizon.",
+          "formula": "t\\mapsto Df(X_t)[e_i],\\quad t\\mapsto D^2f(X_t)[e_i,e_k].",
+          "lean": "  have hm : MapsTo (fun t => X t ω) (Icc 0 T) K := fun _ ht => hK _ ht.2\n  have hD : ContinuousOn D (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ f) K from fun w hw =>\n      ((hf w hw).continuousAt_fderiv (by decide)).continuousWithinAt).comp hPath hm\n  have hH : ContinuousOn H (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ (fderiv ℝ f)) K from fun w hw =>\n      (((hf w hw).fderiv_right (m := 1) (by decide)).continuousAt_fderiv\n        (by decide)).continuousWithinAt).comp hPath hm",
+          "detail": "Use the derivative continuity supplied by ContDiffAt and compactness of Icc."
+        },
+        {
+          "title": "Sum over coordinates",
+          "text": "Expand the linear and bilinear forms in the finite Euclidean basis. Every summand is integrable, and the scalar factor one half preserves integrability.",
+          "formula": "D^2f(X_t)[\\sigma_j,\\sigma_j]=\\sum_{i,k} D^2f(X_t)[e_i,e_k]\\eta_{ij}\\eta_{kj}.",
+          "lean": "    have hj (j : J) : Integrable (fun t => H t (σ j t ω) (σ j t ω))\n        (TimeMeasure.upTo T) := by\n      refine (integrable_finsetSum Finset.univ (fun i _ =>\n        integrable_finsetSum Finset.univ (fun k _ => hi j i k))).congr\n        (Eventually.of_forall fun t => ?_)\n      change (∑ i : I, ∑ k : I, H t (e i) (e k) *\n        ((η i j).process t ω * (η k j).process t ω)) = H t (σ j t ω) (σ j t ω)\n      rw [euclidean_bilinear_eq_sum_basis]\n      simp only [e, σ, mul_comm]\n    exact (integrable_finsetSum Finset.univ (fun j _ => hj j)).const_mul _",
+          "detail": "Use the Euclidean coordinate expansions and integrable_finsetSum."
+        }
+      ],
+      "lean_statement": "Both time integrability conclusions hold on one full-measure sample event.",
+      "lean_proof": "The proof expands both derivatives in the coordinate basis.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates.euclidean_bilinear_eq_sum_basis"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.MemLp.integrable_mul",
+        "MeasureTheory.Integrable.prod_right_ae",
+        "MeasureTheory.integrable_finsetSum"
+      ],
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoGeneratorIntegrability.lean",
+          "label": "Samplinglib original supplement",
+          "scope": "The exact declaration and proof."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoGeneratorIntegrability.ae_integrable_euclidean_generator_terms",
+      "role": "prerequisite",
+      "supports": [
+        "ito-generator-integrability-2002299f"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The sample measure $\\mu$ is finite. Time is nonnegative and the fixed horizon $T$ may equal zero. The coordinate set $I$ and noise index set $J$ are finite, with decidable equality on $I$. The filtration is indexed by nonnegative real time.",
+        "lean": "The sample measure $\\mu$ is finite. Time is nonnegative and the fixed horizon $T$ may equal zero. The coordinate set $I$ and noise index set $J$ are finite, with decidable equality on $I$. The filtration is indexed by nonnegative real time."
+      },
+      {
+        "source": "Each drift coordinate has integrable time sections for $\\mu$-almost every sample. Each noise entry is a strongly progressive integrand with $L^2(\\mu\\otimes\\ell_T)$ membership, where $\\ell_T=\\mathrm{Leb}|_{[0,T]}$.",
+        "lean": "Each drift coordinate has integrable time sections for $\\mu$-almost every sample. Each noise entry is a strongly progressive integrand with $L^2(\\mu\\otimes\\ell_T)$ membership, where $\\ell_T=\\mathrm{Leb}|_{[0,T]}$."
+      },
+      {
+        "source": "The Euclidean path $X$ is almost surely continuous on $[0,T]$ and almost surely stays in the set $K$ at all horizon times. The ambient test $f$ is $C^2$ at each point of $K$.",
+        "lean": "The Euclidean path $X$ is almost surely continuous on $[0,T]$ and almost surely stays in the set $K$ at all horizon times. The ambient test $f$ is $C^2$ at each point of $K$."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "9fba0e557d12f06abc595e638ca47c5f1603ef9ebfbc3414539b282e1c02be7c"
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "reviewer": "independent-reader-delimiter-reviewer-c-20261116",
+  "review_kind": "bounded read-only successor compatibility review",
+  "decision": "accepted-within-reviewed-boundary",
+  "findings": [],
+  "scope": {
+    "files": [
+      "website/scripts/chewi_source_first_refinement.py",
+      "tools/tests/test_chewi_source_first_refinement.py"
+    ],
+    "file_bytes_sha256": {
+      "website/scripts/chewi_source_first_refinement.py": "6c3f800945ff0af08fdb20b4563993b6dfca9c6f1eb5dd8cb83d07be7a990de9",
+      "tools/tests/test_chewi_source_first_refinement.py": "a4fe2eae52c70029f1761e3b527a61ca073c9c38d0a5addd5e332bc26f719a8a"
+    },
+    "diff_sha256": "2e06a15604d6ca15f66d952db273f4fa9669cc0ac8f06d701709f168606c3749",
+    "renderer_configuration": "website/static/math-reader.js:132",
+    "renderer_delimiters": {
+      "inline": [
+        "\\(...\\)",
+        "$...$"
+      ],
+      "display": [
+        "\\[...\\]",
+        "$$...$$"
+      ],
+      "processEscapes": true
+    },
+    "production_modified": false,
+    "boundary": "Reviewed the two-file dollar-delimiter change, the configured renderer delimiters/escapes and the focused eight-test suite. No other website, mathematical artifact or earlier tool audit was reopened. This is not a claim of exhaustive TeX parsing or every DOM-spanning/mixed-delimiter combination."
+  },
+  "resolved_finding": {
+    "artifact": "source-reader-dollar-delimiter-review-superseded.json",
+    "review_sha256": "e3680893ff10bef08ac4d9b09c061160b2269f54f0ace083d889ca8b0dd23fbd",
+    "id": "complete-pair-false-positives",
+    "status": "resolved",
+    "explanation": "Escaped characters are consumed together inside math, even backslash runs can precede a real opening delimiter, and re.S permits newlines. The three reported complete-pair counterexamples are now included in passing regressions."
+  },
+  "implementation_assessment": {
+    "dollar_display_processed_before_inline": true,
+    "escaped_dollars_inside_math_are_tokens": true,
+    "opening_backslash_run_parity_handled": true,
+    "multiline_content_supported": true,
+    "raw_math_patterns_unchanged": true,
+    "skip_tag_and_formula_block_policy_unchanged": true,
+    "scope_expansion_found": false,
+    "raw_math_hiding_counterexample_found": false,
+    "evidence": [
+      "website/scripts/chewi_source_first_refinement.py:49",
+      "website/scripts/chewi_source_first_refinement.py:131",
+      "tools/tests/test_chewi_source_first_refinement.py:89"
+    ]
+  },
+  "validation": {
+    "command": "python -B -m unittest tools.tests.test_chewi_source_first_refinement",
+    "exit_code": 0,
+    "tests_run": 8,
+    "result": "passed",
+    "positive_cases": [
+      "$M_t$",
+      "$$X_t=X_0+B_t$$",
+      "$M_t+\\$1$",
+      "$M_t\n+N_t$",
+      "\\\\$M_t$",
+      "$$M_t+\\$1$$",
+      "\\\\$$M_t$$"
+    ],
+    "negative_cases": [
+      "$M_t$ but F_t is raw",
+      "$M_t is unclosed",
+      "$$M_t is unclosed",
+      "\\$M_t \\$",
+      "\\$M_t\\$",
+      "\\\\\\$M_t\\$",
+      "\\$$M_t\\$$",
+      "$M_t+\\$1$ outside F_t",
+      "$$M_t+\\$1$$ outside F_t"
+    ],
+    "browser_rendering_run": false,
+    "whole_site_check_repeated": false
+  },
+  "acceptance_boundary": "The observed regression gap is fixed and the tested raw-underscore, unmatched-delimiter and odd-escape rejection boundaries are retained. Acceptance is limited to this compatibility change and its explicit test coverage.",
+  "review_sha256": "6efe6b85ae4c72371a2d6ac5588e23aa9820a8fa4a31d7d65ba7414237a077f1"
+}

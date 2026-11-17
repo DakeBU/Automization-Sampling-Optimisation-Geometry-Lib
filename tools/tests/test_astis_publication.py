@@ -564,6 +564,21 @@ class PrivateImplementationCoverageTest(unittest.TestCase):
                 result = p.changed_declarations('HEAD')
                 return result, copy.deepcopy(p.PRIVATE_IMPLEMENTATION_COVERAGE), cover.call_args
 
+    def test_instance_attribute_is_not_a_new_instance_or_a_command_bypass(self):
+        for attribute in ('attribute [local instance] Classical.propDecidable',
+                          'attribute [instance] Existing.instanceValue',
+                          'attribute [\n local instance\n] Classical.propDecidable'):
+            source = attribute + '\ntheorem T : True := True.intro\n'
+            line = attribute.count('\n') + 2
+            with self.subTest(attribute=attribute):
+                result, rows, _ = self.scan(source, [(line, 'theorem', 'T')])
+                self.assertEqual(result, {'T'})
+                self.assertEqual(rows, [])
+                for command in ('instance : Nonempty Nat := inferInstance',
+                                'def unindexed : Nat := 0', 'axiom hidden : False'):
+                    with self.assertRaisesRegex(ValueError, 'unindexed declaration'):
+                        self.scan(source + command + '\n', [(line, 'theorem', 'T')])
+
     def test_def_projection_is_not_a_declaration_or_an_inventory_bypass(self):
         source = ('theorem T : True := by\n'
                   '  rw [(hInv y r t).def, SomeNamespace.def]\n'

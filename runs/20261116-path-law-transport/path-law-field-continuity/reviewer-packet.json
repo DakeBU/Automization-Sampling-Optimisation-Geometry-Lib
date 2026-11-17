@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-c4dd995cc6815398",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "shared-path-law-formalizer-20261116",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-path-law-field-continuity",
+    "anchor": "Original Samplinglib path-law transport supplement: A transport estimate gives joint continuity",
+    "original_text": "Let \\(T\\) be a first-countable topological space, \\(\\Omega\\) a measurable space, and \\(E\\) a compact topological space with a measurable structure for which every open subset of \\(E\\times E\\) is measurable in the product sigma algebra. Let \\(P\\) be a probability law on \\(\\Omega\\), and let \\(X_t:\\Omega\\to E\\) be measurable for every \\(t\\in T\\). Assume that, on one event of full probability, \\(t\\mapsto X_t\\) is continuous on all of \\(T\\). Write \\(\\mu_t=(X_t)_\\#P\\). Let \\(c:E\\times E\\to[0,\\infty)\\) be a continuous finite cost with \\(c(x,x)=0\\) for every \\(x\\). Let \\(F\\) be a normed additive commutative group, \\(U:T\\times E\\to F\\) any field, and \\(L\\in\\mathbb R\\). Suppose the bound below holds for every pair \\((t,x),(s,y)\\). Then \\(U\\) is jointly continuous. Here \\(\\Pi(\\mu,\\nu)\\) denotes the probability couplings. The map \\(\\operatorname{toReal}\\) takes the ordinary real value at finite inputs and sends \\(\\infty\\) to zero; the costs \\(Q(t,s)\\) here are finite by compactness and the explicit same-sample coupling.\n\n\\(T\\) is first-countable. \\(E\\) is compact; its product topology has measurable open sets in the product sigma algebra.\n\\(P\\) is a probability law, every time slice \\(X_t\\) is measurable, and entire paths are continuous on a single event of full probability.\nThe continuous cost \\(c\\) takes values in the finite nonnegative reals and vanishes on the diagonal.\n\\(F\\) is a normed additive commutative group; no scalar action or completeness is required.\nThe displayed estimate holds for all pairs in \\(T\\times E\\), with one real constant \\(L\\). No sign assumption on \\(L\\), or prior regularity of \\(U\\), is required.\n\n\\begin{gathered}Q(t,s):=\\inf_{\\pi\\in\\Pi(\\mu_t,\\mu_s)}\\int c^2\\,d\\pi,\\\\ \\|U(t,x)-U(s,y)\\|\\le L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\quad\\Longrightarrow\\quad U\\text{ is continuous}.\\end{gathered}",
+    "text_sha256": "fdfbd178cd5f606419ca452b431841f30fdd9f0aee35af09d231f2a06928dbbb"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.continuous_of_path_law_transport_bound",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+    "statement": "theorem anonymous_target.{u_1, u_2, u_3, u_4}\n  {T : Type u_1} {Ω : Type u_2} {E : Type u_3} [TopologicalSpace T] [FirstCountableTopology T] [MeasurableSpace Ω]\n  [TopologicalSpace E] [CompactSpace E] [MeasurableSpace E] [OpensMeasurableSpace (Prod E E)] {F : Type u_4}\n  [NormedAddCommGroup F] (P : MeasureTheory.ProbabilityMeasure Ω) (X : T → Ω → E) (hX : ∀ (t : T), Measurable (X t))\n  (hpaths : Filter.Eventually (fun ω => Continuous fun t => X t ω) (MeasureTheory.ae ↑P))\n  (c : ContinuousMap (Prod E E) NNReal) (hzero : ∀ (x : E), Eq (c (Prod.mk x x)) 0) (U : Prod T E → F) (L : Real)\n  (hbound :\n    ∀ (p q : Prod T E),\n      LE.le (Norm.norm (HSub.hSub (U p) (U q)))\n        (HMul.hMul L\n          (HAdd.hAdd\n            (Real.sqrt\n              (ENNReal.toReal\n                (AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost (fun z => HPow.hPow (↑(c z)) 2)\n                  ↑(MeasureTheory.ProbabilityMeasure.map P (Measurable.aemeasurable (hX (Prod.fst p))))\n                  ↑(MeasureTheory.ProbabilityMeasure.map P (Measurable.aemeasurable (hX (Prod.fst q)))))))\n            ↑(c (Prod.mk (Prod.snd p) (Prod.snd q)))))) :\n  Continuous U",
+    "statement_sha256": "060805a8b7fe37cd3fa4c2aeb9dd8aad0d6f74b8d0d48bd6b221f8be62d2871f",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Objects: For measures μ,ν on E, a coupling is exactly a measure γ on E×E with first projection pushforward μ and second projection pushforward ν. The supplied coupling set consists of all such γ. For κ:E×E→[0,∞], define C_κ(μ,ν)=inf{∫⁻ κ(z) dγ(z) : γ is such a coupling}, with the infimum and nonnegative integral both valued in the extended nonnegative reals. In particular, the infimum of an empty feasible set is ∞; attainment is not part of the definition. Write μ_t=(X(t,·))#P. The probability-measure map is explicitly supplied with the measurable proof hX(t), so its function is X(t,·); at p and q it uses hX(Prod.fst p) and hX(Prod.fst q). Let κ₂(z)=(ι(c(z)))², where ι:[0,∞)→[0,∞] is the coercion. Define D(t,s)=Real.sqrt(ENNReal.toReal(C_κ₂(μ_t,μ_s))). This is a real-valued expression, not an asserted metric. The order is: coerce the pointwise cost to ENNReal and square it; integrate and infimize to obtain the ENNReal transport cost; apply ENNReal.toReal; then apply Real.sqrt. The other data are U:T×E→F and L∈ℝ.\n\nDomains: T is a topological space with FirstCountableTopology. Ω is a measurable space and P is a probability measure on Ω. E is a compact topological space with a measurable space; every open subset of the topological product E×E is assumed measurable for the product measurable structure. The statement does not require that this structure equal a Borel sigma-algebra, nor impose Hausdorffness, metrizability, or first-countability on E. F is a normed additive commutative group, with no assumed scalar-vector-space structure or completeness. X:T→Ω→E; c is a continuous map E×E→NNReal, thus finite and nonnegative; U:T×E→F; L is real. No measurable structure on T or topology on Ω is required.\n\nQuantifiers: Universally quantify T, Ω, E, F and all listed structures, then P, X, the proof that every slice is measurable, the almost-sure path-continuity proof, c, and the proof that c vanishes on the diagonal. Then universally choose U and L, and assume one bound quantified over every ordered pair p,q∈T×E using that same L. For every such collection of data conclude Continuous U.\n\nAssumptions: For every t∈T the slice X(t,·) is measurable. For P-almost every ω the whole path t↦X(t,ω) is continuous on T. For every x∈E, c(x,x)=0. For every t,s∈T and x,y∈E, ‖U(t,x)−U(s,y)‖ ≤ L·(Real.sqrt(ENNReal.toReal(C_κ₂(μ_t,μ_s))) + (c(x,y):ℝ)). Compactness, first-countability and product-open-set measurability are as stated in the domains slot. There is no separate assumption L≥0, no preexisting measurability or continuity hypothesis on U, no joint-measurability hypothesis on X, and no symmetry, triangle inequality, or separation axiom for c. No separate finite-cost or optimal-coupling premise is stated.\n\nConclusion: U:T×E→F is continuous jointly for the product topology on T×E and the norm topology on F.\n\nScopes: The norm bound is pointwise and global for all pairs of time-state arguments. It is neither an almost-everywhere bound nor restricted to a time horizon. Only the whole-path continuity premise is P-almost everywhere; slice measurability holds for every time and c vanishes at every diagonal point. The conclusion is continuity everywhere of the deterministic map U, not merely along sample paths or separately in each variable. The marginal order in the transport expression is μ_t first and μ_s second. The raw signature specifically uses Real.sqrt after ENNReal.toReal, and does not use an ENNReal square-root operation. ENNReal.toReal is total, with toReal(∞)=0; this convention is retained without adding a finite-value assumption.\n\nConstant dependencies: L is a single fixed real number controlling all pairs p,q, chosen after U and the preceding probability, process and cost data. It may depend on those chosen data but does not vary with p or q in the bound. Its sign is not separately constrained. No additional bound, rate, or continuity modulus is asserted.",
+    "text_sha256": "977cd1058aaf742ebd28f3d5ee0843c52c34cc143001235cc230c3a3385d2d63",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "3d073110813f3695c3cd21822794a1c5265af51ee00611c653825e1df1115d37",
+    "decoder_run_sha256": "f54aac880294e5f93e39a48e78e7d92dbd2a5a797d96bb7780f6ecd712448a2a",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "8142723d4437ab125f9fa8d5b5533445d6005a5b34f14337bed12bd23632a066",
+  "candidate_publication_context": {
+    "file": "3a297e0688946297a2c82769de11e86028a0c6c35899444e731efe1c9712e3de",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Measure.Transport\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw\nimport Mathlib.Analysis.Real.Sqrt\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport\n\nopen Filter MeasureTheory\nopen scoped ENNReal NNReal Topology\nopen AutoSamplingTheory.TechnicalLemmas.Measure.Transport\nopen AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw\n\nvariable {T Ω E : Type*} [TopologicalSpace T] [FirstCountableTopology T]\n  [MeasurableSpace Ω] [TopologicalSpace E] [CompactSpace E] [MeasurableSpace E]\n  [OpensMeasurableSpace (E × E)]\n\n/-- Same-sample couplings of two evaluations of a continuous path have\ncost tending to zero as the first time approaches the second. -/\ntheorem tendsto_transportCost_marginal_of_ae_continuous\n    (P : ProbabilityMeasure Ω) (X : T → Ω → E) (hX : ∀ t, Measurable (X t))\n    (hpaths : ∀ᵐ ω ∂(P : Measure Ω), Continuous (fun t => X t ω))\n    (c : C(E × E, ℝ≥0)) (hzero : ∀ x : E, c (x, x) = 0) (s : T) :\n    Tendsto (fun t => transportCost (fun z => (c z : ℝ≥0∞))\n      (P.map (hX t).aemeasurable : Measure E) (P.map (hX s).aemeasurable : Measure E))\n      (𝓝 s) (𝓝 0) := by\n  let Z (t : T) (ω : Ω) := (X t ω, X s ω)\n  have hZ (t : T) : Measurable (Z t) := (hX t).prodMk (hX s)\n  have hZpaths : ∀ᵐ ω ∂(P : Measure Ω), Continuous (fun t => Z t ω) :=\n    hpaths.mono fun _ hω => hω.prodMk continuous_const\n  let γ (t : T) := P.map (hZ t).aemeasurable\n  have hγ : Continuous γ := continuous_marginal_law_of_ae_continuous P Z hZ hZpaths\n  let C (t : T) := ∫⁻ z, (c z : ℝ≥0∞) ∂(γ t : Measure (E × E))\n  have hC : Continuous C := (ProbabilityMeasure.continuous_lintegral_continuousMap c).comp hγ\n  have hCs : C s = 0 := by\n    dsimp [C, γ]\n    have hc : Measurable (fun z : E × E => (c z : ℝ≥0∞)) :=\n      measurable_coe_nnreal_ennreal.comp c.continuous.measurable\n    rw [lintegral_map hc (hZ s)]\n    simp [Z, hzero]\n  have hlim : Tendsto C (𝓝 s) (𝓝 0) := hCs ▸ hC.continuousAt\n  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hlim (fun _ => bot_le) ?_\n  intro t\n  apply transportCost_le_lintegral_of_isCoupling\n  constructor\n  · simp only [γ, ProbabilityMeasure.toMeasure_map, Z, Measure.fst_map_prodMk (hX s)]\n  · simp only [γ, ProbabilityMeasure.toMeasure_map, Z, Measure.snd_map_prodMk (hX t)]\n\n/-- A transport and pointwise estimate gives joint continuity of a field\nalong the marginal laws of an almost surely continuous process. -/\ntheorem continuous_of_path_law_transport_bound\n    {F : Type*} [NormedAddCommGroup F]\n    (P : ProbabilityMeasure Ω) (X : T → Ω → E) (hX : ∀ t, Measurable (X t))\n    (hpaths : ∀ᵐ ω ∂(P : Measure Ω), Continuous (fun t => X t ω))\n    (c : C(E × E, ℝ≥0)) (hzero : ∀ x : E, c (x, x) = 0)\n    (U : T × E → F) (L : ℝ)\n    (hbound : ∀ p q : T × E, ‖U p - U q‖ ≤ L *\n      (Real.sqrt (transportCost (fun z => ((c z : ℝ≥0∞) ^ 2))\n        (P.map (hX p.1).aemeasurable : Measure E)\n        (P.map (hX q.1).aemeasurable : Measure E)).toReal + (c (p.2, q.2) : ℝ))) :\n    Continuous U := by\n  rw [continuous_iff_continuousAt]\n  intro q\n  rw [ContinuousAt, tendsto_iff_norm_sub_tendsto_zero]\n  let Q (p : T × E) := transportCost (fun z => ((c z : ℝ≥0∞) ^ 2))\n    (P.map (hX p.1).aemeasurable : Measure E) (P.map (hX q.1).aemeasurable : Measure E)\n  let c₂ : C(E × E, ℝ≥0) := c ^ 2\n  have hzero₂ (x : E) : c₂ (x, x) = 0 := by simp [c₂, hzero]\n  have hQ : Tendsto Q (𝓝 q) (𝓝 0) := by\n    have h := (tendsto_transportCost_marginal_of_ae_continuous P X hX hpaths c₂ hzero₂ q.1).comp\n      continuous_fst.continuousAt\n    simpa only [Q, c₂, Function.comp_def, ContinuousMap.pow_apply, ENNReal.coe_pow] using h\n  have hroot : Tendsto (fun p => Real.sqrt (Q p).toReal) (𝓝 q) (𝓝 0) := by\n    simpa only [Function.comp_def, ENNReal.toReal_zero, Real.sqrt_zero] using\n      ((ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hQ).sqrt\n  have hc : Continuous (fun p : T × E => (c (p.2, q.2) : ℝ)) :=\n    NNReal.continuous_coe.comp (c.continuous.comp (continuous_snd.prodMk continuous_const))\n  have hpoint : Tendsto (fun p : T × E => (c (p.2, q.2) : ℝ)) (𝓝 q) (𝓝 0) := by\n    simpa only [hzero, NNReal.coe_zero] using (hc.continuousAt (x := q)).tendsto\n  have hmajor : Tendsto (fun p => L * (Real.sqrt (Q p).toReal + (c (p.2, q.2) : ℝ)))\n      (𝓝 q) (𝓝 0) := by\n    simpa only [add_zero, mul_zero] using tendsto_const_nhds.mul (hroot.add hpoint)\n  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hmajor\n    (fun _ => norm_nonneg _) (fun p => hbound p q)\n\nend AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-path-law-field-continuity",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib path-law transport supplement: A transport estimate gives joint continuity",
+      "wording_status": "licensed original",
+      "attribution": "Original shared library statement; chapter placement provides reading context, without numbered textbook-theorem credit."
+    },
+    "statement": "Let \\(T\\) be a first-countable topological space, \\(\\Omega\\) a measurable space, and \\(E\\) a compact topological space with a measurable structure for which every open subset of \\(E\\times E\\) is measurable in the product sigma algebra. Let \\(P\\) be a probability law on \\(\\Omega\\), and let \\(X_t:\\Omega\\to E\\) be measurable for every \\(t\\in T\\). Assume that, on one event of full probability, \\(t\\mapsto X_t\\) is continuous on all of \\(T\\). Write \\(\\mu_t=(X_t)_\\#P\\). Let \\(c:E\\times E\\to[0,\\infty)\\) be a continuous finite cost with \\(c(x,x)=0\\) for every \\(x\\). Let \\(F\\) be a normed additive commutative group, \\(U:T\\times E\\to F\\) any field, and \\(L\\in\\mathbb R\\). Suppose the bound below holds for every pair \\((t,x),(s,y)\\). Then \\(U\\) is jointly continuous. Here \\(\\Pi(\\mu,\\nu)\\) denotes the probability couplings. The map \\(\\operatorname{toReal}\\) takes the ordinary real value at finite inputs and sends \\(\\infty\\) to zero; the costs \\(Q(t,s)\\) here are finite by compactness and the explicit same-sample coupling.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\begin{gathered}Q(t,s):=\\inf_{\\pi\\in\\Pi(\\mu_t,\\mu_s)}\\int c^2\\,d\\pi,\\\\ \\|U(t,x)-U(s,y)\\|\\le L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\quad\\Longrightarrow\\quad U\\text{ is continuous}.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "\\(T\\) is first-countable. \\(E\\) is compact; its product topology has measurable open sets in the product sigma algebra.",
+      "\\(P\\) is a probability law, every time slice \\(X_t\\) is measurable, and entire paths are continuous on a single event of full probability.",
+      "The continuous cost \\(c\\) takes values in the finite nonnegative reals and vanishes on the diagonal.",
+      "\\(F\\) is a normed additive commutative group; no scalar action or completeness is required.",
+      "The displayed estimate holds for all pairs in \\(T\\times E\\), with one real constant \\(L\\). No sign assumption on \\(L\\), or prior regularity of \\(U\\), is required."
+    ],
+    "obligations": [
+      {
+        "id": "path-law-field-continuity",
+        "label": "A transport estimate gives joint continuity"
+      }
+    ],
+    "lesson": {
+      "id": "path-law-field-continuity",
+      "short_name": "continuous_of_path_law_transport_bound",
+      "title": "A transport estimate gives joint continuity",
+      "statement": "Let \\(T\\) be a first-countable topological space, \\(\\Omega\\) a measurable space, and \\(E\\) a compact topological space with a measurable structure for which every open subset of \\(E\\times E\\) is measurable in the product sigma algebra. Let \\(P\\) be a probability law on \\(\\Omega\\), and let \\(X_t:\\Omega\\to E\\) be measurable for every \\(t\\in T\\). Assume that, on one event of full probability, \\(t\\mapsto X_t\\) is continuous on all of \\(T\\). Write \\(\\mu_t=(X_t)_\\#P\\). Let \\(c:E\\times E\\to[0,\\infty)\\) be a continuous finite cost with \\(c(x,x)=0\\) for every \\(x\\). Let \\(F\\) be a normed additive commutative group, \\(U:T\\times E\\to F\\) any field, and \\(L\\in\\mathbb R\\). Suppose the bound below holds for every pair \\((t,x),(s,y)\\). Then \\(U\\) is jointly continuous. Here \\(\\Pi(\\mu,\\nu)\\) denotes the probability couplings. The map \\(\\operatorname{toReal}\\) takes the ordinary real value at finite inputs and sends \\(\\infty\\) to zero; the costs \\(Q(t,s)\\) here are finite by compactness and the explicit same-sample coupling.",
+      "assumptions": [
+        "\\(T\\) is first-countable. \\(E\\) is compact; its product topology has measurable open sets in the product sigma algebra.",
+        "\\(P\\) is a probability law, every time slice \\(X_t\\) is measurable, and entire paths are continuous on a single event of full probability.",
+        "The continuous cost \\(c\\) takes values in the finite nonnegative reals and vanishes on the diagonal.",
+        "\\(F\\) is a normed additive commutative group; no scalar action or completeness is required.",
+        "The displayed estimate holds for all pairs in \\(T\\times E\\), with one real constant \\(L\\). No sign assumption on \\(L\\), or prior regularity of \\(U\\), is required."
+      ],
+      "formula": "\\begin{gathered}Q(t,s):=\\inf_{\\pi\\in\\Pi(\\mu_t,\\mu_s)}\\int c^2\\,d\\pi,\\\\ \\|U(t,x)-U(s,y)\\|\\le L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\quad\\Longrightarrow\\quad U\\text{ is continuous}.\\end{gathered}",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.tendsto_transportCost_marginal_of_ae_continuous"
+      ],
+      "mathlib_dependencies": [
+        "ENNReal.tendsto_toReal",
+        "Filter.Tendsto.sqrt",
+        "tendsto_iff_norm_sub_tendsto_zero",
+        "tendsto_of_tendsto_of_tendsto_of_le_of_le"
+      ],
+      "steps": [
+        {
+          "title": "Apply the transport limit to the squared cost",
+          "text": "Fix \\(q=(s,y)\\). The squared cost is continuous, nonnegative and zero on the diagonal. The preceding theorem, composed with the time projection, gives the transport limit.",
+          "formula": "Q(t,s)\\longrightarrow0\\qquad((t,x)\\to(s,y)).",
+          "lean": "  rw [continuous_iff_continuousAt]\n  intro q\n  rw [ContinuousAt, tendsto_iff_norm_sub_tendsto_zero]\n  let Q (p : T × E) := transportCost (fun z => ((c z : ℝ≥0∞) ^ 2))\n    (P.map (hX p.1).aemeasurable : Measure E) (P.map (hX q.1).aemeasurable : Measure E)\n  let c₂ : C(E × E, ℝ≥0) := c ^ 2\n  have hzero₂ (x : E) : c₂ (x, x) = 0 := by simp [c₂, hzero]\n  have hQ : Tendsto Q (𝓝 q) (𝓝 0) := by\n    have h := (tendsto_transportCost_marginal_of_ae_continuous P X hX hpaths c₂ hzero₂ q.1).comp\n      continuous_fst.continuousAt\n    simpa only [Q, c₂, Function.comp_def, ContinuousMap.pow_apply, ENNReal.coe_pow] using h\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 1
+        },
+        {
+          "title": "Make the majorant tend to zero",
+          "text": "The real-value map is continuous at the finite value zero, and square root is continuous. The point cost tends to its diagonal value. Adding these terms and multiplying by the fixed real constant gives a vanishing majorant.",
+          "formula": "L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\longrightarrow L(0+0)=0.",
+          "lean": "  have hroot : Tendsto (fun p => Real.sqrt (Q p).toReal) (𝓝 q) (𝓝 0) := by\n    simpa only [Function.comp_def, ENNReal.toReal_zero, Real.sqrt_zero] using\n      ((ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hQ).sqrt\n  have hc : Continuous (fun p : T × E => (c (p.2, q.2) : ℝ)) :=\n    NNReal.continuous_coe.comp (c.continuous.comp (continuous_snd.prodMk continuous_const))\n  have hpoint : Tendsto (fun p : T × E => (c (p.2, q.2) : ℝ)) (𝓝 q) (𝓝 0) := by\n    simpa only [hzero, NNReal.coe_zero] using (hc.continuousAt (x := q)).tendsto\n  have hmajor : Tendsto (fun p => L * (Real.sqrt (Q p).toReal + (c (p.2, q.2) : ℝ)))\n      (𝓝 q) (𝓝 0) := by\n    simpa only [add_zero, mul_zero] using tendsto_const_nhds.mul (hroot.add hpoint)\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 2
+        },
+        {
+          "title": "Squeeze the norm difference",
+          "text": "The assumed estimate bounds the nonnegative norm by that majorant. The norm difference tends to zero at every \\(q\\), which is joint continuity.",
+          "formula": "0\\le\\|U(t,x)-U(s,y)\\|\\le L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\longrightarrow0.",
+          "lean": "  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hmajor\n    (fun _ => norm_nonneg _) (fun p => hbound p q)\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 3
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.continuous_of_path_law_transport_bound",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+      "source_line": 49,
+      "classification": "canonical shared library node; original mathematical supplement",
+      "reading_layout": "progressive",
+      "lean_statement": "The exact declaration retains the probability pushforwards, the product measurable structure and the whole-path almost-sure quantifier.",
+      "lean_proof": "The proof uses the actual same-sample coupling and the displayed order bounds; the adjacent excerpts preserve all local definitions."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.continuous_of_path_law_transport_bound",
+      "role": "prerequisite",
+      "supports": [
+        "path-law-field-continuity"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "\\(T\\) is first-countable. \\(E\\) is compact; its product topology has measurable open sets in the product sigma algebra.",
+        "lean": "\\(T\\) is first-countable. \\(E\\) is compact; its product topology has measurable open sets in the product sigma algebra."
+      },
+      {
+        "source": "\\(P\\) is a probability law, every time slice \\(X_t\\) is measurable, and entire paths are continuous on a single event of full probability.",
+        "lean": "\\(P\\) is a probability law, every time slice \\(X_t\\) is measurable, and entire paths are continuous on a single event of full probability."
+      },
+      {
+        "source": "The continuous cost \\(c\\) takes values in the finite nonnegative reals and vanishes on the diagonal.",
+        "lean": "The continuous cost \\(c\\) takes values in the finite nonnegative reals and vanishes on the diagonal."
+      },
+      {
+        "source": "\\(F\\) is a normed additive commutative group; no scalar action or completeness is required.",
+        "lean": "\\(F\\) is a normed additive commutative group; no scalar action or completeness is required."
+      },
+      {
+        "source": "The displayed estimate holds for all pairs in \\(T\\times E\\), with one real constant \\(L\\). No sign assumption on \\(L\\), or prior regularity of \\(U\\), is required.",
+        "lean": "The displayed estimate holds for all pairs in \\(T\\times E\\), with one real constant \\(L\\). No sign assumption on \\(L\\), or prior regularity of \\(U\\), is required."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "e1791b66160376c25cfd128eb5bc2f63aea8817a3f33e961a5c2151d95cf30f5"
+}

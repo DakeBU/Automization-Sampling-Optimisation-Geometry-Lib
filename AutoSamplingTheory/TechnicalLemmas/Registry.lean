@@ -1,3 +1,9 @@
+import AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients
+import AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactProgressiveCoefficients
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveCoefficientBounds
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution
 import AutoSamplingTheory.TechnicalLemmas.Analysis.Calculus.BoundedPerturbationEnergy
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost
 import AutoSamplingTheory.TechnicalLemmas.InformationTheory.BoundedDensityPerturbation
@@ -168,6 +174,66 @@ def sltSourceAnchor (file decl note : String) : SourceAnchor :=
     note
 
 def analysisMemory : List LemmaMemoryEntry := [
+  {
+    key := "shared.euclidean-bilinear-coordinates-36480cba",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates.euclidean_bilinear_eq_sum_basis",
+    upstreamDecl := "Original Samplinglib supplement: Expand a Euclidean bilinear form in coordinates. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Analysis/EuclideanBilinearCoordinates.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The expansion works for every continuous bilinear form. Symmetry and positive semidefiniteness play no role."
+  },
+  {
+    key := "shared.compact-taylor-remainder-cae43895",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder.secondOrderRemainder",
+    upstreamDecl := "Original Samplinglib supplement: The second-order Taylor residual. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Analysis/CompactTaylorRemainder.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This definition alone gives no estimate. Lean uses its total Fréchet-derivative convention when differentiability is absent."
+  },
+  {
+    key := "shared.compact-taylor-remainder-c30f779f",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder.norm_secondOrderRemainder_le_of_hessian_variation",
+    upstreamDecl := "Original Samplinglib supplement: A Hessian oscillation bound controls the Taylor residual. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Analysis/CompactTaylorRemainder.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The constant is an upper bound; no optimal factor of one half is asserted."
+  },
+  {
+    key := "shared.compact-taylor-remainder-07ffcd6b",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder.exists_uniform_secondOrderRemainder_le_on_compact",
+    upstreamDecl := "Original Samplinglib supplement: A uniform Taylor residual estimate on a compact set. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Analysis/CompactTaylorRemainder.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The required C² hypothesis is ambient at each point of K, stronger than merely having derivatives relative to K. No global derivative bound is assumed."
+  },
+  {
+    key := "shared.smooth-positive-time-coefficients",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients.exists_smooth_pos_of_ae_nonneg_bounded",
+    upstreamDecl := "Original Samplinglib supplement: Smooth positive approximation of a measurable time coefficient",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/ContinuousMapDense.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The approximation is for one prescribed finite interval and tolerance. Smoothness holds on all of \\(\\mathbb R\\); positivity and the displayed upper bound are guaranteed on \\([a,b]\\). This result controls coefficient integrals. Convergence of solutions and passage of density estimates to limits require further arguments."
+  },
+  {
+    key := "shared.smooth-positive-noise-scale-approximation",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.SmoothBoundedTimeCoefficients.exists_smooth_pos_with_noise_scale_approx",
+    upstreamDecl := "Original Samplinglib supplement: One approximation for a coefficient and its noise amplitude",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/Analysis/Calculus/BumpFunction/SmoothApprox.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The approximation is for one prescribed finite interval and tolerance. Smoothness holds on all of \\(\\mathbb R\\); positivity and the displayed upper bound are guaranteed on \\([a,b]\\). This result controls coefficient integrals. Convergence of solutions and passage of density estimates to limits require further arguments."
+  },
   {
     key := "analysis.normalized-bad-mass",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Analysis.NormalizedMass.bad_mass_ratio_bounds",
@@ -2861,6 +2927,36 @@ def calculusMemory : List LemmaMemoryEntry := [
 
 def measureMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.path-law-transport-vanishes",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.tendsto_transportCost_marginal_of_ae_continuous",
+    upstreamDecl := "Original Samplinglib path-law transport supplement: Continuous paths give vanishing transport cost",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "transport", "shared"],
+    saldUse := "Shared Gaussian potential and path-law continuity prerequisites.",
+    note := "Canonical compiled result with independent source-blind reconstruction and whole-module/source/reader review. The cost need not be a metric or symmetric. Compactness and the finite continuous cost are retained. This is a limit at each fixed time, without a quantitative rate."
+  },
+  {
+    key := "shared.path-law-field-continuity",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.continuous_of_path_law_transport_bound",
+    upstreamDecl := "Original Samplinglib path-law transport supplement: A transport estimate gives joint continuity",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "transport", "shared"],
+    saldUse := "Shared Gaussian potential and path-law continuity prerequisites.",
+    note := "Canonical compiled result with independent source-blind reconstruction and whole-module/source/reader review. The estimate is an explicit input to this general continuity principle. A model application must establish it separately. The proof uses continuity of the extended-real toReal map at zero; no separate finite-cost premise is inserted."
+  },
+  {
+    key := "shared.continuous-weak-probability-integral",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.WeakProbabilityIntegral.continuous_integral_of_compact",
+    upstreamDecl := "Original Samplinglib supplement: Continuity of an integral with a moving observable and law",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Measure/ProbabilityMeasure.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. Compactness controls the changing observable uniformly. Weak continuity controls integration of the frozen observable."
+  },
+  {
     key := "bochner-mean-quadratic-transport",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Measure.BochnerMeanTransport.bounded_bochner_mean_quadratic_transport_control",
     upstreamDecl := "Original generic feature differentiation and transport supplement",
@@ -4068,6 +4164,646 @@ def functionalInequalityMemory : List LemmaMemoryEntry := [
 ]
 
 def stochasticProcessMemory : List LemmaMemoryEntry := [
+  {
+    key := "shared.synchronous-sphere-energy-balance",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SynchronousSphereCoupling.synchronous_sphere_expected_chord_energy_balance",
+    upstreamDecl := "Complete source-only.json: D1-D6, A1-A5, F1-F3, P1-P6 and B1-B5",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/7063c7055c7dd2a21d02d4c6314f2b250aa08d28/runs/20261116-synchronous-sphere-coupling/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["stochastic-processes", "coupling", "sphere", "shared"],
+    saldUse := "Exact energy balance for supplied synchronous sphere diffusions.",
+    note := "One actual coordinate-SDE-to-observable integration theorem; twenty private providers share its review. Supplied solutions only: no process-existence, uniqueness, density, or pointwise PDE theorem is claimed. Temperature is one fixed nonnegative real number. Measurable time-varying temperature would need its own integral/AC-a.e. statement; it is not obtained by renaming this derivative theorem. The equality is dimension-general. A contraction sign requiring d>3, force estimates, or a closed coupling certificate requires additional downstream work. No independence of distinct particle drivers is used or derived. No two-sided derivative of the clamped real-time function is claimed at zero. No downstream actual-process adapter or removal of a downstream assumed Itô differential inequality has yet been completed. Joint measurability hX/hY remains explicitly present exactly as in the accepted source/signature. Its redundancy under strong progressivity is recorded for possible bounded purification; it was not silently removed."
+  },
+  {
+    key := "shared.dyadic-block-weights-8e8ed6a3",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicBlockWeights.dyadic_sum_coarse_weight_eq_prefix_differences",
+    upstreamDecl := "Original Samplinglib supplement: Group weighted fine increments by coarse dyadic cells. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/DyadicBlockWeights.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This identity concerns weights constant within each coarse cell. The continuous-weight approximation is a separate result."
+  },
+  {
+    key := "shared.countable-convergence-in-measure-90d93003",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CountableConvergenceInMeasure.exists_seq_tendsto_ae_of_countable",
+    upstreamDecl := "Original Samplinglib supplement: One almost-everywhere subsequence for countably many limits in measure. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/CountableConvergenceInMeasure.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The conclusion is along a single subsequence. Uniform convergence over the family and convergence along the full sequence require separate conditions."
+  },
+  {
+    key := "shared.dyadic-weighted-limits-76547c20",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicWeightedLimits.tendsto_dyadic_weighted_sums_of_prefix_limits",
+    upstreamDecl := "Original Samplinglib supplement: Continuous weights from dyadic prefix limits. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/DyadicWeightedLimits.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The cell masses may be signed. Bounded total absolute mass along the sequence is the condition used to control the uniform weight error."
+  },
+  {
+    key := "shared.ito-dyadic-weighted-covariation-c9f121b0",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicWeightedCovariation.tendstoInMeasure_dyadic_weighted_covariation_of_ito_rows",
+    upstreamDecl := "Original Samplinglib supplement: Continuous-weight covariation of two completed Itô rows. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicWeightedCovariation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The limit is for the full horizon and is in measure. The weight assumptions suffice for this quadratic term. The first-order stochastic integral and the full smooth Itô identity have their own contracts."
+  },
+  {
+    key := "shared.dyadic-cutoff-increments-1ebfec26",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.DyadicCutoffIncrements.dyadic_sum_mul_stopped_increments_eq_prefix",
+    upstreamDecl := "Original Samplinglib supplement: Stopping at a dyadic grid point selects the increments ending there or earlier. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/DyadicCutoffIncrements.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The proof gives a pointwise identity on nested deterministic grids. Convergence of the sum requires a separate probabilistic result."
+  },
+  {
+    key := "shared.ito-dyadic-prefix-qv-db571545",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicPrefixQV.tendstoInMeasure_dyadic_prefix_sq_increments_of_ito_row",
+    upstreamDecl := "Original Samplinglib supplement: Quadratic variation of an Itô row up to a fixed dyadic time. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicPrefixQV.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The theorem concerns one fixed dyadic cutoff and convergence in measure for the unweighted scalar sum. Mixed and continuously weighted limits are separate results."
+  },
+  {
+    key := "shared.ito-dyadic-prefix-cross-qv-0a0b3bc2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicPrefixCrossQV.tendstoInMeasure_dyadic_prefix_mul_increments_of_ito_rows",
+    upstreamDecl := "Original Samplinglib supplement: Covariation of two Itô rows up to a fixed dyadic time. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicPrefixCrossQV.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The cutoff is fixed and the limit is in measure. Varying weights and pathwise or uniform-in-time convergence have separate contracts."
+  },
+  {
+    key := "shared.progressive-path-energy-e4cfb2e7",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressivePathEnergy.progressiveL2_row_pathEnergy_L1_le",
+    upstreamDecl := "Original Samplinglib supplement: Stability of integrated square energy. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ProgressivePathEnergy.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The energy is the time integral of the literal process on the stated horizon. The bound uses the L² equivalence classes."
+  },
+  {
+    key := "shared.progressive-path-energy-bc6bcbd0",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressivePathEnergy.elementary_integral_value_sq",
+    upstreamDecl := "Original Samplinglib supplement: Read the time energy of a step process. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ProgressivePathEnergy.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The equality is pointwise in the sample, including when T cuts a cell or no cell lies before T."
+  },
+  {
+    key := "shared.ito-elementary-row-qv-fc211643",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoElementaryRowQV.tendsto_dyadic_elementary_ito_row_quadraticVariation_L1",
+    upstreamDecl := "Original Samplinglib supplement: Quadratic variation of elementary Itô rows. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoElementaryRowQV.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The elementary input family may change with the level. The fourth moment bound provides uniform control over that family."
+  },
+  {
+    key := "shared.ito-continuous-row-qv-186e9e72",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoContinuousRowQV.tendsto_dyadic_ito_row_quadraticVariation_L1",
+    upstreamDecl := "Original Samplinglib supplement: Quadratic variation of a progressive Itô row. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoContinuousRowQV.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The conclusion is L¹ convergence along the deterministic dyadic grids over [0,T]."
+  },
+  {
+    key := "shared.ito-stopped-row-qv-13bc222c",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV.tendsto_dyadic_stopped_ito_row_quadraticVariation_L1",
+    upstreamDecl := "Original Samplinglib supplement: Quadratic variation up to a common stop. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoStoppedRowQV.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The grid is deterministic. The single common stop is random and is applied to every row evaluation."
+  },
+  {
+    key := "shared.ito-integral-grid-energy-d37cae00",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridEnergy.itoIntegralProcess_grid_isometry",
+    upstreamDecl := "Original Samplinglib supplement: Sum the Itô energy over a time grid. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralGridEnergy.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This equality is for the expectation over a fixed deterministic grid. It does not assert a pathwise quadratic-variation identity."
+  },
+  {
+    key := "shared.ito-integral-grid-stability-a83b22c3",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability.itoIntegralProcess_row_grid_quadraticVariation_L1_le",
+    upstreamDecl := "Original Samplinglib supplement: Compare squared increments of two Itô rows. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralGridStability.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The inequality compares the two actual row processes on any common deterministic grid. The squared-increment limit needs a separate proof for an approximating family."
+  },
+  {
+    key := "shared.ito-integral-elementary-increment-03c10cf9",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralElementaryIncrement.itoIntegralProcess_elementary_grid_increment_ae",
+    upstreamDecl := "Original Samplinglib supplement: Read one increment of an elementary Itô integral. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralElementaryIncrement.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The equality is almost sure for each chosen cell of the elementary process's own deterministic grid."
+  },
+  {
+    key := "shared.sphere-coordinate-sde-7da812cf",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.sphereDriftCoordinate",
+    upstreamDecl := "Original Samplinglib supplement: The drift coordinate of the embedded sphere equation. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereCoordinateSDE.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The formula is an ambient drift coefficient. The hypotheses of an actual diffusion are supplied when the coefficient is used in a stochastic equation."
+  },
+  {
+    key := "shared.sphere-coordinate-sde-a838c8d1",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.sphereNoiseIntegrand",
+    upstreamDecl := "Original Samplinglib supplement: A progressive integrand for a sphere noise coordinate. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereCoordinateSDE.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The product-space condition is specific to the chosen horizon. The coefficient is defined on the full nonnegative time axis."
+  },
+  {
+    key := "shared.sphere-coordinate-sde-fd7bb141",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.sphereNoiseIntegrand_process",
+    upstreamDecl := "Original Samplinglib supplement: The projected noise representative has the literal coefficient. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereCoordinateSDE.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The literal representative is exposed on the full time axis. Integrability is on the selected horizon."
+  },
+  {
+    key := "shared.sphere-coordinate-sde-97d1e81c",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.hasDerivWithinAt_sphere_expectation_of_coordinate_equations",
+    upstreamDecl := "Original Samplinglib supplement: The canonical sphere coordinate equation gives the weak evolution. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereCoordinateSDE.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The coordinate equation is the supplied process input. The conclusion gives the evolution of test expectations for that process."
+  },
+  {
+    key := "shared.brownian-mixed-quadratic-variation-167cf98a",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation.standardBrownian_unit_projection",
+    upstreamDecl := "Original Samplinglib supplement: Unit projection of the same Brownian motion. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianMixedQuadraticVariation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. Unit norm gives standard scalar normalization."
+  },
+  {
+    key := "shared.brownian-mixed-quadratic-variation-8da4a678",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation.dyadic_predictable_mixed_increment_sum_L2",
+    upstreamDecl := "Original Samplinglib supplement: Square-integrable mixed Brownian increment sums. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianMixedQuadraticVariation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The actual mixed sum is square integrable on each deterministic grid."
+  },
+  {
+    key := "shared.brownian-diffusion-quadratic-variation-a99506bf",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianDiffusionQuadraticVariation.dyadic_predictable_diffusion_row_quadraticVariation_L2",
+    upstreamDecl := "Original Samplinglib supplement: Quadratic variation of a finite predictable diffusion row. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianDiffusionQuadraticVariation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The coefficients are the specified grid rows. A continuous approximation has separate integrability and convergence obligations."
+  },
+  {
+    key := "shared.ito-integral-increment-8f8e2324",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralIncrement.itoIntegralProcess_increment_isometry",
+    upstreamDecl := "Original Samplinglib supplement: Isometry on one deterministic Itô cell. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralIncrement.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The theorem uses deterministic cells and the actual completed scalar Itô process."
+  },
+  {
+    key := "shared.ito-weighted-riemann-sums-41a3da04",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoWeightedRiemannSums.boundedVariationOn_prefixIntegral",
+    upstreamDecl := "Original Samplinglib supplement: A time primitive has bounded variation. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoWeightedRiemannSums.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The Lean conclusion records bounded variation. The proof establishes the displayed quantitative bound, including T=0."
+  },
+  {
+    key := "shared.ito-weighted-riemann-sums-89232b09",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoWeightedRiemannSums.tendsto_dyadic_weighted_prefixIntegral_sums",
+    upstreamDecl := "Original Samplinglib supplement: Left-weighted sums against an integrable drift. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoWeightedRiemannSums.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The convergence is a deterministic real limit along the full dyadic grid."
+  },
+  {
+    key := "shared.ito-weighted-riemann-sums-0db44fa0",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoWeightedRiemannSums.tendstoInMeasure_dyadic_weighted_ito_sums",
+    upstreamDecl := "Original Samplinglib supplement: Left-weighted sums of completed Itô increments. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoWeightedRiemannSums.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The conclusion is convergence in measure to the actual completed integral on the same Brownian driver."
+  },
+  {
+    key := "shared.finite-variation-dyadic-qv-4ccccb48",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteVariationDyadicQV.tendsto_dyadic_sq_increments_sub_of_continuous_boundedVariation",
+    upstreamDecl := "Original Samplinglib supplement: Continuous finite variation leaves the square-increment limit unchanged. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/FiniteVariationDyadicQV.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The statement gives the signed difference limit. Setting X=0 gives zero quadratic variation for a continuous finite-variation path."
+  },
+  {
+    key := "shared.ito-cell-multiplier-77f2071d",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCellMultiplier.itoIntegralProcess_event_cell_multiplier",
+    upstreamDecl := "Original Samplinglib supplement: Use a past event on one Itô cell. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoCellMultiplier.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The integral identity is for each deterministic evaluation time. The restriction of the integrand is pointwise."
+  },
+  {
+    key := "shared.ito-bounded-cell-multiplier-cf32dd49",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoBoundedCellMultiplier.itoIntegralProcess_bounded_past_cell_multiplier",
+    upstreamDecl := "Original Samplinglib supplement: Use a bounded past weight on one Itô cell. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoBoundedCellMultiplier.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The output is the terminal integral of an input supported on (s,t]. The time cell may be empty."
+  },
+  {
+    key := "shared.ito-finite-variation-qv-04316a77",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoFiniteVariationQV.tendstoInMeasure_dyadic_sq_increments_stopped_ito_add_boundedVariation",
+    upstreamDecl := "Original Samplinglib supplement: Quadratic variation of a stopped Itô row with drift. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoFiniteVariationQV.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The supplied drift is evaluated at time t and the Itô row at t∧τ. A drift that has already been stopped can be supplied. The conclusion is convergence in measure."
+  },
+  {
+    key := "shared.sphere-ito-formula-3dce7417",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoFormula.ito_formula_sphere_at_horizon",
+    upstreamDecl := "Original Samplinglib supplement: The terminal Itô formula for a unit-sphere diffusion. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereItoFormula.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The conclusion is a terminal identity for the supplied integrated process on the chosen horizon. Its martingale is existential at this interface. The compact Euclidean formula exposes the actual weighted integrands and their completed-integral representation. Existence of the diffusion and evolution of its marginal laws are separate theorems."
+  },
+  {
+    key := "shared.finite-sum-convergence-in-measure-75a61afb",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteSumConvergenceInMeasure.tendstoInMeasure_fintype_sum",
+    upstreamDecl := "Original Samplinglib supplement: Finite sums preserve convergence in measure. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/FiniteSumConvergenceInMeasure.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This result concerns finite sums. Infinite sums require additional convergence control."
+  },
+  {
+    key := "shared.ito-euclidean-row-regularity-64470c1c",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanRowRegularity.measurable_continuousOn_euclidean_ito_rows",
+    upstreamDecl := "Original Samplinglib supplement: Measurable slices and continuous paths of completed Euclidean Itô rows. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoEuclideanRowRegularity.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. Only continuity and measurable slices on the horizon are asserted. The drift path hypothesis is continuity."
+  },
+  {
+    key := "shared.ito-dyadic-hessian-742e56e3",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian.tendstoInMeasure_dyadic_half_hessian_increments",
+    upstreamDecl := "Original Samplinglib supplement: The quadratic Taylor term converges to the diffusion Hessian contraction. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicHessian.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The Hessian-entry bounds use compactness of the time interval along each continuous sample path. The fallback supplies a measurable representative for the fixed-time weights."
+  },
+  {
+    key := "shared.ito-actual-taylor-remainder-e3b89eed",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoActualTaylorRemainder.tendstoInMeasure_dyadic_actual_ito_taylor_remainder",
+    upstreamDecl := "Original Samplinglib supplement: The actual vector Itô Taylor residual vanishes. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoActualTaylorRemainder.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The conclusion is convergence in measure on the specified positive horizon. The dyadic residuals are evaluated on the original process."
+  },
+  {
+    key := "shared.ito-initialized-drift-3065ddbc",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoInitializedDrift.initialized_drift_progressive_continuous_boundedVariation",
+    upstreamDecl := "Original Samplinglib supplement: The initialized progressive drift has continuous finite-variation paths. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoInitializedDrift.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The fixed-horizon equality holds at all samples. The continuity and variation conclusions are almost sure."
+  },
+  {
+    key := "shared.ito-euclidean-gradient-weights-32e16783",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanGradientWeights.euclidean_ito_gradient_weight_progressive_bounded",
+    upstreamDecl := "Original Samplinglib supplement: Derivative weights of the clipped Euclidean Itô process. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoEuclideanGradientWeights.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The drift path condition is almost sure continuity. The deterministic bound applies to the weight evaluated on the state representative."
+  },
+  {
+    key := "shared.ito-dyadic-linear-term-5b1ea4ec",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicLinearTerm.tendstoInMeasure_dyadic_linear_ito_term",
+    upstreamDecl := "Original Samplinglib supplement: The linear Itô term and its completed martingale. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicLinearTerm.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This convergence identifies the first-order Taylor term. The quadratic term and the residual enter the full identity separately."
+  },
+  {
+    key := "shared.ito-compact-euclidean-formula-f08f7b6e",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula.ito_formula_compact_euclidean_at_horizon",
+    upstreamDecl := "Original Samplinglib supplement: Smooth Itô formula at the terminal horizon. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoCompactEuclideanFormula.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The identity holds at the specified positive terminal time. Compact containment holds for all times on one event of full measure."
+  },
+  {
+    key := "shared.brownian-mixed-quadratic-variation-cacf67f3",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMixedQuadraticVariation.tendsto_integral_dyadic_predictable_mixed_increment_sum_sq",
+    upstreamDecl := "Original Samplinglib supplement: Weighted mixed products of Brownian increments. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianMixedQuadraticVariation.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. Mean-square control of the literal mixed increment sum for the specified grid weights."
+  },
+  {
+    key := "shared.weak-martingale-evolution-436a4cda",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMartingaleEvolution.hasDerivWithinAt_expectation_of_martingale_balance",
+    upstreamDecl := "Original Samplinglib supplement: The weak forward equation from a martingale balance. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/WeakMartingaleEvolution.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. At s=0 the derivative is right-sided. The increment identity is supplied at each fixed time. It can come from an Itô formula or another martingale representation."
+  },
+  {
+    key := "shared.ito-generator-integrability-2002299f",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoGeneratorIntegrability.ae_integrable_euclidean_generator_terms",
+    upstreamDecl := "Original Samplinglib supplement: When the two Itô generator terms are time integrable. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoGeneratorIntegrability.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The result establishes samplewise time integrability on the specified horizon."
+  },
+  {
+    key := "shared.sphere-ito-integrated-rows-263e07ee",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoIntegratedRows.ito_formula_sphere_of_integrated_rows",
+    upstreamDecl := "Original Samplinglib supplement: Terminal Itô formula for sphere-valued integrated rows. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereItoIntegratedRows.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The integrated Brownian row process and its almost-sure sphere range are inputs. The conclusion concerns the terminal horizon."
+  },
+  {
+    key := "shared.sphere-measurable-weak-forward-d8d80cfb",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableWeakForward.sphere_marginal_balance_of_measurable_temperature_rows",
+    upstreamDecl := "Original Samplinglib supplement: Weak marginal evolution from sphere diffusion rows. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereMeasurableWeakForward.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The integrated equations are assumptions on an existing process. The conclusion concerns the test expectations of its marginals."
+  },
+  {
+    key := "shared.sphere-measurable-coordinate-sde-e7713243",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand",
+    upstreamDecl := "Original Samplinglib supplement: The projected Brownian integrand with measurable temperature. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereMeasurableCoordinateSDE.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The representative is defined at all nonnegative times. The $L^2$ assertion uses the selected horizon."
+  },
+  {
+    key := "shared.sphere-measurable-coordinate-sde-2b908b80",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand_process",
+    upstreamDecl := "Original Samplinglib supplement: Pointwise value of the projected noise representative. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereMeasurableCoordinateSDE.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The pointwise identity applies outside the selected horizon as well."
+  },
+  {
+    key := "shared.sphere-measurable-coordinate-sde-6cf83ebc",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphere_marginal_balance_of_measurable_temperature_equations",
+    upstreamDecl := "Original Samplinglib supplement: Weak evolution for the canonical sphere coordinate equation. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereMeasurableCoordinateSDE.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The SDE is an input. Its conclusion is a weak statement about time-dependent marginal expectations."
+  },
+  {
+    key := "shared.weak-martingale-evolution-299879ac",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMartingaleEvolution.hasDerivWithinAt_expectation_of_centered_balance",
+    upstreamDecl := "Original Samplinglib supplement: Centered terminal residuals give a weak forward derivative. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/WeakMartingaleEvolution.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The residual is allowed to depend on the horizon. The claim concerns the fixed test expectation."
+  },
+  {
+    key := "shared.sphere-weak-forward-ec3107dc",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereWeakForward.hasDerivWithinAt_sphere_expectation_of_ito_rows",
+    upstreamDecl := "Original Samplinglib supplement: The integrated sphere diffusion satisfies the weak forward equation. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereWeakForward.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The input is a supplied integrated diffusion. The theorem gives the evolution of smooth test expectations for that process."
+  },
+  {
+    key := "shared.brownian-predictable-quadratic-variation-l2-380f7146",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianPredictableQuadraticVariationL2.predictable_weighted_quadraticVariationError_L2",
+    upstreamDecl := "Original Samplinglib supplement: The exact mean-square error for predictable Brownian weights. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianPredictableQuadraticVariationL2.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. Weights need no almost-sure uniform bound. They may be dependent across cells; the required condition is left-endpoint measurability and a finite second moment."
+  },
+  {
+    key := "shared.brownian-predictable-quadratic-variation-l2-f194fccb",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianPredictableQuadraticVariationL2.tendsto_integral_dyadic_predictable_weighted_quadraticVariationError_sq",
+    upstreamDecl := "Original Samplinglib supplement: Dyadic predictable Brownian square errors vanish in mean square. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/BrownianPredictableQuadraticVariationL2.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This is mean-square convergence of a centered error, not an almost-sure convergence assertion. It includes T=0."
+  },
+  {
+    key := "shared.compact-state-representative-9116fdf5",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactStateRepresentative.restrictState",
+    upstreamDecl := "Original Samplinglib supplement: Choose a representative with values in a specified set. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/CompactStateRepresentative.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The off-set fallback is an explicit part of this representative, not a projection or retraction supplied by geometry. For an almost-sure K-valued random variable, the change occurs only on its exceptional set."
+  },
+  {
+    key := "shared.compact-state-representative-60fe1c91",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactStateRepresentative.coe_restrictState_of_mem",
+    upstreamDecl := "Original Samplinglib supplement: The chosen representative agrees on the set. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/CompactStateRepresentative.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. Agreement is pointwise on K and does not claim agreement outside K."
+  },
+  {
+    key := "shared.compact-state-representative-38307b81",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactStateRepresentative.measurable_restrictState",
+    upstreamDecl := "Original Samplinglib supplement: The chosen representative is measurable. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/CompactStateRepresentative.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. No topology, compactness or continuity of r is asserted."
+  },
+  {
+    key := "shared.ito-taylor-grid-remainder-cb28f57d",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder.tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation",
+    upstreamDecl := "Original Samplinglib supplement: Vanishing Taylor residuals on arbitrary fine grids. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoTaylorGridRemainder.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. Convergence of square-increment sums is an explicit input to this reusable lemma; the downstream Itô theorem derives it for its actual process. No rate or almost-sure limit for the full sequence is asserted."
+  },
+  {
+    key := "shared.ito-dyadic-taylor-remainder-328600d2",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicTaylorRemainder.tendstoInMeasure_dyadic_sum_secondOrderRemainder",
+    upstreamDecl := "Original Samplinglib supplement: Vanishing Taylor residuals on a dyadic time grid. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicTaylorRemainder.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This theorem transfers an assumed square-increment limit to a Taylor-residual limit; it does not itself prove quadratic variation for a stochastic integral."
+  },
+  {
+    key := "shared.ito-euclidean-taylor-remainder-204e2d70",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanTaylorRemainder.tendstoInMeasure_dyadic_sum_secondOrderRemainder_of_coordinate_qv",
+    upstreamDecl := "Original Samplinglib supplement: Coordinate quadratic variation controls the vector Taylor residual. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoEuclideanTaylorRemainder.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The coordinate variation limits are inputs here. The result includes any finite coordinate set and claims convergence in measure, not pathwise convergence of the original sequence."
+  },
+  {
+    key := "shared.compact-progressive-coefficients",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactProgressiveCoefficients.continuous_coefficient_along_compact_process",
+    upstreamDecl := "Original Samplinglib supplement: Continuous coefficients along a compact-state progressive process",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/LpSeminorm/Basic.lean#L549",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The claim is coefficient regularity and finite-horizon integrability for a given process. Progressive measurability is global; the time-section and product bounds are local to the chosen horizon."
+  },
+  {
+    key := "shared.continuous-marginal-laws",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.continuous_marginal_law_of_ae_continuous",
+    upstreamDecl := "Original Samplinglib supplement: Continuous sample paths give continuous marginal laws",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/ConvergenceInDistribution.lean#L137",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The conclusion is continuity in the weak topology of probability measures."
+  },
+  {
+    key := "shared.centered-marginal-balance",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.weak_integral_balance_of_centered_increment",
+    upstreamDecl := "Original Samplinglib supplement: Marginal balance from a centered sample increment",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Integral/Prod.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The sample increment identity and the centered residual are supplied."
+  },
+  {
+    key := "shared.continuous-marginal-observable-derivative",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.hasDerivAt_weak_observable_of_integral_balance",
+    upstreamDecl := "Original Samplinglib supplement: Differentiating a local marginal balance",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Integral/IntervalIntegral/FundThmCalculus.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. This is the pointwise derivative under a jointly continuous field and a local balance on the real line."
+  },
+  {
+    key := "shared.bounded-progressive-coefficients",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveCoefficientBounds.bounded_measurable_coefficient_along_progressive_process",
+    upstreamDecl := "Original Samplinglib supplement: Bounded measurable coefficients along progressive paths",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Function/LpSeminorm/Basic.lean#L549",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The coefficient bound is pointwise on the selected horizon, which yields time integrability at every sample."
+  },
+  {
+    key := "shared.measurable-marginal-evolution",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution.marginal_balance_of_locally_bounded_generator",
+    upstreamDecl := "Original Samplinglib supplement: From centered increments to a two-time marginal balance",
+    upstreamFile := "https://github.com/leanprover-community/mathlib4/blob/db584cd6d46c92f209a44c0f1c829460d327499d/Mathlib/MeasureTheory/Integral/IntervalIntegral/LebesgueDifferentiationThm.lean#L38",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "probability", "continuous-time", "shared"],
+    saldUse := "Shared continuous-time probability and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled declaration with current independent semantic and whole-module review. The ordinary derivative assertion holds for Lebesgue-almost every strictly positive real time."
+  },
   {
     key := "bakry-emery.abstract-gradient-contraction",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.backwardInterpolation_contraction_of_expandedBakryEmery",
@@ -5341,6 +6077,16 @@ def stochasticProcessMemory : List LemmaMemoryEntry := [
 ]
 
 def probabilityMemory : List LemmaMemoryEntry := [
+  {
+    key := "shared.gaussian-joint-potential-gradient-supplement",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient.gaussian_polynomial_joint_potential_projected_gradient_transport_control",
+    upstreamDecl := "Original complete statement, conditions, definitions and seven proof steps in units[0] at immutable source commit 9ebb4f57fbdcb8db51701547ed0e0043ef743b4f.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/website/content/declaration_lessons/gaussian-joint-potential-gradient.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "geometry", "shared"],
+    saldUse := "Shared Gaussian potential and path-law continuity prerequisites.",
+    note := "Canonical compiled result with independent source-blind reconstruction and whole-module/source/reader review. The theorem returns an actual ambient gradient and its explicit normal-component projection. Intrinsic path-length and installed Riemannian-gradient/Wasserstein API identifications are separate.; No teacher/noise generative construction, general stochastic model, convergence theorem or primary-textbook chapter completion is certified.; Derivative witnesses, domination, feature means, residual budgets and scalar-potential identities are constructed inside the proof. Constants remain qualitative and may depend on the dimension."
+  },
     {
       key := "probability.slc-lsi-weighted-radial-mgf",
       localDecl := "AutoSamplingTheory.ExampleCases.SlcLsiQueryComplexity.WeightedRadialMGF.weightedRadialLevels_gaussian_mgf",
@@ -5813,6 +6559,96 @@ def variationalMemory : List LemmaMemoryEntry := [
 ]
 
 def geometryMemory : List LemmaMemoryEntry := [
+  {
+    key := "shared.unit-sphere-induced-path-distance",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance.unit_sphere_induced_riemannianEDist_eq_arccos",
+    upstreamDecl := "units[0], complete statement, definitions and six proof regions in runs/20261116-sphere-distance/source-only.json",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/eee7ad7474251d3c6027af9e9a6c9e9d57ed7b11/runs/20261116-sphere-distance/source-only.json",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["geometry", "riemannian", "shared"],
+    saldUse := "Canonical induced spherical path distance for geometric transport applications.",
+    note := "One source-reviewed all-pairs distance identity; the three private providers have no separate theorem credit. This identifies the induced length distance of a positive-dimensional unit sphere. It leaves the ambient chord metric unchanged; for antipodal points these two distances are \\(2\\) and \\(\\pi\\). The condition \\(n>0\\) is essential for arbitrary endpoint pairs: the two-point sphere has no continuous internal path between its two distinct points. It supplies no global Riemannian bundle instance, general manifold geodesic-existence theorem, transport estimate, stochastic result, or textbook chapter completion. Spherical transport is a possible consumer of the distance identity."
+  },
+  {
+    key := "shared.sphere-projected-noise-235fd8b7",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.projectedNoiseColumn",
+    upstreamDecl := "Original Samplinglib supplement: A coordinate column of the sphere projection formula. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereProjectedNoise.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The definition alone is a coordinate formula. The separately proved inner-product identity shows tangency on the unit sphere in the finite-dimensional setting."
+  },
+  {
+    key := "shared.sphere-projected-noise-91431942",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.inner_projectedNoiseColumn",
+    upstreamDecl := "Original Samplinglib supplement: Compute the radial component of a projected column. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereProjectedNoise.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The factor 1−‖x‖² records the radial component at arbitrary ambient points."
+  },
+  {
+    key := "shared.sphere-projected-noise-2ea7f14f",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.sum_norm_sq_projectedNoiseColumn",
+    upstreamDecl := "Original Samplinglib supplement: Compute the sum of the column norms. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereProjectedNoise.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. At a unit vector the squared column norm sum is d−1."
+  },
+  {
+    key := "shared.sphere-projected-noise-d4411e18",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.fderiv_projectedNoiseColumn_apply",
+    upstreamDecl := "Original Samplinglib supplement: Differentiate a projected coordinate field. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereProjectedNoise.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. This is the ambient derivative of the quadratic field."
+  },
+  {
+    key := "shared.sphere-projected-noise-d09a85b5",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.sum_fderiv_projectedNoiseColumn_apply",
+    upstreamDecl := "Original Samplinglib supplement: Contract the derivatives with their noise columns. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereProjectedNoise.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. On the unit sphere the contraction is −(d−1)x. The Stratonovich correction also includes half the squared noise amplitude."
+  },
+  {
+    key := "shared.sphere-diffusion-generator-416e2bef",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator.sum_hessian_projectedNoiseColumn",
+    upstreamDecl := "Original Samplinglib supplement: The projected Hessian trace removes the radial term. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereDiffusionGenerator.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The equation is pointwise at a unit vector. It concerns the extrinsic trace in ambient coordinates."
+  },
+  {
+    key := "shared.sphere-diffusion-generator-49ca28aa",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator.ito_generator_eq_sphereLaplacian",
+    upstreamDecl := "Original Samplinglib supplement: The algebraic sphere-generator identity. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereDiffusionGenerator.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The result is a pointwise identity for total derivative operators at one unit state, including temperature zero. Its classical generator interpretation uses the downstream C² test assumptions; its restricted directional-derivative interpretation also uses tangent u."
+  },
+  {
+    key := "shared.sphere-diffusion-generator-e27025fd",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator.sphereLaplacian",
+    upstreamDecl := "Original Samplinglib supplement: The extrinsic sphere Laplacian expression. Exact assumptions and formula below.",
+    upstreamFile := "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereDiffusionGenerator.lean",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["analysis", "geometry", "shared"],
+    saldUse := "Shared compact-state stochastic calculus and diffusion prerequisites.",
+    note := "Lean 4.33.0 compiled canonical declaration with independent anonymous reconstruction and exact whole-module/source/reader review. The definition is total off the sphere and without a smoothness assumption. It is an ambient expression; this declaration does not independently identify an intrinsic Laplace–Beltrami operator."
+  },
   {
     key := "unit-sphere-angular-cost",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereAngularCost.unit_sphere_angular_cost_properties",

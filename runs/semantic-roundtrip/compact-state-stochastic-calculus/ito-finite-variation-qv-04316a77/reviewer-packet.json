@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-345a10e852e26960",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-a-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-finite-variation-qv-04316a77",
+    "anchor": "Original Samplinglib supplement: Quadratic variation of a stopped Itô row with drift. Exact assumptions and formula below.",
+    "original_text": "Add a continuous finite-variation drift to a finite row of original completed Itô integrals evaluated at a common bounded stop. The squared dyadic increments of the sum converge in measure to the original integrated square energy up to the stop.\n\nOne actual finite-dimensional Euclidean Brownian motion under a finite sample measure μ, relative to a filtration satisfying the usual conditions.\nA positive deterministic horizon T, one common finite-valued stopping time with τ(ω)≤T at every sample point, and progressive product-space L² input in each coordinate.\nThe drift A is almost surely continuous and of bounded variation on [0,T]. Its deterministic-time values are almost everywhere strongly measurable. No moment of the total variation is required.\n\n\\begin{gathered}X_t=A_t+\\sum_j I^j_{t\\wedge\\tau}(\\eta_j),\\\\ \\sum_i(\\Delta_i X)^2\\ \\longrightarrow\\ \\sum_j\\int_{[0,\\tau]}\\eta_j(t)^2\\,dt\\qquad\\text{in measure}.\\end{gathered}",
+    "text_sha256": "30b2e36bf4755d8be0a15465ec2c685d4e1fbfa89bbd07bf0eb9a596ce26f5c8"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoFiniteVariationQV.tendstoInMeasure_dyadic_sq_increments_stopped_ito_add_boundedVariation",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoFiniteVariationQV.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {Omega : Type u_1} {J : Type u_2} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} {mu : MeasureTheory.Measure Omega}\n  [MeasureTheory.IsFiniteMeasure mu] {T : NNReal} {B : NNReal → Omega → EuclideanSpace ℝ J}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration mu)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu)\n  (eta :\n    J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T)\n  (tau : Omega → NNReal)\n  (htau :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.StoppingTime.IsChewiStoppingTime filtration fun omega =>\n      ↑(tau omega))\n  (htauT : ∀ (omega : Omega), tau omega ≤ T) (A : NNReal → Omega → ℝ)\n  (hAmeas : ∀ t ≤ T, MeasureTheory.AEStronglyMeasurable (A t) mu)\n  (hA :\n    ∀ᵐ (omega : Omega) ∂mu,\n      ContinuousOn (fun t => A t omega) (Set.Icc 0 T) ∧ BoundedVariationOn (fun t => A t omega) (Set.Icc 0 T)) :\n  have hcoord := ⋯;\n  have X := fun t omega =>\n    A t omega +\n      ∑ j,\n        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (eta j) hT ⋯ hUsual\n          (Min.min (tau omega) t) omega;\n  MeasureTheory.TendstoInMeasure mu\n    (fun level omega =>\n      have times :=\n        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n          (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T level)\n          (2 ^ level);\n      ∑ i, (X (times i.succ) omega - X (times i.castSucc) omega) ^ 2)\n    Filter.atTop fun omega =>\n    ∑ j,\n      ∫ (t : NNReal) in Set.Iic (tau omega),\n        (eta j).process t omega ^ 2 ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T",
+    "statement_sha256": "1c061c348829a982242f0637e1080b426dde53e0e8eee93864f28381935c9e54",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let J be finite with decidable equality, Omega a measurable space with finite measure mu, F a filtration satisfying the usual conditions, T>0, and B an R^J-valued standard Brownian motion with F. A vector standard Brownian motion with filtration F here starts at zero for every sample, has jointly independent increments over each finite family of disjoint half-open intervals, has centered Gaussian increment projections with variance (t-s)*||ell||^2 for every continuous linear functional ell and s<t, has almost surely continuous paths, is strongly F-adapted, and has each increment from s to t independent of F_s when s<=t. Usual conditions mean every null subset of Omega belongs to every F_t, and F is right-continuous. Write lambda_H for real Lebesgue measure restricted to [0,H] and transported to NNReal. A progressive L2 integrand on horizon H is a real strongly F-progressive process belonging to L2(mu product lambda_H), after ordering its arguments as (omega,t). Write I^H_j(h)(t) for its specified completed Ito integral against the coordinate B_j(t,omega) of B. This is the canonical elementary-approximation path limit, patched to zero on its exceptional null set and held constant after H. For each j in J let eta_j be a progressive L2 integrand on [0,T]. Let tau:Omega->NNReal be a stopping time for F (through its inclusion in WithTop NNReal), with tau(omega)<=T for every omega. Let A:NNReal x Omega->R have, for every t<=T, an mu-almost-everywhere strongly measurable slice A(t,.), and have paths continuous and of bounded variation on [0,T] for mu-almost every omega. Define\nX(t,omega)=A(t,omega)+sum_j I^T_j(eta_j)(min(tau(omega),t),omega).\nFor n in N set t_i^n=i*T/2^n. Then sum_{i=0}^{2^n-1}(X(t_{i+1}^n,omega)-X(t_i^n,omega))^2 converges in mu-measure, as n tends to infinity, to sum_j integral_{[0,T] intersect [0,tau(omega)]} eta_j(s,omega)^2 ds. Only the Ito-integral part of X is stopped; A is evaluated at the unstopped time t. No adaptedness assumption on A is made.",
+    "text_sha256": "d42bb614cbb050f0c286f20654ffbe1d06648cd1371e6ff4dc04760664c7be10",
+    "decoder": "independent-decoder-a-20261116",
+    "decoder_packet_sha256": "fe99e7918b936b9e3fa301df42111625f82b1cf4dfb049cafefdbc7ddb789db1",
+    "decoder_run_sha256": "525c9084520e19fff227e4d686b7c901e3d447753498f034dc7c7c11bb4c0e53",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "57b9484f26902914ddb9660f9d624ecea1cf6a144cad200f0ff25ecbd05a09d0",
+  "candidate_publication_context": {
+    "file": "fd54caddb8f31d92ab301d2f2c5862548daa208788e400bc907218898f800d55",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteVariationDyadicQV\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV\n\n/-! # Adding a continuous finite-variation drift to a stopped Itô row -/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoFiniteVariationQV\n\nopen Filter MeasureTheory Set\nopen scoped NNReal ENNReal BigOperators\nopen BrownianMotion ProgressiveL2 StoppingTime ElementaryItoIntegral\n  SampledElementaryApproximation DyadicElementaryRefinement EuclideanBrownianCoordinates\n  ItoIntegralProcess ItoIntegralProcessAfterHorizon ItoStoppedRowQV\n  RandomStoppingProcessConsistency FiniteVariationDyadicQV\n\n/-- A continuous finite-variation drift leaves the stopped Itô row's\nquadratic variation unchanged in probability. -/\ntheorem tendstoInMeasure_dyadic_sq_increments_stopped_ito_add_boundedVariation\n    {Omega J : Type*} [MeasurableSpace Omega] [Fintype J] [DecidableEq J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Omega)}\n    {mu : Measure Omega} [IsFiniteMeasure mu] {T : ℝ≥0}\n    {B : ℝ≥0 → Omega → EuclideanSpace ℝ J}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration mu) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration mu)\n    (eta : J → ProgressiveL2Integrand filtration mu T)\n    (tau : Omega → ℝ≥0)\n    (htau : IsChewiStoppingTime filtration (fun omega => (tau omega : WithTop ℝ≥0)))\n    (htauT : ∀ omega, tau omega ≤ T)\n    (A : ℝ≥0 → Omega → ℝ)\n    (hAmeas : ∀ t ≤ T, AEStronglyMeasurable (A t) mu)\n    (hA : ∀ᵐ omega ∂mu, ContinuousOn (fun t => A t omega) (Set.Icc 0 T) ∧\n      BoundedVariationOn (fun t => A t omega) (Set.Icc 0 T)) :\n    let hcoord := (coordinateFamily hB).isBrownian\n    let X := fun t omega => A t omega + ∑ j : J,\n      itoIntegralProcess (eta j) hT (hcoord j) hUsual (min (tau omega) t) omega\n    TendstoInMeasure mu\n      (fun level omega =>\n        let times := regularGridTimes (dyadicMesh T level) (2 ^ level)\n        ∑ i : Fin (2 ^ level), (X (times i.succ) omega - X (times i.castSucc) omega)^2)\n      atTop (fun omega => ∑ j : J, ∫ t in Set.Iic (tau omega),\n        (eta j).process t omega ^ 2 ∂(TimeMeasure.upTo T)) := by\n  intro hcoord X\n  let coordinate (j : J) := itoIntegralProcess (eta j) hT (hcoord j) hUsual\n  let M (t : ℝ≥0) (omega : Omega) := ∑ j : J, coordinate j (min (tau omega) t) omega\n  let times (level : ℕ) := regularGridTimes (dyadicMesh T level) (2 ^ level)\n  let Q (f : ℝ≥0 → Omega → ℝ) (level : ℕ) (omega : Omega) :=\n    ∑ i : Fin (2 ^ level), (f (times level i.succ) omega - f (times level i.castSucc) omega)^2\n  let E (omega : Omega) := ∑ j : J, ∫ t in Set.Iic (tau omega),\n    (eta j).process t omega ^ 2 ∂(TimeMeasure.upTo T)\n  have hCont (j : J) (omega : Omega) : Continuous (fun t => coordinate j t omega) :=\n    itoIntegralProcess_continuous (eta j) hT (hcoord j) hUsual omega\n  have hMC (omega : Omega) : Continuous (fun t => M t omega) :=\n    continuous_finsetSum _ (fun j _ => (hCont j omega).comp (continuous_const.min continuous_id))\n  have hM (t : ℝ≥0) : AEStronglyMeasurable (M t) mu := by\n    have hCoordinate (j : J) : AEStronglyMeasurable\n        (fun omega => coordinate j (min (tau omega) t) omega) mu := by\n      have hs := ((itoIntegralProcess_stronglyAdapted (eta j) hT (hcoord j) hUsual).stoppedProcess\n        (hCont j) htau) t\n      apply (hs.mono (filtration.le t)).aestronglyMeasurable.congr\n      exact Eventually.of_forall fun omega => by\n        rw [stoppedProcess_coe_apply, min_comm]\n    apply (Finset.aestronglyMeasurable_sum Finset.univ (fun j _ => hCoordinate j)).congr\n    filter_upwards [] with omega\n    simp only [M, Finset.sum_apply]\n  have hTime (level : ℕ) (k : Fin (2 ^ level + 1)) : times level k ≤ T :=\n    ((regularGridTimes_strictMono (dyadicMesh_pos hT level) _).monotone\n      (Fin.le_last k)).trans_eq (regularDyadic_last_time T level)\n  have hQ (f : ℝ≥0 → Omega → ℝ)\n      (hf : ∀ t ≤ T, AEStronglyMeasurable (f t) mu) (level : ℕ) :\n      AEStronglyMeasurable (Q f level) mu := by\n    have hCell (i : Fin (2 ^ level)) : AEStronglyMeasurable\n        (fun omega => (f (times level i.succ) omega - f (times level i.castSucc) omega)^2) mu :=\n      ((hf _ (hTime level i.succ)).sub (hf _ (hTime level i.castSucc))).pow 2\n    apply (Finset.aestronglyMeasurable_sum Finset.univ (fun i _ => hCell i)).congr\n    filter_upwards [] with omega\n    simp only [Q, Finset.sum_apply]\n  have hX (t : ℝ≥0) (ht : t ≤ T) : AEStronglyMeasurable (X t) mu :=\n    (hAmeas t ht).add (hM t)\n  have hLimit : (∀ level, Integrable (fun omega => Q M level omega - E omega) mu) ∧\n      Tendsto (fun level => ∫ omega, |Q M level omega - E omega| ∂mu) atTop (nhds 0) :=\n    tendsto_dyadic_stopped_ito_row_quadraticVariation_L1 hB hT hUsual eta tau htau htauT\n  have hE : AEStronglyMeasurable E mu := by\n    apply ((hQ M (fun t _ => hM t) 0).sub (hLimit.1 0).aestronglyMeasurable).congr\n    exact Eventually.of_forall fun omega => sub_sub_cancel _ _\n  have hMeasure : TendstoInMeasure mu (Q M) atTop E := by\n    apply tendstoInMeasure_of_tendsto_eLpNorm (p := 1) (by norm_num) (hQ M (fun t _ => hM t)) hE\n    have hNorm (level : ℕ) : eLpNorm (Q M level - E) 1 mu =\n        ENNReal.ofReal (∫ omega, |Q M level omega - E omega| ∂mu) := by\n      rw [eLpNorm_one_eq_lintegral_enorm]\n      simpa only [Real.norm_eq_abs, Pi.sub_apply] using\n        (ofReal_integral_norm_eq_lintegral_enorm (hLimit.1 level)).symm\n    simpa only [hNorm, Function.comp_def, ENNReal.ofReal_zero] using\n      ENNReal.continuous_ofReal.continuousAt.tendsto.comp hLimit.2\n  change TendstoInMeasure mu (Q X) atTop E\n  refine (exists_seq_tendstoInMeasure_atTop_iff (hQ X hX)).2 ?_\n  intro n hn\n  obtain ⟨k, hk, hPath⟩ := (hMeasure.comp hn.tendsto_atTop).exists_seq_tendsto_ae\n  refine ⟨k, hk, ?_⟩\n  filter_upwards [hA, hPath] with omega ha hPath\n  have hDrift := tendsto_dyadic_sq_increments_sub_of_continuous_boundedVariation\n    (fun t => M t omega) (fun t => A t omega) T (hMC omega).continuousOn ha.1 ha.2\n  have hDiff : Tendsto (fun level => Q X level omega - Q M level omega) atTop (nhds 0) := by\n    refine (tendsto_congr' (Eventually.of_forall fun level => ?_)).1 hDrift\n    dsimp only [Q, times, X, M, coordinate]\n    rw [← Finset.sum_sub_distrib]\n    apply Finset.sum_congr rfl\n    intro i _\n    ring\n  have hSum := (hDiff.comp (hn.tendsto_atTop.comp hk.tendsto_atTop)).add hPath\n  simpa only [Function.comp_def, sub_add_cancel, zero_add] using hSum\n\n#print axioms tendstoInMeasure_dyadic_sq_increments_stopped_ito_add_boundedVariation\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoFiniteVariationQV\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-finite-variation-qv-04316a77",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoFiniteVariationQV.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Quadratic variation of a stopped Itô row with drift. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "Add a continuous finite-variation drift to a finite row of original completed Itô integrals evaluated at a common bounded stop. The squared dyadic increments of the sum converge in measure to the original integrated square energy up to the stop.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\begin{gathered}X_t=A_t+\\sum_j I^j_{t\\wedge\\tau}(\\eta_j),\\\\ \\sum_i(\\Delta_i X)^2\\ \\longrightarrow\\ \\sum_j\\int_{[0,\\tau]}\\eta_j(t)^2\\,dt\\qquad\\text{in measure}.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "One actual finite-dimensional Euclidean Brownian motion under a finite sample measure μ, relative to a filtration satisfying the usual conditions.",
+      "A positive deterministic horizon T, one common finite-valued stopping time with τ(ω)≤T at every sample point, and progressive product-space L² input in each coordinate.",
+      "The drift A is almost surely continuous and of bounded variation on [0,T]. Its deterministic-time values are almost everywhere strongly measurable. No moment of the total variation is required."
+    ],
+    "obligations": [
+      {
+        "id": "ito-finite-variation-qv-04316a77",
+        "label": "Quadratic variation of a stopped Itô row with drift"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoFiniteVariationQV.tendstoInMeasure_dyadic_sq_increments_stopped_ito_add_boundedVariation",
+      "title": "Quadratic variation of a stopped Itô row with drift",
+      "statement": "Add a continuous finite-variation drift to a finite row of original completed Itô integrals evaluated at a common bounded stop. The squared dyadic increments of the sum converge in measure to the original integrated square energy up to the stop.",
+      "formula": "\\begin{gathered}X_t=A_t+\\sum_j I^j_{t\\wedge\\tau}(\\eta_j),\\\\ \\sum_i(\\Delta_i X)^2\\ \\longrightarrow\\ \\sum_j\\int_{[0,\\tau]}\\eta_j(t)^2\\,dt\\qquad\\text{in measure}.\\end{gathered}",
+      "assumptions": [
+        "One actual finite-dimensional Euclidean Brownian motion under a finite sample measure μ, relative to a filtration satisfying the usual conditions.",
+        "A positive deterministic horizon T, one common finite-valued stopping time with τ(ω)≤T at every sample point, and progressive product-space L² input in each coordinate.",
+        "The drift A is almost surely continuous and of bounded variation on [0,T]. Its deterministic-time values are almost everywhere strongly measurable. No moment of the total variation is required."
+      ],
+      "steps": [
+        {
+          "title": "Check the stopped row as a process",
+          "text": "The stopped coordinate integrals are adapted and are continuous along the paths. Finite sums give the same properties for the row and give measurability of its square-increment sums.",
+          "formula": "M^\\tau_t=\\sum_j I^j_{t\\wedge\\tau}(\\eta_j).",
+          "lean": "  have hCont (j : J) (omega : Omega) : Continuous (fun t => coordinate j t omega) :=\n    itoIntegralProcess_continuous (eta j) hT (hcoord j) hUsual omega\n  have hMC (omega : Omega) : Continuous (fun t => M t omega) :=\n    continuous_finsetSum _ (fun j _ => (hCont j omega).comp (continuous_const.min continuous_id))\n  have hM (t : ℝ≥0) : AEStronglyMeasurable (M t) mu := by\n    have hCoordinate (j : J) : AEStronglyMeasurable\n        (fun omega => coordinate j (min (tau omega) t) omega) mu := by\n      have hs := ((itoIntegralProcess_stronglyAdapted (eta j) hT (hcoord j) hUsual).stoppedProcess\n        (hCont j) htau) t\n      apply (hs.mono (filtration.le t)).aestronglyMeasurable.congr\n      exact Eventually.of_forall fun omega => by\n        rw [stoppedProcess_coe_apply, min_comm]\n    apply (Finset.aestronglyMeasurable_sum Finset.univ (fun j _ => hCoordinate j)).congr\n    filter_upwards [] with omega\n    simp only [M, Finset.sum_apply]\n"
+        },
+        {
+          "title": "Use the stopped Itô bracket limit",
+          "text": "The stopped row's squared increments converge in L¹ to the literal stopped energy. Therefore they converge to that energy in measure.",
+          "formula": "Q_n(M^\\tau)\\longrightarrow \\sum_j\\int_{[0,\\tau]}\\eta_j^2\\,dt\\qquad\\text{in measure}.",
+          "lean": "  have hLimit : (∀ level, Integrable (fun omega => Q M level omega - E omega) mu) ∧\n      Tendsto (fun level => ∫ omega, |Q M level omega - E omega| ∂mu) atTop (nhds 0) :=\n    tendsto_dyadic_stopped_ito_row_quadraticVariation_L1 hB hT hUsual eta tau htau htauT\n  have hE : AEStronglyMeasurable E mu := by\n    apply ((hQ M (fun t _ => hM t) 0).sub (hLimit.1 0).aestronglyMeasurable).congr\n    exact Eventually.of_forall fun omega => sub_sub_cancel _ _\n  have hMeasure : TendstoInMeasure mu (Q M) atTop E := by\n    apply tendstoInMeasure_of_tendsto_eLpNorm (p := 1) (by norm_num) (hQ M (fun t _ => hM t)) hE\n    have hNorm (level : ℕ) : eLpNorm (Q M level - E) 1 mu =\n        ENNReal.ofReal (∫ omega, |Q M level omega - E omega| ∂mu) := by\n      rw [eLpNorm_one_eq_lintegral_enorm]\n      simpa only [Real.norm_eq_abs, Pi.sub_apply] using\n        (ofReal_integral_norm_eq_lintegral_enorm (hLimit.1 level)).symm\n    simpa only [hNorm, Function.comp_def, ENNReal.ofReal_zero] using\n      ENNReal.continuous_ofReal.continuousAt.tendsto.comp hLimit.2\n"
+        },
+        {
+          "title": "Pass through the drift perturbation",
+          "text": "The deterministic perturbation theorem holds on the full-measure event of continuous finite variation. Every subsequence of the stopped row squares has a further almost surely convergent subsequence. Add the vanishing pathwise drift difference and use the subsequence criterion.",
+          "formula": "Q_n(X)-Q_n(M^\\tau)\\longrightarrow0\\qquad\\mu\\text{-a.e.}",
+          "lean": "  change TendstoInMeasure mu (Q X) atTop E\n  refine (exists_seq_tendstoInMeasure_atTop_iff (hQ X hX)).2 ?_\n  intro n hn\n  obtain ⟨k, hk, hPath⟩ := (hMeasure.comp hn.tendsto_atTop).exists_seq_tendsto_ae\n  refine ⟨k, hk, ?_⟩\n  filter_upwards [hA, hPath] with omega ha hPath\n  have hDrift := tendsto_dyadic_sq_increments_sub_of_continuous_boundedVariation\n    (fun t => M t omega) (fun t => A t omega) T (hMC omega).continuousOn ha.1 ha.2\n  have hDiff : Tendsto (fun level => Q X level omega - Q M level omega) atTop (nhds 0) := by\n    refine (tendsto_congr' (Eventually.of_forall fun level => ?_)).1 hDrift\n    dsimp only [Q, times, X, M, coordinate]\n    rw [← Finset.sum_sub_distrib]\n    apply Finset.sum_congr rfl\n    intro i _\n    ring\n  have hSum := (hDiff.comp (hn.tendsto_atTop.comp hk.tendsto_atTop)).add hPath\n  simpa only [Function.comp_def, sub_add_cancel, zero_add] using hSum\n"
+        }
+      ],
+      "lean_statement": "The exact Lean statement gives the grid, input processes and quantifiers.",
+      "lean_proof": "Open each proof step to read its matching Lean excerpt. The complete Lean proof is also available.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoStoppedRowQV.tendsto_dyadic_stopped_ito_row_quadraticVariation_L1",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteVariationDyadicQV.tendsto_dyadic_sq_increments_sub_of_continuous_boundedVariation",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessAfterHorizon.itoIntegralProcess_continuous"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.tendstoInMeasure_of_tendsto_eLpNorm",
+        "MeasureTheory.exists_seq_tendstoInMeasure_atTop_iff"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/150a8a5587d5960a2b4f96de86b7f42e16b2e91b/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/RandomStoppingProcessConsistency.lean",
+          "label": "RandomStoppingProcessConsistency",
+          "scope": "Samplinglib construction used in the proof."
+        }
+      ],
+      "tests": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoFiniteVariationQV.tendstoInMeasure_dyadic_sq_increments_stopped_ito_add_boundedVariation",
+      "role": "prerequisite",
+      "supports": [
+        "ito-finite-variation-qv-04316a77"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "One actual finite-dimensional Euclidean Brownian motion under a finite sample measure μ, relative to a filtration satisfying the usual conditions.",
+        "lean": "One actual finite-dimensional Euclidean Brownian motion under a finite sample measure μ, relative to a filtration satisfying the usual conditions."
+      },
+      {
+        "source": "A positive deterministic horizon T, one common finite-valued stopping time with τ(ω)≤T at every sample point, and progressive product-space L² input in each coordinate.",
+        "lean": "A positive deterministic horizon T, one common finite-valued stopping time with τ(ω)≤T at every sample point, and progressive product-space L² input in each coordinate."
+      },
+      {
+        "source": "The drift A is almost surely continuous and of bounded variation on [0,T]. Its deterministic-time values are almost everywhere strongly measurable. No moment of the total variation is required.",
+        "lean": "The drift A is almost surely continuous and of bounded variation on [0,T]. Its deterministic-time values are almost everywhere strongly measurable. No moment of the total variation is required."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "5f0c82ebde159e89f70b3cb4cee0fbab74791cf1732f677b90bd7ad775caae49"
+}

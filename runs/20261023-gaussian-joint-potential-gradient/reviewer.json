@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-0b618953b7c17a4a",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "codex-gaussian-joint-potential-formalizer",
+    "blind_decoder": "anonymous-decoder-v1",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "gaussian-joint-potential-gradient-supplement",
+    "anchor": "Complete units[0] statement, self-contained displayed definitions/conditions and all7 formula proof steps at immutable5ad8016d9ddb1e287b3da53c7043b3545a2c93eb",
+    "original_text": "Let E be a finite-dimensional real inner-product normed space with its Borel structure, let γ=stdGaussian(E) be its centered standard identity-covariance Gaussian, and let S={w in E: norm(w)=1}. Let P be a probability law on E×ℝ with first marginal γ, p a finite real polynomial, and the actual response (x,y)↦y square-integrable under P. For each parameter probability μ on S, define f_μ(x)=∫_S p(inner(w,x))dμ(w), V_μ(w)=2∫(f_μ(x)−y)p(inner(w,x))dP(x,y), g_μ(w)=gradient(V_μ)(w), and G_μ(w)=g_μ(w)−inner(g_μ(w),w)w. For w,u in S define c(w,u)=arccos(inner(w,u)); let Π(μ,ν) be all probability measures on S×S with marginals μ,ν, and Q(μ,ν)=inf_{π in Π(μ,ν)}∫c²dπ, an extended nonnegative cost. Then the integrand defining V_μ is integrable at every ambient weight and its actual ambient gradient exists there. There are positive C₁,C₂, chosen before all parameter laws and unit weights, such that G_μ(w) is tangent, norm(G_μ(w))≤C₁, Q(μ,ν) is finite, and norm(G_μ(w)−G_ν(u))≤C₂(sqrt(Q(μ,ν))+c(w,u)). No independence of response/input or derivative, domination, mean-bound, integral-identity or gradient oracle is assumed. Constants may depend on E,p,P, including the response L² norm. The theorem concerns the explicit angular cost and projected ambient gradient; it does not assert an intrinsic path-length identity, an installed manifold-gradient/Wasserstein API, teacher/noise construction or full model convergence.",
+    "text_sha256": "fca2ced2e2484e693cf6a7a456a9ab256a6fffb114e02e647bc03206b964df94"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient.gaussian_polynomial_joint_potential_projected_gradient_transport_control",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialGradient.lean",
+    "statement": "theorem result\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]\n    (hGaussian : P.map Prod.fst = ProbabilityTheory.stdGaussian E)\n    (p : Polynomial ℝ) (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :\n    let S := {w : E // ‖w‖ = 1}\n    let predictor : Measure S → E → ℝ := fun μ x => ∫ w, p.eval ⟪w.1,x⟫_ℝ ∂μ\n    let V : Measure S → E → ℝ := fun μ w =>\n      2 * ∫ z, (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ ∂P\n    let grad : Measure S → E → E := fun μ w => gradient (V μ) w\n    let G : Measure S → E → E := fun μ w => grad μ w-⟪grad μ w,w⟫_ℝ • w\n    let c : S × S → ℝ := fun z => Real.arccos ⟪z.1.1,z.2.1⟫_ℝ\n    let Q : Measure S → Measure S → ℝ≥0∞ := fun μ ν =>\n      AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost\n        (fun z => ENNReal.ofReal ((c z)^2)) μ ν\n    ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧\n      (∀ μ : Measure S, IsProbabilityMeasure μ →\n        (∀ w : E, Integrable (fun z : E × ℝ =>\n            (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ) P ∧\n          HasGradientAt (V μ) (grad μ w) w) ∧\n        ∀ w : S, ⟪w.1,G μ w.1⟫_ℝ = 0 ∧ ‖G μ w.1‖ ≤ C₁) ∧\n      ∀ μ ν : Measure S, IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        Q μ ν ≠ ∞ ∧ ∀ w u : S,\n          ‖G μ w.1-G ν u.1‖ ≤\n            C₂*((Q μ ν ^ (1 / 2 : ℝ)).toReal+c (w,u))",
+    "statement_sha256": "54be48c05eb91a789d25c6472c834e664cc6e18e9e05437cac40c7fd53b30a0a",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "For every finite-dimensional real inner-product normed vector space E with its Borel measurable structure, every joint probability P on E times R whose actual first-coordinate pushforward P.map Prod.fst equals stdGaussian(E), every real polynomial p, and a supplied witness MemLp(z->z.2,2,P) for the actual response coordinate, make the following definitions. Let S={w:E | norm_E(w)=1} with its inherited topology and measurable structure, and denote the ambient representative of w:S by w_bar. For every mu:Measure S and x:E define predictor(mu,x)=integral_S p.eval(inner_product_E(w_bar,x)) dmu(w). Define V(mu,w)=2*integral_{E times R}(predictor(mu,z.1)-z.2)*p.eval(inner_product_E(w,z.1)) dP(z), for every ambient w:E. Define grad(mu,w)=gradient(V(mu,.),w), the actual Mathlib full ambient gradient, and G(mu,w)=grad(mu,w)-inner_product_E(grad(mu,w),w) times w. Define c(w,u)=Real.arccos(inner_product_E(w_bar,u_bar)) on S times S. Define Q(mu,nu) as the infimum in the nonnegative extended reals of integral_lower_{S times S} ofReal(c(w,u)^2) dgamma(w,u), over actual measures gamma whose first marginal is mu and second marginal is nu. The empty feasible infimum is infinity; no optimizer is selected or asserted. All predictor and potential integrals are actual real Bochner integrals, totalized to zero if their integrands fail to be integrable. The gradient definition is totalized at points without the corresponding Frechet derivative. Then the following full conclusion holds: There exist C1,C2:R with C1>0 and C2>0, uniform for all subsequent laws and unit weights. For every probability mu on S, and every ambient w:E, the scalar function z->(predictor(mu,z.1)-z.2)*p.eval(inner_product_E(w,z.1)) is genuinely Bochner integrable under P, and HasGradientAt(V(mu,.),grad(mu,w),w) holds. For every such probability mu and every w:S, inner_product_E(w_bar,G(mu,w_bar))=0 and norm_E(G(mu,w_bar))<=C1. For every probability pair mu,nu on S, Q(mu,nu)!=infinity and, for all w,u:S, norm_E(G(mu,w_bar)-G(nu,u_bar))<=C2*((Q(mu,nu)^(1/2)).toReal+c(w,u)). The response membership supplies almost-everywhere strong measurability and finite L2 seminorm under the true joint law; no independence or product decomposition follows from the Gaussian marginal identity. All response values in V are the actual z.2. The constants are existentially chosen once, before every measure and unit-point quantifier, and may depend on the fixed E,P,p and its response moment data but not on mu,nu,w,u. The explicit integrability conclusion concerns the displayed cross term under P for every ambient w, not merely for unit or supported weights. The gradient assertion is a genuine full ambient Frechet differentiability conclusion, with derivative v->inner_product_E(grad(mu,w),v); it is not merely the use of a totalized gradient symbol. Mu is fixed when taking this derivative. The statement does not supply a further closed formula for grad involving a derivative polynomial or an adjoint operator. For a unit ambient point w, the definition of G is the orthogonal projection of the full ambient gradient onto w-perpendicular; for nonunit w it is only the stated algebraic subtraction. The norm and law-plus-angle comparison are asserted only at exact unit points of S and concern G, not an unrestricted bound on grad. The parameter probabilities may be arbitrary, including nonatomic laws. Definitions exist for arbitrary measures, while the analytic and transport-finiteness claims have the displayed probability premises. Finiteness of Q makes its extended square root finite and toReal its ordinary nonnegative real value, rather than its convention zero at infinity. Q=0 is allowed. No new metric or geodesic structure, chosen optimal coupling, differentiability in the law variable, positive-dimensionality assumption, or nonzero-polynomial assumption is asserted. If S is empty, the probability-conditioned clauses are vacuous but positive C1,C2 are still required to exist.",
+    "text_sha256": "ecf029a61c5c35775ddc7530b9b038016905fd0aca3101731b430564b08bea30",
+    "decoder": "anonymous-decoder-v1",
+    "decoder_packet_sha256": "ebc734582e9b32889ae10e0d3f0c1db36366b4e45323c0507255ae820dc36a31",
+    "decoder_run_sha256": "878365157ed2e8394067810bf3417c146a46eaa8799dd47db7a85a008ec0f8cb",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "04dded02a36a9da80e043d4aeea1180566e042a4c16212340c48285aeeeb15df",
+  "candidate_publication_context": {
+    "file": "47181fea6d97023c682210dc8b899eb5da41fdaf02d012a9d7c4642ea522cc4b",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient\nimport AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation\nimport AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging\nimport Mathlib.Analysis.Calculus.Gradient.Basic\nimport Mathlib.Analysis.Normed.Module.FiniteDimension\nimport Mathlib.Tactic\nopen MeasureTheory ProbabilityTheory Filter\nopen scoped InnerProductSpace ENNReal\nnoncomputable section\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient\n\ntheorem gaussian_polynomial_joint_potential_projected_gradient_transport_control\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]\n    (hGaussian : P.map Prod.fst = ProbabilityTheory.stdGaussian E)\n    (p : Polynomial ℝ) (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :\n    let S := {w : E // ‖w‖ = 1}\n    let predictor : Measure S → E → ℝ := fun μ x => ∫ w, p.eval ⟪w.1,x⟫_ℝ ∂μ\n    let V : Measure S → E → ℝ := fun μ w =>\n      2 * ∫ z, (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ ∂P\n    let grad : Measure S → E → E := fun μ w => gradient (V μ) w\n    let G : Measure S → E → E := fun μ w => grad μ w-⟪grad μ w,w⟫_ℝ • w\n    let c : S × S → ℝ := fun z => Real.arccos ⟪z.1.1,z.2.1⟫_ℝ\n    let Q : Measure S → Measure S → ℝ≥0∞ := fun μ ν =>\n      AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost\n        (fun z => ENNReal.ofReal ((c z)^2)) μ ν\n    ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧\n      (∀ μ : Measure S, IsProbabilityMeasure μ →\n        (∀ w : E, Integrable (fun z : E × ℝ =>\n            (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ) P ∧\n          HasGradientAt (V μ) (grad μ w) w) ∧\n        ∀ w : S, ⟪w.1,G μ w.1⟫_ℝ = 0 ∧ ‖G μ w.1‖ ≤ C₁) ∧\n      ∀ μ ν : Measure S, IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        Q μ ν ≠ ∞ ∧ ∀ w u : S,\n          ‖G μ w.1-G ν u.1‖ ≤\n            C₂*((Q μ ν ^ (1 / 2 : ℝ)).toReal+c (w,u)) := by\n  classical\n  let : CompleteSpace E := FiniteDimensional.complete ℝ E\n  dsimp only\n  let S := {w : E // ‖w‖ = 1}\n  let predictor : Measure S → E → ℝ := fun μ x => ∫ w, p.eval ⟪w.1,x⟫_ℝ ∂μ\n  let V : Measure S → E → ℝ := fun μ w =>\n    2 * ∫ z, (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ ∂P\n  let grad : Measure S → E → E := fun μ w => gradient (V μ) w\n  let G : Measure S → E → E := fun μ w => grad μ w-⟪grad μ w,w⟫_ℝ • w\n  let c : S × S → ℝ := fun z => Real.arccos ⟪z.1.1,z.2.1⟫_ℝ\n  let Q : Measure S → Measure S → ℝ≥0∞ := fun μ ν =>\n    AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost\n      (fun z => ENNReal.ofReal ((c z)^2)) μ ν\n  change ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧\n      (∀ μ : Measure S, IsProbabilityMeasure μ →\n        (∀ w : E, Integrable (fun z : E × ℝ =>\n            (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ) P ∧\n          HasGradientAt (V μ) (grad μ w) w) ∧\n        ∀ w : S, ⟪w.1,G μ w.1⟫_ℝ = 0 ∧ ‖G μ w.1‖ ≤ C₁) ∧\n      ∀ μ ν : Measure S, IsProbabilityMeasure μ → IsProbabilityMeasure ν →\n        Q μ ν ≠ ∞ ∧ ∀ w u : S,\n          ‖G μ w.1-G ν u.1‖ ≤\n            C₂*((Q μ ν ^ (1 / 2 : ℝ)).toReal+c (w,u))\n  obtain ⟨hf,hdf,D,hD,hDiff,M₁,M₂,hM₁,hM₂,hBound,hLip⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_derivative_bounds (E := E) p\n  have hmarg : MeasurePreserving (Prod.fst : E × ℝ → E) P (stdGaussian E) :=\n    ⟨measurable_fst,hGaussian⟩\n  let J : Lp ℝ 2 (stdGaussian E) →ₗᵢ[ℝ] Lp ℝ 2 P :=\n    Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hmarg\n  let T : Lp ℝ 2 (stdGaussian E) →L[ℝ] Lp ℝ 2 P := J.toContinuousLinearMap\n  let hfP : ∀ w : E, MemLp (fun z : E × ℝ => p.eval ⟪w,z.1⟫_ℝ) 2 P :=\n    fun w => (hf w).comp_measurePreserving hmarg\n  let F : E → Lp ℝ 2 P := fun w => (hfP w).toLp (fun z => p.eval ⟪w,z.1⟫_ℝ)\n  let DP : E → E →L[ℝ] Lp ℝ 2 P := fun w => T.comp (D w)\n  have hFeq (w : E) : F w = T ((hf w).toLp (fun x => p.eval ⟪w,x⟫_ℝ)) := rfl\n  have hFP (w : E) : HasFDerivAt F (DP w) w := by\n    have he : F = fun u => T ((hf u).toLp (fun x => p.eval ⟪u,x⟫_ℝ)) := funext hFeq\n    rw [he]\n    exact T.hasFDerivAt.comp w (hDiff w)\n  have hPB (w : E) (hw : ‖w‖ ≤ 1) : ‖DP w‖ ≤ M₁ := by\n    apply ContinuousLinearMap.opNorm_le_bound _ hM₁.le\n    intro v\n    change ‖J (D w v)‖ ≤ M₁*‖v‖\n    rw [J.norm_map]\n    exact ((D w).le_opNorm v).trans (mul_le_mul_of_nonneg_right (hBound w hw) (norm_nonneg v))\n  have hPL (w u : E) (hw : ‖w‖ ≤ 1) (hu : ‖u‖ ≤ 1) :\n      ‖DP w-DP u‖ ≤ M₂*‖w-u‖ := by\n    apply ContinuousLinearMap.opNorm_le_bound _ (mul_nonneg hM₂.le (norm_nonneg _))\n    intro v\n    change ‖T (D w v)-T (D u v)‖ ≤ (M₂*‖w-u‖)*‖v‖\n    rw [← map_sub]\n    change ‖J ((D w-D u) v)‖ ≤ (M₂*‖w-u‖)*‖v‖\n    rw [J.norm_map]\n    exact ((D w-D u).le_opNorm v).trans\n      (mul_le_mul_of_nonneg_right (hLip u w hu hw) (norm_nonneg v))\n  let label : Lp ℝ 2 P := hlabel.toLp (fun z : E × ℝ => z.2)\n  let K : S → Lp ℝ 2 P := fun w => F w.1\n  let mean : Measure S → Lp ℝ 2 P := fun μ => ∫ w, K w ∂μ\n  obtain ⟨C₁,C₂,hC₁,hC₂,hpoint,hlaw⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient.quadratic_feature_law_gradient_angular_transport_control\n      F DP hFP M₁ M₂ hM₁.le hM₂.le hPB hPL label\n  obtain ⟨hfS,hcont,havg⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.gaussian_polynomial_parameter_average_L2 (E := E) p\n  have hMeanClass (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      ∃ hpred : MemLp (fun z : E × ℝ => predictor μ z.1) 2 P,\n        hpred.toLp (fun z => predictor μ z.1) = mean μ := by\n    obtain ⟨hscalar,hint,hmean,hident⟩ := havg μ hμ\n    let hpred : MemLp (fun z : E × ℝ => predictor μ z.1) 2 P :=\n      hmean.comp_measurePreserving hmarg\n    refine ⟨hpred,?_⟩\n    calc\n      hpred.toLp (fun z => predictor μ z.1) = T (hmean.toLp (predictor μ)) := rfl\n      _ = T (∫ w, (hfS w).toLp (fun x => p.eval ⟪w.1,x⟫_ℝ) ∂μ) := congrArg T hident\n      _ = mean μ := (T.integral_comp_comm hint).symm\n  have hMeanAE (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      (fun z => mean μ z) =ᵐ[P] (fun z : E × ℝ => predictor μ z.1) := by\n    obtain ⟨hpred,hident⟩ := hMeanClass μ hμ\n    rw [← hident]\n    exact hpred.coeFn_toLp\n  have hResidual (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      (fun z => (mean μ-label) z) =ᵐ[P] (fun z : E × ℝ => predictor μ z.1-z.2) := by\n    filter_upwards [Lp.coeFn_sub (mean μ) label,hMeanAE μ hμ,hlabel.coeFn_toLp]\n      with z hs hm hy\n    simp only [Pi.sub_apply] at hs\n    rw [hs,hm,hy]\n  have hPot (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      V μ = fun w => 2 * ⟪mean μ-label,F w⟫_ℝ := by\n    funext w\n    change 2 * (∫ z, (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ ∂P) = _\n    rw [L2.inner_def]\n    congr 1\n    apply integral_congr_ae\n    filter_upwards [hResidual μ hμ,(hfP w).coeFn_toLp] with z hr hw\n    change F w z = p.eval ⟪w,z.1⟫_ℝ at hw\n    simp only [Real.inner_apply,hr,hw]\n  have hGrad (μ : Measure S) (hμ : IsProbabilityMeasure μ) (w : E) :\n      HasGradientAt (V μ) ((2 : ℝ) • (DP w).adjoint (mean μ-label)) w := by\n    rw [hPot μ hμ]\n    exact (hpoint μ hμ).2.1 w\n  have hG (μ : Measure S) (hμ : IsProbabilityMeasure μ) (w : E) :\n      G μ w = (2 : ℝ) • ((DP w).adjoint (mean μ-label) -\n        ⟪(DP w).adjoint (mean μ-label),w⟫_ℝ • w) := by\n    dsimp only [G,grad]\n    rw [(hGrad μ hμ w).gradient]\n    simp only [smul_sub,real_inner_smul_left,smul_smul]\n  refine ⟨C₁,C₂,hC₁,hC₂,?_,?_⟩\n  · intro μ hμ\n    refine ⟨?_,?_⟩\n    · intro w\n      obtain ⟨hpred,hident⟩ := hMeanClass μ hμ\n      refine ⟨(hpred.sub hlabel).integrable_mul (hfP w),?_⟩\n      change HasGradientAt (V μ) (gradient (V μ) w) w\n      rw [(hGrad μ hμ w).gradient]\n      exact hGrad μ hμ w\n    · intro w\n      rw [hG μ hμ w.1]\n      exact (hpoint μ hμ).2.2 w\n  · intro μ ν hμ hν\n    refine ⟨(hlaw μ ν hμ hν).1,?_⟩\n    intro w u\n    rw [hG μ hμ w.1,hG ν hν u.1]\n    exact (hlaw μ ν hμ hν).2 w u\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/5ad8016d9ddb1e287b3da53c7043b3545a2c93eb/website/content/declaration_lessons/gaussian-joint-potential-gradient.json",
+      "edition": "Samplinglib original Gaussian joint-data potential supplement v1,2026-10-23",
+      "anchor": "Complete units[0] statement, self-contained displayed definitions/conditions and all7 formula proof steps at immutable5ad8016d9ddb1e287b3da53c7043b3545a2c93eb",
+      "wording_status": "licensed original",
+      "attribution": "An original reusable mathematics supplement placed by subject. No primary-textbook theorem or whole-model completion claim."
+    },
+    "statement": "Let E be a finite-dimensional real inner-product normed space with its Borel structure, let γ=stdGaussian(E) be its centered standard identity-covariance Gaussian, and let S={w in E: norm(w)=1}. Let P be a probability law on E×ℝ with first marginal γ, p a finite real polynomial, and the actual response (x,y)↦y square-integrable under P. For each parameter probability μ on S, define f_μ(x)=∫_S p(inner(w,x))dμ(w), V_μ(w)=2∫(f_μ(x)−y)p(inner(w,x))dP(x,y), g_μ(w)=gradient(V_μ)(w), and G_μ(w)=g_μ(w)−inner(g_μ(w),w)w. For w,u in S define c(w,u)=arccos(inner(w,u)); let Π(μ,ν) be all probability measures on S×S with marginals μ,ν, and Q(μ,ν)=inf_{π in Π(μ,ν)}∫c²dπ, an extended nonnegative cost. Then the integrand defining V_μ is integrable at every ambient weight and its actual ambient gradient exists there. There are positive C₁,C₂, chosen before all parameter laws and unit weights, such that G_μ(w) is tangent, norm(G_μ(w))≤C₁, Q(μ,ν) is finite, and norm(G_μ(w)−G_ν(u))≤C₂(sqrt(Q(μ,ν))+c(w,u)). No independence of response/input or derivative, domination, mean-bound, integral-identity or gradient oracle is assumed. Constants may depend on E,p,P, including the response L² norm. The theorem concerns the explicit angular cost and projected ambient gradient; it does not assert an intrinsic path-length identity, an installed manifold-gradient/Wasserstein API, teacher/noise construction or full model convergence.",
+    "formulae": [
+      {
+        "label": "Actual Gaussian joint-data potentials: gradients and angular transport control",
+        "tex": "\\begin{gathered}\\gamma=\\operatorname{stdGaussian}(E),\\qquad S=\\{w\\in E:\\|w\\|=1\\},\\\\f_\\mu(x)=\\int_S p(\\langle w,x\\rangle)\\,d\\mu(w),\\\\V_\\mu(w)=2\\int_{E\\times\\mathbb R}(f_\\mu(x)-y)p(\\langle w,x\\rangle)\\,dP(x,y),\\\\G_\\mu(w)=\\nabla V_\\mu(w)-\\langle\\nabla V_\\mu(w),w\\rangle w,\\\\c(w,u)=\\arccos\\langle w,u\\rangle,\\quad Q(\\mu,\\nu)=\\inf_{\\pi\\in\\Pi(\\mu,\\nu)}\\int_{S\\times S}c^2\\,d\\pi,\\\\\\|G_\\mu(w)\\|\\le C_1,\\quad\\|G_\\mu(w)-G_\\nu(u)\\|\\le C_2\\bigl(\\sqrt{Q(\\mu,\\nu)}+c(w,u)\\bigr).\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product normed space with its Borel measurable structure; its completeness is derived.",
+      "P is a probability measure on E×ℝ with first marginal equal to the centered standard identity-covariance Gaussian on E.",
+      "p is any finite real polynomial; the response z↦z₂ is square-integrable under the same P. No response/input independence is required.",
+      "S={w∈E:‖w‖=1} and γ=stdGaussian(E). The first displayed equations define the literal scalar predictor f_μ, potential V_μ and projected actual ambient gradient G_μ. The point cost is c(w,u)=arccos〈w,u〉.",
+      "Π(μ,ν) denotes all probability couplings on S×S with marginals μ,ν. Q(μ,ν)=inf_{π∈Π(μ,ν)}∫c²dπ is an extended nonnegative cost; its finiteness is proved before its real square root is taken.",
+      "Positive C₁,C₂ are chosen before all parameter probabilities and unit weights; they may depend on E,p and P, including its response L² norm. No dimension-free or polynomial quantitative bound is asserted."
+    ],
+    "obligations": [
+      {
+        "id": "gaussian-joint-potential-gradient",
+        "label": "Actual Gaussian joint-data potentials: gradients and angular transport control"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient.gaussian_polynomial_joint_potential_projected_gradient_transport_control",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialGradient.lean",
+      "source_line": 12,
+      "short_name": "gaussian_polynomial_joint_potential_projected_gradient_transport_control",
+      "title": "Actual Gaussian joint-data potentials: gradients and angular transport control",
+      "classification": "canonical shared library node; original mathematical supplement",
+      "statement": "Let E be a finite-dimensional real inner-product normed space with its Borel structure, let γ=stdGaussian(E) be its centered standard identity-covariance Gaussian, and let S={w in E: norm(w)=1}. Let P be a probability law on E×ℝ with first marginal γ, p a finite real polynomial, and the actual response (x,y)↦y square-integrable under P. For each parameter probability μ on S, define f_μ(x)=∫_S p(inner(w,x))dμ(w), V_μ(w)=2∫(f_μ(x)−y)p(inner(w,x))dP(x,y), g_μ(w)=gradient(V_μ)(w), and G_μ(w)=g_μ(w)−inner(g_μ(w),w)w. For w,u in S define c(w,u)=arccos(inner(w,u)); let Π(μ,ν) be all probability measures on S×S with marginals μ,ν, and Q(μ,ν)=inf_{π in Π(μ,ν)}∫c²dπ, an extended nonnegative cost. Then the integrand defining V_μ is integrable at every ambient weight and its actual ambient gradient exists there. There are positive C₁,C₂, chosen before all parameter laws and unit weights, such that G_μ(w) is tangent, norm(G_μ(w))≤C₁, Q(μ,ν) is finite, and norm(G_μ(w)−G_ν(u))≤C₂(sqrt(Q(μ,ν))+c(w,u)). No independence of response/input or derivative, domination, mean-bound, integral-identity or gradient oracle is assumed. Constants may depend on E,p,P, including the response L² norm. The theorem concerns the explicit angular cost and projected ambient gradient; it does not assert an intrinsic path-length identity, an installed manifold-gradient/Wasserstein API, teacher/noise construction or full model convergence.",
+      "formula": "\\begin{gathered}\\gamma=\\operatorname{stdGaussian}(E),\\qquad S=\\{w\\in E:\\|w\\|=1\\},\\\\f_\\mu(x)=\\int_S p(\\langle w,x\\rangle)\\,d\\mu(w),\\\\V_\\mu(w)=2\\int_{E\\times\\mathbb R}(f_\\mu(x)-y)p(\\langle w,x\\rangle)\\,dP(x,y),\\\\G_\\mu(w)=\\nabla V_\\mu(w)-\\langle\\nabla V_\\mu(w),w\\rangle w,\\\\c(w,u)=\\arccos\\langle w,u\\rangle,\\quad Q(\\mu,\\nu)=\\inf_{\\pi\\in\\Pi(\\mu,\\nu)}\\int_{S\\times S}c^2\\,d\\pi,\\\\\\|G_\\mu(w)\\|\\le C_1,\\quad\\|G_\\mu(w)-G_\\nu(u)\\|\\le C_2\\bigl(\\sqrt{Q(\\mu,\\nu)}+c(w,u)\\bigr).\\end{gathered}",
+      "assumptions": [
+        "E is a finite-dimensional real inner-product normed space with its Borel measurable structure; its completeness is derived.",
+        "P is a probability measure on E×ℝ with first marginal equal to the centered standard identity-covariance Gaussian on E.",
+        "p is any finite real polynomial; the response z↦z₂ is square-integrable under the same P. No response/input independence is required.",
+        "S={w∈E:‖w‖=1} and γ=stdGaussian(E). The first displayed equations define the literal scalar predictor f_μ, potential V_μ and projected actual ambient gradient G_μ. The point cost is c(w,u)=arccos〈w,u〉.",
+        "Π(μ,ν) denotes all probability couplings on S×S with marginals μ,ν. Q(μ,ν)=inf_{π∈Π(μ,ν)}∫c²dπ is an extended nonnegative cost; its finiteness is proved before its real square root is taken.",
+        "Positive C₁,C₂ are chosen before all parameter probabilities and unit weights; they may depend on E,p and P, including its response L² norm. No dimension-free or polynomial quantitative bound is asserted."
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "Differentiate the Gaussian feature in L2",
+          "text": "Start with the Gaussian polynomial feature Φ(w)(x)=p(〈w,x〉) in H₀=L²(γ). The existing Gaussian derivative theorem constructs its actual Fréchet derivative D₀(w), a uniform operator bound and an operator Lipschitz bound on the closed unit ball. No feature or derivative witness is an input here.",
+          "formula": "\\Phi(w)(x)=p(\\langle w,x\\rangle),\\quad \\|D_0(w)\\|\\le M_1,\\quad \\|D_0(w)-D_0(u)\\|\\le M_2\\|w-u\\|.",
+          "lean": "  obtain ⟨hf,hdf,D,hD,hDiff,M₁,M₂,hM₁,hM₂,hBound,hLip⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_derivative_bounds (E := E) p\n",
+          "detail": "Literal whole-module excerpt. Local definitions and earlier derived facts are available in the optional complete theorem; no extra public hypotheses are introduced."
+        },
+        {
+          "number": 2,
+          "title": "Pull the feature into the joint data space",
+          "text": "The input-marginal identity makes the first-coordinate projection measure preserving. Composition therefore defines a linear isometry J:H₀→H=L²(P), even when the response depends on the input. Set F(w)=JΦ(w) and D_P(w)=J∘D₀(w). The isometry preserves the two operator estimates.",
+          "formula": "Jf(x,y)=f(x),\\qquad F(w)=J\\Phi(w),\\qquad D_P(w)=J\\circ D_0(w).",
+          "lean": "  have hmarg : MeasurePreserving (Prod.fst : E × ℝ → E) P (stdGaussian E) :=\n    ⟨measurable_fst,hGaussian⟩\n  let J : Lp ℝ 2 (stdGaussian E) →ₗᵢ[ℝ] Lp ℝ 2 P :=\n    Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hmarg\n  let T : Lp ℝ 2 (stdGaussian E) →L[ℝ] Lp ℝ 2 P := J.toContinuousLinearMap\n  let hfP : ∀ w : E, MemLp (fun z : E × ℝ => p.eval ⟪w,z.1⟫_ℝ) 2 P :=\n    fun w => (hf w).comp_measurePreserving hmarg\n  let F : E → Lp ℝ 2 P := fun w => (hfP w).toLp (fun z => p.eval ⟪w,z.1⟫_ℝ)\n  let DP : E → E →L[ℝ] Lp ℝ 2 P := fun w => T.comp (D w)\n  have hFeq (w : E) : F w = T ((hf w).toLp (fun x => p.eval ⟪w,x⟫_ℝ)) := rfl\n  have hFP (w : E) : HasFDerivAt F (DP w) w := by\n    have he : F = fun u => T ((hf u).toLp (fun x => p.eval ⟪u,x⟫_ℝ)) := funext hFeq\n    rw [he]\n    exact T.hasFDerivAt.comp w (hDiff w)\n  have hPB (w : E) (hw : ‖w‖ ≤ 1) : ‖DP w‖ ≤ M₁ := by\n    apply ContinuousLinearMap.opNorm_le_bound _ hM₁.le\n    intro v\n    change ‖J (D w v)‖ ≤ M₁*‖v‖\n    rw [J.norm_map]\n    exact ((D w).le_opNorm v).trans (mul_le_mul_of_nonneg_right (hBound w hw) (norm_nonneg v))\n  have hPL (w u : E) (hw : ‖w‖ ≤ 1) (hu : ‖u‖ ≤ 1) :\n      ‖DP w-DP u‖ ≤ M₂*‖w-u‖ := by\n    apply ContinuousLinearMap.opNorm_le_bound _ (mul_nonneg hM₂.le (norm_nonneg _))\n    intro v\n    change ‖T (D w v)-T (D u v)‖ ≤ (M₂*‖w-u‖)*‖v‖\n    rw [← map_sub]\n    change ‖J ((D w-D u) v)‖ ≤ (M₂*‖w-u‖)*‖v‖\n    rw [J.norm_map]\n    exact ((D w-D u).le_opNorm v).trans\n      (mul_le_mul_of_nonneg_right (hLip u w hu hw) (norm_nonneg v))\n",
+          "detail": "Literal whole-module excerpt. Local definitions and earlier derived facts are available in the optional complete theorem; no extra public hypotheses are introduced."
+        },
+        {
+          "number": 3,
+          "title": "Identify the true parameter average",
+          "text": "Let ℓ(x,y)=y in H and m_μ=∫F(w)dμ(w), a Bochner integral. The existing Gaussian averaging theorem gives the scalar predictor in L²(γ) and identifies its class with its feature mean. Pull back this identity and commute the continuous linear map J with the Bochner integral. Thus m_μ is the L²(P) class of the literal predictor; m_μ−ℓ represents its residual almost everywhere.",
+          "formula": "f_\\mu(x)=\\int_Sp(\\langle w,x\\rangle)\\,d\\mu(w),\\qquad m_\\mu(x,y)=f_\\mu(x)\\quad P\\text{-a.e.}",
+          "lean": "  obtain ⟨hfS,hcont,havg⟩ :=\n    AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.gaussian_polynomial_parameter_average_L2 (E := E) p\n  have hMeanClass (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      ∃ hpred : MemLp (fun z : E × ℝ => predictor μ z.1) 2 P,\n        hpred.toLp (fun z => predictor μ z.1) = mean μ := by\n    obtain ⟨hscalar,hint,hmean,hident⟩ := havg μ hμ\n    let hpred : MemLp (fun z : E × ℝ => predictor μ z.1) 2 P :=\n      hmean.comp_measurePreserving hmarg\n    refine ⟨hpred,?_⟩\n    calc\n      hpred.toLp (fun z => predictor μ z.1) = T (hmean.toLp (predictor μ)) := rfl\n      _ = T (∫ w, (hfS w).toLp (fun x => p.eval ⟪w.1,x⟫_ℝ) ∂μ) := congrArg T hident\n      _ = mean μ := (T.integral_comp_comm hint).symm\n  have hMeanAE (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      (fun z => mean μ z) =ᵐ[P] (fun z : E × ℝ => predictor μ z.1) := by\n    obtain ⟨hpred,hident⟩ := hMeanClass μ hμ\n    rw [← hident]\n    exact hpred.coeFn_toLp\n  have hResidual (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      (fun z => (mean μ-label) z) =ᵐ[P] (fun z : E × ℝ => predictor μ z.1-z.2) := by\n    filter_upwards [Lp.coeFn_sub (mean μ) label,hMeanAE μ hμ,hlabel.coeFn_toLp]\n      with z hs hm hy\n    simp only [Pi.sub_apply] at hs\n    rw [hs,hm,hy]\n",
+          "detail": "Literal whole-module excerpt. Local definitions and earlier derived facts are available in the optional complete theorem; no extra public hypotheses are introduced."
+        },
+        {
+          "number": 4,
+          "title": "Recover the literal scalar potential",
+          "text": "The residual and every ambient feature lie in L²(P), so their product is integrable. The L² inner product and the almost-everywhere identities turn the literal scalar integral into an equality of ambient functions. This equality is proved, rather than assumed as a gradient oracle.",
+          "formula": "V_\\mu(w)=2\\int(f_\\mu(x)-y)p(\\langle w,x\\rangle)\\,dP(x,y)=2\\langle m_\\mu-\\ell,F(w)\\rangle_H.",
+          "lean": "  have hPot (μ : Measure S) (hμ : IsProbabilityMeasure μ) :\n      V μ = fun w => 2 * ⟪mean μ-label,F w⟫_ℝ := by\n    funext w\n    change 2 * (∫ z, (predictor μ z.1-z.2)*p.eval ⟪w,z.1⟫_ℝ ∂P) = _\n    rw [L2.inner_def]\n    congr 1\n    apply integral_congr_ae\n    filter_upwards [hResidual μ hμ,(hfP w).coeFn_toLp] with z hr hw\n    change F w z = p.eval ⟪w,z.1⟫_ℝ at hw\n    simp only [Real.inner_apply,hr,hw]\n",
+          "detail": "Literal whole-module excerpt. Local definitions and earlier derived facts are available in the optional complete theorem; no extra public hypotheses are introduced."
+        },
+        {
+          "number": 5,
+          "title": "Differentiate and identify the actual gradient",
+          "text": "The quadratic feature-law theorem applies to F,D_P and ℓ using the estimates just produced. Its ambient derivative, transported across the function identity, gives the displayed vector. Uniqueness identifies it with the actual ambient gradient of the literal potential, at every ambient weight.",
+          "formula": "\\nabla V_\\mu(w)=2D_P(w)^*(m_\\mu-\\ell).",
+          "lean": "  have hGrad (μ : Measure S) (hμ : IsProbabilityMeasure μ) (w : E) :\n      HasGradientAt (V μ) ((2 : ℝ) • (DP w).adjoint (mean μ-label)) w := by\n    rw [hPot μ hμ]\n    exact (hpoint μ hμ).2.1 w\n",
+          "detail": "Literal whole-module excerpt. Local definitions and earlier derived facts are available in the optional complete theorem; no extra public hypotheses are introduced."
+        },
+        {
+          "number": 6,
+          "title": "Project onto tangent directions",
+          "text": "At a unit weight define P_wz=z−〈z,w〉w and G_μ(w)=P_w∇V_μ(w). Substitute the gradient identity. The feature-law theorem then supplies tangency and a positive uniform norm constant C₁ for all parameter probabilities and unit weights.",
+          "formula": "G_\\mu(w)=2P_wD_P(w)^*(m_\\mu-\\ell),\\quad \\langle w,G_\\mu(w)\\rangle=0,\\quad \\|G_\\mu(w)\\|\\le C_1.",
+          "lean": "  have hGrad (μ : Measure S) (hμ : IsProbabilityMeasure μ) (w : E) :\n      HasGradientAt (V μ) ((2 : ℝ) • (DP w).adjoint (mean μ-label)) w := by\n    rw [hPot μ hμ]\n    exact (hpoint μ hμ).2.1 w\n  have hG (μ : Measure S) (hμ : IsProbabilityMeasure μ) (w : E) :\n      G μ w = (2 : ℝ) • ((DP w).adjoint (mean μ-label) -\n        ⟪(DP w).adjoint (mean μ-label),w⟫_ℝ • w) := by\n    dsimp only [G,grad]\n    rw [(hGrad μ hμ w).gradient]\n    simp only [smul_sub,real_inner_smul_left,smul_smul]\n",
+          "detail": "Literal whole-module excerpt. Local definitions and earlier derived facts are available in the optional complete theorem; no extra public hypotheses are introduced."
+        },
+        {
+          "number": 7,
+          "title": "Keep the angular cost and pass to joint law/point control",
+          "text": "For S={w:‖w‖=1}, use c(w,u)=arccos〈w,u〉 and Q(μ,ν)=inf over all couplings π of ∫c²dπ. The feature-law parent proves Q finite and controls the projected Hilbert formula by C₂(√Q+c). Substitute the actual-gradient identity for both laws. C₁,C₂ were chosen before the laws and weights; they may depend on E,p,P, including the response norm.",
+          "formula": "Q(\\mu,\\nu)=\\inf_{\\pi\\in\\Pi(\\mu,\\nu)}\\int c^2\\,d\\pi<\\infty,\\qquad \\|G_\\mu(w)-G_\\nu(u)\\|\\le C_2\\bigl(\\sqrt{Q(\\mu,\\nu)}+c(w,u)\\bigr).",
+          "lean": "  refine ⟨C₁,C₂,hC₁,hC₂,?_,?_⟩\n  · intro μ hμ\n    refine ⟨?_,?_⟩\n    · intro w\n      obtain ⟨hpred,hident⟩ := hMeanClass μ hμ\n      refine ⟨(hpred.sub hlabel).integrable_mul (hfP w),?_⟩\n      change HasGradientAt (V μ) (gradient (V μ) w) w\n      rw [(hGrad μ hμ w).gradient]\n      exact hGrad μ hμ w\n    · intro w\n      rw [hG μ hμ w.1]\n      exact (hpoint μ hμ).2.2 w\n  · intro μ ν hμ hν\n    refine ⟨(hlaw μ ν hμ hν).1,?_⟩\n    intro w u\n    rw [hG μ hμ w.1,hG ν hν u.1]\n    exact (hlaw μ ν hμ hν).2 w u\n",
+          "detail": "Literal whole-module excerpt. Local definitions and earlier derived facts are available in the optional complete theorem; no extra public hypotheses are introduced."
+        }
+      ],
+      "lean_statement": "Let E be a finite-dimensional real inner-product normed space with its Borel structure, let γ=stdGaussian(E) be its centered standard identity-covariance Gaussian, and let S={w in E: norm(w)=1}. Let P be a probability law on E×ℝ with first marginal γ, p a finite real polynomial, and the actual response (x,y)↦y square-integrable under P. For each parameter probability μ on S, define f_μ(x)=∫_S p(inner(w,x))dμ(w), V_μ(w)=2∫(f_μ(x)−y)p(inner(w,x))dP(x,y), g_μ(w)=gradient(V_μ)(w), and G_μ(w)=g_μ(w)−inner(g_μ(w),w)w. For w,u in S define c(w,u)=arccos(inner(w,u)); let Π(μ,ν) be all probability measures on S×S with marginals μ,ν, and Q(μ,ν)=inf_{π in Π(μ,ν)}∫c²dπ, an extended nonnegative cost. Then the integrand defining V_μ is integrable at every ambient weight and its actual ambient gradient exists there. There are positive C₁,C₂, chosen before all parameter laws and unit weights, such that G_μ(w) is tangent, norm(G_μ(w))≤C₁, Q(μ,ν) is finite, and norm(G_μ(w)−G_ν(u))≤C₂(sqrt(Q(μ,ν))+c(w,u)). No independence of response/input or derivative, domination, mean-bound, integral-identity or gradient oracle is assumed. Constants may depend on E,p,P, including the response L² norm. The theorem concerns the explicit angular cost and projected ambient gradient; it does not assert an intrinsic path-length identity, an installed manifold-gradient/Wasserstein API, teacher/noise construction or full model convergence.",
+      "lean_proof": "Read the seven formula steps in order; exact Lean excerpts and the full theorem are optional and initially folded.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialDifferentiation.actual_gaussian_polynomial_ridge_L2_derivative_bounds",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialAveraging.gaussian_polynomial_parameter_average_L2",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.QuadraticFeatureLawGradient.quadratic_feature_law_gradient_angular_transport_control"
+      ],
+      "mathlib_dependencies": [
+        "Lp.compMeasurePreservingₗᵢ",
+        "ContinuousLinearMap.hasFDerivAt",
+        "ContinuousLinearMap.integral_comp_comm",
+        "MemLp.comp_measurePreserving",
+        "MemLp.integrable_mul",
+        "L2.inner_def",
+        "HasGradientAt.gradient"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/5ad8016d9ddb1e287b3da53c7043b3545a2c93eb/website/content/declaration_lessons/gaussian-joint-potential-gradient.json",
+          "label": "Samplinglib original Gaussian joint-data potential supplement v1,2026-10-23",
+          "scope": "Original reusable probability and geometric optimisation supplement, not a primary-textbook theorem or complete statistical/stochastic model."
+        }
+      ],
+      "tests": {
+        "file": "Tests/GaussianJointPotentialGradient.lean",
+        "scope": "Three actual consumers compiled with Lean4.33.0 (3686 jobs): literal linear-feature potential ambient gradient, joint linear law/point control, and zero features without nontriviality or nonzero derivative."
+      },
+      "reading_layout": "progressive",
+      "reader_note": "Begin with the complete statement and conditions. Expand the seven mathematical proof steps as needed; the exact Lean is adjacent and optional."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialGradient.gaussian_polynomial_joint_potential_projected_gradient_transport_control",
+      "role": "proof-edge",
+      "supports": [
+        "gaussian-joint-potential-gradient"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "Let E be a finite-dimensional real inner-product normed space with its Borel structure, let γ=stdGaussian(E) be its centered standard identity-covariance Gaussian, and let S={w in E: norm(w)=1}. Let P be a probability law on E×ℝ with first marginal γ, p a finite real polynomial, and the actual response (x,y)↦y square-integrable under P. For each parameter probability μ on S, define f_μ(x)=∫_S p(inner(w,x))dμ(w), V_μ(w)=2∫(f_μ(x)−y)p(inner(w,x))dP(x,y), g_μ(w)=gradient(V_μ)(w), and G_μ(w)=g_μ(w)−inner(g_μ(w),w)w. For w,u in S define c(w,u)=arccos(inner(w,u)); let Π(μ,ν) be all probability measures on S×S with marginals μ,ν, and Q(μ,ν)=inf_{π in Π(μ,ν)}∫c²dπ, an extended nonnegative cost. Then the integrand defining V_μ is integrable at every ambient weight and its actual ambient gradient exists there. There are positive C₁,C₂, chosen before all parameter laws and unit weights, such that G_μ(w) is tangent, norm(G_μ(w))≤C₁, Q(μ,ν) is finite, and norm(G_μ(w)−G_ν(u))≤C₂(sqrt(Q(μ,ν))+c(w,u)). No independence of response/input or derivative, domination, mean-bound, integral-identity or gradient oracle is assumed. Constants may depend on E,p,P, including the response L² norm. The theorem concerns the explicit angular cost and projected ambient gradient; it does not assert an intrinsic path-length identity, an installed manifold-gradient/Wasserstein API, teacher/noise construction or full model convergence.",
+        "lean": "Finite-dimensional real inner-product Borel carrier; actual probability P with standard Gaussian first marginal, arbitrary finite p and actual response MemLp2. All potential integrability, derivative witnesses, feature means, gradient identities and uniform budgets are derived inside the theorem."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "32b23d6bb087070d725cfabbf7ef4497a0cb8944235588ef8a22c65aeec6722d"
+}

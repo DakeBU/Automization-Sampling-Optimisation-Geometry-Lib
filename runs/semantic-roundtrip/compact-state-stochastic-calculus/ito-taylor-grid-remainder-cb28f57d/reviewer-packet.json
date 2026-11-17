@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-3fa59ef9bbea5ceb",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-c-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-taylor-grid-remainder-cb28f57d",
+    "anchor": "Original Samplinglib supplement: Vanishing Taylor residuals on arbitrary fine grids. Exact assumptions and formula below.",
+    "original_text": "On any compact pseudometric time space, take finite grids whose neighboring time distances vanish uniformly. If the sums of squared state increments converge in measure to a real-valued random variable Q, then the sums of second-order Taylor residuals converge in measure to zero.\n\nThe sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.\nf:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.\nThe time space is compact and pseudometric. Each grid has Nₙ+1 points, and for every δ>0, eventually all neighboring time distances are less than δ. Q:Ω→ℝ is a finite real-valued function. No ordering of the time space is required.\n\n\\sum_{i<N_n}\\|\\Delta_iX\\|^2\\xrightarrow{\\mu}Q\\quad\\Longrightarrow\\quad\\sum_{i<N_n}R_f(X_{t_{n,i}},\\Delta_iX)\\xrightarrow{\\mu}0.",
+    "text_sha256": "249b5c0bb8fba9b12bf8a962ddfe2a43d3732f360b37ee2dba68163e79f22696"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder.tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoTaylorGridRemainder.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2, u_3}\n  {Ω : Type u_1} {E : Type u_2} {T : Type u_3} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}\n  [MeasureTheory.IsFiniteMeasure μ] [NormedAddCommGroup E] [NormedSpace ℝ E] [LocallyCompactSpace E] [MeasurableSpace E]\n  [BorelSpace E] [PseudoMetricSpace T] [CompactSpace T] {K : Set E} (hK : IsCompact K) (f : E → ℝ)\n  (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x) (X : T → Ω → ↑K) (hX : ∀ (t : T), Measurable (X t))\n  (hpaths : ∀ᵐ (ω : Ω) ∂μ, Continuous fun t => X t ω) (N : ℕ → ℕ) (grid : (n : ℕ) → Fin (N n + 1) → T)\n  (hmesh : ∀ δ > 0, ∀ᶠ (n : ℕ) in Filter.atTop, ∀ (i : Fin (N n)), Dist.dist (grid n i.succ) (grid n i.castSucc) < δ)\n  {Q : Ω → ℝ}\n  (hQV :\n    MeasureTheory.TendstoInMeasure μ (fun n ω => ∑ i, ‖↑(X (grid n i.succ) ω) - ↑(X (grid n i.castSucc) ω)‖ ^ 2)\n      Filter.atTop Q) :\n  MeasureTheory.TendstoInMeasure μ\n    (fun n ω =>\n      ∑ i,\n        local_symbol_cae43895bf58 f\n          (↑(X (grid n i.castSucc) ω)) (↑(X (grid n i.succ) ω) - ↑(X (grid n i.castSucc) ω)))\n    Filter.atTop fun x => 0",
+    "statement_sha256": "97fdd552948e9abf22d94285e83284faa60b3869dae8e544e35cfcba067883d2",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Objects: Define R_f(x,v)=f(x+v)-f(x)-Df(x)[v]-(1/2)*D^2 f(x)[v,v], where Df is the real Frechet derivative and D^2 f=D(Df), interpreted as iterated continuous linear maps. Put x_n,i(omega)=X(grid(n,i),omega) in K and v_n,i=x_n,i+1-x_n,i, understood as ambient vectors in E.\n\nDomains: Omega measurable with finite measure mu. E is a real normed additive group/normed vector space, locally compact, with a measurable structure equal to its Borel structure. T is an arbitrary compact pseudometric space. K is a compact subset of E; f:E->R; X:T x Omega->K; N:N->N; grid_n:{0,...,N(n)}->T; Q:Omega->R.\n\nQuantifiers: Universally spaces,instances,mu,K,hK,f,hf,X,hX,hpaths,N,grid,hmesh,Q,hQV. The mesh hypothesis has order forall delta>0, eventually n, forall i<N(n), dist(grid_n(i+1),grid_n(i))<delta. Q is fixed before the convergence premise.\n\nAssumptions: f is C^2 at every x in K in the ambient space E. Each slice X(t,.) is measurable. For mu-a.e. omega, t->X(t,omega) is continuous on all T. Adjacent grid distances tend uniformly over the finitely many cells to zero in the stated eventual sense. The sums sum_i ||v_n,i(omega)||^2 converge in mu-measure to Q(omega). No separate measurability of Q is written.\n\nConclusion: The real random variables sum_{i=0}^{N(n)-1} R_f(x_n,i(omega),v_n,i(omega)) converge in mu-measure to the identically zero function as n->infinity.\n\nScopes: The remainder sum is signed, not the sum of absolute remainders. T need not be an interval; grids need not be ordered, cover T, or have designated endpoints, and N(n) is not required to tend to infinity. No convexity of K or global C^2 assumption on f is given. No almost-sure or L^p conclusion is asserted.\n\nConstant dependencies: No explicit numerical constant is quantified in the conclusion. Any data-dependent estimates used to obtain it are not assumptions. Q may depend on the data but is just the supplied limiting random variable.",
+    "text_sha256": "2094044a0c2673b8fc654d65da61f5eda6c84282bf5516c8c0d41b4ec8493752",
+    "decoder": "independent-decoder-c-20261116",
+    "decoder_packet_sha256": "a555acb106e55b8089d124c0d78e034404ada572d720ee3ba1aafe9fca948e18",
+    "decoder_run_sha256": "90bf55644325be69fb29a6de8a15bcc50aa3be87dca44853f2c74dccfd9d1983",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "2544ec6981b782a26916d95954baa11b39b4b7cb255390b7e53c29eead4eda46",
+  "candidate_publication_context": {
+    "file": "5f3a26bcf4676147bdb64bbbea446145a945a947809582abadcba1cc22179f7a",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder\nimport Mathlib.MeasureTheory.Function.ConvergenceInMeasure\nimport Mathlib.MeasureTheory.Constructions.BorelSpace.Basic\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder\n\nopen Filter MeasureTheory Metric\nopen scoped BigOperators Topology\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder\n\n/-- On grids of vanishing mesh, the sum of Taylor remainders of a\ncontinuous compact-state path tends to zero in measure when its sums of\nsquared increments converge in measure to a real-valued limit. -/\ntheorem tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation\n    {Ω E T : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsFiniteMeasure μ]\n    [NormedAddCommGroup E] [NormedSpace ℝ E] [LocallyCompactSpace E]\n    [MeasurableSpace E] [BorelSpace E] [PseudoMetricSpace T] [CompactSpace T]\n    {K : Set E} (hK : IsCompact K) (f : E → ℝ) (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x)\n    (X : T → Ω → K) (hX : ∀ t, Measurable (X t))\n    (hpaths : ∀ᵐ ω ∂μ, Continuous (fun t => X t ω))\n    (N : ℕ → ℕ) (grid : ∀ n, Fin (N n + 1) → T)\n    (hmesh : ∀ δ > 0, ∀ᶠ n in atTop, ∀ i : Fin (N n),\n      dist (grid n i.succ) (grid n i.castSucc) < δ)\n    {Q : Ω → ℝ}\n    (hQV : TendstoInMeasure μ (fun n ω => ∑ i : Fin (N n),\n      ‖(X (grid n i.succ) ω : E) - (X (grid n i.castSucc) ω : E)‖ ^ 2) atTop Q) :\n    TendstoInMeasure μ (fun n ω => ∑ i : Fin (N n),\n      secondOrderRemainder f (X (grid n i.castSucc) ω : E)\n        ((X (grid n i.succ) ω : E) - (X (grid n i.castSucc) ω : E))) atTop (fun _ => 0) := by\n  have : CompactSpace K := isCompact_iff_compactSpace.mp hK\n  let Δ (n : ℕ) (i : Fin (N n)) (ω : Ω) :=\n    (X (grid n i.succ) ω : E) - (X (grid n i.castSucc) ω : E)\n  let A (n : ℕ) (ω : Ω) := ∑ i : Fin (N n), ‖Δ n i ω‖ ^ 2\n  let R (n : ℕ) (ω : Ω) := ∑ i : Fin (N n),\n    secondOrderRemainder f (X (grid n i.castSucc) ω : E) (Δ n i ω)\n  change TendstoInMeasure μ R atTop (fun _ => 0)\n  have hA : TendstoInMeasure μ A atTop Q := hQV\n  have hfK : Continuous (fun x : K => f (x : E)) := continuous_iff_continuousAt.2 fun x =>\n    (hf x x.property).continuousAt.comp continuous_subtype_val.continuousAt\n  have hdK : Continuous (fun x : K => fderiv ℝ f (x : E)) :=\n    continuous_iff_continuousAt.2 fun x =>\n      ((hf x x.property).continuousAt_fderiv (by norm_num)).comp continuous_subtype_val.continuousAt\n  have hHK : Continuous (fun x : K => fderiv ℝ (fderiv ℝ f) (x : E)) :=\n    continuous_iff_continuousAt.2 fun x =>\n      (((hf x x.property).fderiv_right (m := 1) (by norm_num)).continuousAt_fderiv one_ne_zero).comp\n        continuous_subtype_val.continuousAt\n  have hdif : Continuous (fun z : K × K => (z.2 : E) - (z.1 : E)) :=\n    (continuous_subtype_val.comp continuous_snd).sub (continuous_subtype_val.comp continuous_fst)\n  have hR : Continuous (fun z : K × K =>\n      secondOrderRemainder f (z.1 : E) ((z.2 : E) - (z.1 : E))) := by\n    have h := (((hfK.comp continuous_snd).sub (hfK.comp continuous_fst)).sub\n      ((hdK.comp continuous_fst).clm_apply hdif)).sub\n        ((continuous_const (y := (1 / 2 : ℝ))).smul\n          (((hHK.comp continuous_fst).clm_apply hdif).clm_apply hdif))\n    apply h.congr\n    intro z\n    simp [secondOrderRemainder, Function.comp_def, add_sub_cancel]\n  have hRm (n : ℕ) : AEStronglyMeasurable (R n) μ := by\n    have h (i : Fin (N n)) : AEStronglyMeasurable\n        (fun ω => secondOrderRemainder f (X (grid n i.castSucc) ω : E) (Δ n i ω)) μ :=\n      (hR.measurable.comp ((hX (grid n i.castSucc)).prodMk (hX (grid n i.succ)))).aestronglyMeasurable\n    apply (Finset.aestronglyMeasurable_sum Finset.univ (fun i _ => h i)).congr\n    exact Eventually.of_forall fun ω => by simp only [R, Finset.sum_apply]\n  apply (exists_seq_tendstoInMeasure_atTop_iff hRm).2\n  intro ns hns\n  obtain ⟨ks, hks, hPathEnergy⟩ := (hA.comp hns.tendsto_atTop).exists_seq_tendsto_ae\n  refine ⟨ks, hks, ?_⟩\n  filter_upwards [hpaths, hPathEnergy] with ω hpath hEnergy\n  let C := |Q ω| + 1\n  have hC : 0 < C := by dsimp [C]; positivity\n  have hQC : Q ω < C := by dsimp [C]; linarith [le_abs_self (Q ω)]\n  have hBound : ∀ᶠ n in atTop, A (ns (ks n)) ω ≤ C :=\n    ((tendsto_order.1 hEnergy).2 C hQC).mono fun _ hn => hn.le\n  rw [Metric.tendsto_nhds]\n  intro ε hε\n  let a := ε / (2 * C)\n  have ha : 0 < a := div_pos hε (mul_pos (by norm_num) hC)\n  obtain ⟨r, hr, hRbound⟩ := exists_uniform_secondOrderRemainder_le_on_compact hK hf ha\n  obtain ⟨δ, hδ, hclose⟩ := Metric.uniformContinuous_iff.1\n    (CompactSpace.uniformContinuous_of_continuous hpath) r hr\n  have hmesh' := (hns.comp hks).tendsto_atTop.eventually (hmesh δ hδ)\n  filter_upwards [hBound, hmesh'] with n hnBound hnMesh\n  let m := ns (ks n)\n  have hstep (i : Fin (N m)) : ‖Δ m i ω‖ < r := by\n    have h := hclose (hnMesh i)\n    change dist (X (grid m i.succ) ω : E) (X (grid m i.castSucc) ω : E) < r at h\n    simpa only [dist_eq_norm, Δ] using h\n  change dist (R m ω) (0 : ℝ) < ε\n  rw [dist_zero_right]\n  calc\n    ‖R m ω‖ ≤ ∑ i : Fin (N m),\n        ‖secondOrderRemainder f (X (grid m i.castSucc) ω : E) (Δ m i ω)‖ :=\n      norm_sum_le _ _\n    _ ≤ a * A m ω := by\n      change _ ≤ a * ∑ i : Fin (N m), ‖Δ m i ω‖ ^ 2\n      rw [Finset.mul_sum]\n      exact Finset.sum_le_sum fun i _ =>\n        hRbound (X (grid m i.castSucc) ω : E) (X (grid m i.castSucc) ω).property _ (hstep i)\n    _ ≤ a * C := mul_le_mul_of_nonneg_left hnBound ha.le\n    _ < ε := by\n      have h : a * C = ε / 2 := by dsimp [a]; field_simp [hC.ne']\n      rw [h]\n      exact half_lt_self hε\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-taylor-grid-remainder-cb28f57d",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoTaylorGridRemainder.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Vanishing Taylor residuals on arbitrary fine grids. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "On any compact pseudometric time space, take finite grids whose neighboring time distances vanish uniformly. If the sums of squared state increments converge in measure to a real-valued random variable Q, then the sums of second-order Taylor residuals converge in measure to zero.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\sum_{i<N_n}\\|\\Delta_iX\\|^2\\xrightarrow{\\mu}Q\\quad\\Longrightarrow\\quad\\sum_{i<N_n}R_f(X_{t_{n,i}},\\Delta_iX)\\xrightarrow{\\mu}0."
+      }
+    ],
+    "assumptions": [
+      "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.",
+      "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.",
+      "The time space is compact and pseudometric. Each grid has Nₙ+1 points, and for every δ>0, eventually all neighboring time distances are less than δ. Q:Ω→ℝ is a finite real-valued function. No ordering of the time space is required."
+    ],
+    "obligations": [
+      {
+        "id": "ito-taylor-grid-remainder-cb28f57d",
+        "label": "Vanishing Taylor residuals on arbitrary fine grids"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder.tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation",
+      "kind": "theorem",
+      "title": "Vanishing Taylor residuals on arbitrary fine grids",
+      "statement": "On any compact pseudometric time space, take finite grids whose neighboring time distances vanish uniformly. If the sums of squared state increments converge in measure to a real-valued random variable Q, then the sums of second-order Taylor residuals converge in measure to zero.",
+      "formula": "\\sum_{i<N_n}\\|\\Delta_iX\\|^2\\xrightarrow{\\mu}Q\\quad\\Longrightarrow\\quad\\sum_{i<N_n}R_f(X_{t_{n,i}},\\Delta_iX)\\xrightarrow{\\mu}0.",
+      "assumptions": [
+        "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.",
+        "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.",
+        "The time space is compact and pseudometric. Each grid has Nₙ+1 points, and for every δ>0, eventually all neighboring time distances are less than δ. Q:Ω→ℝ is a finite real-valued function. No ordering of the time space is required."
+      ],
+      "steps": [
+        {
+          "title": "Establish measurability of the residual sums",
+          "text": "The restrictions of f, Df and D²f to K are continuous. Hence the residual as a function of two K-valued endpoints is continuous, and the finite random sums are measurable.",
+          "formula": "(x,y)\\mapsto R_f(x,y-x)\\quad\\text{is continuous on }K\\times K.",
+          "lean": "  have : CompactSpace K := isCompact_iff_compactSpace.mp hK\n  let Δ (n : ℕ) (i : Fin (N n)) (ω : Ω) :=\n    (X (grid n i.succ) ω : E) - (X (grid n i.castSucc) ω : E)\n  let A (n : ℕ) (ω : Ω) := ∑ i : Fin (N n), ‖Δ n i ω‖ ^ 2\n  let R (n : ℕ) (ω : Ω) := ∑ i : Fin (N n),\n    secondOrderRemainder f (X (grid n i.castSucc) ω : E) (Δ n i ω)\n  change TendstoInMeasure μ R atTop (fun _ => 0)\n  have hA : TendstoInMeasure μ A atTop Q := hQV\n  have hfK : Continuous (fun x : K => f (x : E)) := continuous_iff_continuousAt.2 fun x =>\n    (hf x x.property).continuousAt.comp continuous_subtype_val.continuousAt\n  have hdK : Continuous (fun x : K => fderiv ℝ f (x : E)) :=\n    continuous_iff_continuousAt.2 fun x =>\n      ((hf x x.property).continuousAt_fderiv (by norm_num)).comp continuous_subtype_val.continuousAt\n  have hHK : Continuous (fun x : K => fderiv ℝ (fderiv ℝ f) (x : E)) :=\n    continuous_iff_continuousAt.2 fun x =>\n      (((hf x x.property).fderiv_right (m := 1) (by norm_num)).continuousAt_fderiv one_ne_zero).comp\n        continuous_subtype_val.continuousAt\n  have hdif : Continuous (fun z : K × K => (z.2 : E) - (z.1 : E)) :=\n    (continuous_subtype_val.comp continuous_snd).sub (continuous_subtype_val.comp continuous_fst)\n  have hR : Continuous (fun z : K × K =>\n      secondOrderRemainder f (z.1 : E) ((z.2 : E) - (z.1 : E))) := by\n    have h := (((hfK.comp continuous_snd).sub (hfK.comp continuous_fst)).sub\n      ((hdK.comp continuous_fst).clm_apply hdif)).sub\n        ((continuous_const (y := (1 / 2 : ℝ))).smul\n          (((hHK.comp continuous_fst).clm_apply hdif).clm_apply hdif))\n    apply h.congr\n    intro z\n    simp [secondOrderRemainder, Function.comp_def, add_sub_cancel]\n  have hRm (n : ℕ) : AEStronglyMeasurable (R n) μ := by\n    have h (i : Fin (N n)) : AEStronglyMeasurable\n        (fun ω => secondOrderRemainder f (X (grid n i.castSucc) ω : E) (Δ n i ω)) μ :=\n      (hR.measurable.comp ((hX (grid n i.castSucc)).prodMk (hX (grid n i.succ)))).aestronglyMeasurable\n    apply (Finset.aestronglyMeasurable_sum Finset.univ (fun i _ => h i)).congr\n    exact Eventually.of_forall fun ω => by simp only [R, Finset.sum_apply]"
+        },
+        {
+          "title": "Extract a pathwise convergent energy subsequence",
+          "text": "From any subsequence, convergence in measure provides a further subsequence on which the square-increment sum converges almost everywhere. On each such continuous path it is eventually bounded by C=|Q|+1.",
+          "formula": "A_n=\\sum_i\\|\\Delta_iX\\|^2\\le |Q|+1\\quad\\text{eventually}.",
+          "lean": "  apply (exists_seq_tendstoInMeasure_atTop_iff hRm).2\n  intro ns hns\n  obtain ⟨ks, hks, hPathEnergy⟩ := (hA.comp hns.tendsto_atTop).exists_seq_tendsto_ae\n  refine ⟨ks, hks, ?_⟩\n  filter_upwards [hpaths, hPathEnergy] with ω hpath hEnergy\n  let C := |Q ω| + 1\n  have hC : 0 < C := by dsimp [C]; positivity\n  have hQC : Q ω < C := by dsimp [C]; linarith [le_abs_self (Q ω)]\n  have hBound : ∀ᶠ n in atTop, A (ns (ks n)) ω ≤ C :=\n    ((tendsto_order.1 hEnergy).2 C hQC).mono fun _ hn => hn.le\n  rw [Metric.tendsto_nhds]\n  intro ε hε\n  let a := ε / (2 * C)\n  have ha : 0 < a := div_pos hε (mul_pos (by norm_num) hC)"
+        },
+        {
+          "title": "Combine small increments with the uniform Taylor estimate",
+          "text": "Uniform continuity of each path turns the time-mesh condition into small state increments. Apply the compact uniform residual estimate with tolerance ε/(2C). The residual sum is then bounded by ε/2. The subsequence characterization yields convergence in measure.",
+          "formula": "\\left|\\sum_i R_f(X_i,\\Delta_iX)\\right|\\le\\frac{\\varepsilon}{2C}\\sum_i\\|\\Delta_iX\\|^2\\le\\varepsilon/2.",
+          "lean": "  obtain ⟨r, hr, hRbound⟩ := exists_uniform_secondOrderRemainder_le_on_compact hK hf ha\n  obtain ⟨δ, hδ, hclose⟩ := Metric.uniformContinuous_iff.1\n    (CompactSpace.uniformContinuous_of_continuous hpath) r hr\n  have hmesh' := (hns.comp hks).tendsto_atTop.eventually (hmesh δ hδ)\n  filter_upwards [hBound, hmesh'] with n hnBound hnMesh\n  let m := ns (ks n)\n  have hstep (i : Fin (N m)) : ‖Δ m i ω‖ < r := by\n    have h := hclose (hnMesh i)\n    change dist (X (grid m i.succ) ω : E) (X (grid m i.castSucc) ω : E) < r at h\n    simpa only [dist_eq_norm, Δ] using h\n  change dist (R m ω) (0 : ℝ) < ε\n  rw [dist_zero_right]\n  calc\n    ‖R m ω‖ ≤ ∑ i : Fin (N m),\n        ‖secondOrderRemainder f (X (grid m i.castSucc) ω : E) (Δ m i ω)‖ :=\n      norm_sum_le _ _\n    _ ≤ a * A m ω := by\n      change _ ≤ a * ∑ i : Fin (N m), ‖Δ m i ω‖ ^ 2\n      rw [Finset.mul_sum]\n      exact Finset.sum_le_sum fun i _ =>\n        hRbound (X (grid m i.castSucc) ω : E) (X (grid m i.castSucc) ω).property _ (hstep i)\n    _ ≤ a * C := mul_le_mul_of_nonneg_left hnBound ha.le\n    _ < ε := by\n      have h : a * C = ε / 2 := by dsimp [a]; field_simp [hC.ne']\n      rw [h]\n      exact half_lt_self hε"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.CompactTaylorRemainder.exists_uniform_secondOrderRemainder_le_on_compact"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.exists_seq_tendstoInMeasure_atTop_iff",
+        "MeasureTheory.TendstoInMeasure.exists_seq_tendsto_ae",
+        "CompactSpace.uniformContinuous_of_continuous"
+      ],
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoTaylorGridRemainder.lean",
+          "label": "Original Samplinglib mathematical supplement",
+          "scope": "The precise library statement and its proof; no external theorem is claimed verbatim."
+        }
+      ],
+      "tests": [
+        "Lean 4.33.0 compilation and declaration axiom inspection."
+      ],
+      "lean_statement": "The exact Lean statement appears in the adjacent initially closed disclosure.",
+      "lean_proof": "The proof excerpts below correspond to the mathematical steps.",
+      "notation": []
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoTaylorGridRemainder.tendstoInMeasure_sum_secondOrderRemainder_of_quadraticVariation",
+      "role": "prerequisite",
+      "supports": [
+        "ito-taylor-grid-remainder-cb28f57d"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact.",
+        "lean": "The sample space Ω carries a finite measure μ. E is a locally compact real normed space with its Borel measurable structure. K⊆E is compact."
+      },
+      {
+        "source": "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample.",
+        "lean": "f:E→ℝ is C² at every point of K. Each time evaluation of the K-valued process X is measurable. Its paths are continuous on the specified compact time domain for μ-almost every sample."
+      },
+      {
+        "source": "The time space is compact and pseudometric. Each grid has Nₙ+1 points, and for every δ>0, eventually all neighboring time distances are less than δ. Q:Ω→ℝ is a finite real-valued function. No ordering of the time space is required.",
+        "lean": "The time space is compact and pseudometric. Each grid has Nₙ+1 points, and for every δ>0, eventually all neighboring time distances are less than δ. Q:Ω→ℝ is a finite real-valued function. No ordering of the time space is required."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "52345327fd86dd623863f37fa844e42fdcab3cfdd7753f47ec7091a87689317b"
+}

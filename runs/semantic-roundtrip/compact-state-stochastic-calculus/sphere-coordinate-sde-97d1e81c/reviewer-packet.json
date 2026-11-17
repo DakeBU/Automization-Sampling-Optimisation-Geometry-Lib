@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-9cafcfb8e647b546",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-c-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-sphere-coordinate-sde-97d1e81c",
+    "anchor": "Original Samplinglib supplement: The canonical sphere coordinate equation gives the weak evolution. Exact assumptions and formula below.",
+    "original_text": "For a sphere-valued process satisfying the displayed integrated coordinate equations, the derivative of every smooth test expectation equals the expected sphere generator. It is the ordinary derivative at positive times and the right derivative at zero.\n\nThe probability space has a filtration and standard Euclidean Brownian motion relative to it, with the usual conditions. The Euclidean coordinate set is finite with decidable equality.\nThe sphere-valued process is jointly measurable and strongly progressive, with almost surely continuous paths. The ambient field is jointly continuous, and the deterministic temperature is continuous and nonnegative.\nFor every positive horizon the stated integrated equation holds on one full-measure event for all times in that horizon and all coordinates. It uses the literal drift and the constructed completed Brownian integrals.\nThe real ambient test is twice continuously differentiable at every sphere point.\n\n\\partial_t\\mathbb E[f(X_t)]=\\mathbb E[-Df(X_t)[u(t,X_t)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}} f(X_t)].",
+    "text_sha256": "7e74d3569d1b9623ed13e0df2af965ac7e343685c642d689662d02fa39460303"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.hasDerivWithinAt_sphere_expectation_of_coordinate_equations",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereCoordinateSDE.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {I : Type u_1} [Fintype I] [DecidableEq I] {Ω : Type u_2} [MeasurableSpace Ω]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} (P : MeasureTheory.ProbabilityMeasure Ω)\n  {B : NNReal → Ω → EuclideanSpace ℝ I}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration ↑P)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration ↑P)\n  (X : NNReal → Ω → ↑(Metric.sphere 0 1)) (hX : Measurable (Function.uncurry X))\n  (hProgressive : MeasureTheory.IsStronglyProgressive filtration X) (hPaths : ∀ᵐ (ω : Ω) ∂↑P, Continuous fun t => X t ω)\n  (u : NNReal → ↑(Metric.sphere 0 1) → EuclideanSpace ℝ I) (hu : Continuous (Function.uncurry u))\n  (temperature : NNReal → ℝ) (hTemperature : Continuous temperature) (hNonneg : ∀ (t : NNReal), 0 ≤ temperature t)\n  (hEquation :\n    ∀ (T : NNReal) (hT : 0 < T),\n      ∀ᵐ (ω : Ω) ∂↑P,\n        ∀ t ≤ T,\n          ∀ (i : I),\n            (↑(X t ω)).ofLp i =\n              (↑(X 0 ω)).ofLp i +\n                  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess\n                    (fun v a =>\n                      local_symbol_7da812cf9eb2 u\n                        temperature i v (X v a))\n                    t ω +\n                ∑ j,\n                  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess\n                    (local_symbol_a838c8d190eb T X\n                      hX hProgressive temperature hTemperature i j)\n                    hT ⋯ hUsual t ω)\n  (f : EuclideanSpace ℝ I → ℝ) (hf : ∀ w ∈ Metric.sphere 0 1, ContDiffAt ℝ 2 f w) (s : NNReal) :\n  HasDerivWithinAt (fun t => ∫ (ω : Ω), f ↑(X t.toNNReal ω) ∂↑P)\n    (∫ (ω : Ω),\n      -(fderiv ℝ f ↑(X s ω)) (u s (X s ω)) +\n        temperature s *\n          local_symbol_e27025fd0d42 f ↑(X s ω) ∂↑P)\n    (Set.Ici 0) ↑s",
+    "statement_sha256": "8e19f4e28cadb56ca7ec5ba8ea7d425b91c95d7d865e5d514f9cb4310cdd9606",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Objects: Put d=card(I), c=real(max(d-1,0)) (natural-number subtraction before casting), E=R^I with Euclidean norm, S={x in E: ||x||=1}, V_j(x)=e_j-x_j*x, and L_S f(x)=Laplacian(f)(x)-D^2 f(x)[x,x]-c*Df(x)[x]. Here Df is the Frechet derivative and D^2 f=D(Df). Write R_+=[0,infinity), and let lambda_T be Lebesgue measure on [0,T], transported to R_+ (the given comap of volume restricted to [0,T]). All time integrals below use this measure unless indicated otherwise. A ProgressiveL2Integrand eta on horizon T is a real process eta(t,omega), strongly progressive for the filtration, with (omega,t) -> eta(t,omega) in L^2(P x lambda_T). I_T^j(eta) denotes the supplied completed continuous Ito process driven by the scalar coordinate B_j(t,omega)=(B(t,omega))_j: the pointwise limit of chosen elementary stochastic-integral approximations off their null uniform-Cauchy bad set, zero on that bad set, and held constant after T; at each t<=T it agrees almost everywhere with the L^2-completion integral up to t.\n\nDomains: I is finite with decidable equality; Omega is a measurable space; P is a probability measure; filtration is indexed by R_+; B:R_+ x Omega -> E; X:R_+ x Omega -> S; u:R_+ x S -> E; temperature a:R_+ -> R; f:E -> R; s in R_+.\n\nQuantifiers: Universally: I, its instances, Omega, its measurable structure, filtration, P, B; then the Brownian and usual-conditions hypotheses; X and its measurability/progressiveness/path hypotheses; u and continuity; a and continuity/nonnegativity; the equation hypothesis; f and its smoothness hypothesis; finally s. In the equation: for every T>0, for P-a.e. omega, for every t<=T and every i in I, the equation holds.\n\nAssumptions: The vector Brownian hypothesis means B(0,omega)=0 for every omega; increments on finite families of pairwise disjoint half-open intervals are jointly independent; every continuous real linear functional ell sends B(t)-B(s), s<t, to a centered Gaussian of variance (t-s)||ell||^2; paths are P-almost surely continuous. B is strongly adapted, and for every s<=t the increment B(t)-B(s) is independent of the sigma-algebra filtration(s). The filtration is right continuous, and every P-null subset of Omega belongs to filtration(t) for every t>=0 (completeness at each time). X is jointly measurable and strongly progressive, with P-a.e. continuous paths on all R_+. The function (t,w)->u(t,w) is continuous. a is continuous and nonnegative at every t. f is C^2 at every point of S (ambient ContDiffAt, not merely a restricted derivative). For every positive horizon T, almost surely simultaneously for all t<=T and i: X_i(t)=X_i(0)+integral_0^t [-u_i(v,X(v))-a(v)*c*X_i(v)]dv+sum_j I_T^j(eta_ij)(t), where eta_ij(v,omega)=sqrt(2*a(v))*(delta_ij-X_i(v,omega)*X_j(v,omega)).\n\nConclusion: For every s>=0, the real function F(t)=integral_Omega f(X(max(t,0),omega))dP has derivative within [0,infinity) at s equal to integral_Omega [-Df(X(s,omega))[u(s,X(s,omega))]+a(s)*L_S f(X(s,omega))]dP.\n\nScopes: The conclusion is a derivative at every specified s, within the nonnegative real half-line; at s=0 it is a right derivative. The SDE equation has one full-measure event per T, uniform in t<=T and in i. Path continuity has one full-measure event on all R_+. No tangency assumption on u is written.\n\nConstant dependencies: No existential constant or estimate is asserted. d depends only on I; c is the real cast of natural d-1. The noise integrand depends on T for its L^2 packaging, on X,a,i,j, and on the given filtration/measure. The derivative depends on f,u,a and the law of X_s.",
+    "text_sha256": "685854681be6d3f1806f0d69bb28868e1effe643a566c2b1fc91167328ce27c6",
+    "decoder": "independent-decoder-c-20261116",
+    "decoder_packet_sha256": "d3f8b8b4fb95cf087abd05fe72ed1dc30dd9749505d5d49ad7027223cb95d347",
+    "decoder_run_sha256": "9f3fb03f5ede3143aa424bbb702302e7fb9a93e70b6bb4b77c80eb8f5ba8def9",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "238a28c2f3d84ded02ddf51e1769ba12c6cf6dc8f31f230c2f5a2afc709007d3",
+  "candidate_publication_context": {
+    "file": "fa87602cf0b6f6c59ab750e03449455d5991390c2267588afefa6ba81ee0be90",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactProgressiveCoefficients\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereWeakForward\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE\n\nopen Filter MeasureTheory ProbabilityTheory Set\nopen scoped BigOperators NNReal\nopen BrownianMotion ProgressiveL2 EuclideanBrownianCoordinates ItoIntegralProcess\n  ProgressiveDriftIntegral SphereWeakForward CompactProgressiveCoefficients\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise\n  AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator\n\nvariable {I : Type*} [Fintype I] [DecidableEq I]\nlocal notation \"E\" => EuclideanSpace ℝ I\nlocal notation \"S\" => Metric.sphere (0 : E) 1\n\n/-- The drift coordinate for the unit-sphere equation in ambient space. -/\nnoncomputable def sphereDriftCoordinate\n    (u : ℝ≥0 → S → E) (temperature : ℝ≥0 → ℝ) (i : I) (t : ℝ≥0) (w : S) : ℝ :=\n  (-u t w - (temperature t * ((Fintype.card I - 1 : ℕ) : ℝ)) • (w : E)) i\n\n/-- The progressive square-integrable representative of the projected\ncoordinate noise on a finite horizon. -/\nnoncomputable def sphereNoiseIntegrand\n    {Ω : Type*} [MeasurableSpace Ω]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    {μ : Measure Ω} [IsFiniteMeasure μ] (T : ℝ≥0)\n    (X : ℝ≥0 → Ω → S) (hX : Measurable (Function.uncurry X))\n    (hProgressive : IsStronglyProgressive filtration X)\n    (temperature : ℝ≥0 → ℝ) (hTemperature : Continuous temperature) (i j : I) :\n    ProgressiveL2Integrand filtration μ T := by\n  let L (k : I) : E →L[ℝ] ℝ := PiLp.proj (p := 2) (𝕜 := ℝ) (β := fun _ : I => ℝ) k\n  let c (q : ℝ≥0 × S) : ℝ :=\n    Real.sqrt (2 * temperature q.1) * (projectedNoiseColumn j (q.2 : E)) i\n  have hState : Continuous (fun q : ℝ≥0 × S => (q.2 : E)) :=\n    continuous_subtype_val.comp continuous_snd\n  have hProjected : Continuous (fun q : ℝ≥0 × S => projectedNoiseColumn j (q.2 : E)) :=\n    continuous_const.sub (((L j).continuous.comp hState).smul hState)\n  have hScale : Continuous (fun q : ℝ≥0 × S => Real.sqrt (2 * temperature q.1)) :=\n    Real.continuous_sqrt.comp ((continuous_const (y := (2 : ℝ))).mul\n      (hTemperature.comp continuous_fst))\n  have hc : Continuous c := hScale.mul ((L i).continuous.comp hProjected)\n  letI : CompactSpace S := isCompact_iff_compactSpace.mp (isCompact_sphere _ _)\n  have h := continuous_coefficient_along_compact_process (μ := μ) X hX hProgressive c hc T 2\n  exact ⟨fun t ω => c (t, X t ω), h.1, h.2.2⟩\n\n/-- The constructed integrand has the specified coordinate coefficient at\nevery time and sample. -/\ntheorem sphereNoiseIntegrand_process\n    {Ω : Type*} [MeasurableSpace Ω]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    {μ : Measure Ω} [IsFiniteMeasure μ] (T : ℝ≥0)\n    (X : ℝ≥0 → Ω → S) (hX : Measurable (Function.uncurry X))\n    (hProgressive : IsStronglyProgressive filtration X)\n    (temperature : ℝ≥0 → ℝ) (hTemperature : Continuous temperature)\n    (i j : I) (t : ℝ≥0) (ω : Ω) :\n    (sphereNoiseIntegrand (μ := μ) T X hX hProgressive temperature hTemperature i j).process t ω =\n      Real.sqrt (2 * temperature t) * (projectedNoiseColumn j (X t ω : E)) i :=\n  rfl\n\n/-- The canonical coordinate equations of a supplied sphere diffusion\nimply the weak evolution of the expectation of every smooth test. -/\ntheorem hasDerivWithinAt_sphere_expectation_of_coordinate_equations\n    {Ω : Type*} [MeasurableSpace Ω]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    (P : ProbabilityMeasure Ω) {B : ℝ≥0 → Ω → E}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration (P : Measure Ω))\n    (hUsual : SatisfiesUsualConditions filtration (P : Measure Ω))\n    (X : ℝ≥0 → Ω → S) (hX : Measurable (Function.uncurry X))\n    (hProgressive : IsStronglyProgressive filtration X)\n    (hPaths : ∀ᵐ ω ∂(P : Measure Ω), Continuous (fun t => X t ω))\n    (u : ℝ≥0 → S → E) (hu : Continuous (Function.uncurry u))\n    (temperature : ℝ≥0 → ℝ) (hTemperature : Continuous temperature)\n    (hNonneg : ∀ t, 0 ≤ temperature t)\n    (hEquation : ∀ (T : ℝ≥0) (hT : 0 < T), ∀ᵐ ω ∂(P : Measure Ω), ∀ t ≤ T, ∀ i : I,\n      (X t ω : E) i = (X 0 ω : E) i +\n        prefixIntegralProcess (fun v a => sphereDriftCoordinate u temperature i v (X v a)) t ω +\n        ∑ j : I, itoIntegralProcess\n          (sphereNoiseIntegrand (μ := (P : Measure Ω)) T X hX hProgressive\n            temperature hTemperature i j) hT ((coordinateFamily hB).isBrownian j) hUsual t ω)\n    (f : E → ℝ) (hf : ∀ w ∈ S, ContDiffAt ℝ 2 f w) (s : ℝ≥0) :\n    HasDerivWithinAt (fun t : ℝ => ∫ ω, f (X t.toNNReal ω) ∂(P : Measure Ω))\n      (∫ ω, -fderiv ℝ f (X s ω) (u s (X s ω)) + temperature s * sphereLaplacian f (X s ω)\n        ∂(P : Measure Ω)) (Ici 0) (s : ℝ) := by\n  apply hasDerivWithinAt_sphere_expectation_of_ito_rows P hB hUsual X hX hPaths\n    u hu temperature hTemperature hNonneg ?_ f hf s\n  intro T hT\n  let η (i j : I) := sphereNoiseIntegrand (μ := (P : Measure Ω)) T X hX hProgressive\n    temperature hTemperature i j\n  let b (i : I) (t : ℝ≥0) (ω : Ω) := sphereDriftCoordinate u temperature i t (X t ω)\n  let L (i : I) : E →L[ℝ] ℝ := PiLp.proj (p := 2) (𝕜 := ℝ) (β := fun _ : I => ℝ) i\n  letI : CompactSpace S := isCompact_iff_compactSpace.mp (isCompact_sphere _ _)\n  have hDrift (i : I) :\n      IsStronglyProgressive filtration (b i) ∧\n        ∀ ω, Integrable (fun t => b i t ω) (TimeMeasure.upTo T) := by\n    let c (q : ℝ≥0 × S) := sphereDriftCoordinate u temperature i q.1 q.2\n    have hState : Continuous (fun q : ℝ≥0 × S => (q.2 : E)) :=\n      continuous_subtype_val.comp continuous_snd\n    have hTemperatureFactor : Continuous (fun q : ℝ≥0 × S =>\n        temperature q.1 * ((Fintype.card I - 1 : ℕ) : ℝ)) :=\n      (hTemperature.comp continuous_fst).mul continuous_const\n    have hc : Continuous c :=\n      (L i).continuous.comp (hu.neg.sub (hTemperatureFactor.smul hState))\n    have h := continuous_coefficient_along_compact_process\n      (μ := (P : Measure Ω)) X hX hProgressive c hc T 1\n    exact ⟨h.1, h.2.1⟩\n  refine ⟨η, (fun ω i => (X 0 ω : E) i), b, ?_, (fun i => (hDrift i).1),\n    (fun i => Eventually.of_forall (hDrift i).2), ?_, ?_, ?_⟩\n  · intro i\n    exact ((L i).continuous.comp continuous_subtype_val).comp_stronglyMeasurable\n      (hProgressive.stronglyAdapted 0)\n  · filter_upwards [hEquation T hT] with ω hω t ht\n    ext i\n    exact (hω t ht i).symm\n  · exact Eventually.of_forall fun ω t _ => by\n      ext i\n      rfl\n  · exact Eventually.of_forall fun ω t _ j => by\n      ext i\n      change (η i j).process t ω = Real.sqrt (2 * temperature t) *\n        (projectedNoiseColumn j (X t ω : E)) i\n      rfl\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-sphere-coordinate-sde-97d1e81c",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereCoordinateSDE.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: The canonical sphere coordinate equation gives the weak evolution. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "For a sphere-valued process satisfying the displayed integrated coordinate equations, the derivative of every smooth test expectation equals the expected sphere generator. It is the ordinary derivative at positive times and the right derivative at zero.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\partial_t\\mathbb E[f(X_t)]=\\mathbb E[-Df(X_t)[u(t,X_t)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}} f(X_t)]."
+      }
+    ],
+    "assumptions": [
+      "The probability space has a filtration and standard Euclidean Brownian motion relative to it, with the usual conditions. The Euclidean coordinate set is finite with decidable equality.",
+      "The sphere-valued process is jointly measurable and strongly progressive, with almost surely continuous paths. The ambient field is jointly continuous, and the deterministic temperature is continuous and nonnegative.",
+      "For every positive horizon the stated integrated equation holds on one full-measure event for all times in that horizon and all coordinates. It uses the literal drift and the constructed completed Brownian integrals.",
+      "The real ambient test is twice continuously differentiable at every sphere point."
+    ],
+    "obligations": [
+      {
+        "id": "sphere-coordinate-sde-97d1e81c",
+        "label": "The canonical sphere coordinate equation gives the weak evolution"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.hasDerivWithinAt_sphere_expectation_of_coordinate_equations",
+      "kind": "theorem",
+      "title": "The canonical sphere coordinate equation gives the weak evolution",
+      "statement": "For a sphere-valued process satisfying the displayed integrated coordinate equations, the derivative of every smooth test expectation equals the expected sphere generator. It is the ordinary derivative at positive times and the right derivative at zero.",
+      "formula": "\\partial_t\\mathbb E[f(X_t)]=\\mathbb E[-Df(X_t)[u(t,X_t)]+\\lambda(t)\\Delta_S^{\\mathrm{ext}} f(X_t)].",
+      "assumptions": [
+        "The probability space has a filtration and standard Euclidean Brownian motion relative to it, with the usual conditions. The Euclidean coordinate set is finite with decidable equality.",
+        "The sphere-valued process is jointly measurable and strongly progressive, with almost surely continuous paths. The ambient field is jointly continuous, and the deterministic temperature is continuous and nonnegative.",
+        "For every positive horizon the stated integrated equation holds on one full-measure event for all times in that horizon and all coordinates. It uses the literal drift and the constructed completed Brownian integrals.",
+        "The real ambient test is twice continuously differentiable at every sphere point."
+      ],
+      "steps": [
+        {
+          "title": "Use the actual coordinate equation",
+          "text": "Strong progressiveness gives time-zero measurability of the initial coordinates. Continuity and compactness prove progressiveness and integrability of the scalar drift. The noise integrands have the literal projected coefficients.",
+          "formula": "(X_t)_i=(X_0)_i+\\int_0^t b_i(s,X_s)\\,ds+\\sum_{j\\in I}\\int_0^t\\eta_{ij}(s)\\,dB_s^j.",
+          "lean": "  intro T hT\n  let η (i j : I) := sphereNoiseIntegrand (μ := (P : Measure Ω)) T X hX hProgressive\n    temperature hTemperature i j\n  let b (i : I) (t : ℝ≥0) (ω : Ω) := sphereDriftCoordinate u temperature i t (X t ω)\n  let L (i : I) : E →L[ℝ] ℝ := PiLp.proj (p := 2) (𝕜 := ℝ) (β := fun _ : I => ℝ) i\n  letI : CompactSpace S := isCompact_iff_compactSpace.mp (isCompact_sphere _ _)\n  have hDrift (i : I) :\n      IsStronglyProgressive filtration (b i) ∧\n        ∀ ω, Integrable (fun t => b i t ω) (TimeMeasure.upTo T) := by\n    let c (q : ℝ≥0 × S) := sphereDriftCoordinate u temperature i q.1 q.2\n    have hState : Continuous (fun q : ℝ≥0 × S => (q.2 : E)) :=\n      continuous_subtype_val.comp continuous_snd\n    have hTemperatureFactor : Continuous (fun q : ℝ≥0 × S =>\n        temperature q.1 * ((Fintype.card I - 1 : ℕ) : ℝ)) :=\n      (hTemperature.comp continuous_fst).mul continuous_const\n    have hc : Continuous c :=\n      (L i).continuous.comp (hu.neg.sub (hTemperatureFactor.smul hState))\n    have h := continuous_coefficient_along_compact_process\n      (μ := (P : Measure Ω)) X hX hProgressive c hc T 1\n    exact ⟨h.1, h.2.1⟩\n  refine ⟨η, (fun ω i => (X 0 ω : E) i), b, ?_, (fun i => (hDrift i).1),\n    (fun i => Eventually.of_forall (hDrift i).2), ?_, ?_, ?_⟩\n  · intro i\n    exact ((L i).continuous.comp continuous_subtype_val).comp_stronglyMeasurable\n      (hProgressive.stronglyAdapted 0)\n  · filter_upwards [hEquation T hT] with ω hω t ht\n    ext i\n    exact (hω t ht i).symm\n  · exact Eventually.of_forall fun ω t _ => by\n      ext i\n      rfl\n  · exact Eventually.of_forall fun ω t _ j => by\n      ext i\n      change (η i j).process t ω = Real.sqrt (2 * temperature t) *\n        (projectedNoiseColumn j (X t ω : E)) i\n      rfl"
+        },
+        {
+          "title": "Apply the weak evolution for the assembled rows",
+          "text": "The path equation identifies the assembled vector with the supplied sphere process on the common horizon event. The existing sphere-row theorem gives the expected generator as the derivative.",
+          "formula": "\\partial_t\\mathbb E[f(X_t)]=\\mathbb E[\\mathcal L_t f(X_t)].",
+          "lean": "  apply hasDerivWithinAt_sphere_expectation_of_ito_rows P hB hUsual X hX hPaths\n    u hu temperature hTemperature hNonneg ?_ f hf s"
+        }
+      ],
+      "lean_statement": "The theorem concludes a derivative within the closed nonnegative real half-line for the actual coordinate solution.",
+      "lean_proof": "Supply the required initialized row representation and coefficient equalities to the existing theorem.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.sphereDriftCoordinate",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.sphereNoiseIntegrand",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactProgressiveCoefficients.continuous_coefficient_along_compact_process",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereWeakForward.hasDerivWithinAt_sphere_expectation_of_ito_rows"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.IsStronglyProgressive.stronglyAdapted",
+        "isCompact_sphere"
+      ],
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereWeakForward.lean",
+          "label": "Sphere weak evolution from rows",
+          "scope": "The existing result accepts the actual integrated row representation."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereCoordinateSDE.hasDerivWithinAt_sphere_expectation_of_coordinate_equations",
+      "role": "prerequisite",
+      "supports": [
+        "sphere-coordinate-sde-97d1e81c"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The probability space has a filtration and standard Euclidean Brownian motion relative to it, with the usual conditions. The Euclidean coordinate set is finite with decidable equality.",
+        "lean": "The probability space has a filtration and standard Euclidean Brownian motion relative to it, with the usual conditions. The Euclidean coordinate set is finite with decidable equality."
+      },
+      {
+        "source": "The sphere-valued process is jointly measurable and strongly progressive, with almost surely continuous paths. The ambient field is jointly continuous, and the deterministic temperature is continuous and nonnegative.",
+        "lean": "The sphere-valued process is jointly measurable and strongly progressive, with almost surely continuous paths. The ambient field is jointly continuous, and the deterministic temperature is continuous and nonnegative."
+      },
+      {
+        "source": "For every positive horizon the stated integrated equation holds on one full-measure event for all times in that horizon and all coordinates. It uses the literal drift and the constructed completed Brownian integrals.",
+        "lean": "For every positive horizon the stated integrated equation holds on one full-measure event for all times in that horizon and all coordinates. It uses the literal drift and the constructed completed Brownian integrals."
+      },
+      {
+        "source": "The real ambient test is twice continuously differentiable at every sphere point.",
+        "lean": "The real ambient test is twice continuously differentiable at every sphere point."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "7d073689e2cc67948f080d861427dc46a495aa609956610cb00ef1636c4a105e"
+}

@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-6c26af29f49b6ec8",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-sphere-ito-formula-3dce7417",
+    "anchor": "Original Samplinglib supplement: The terminal Itô formula for a unit-sphere diffusion. Exact assumptions and formula below.",
+    "original_text": "On a positive finite horizon $[0,T]$, form the Euclidean process $X$ from its initial vector, progressive drift integral and completed Brownian coordinate integrals. Assume the process stays on the unit sphere almost surely throughout the horizon. If its drift and noise columns have the spherical coefficients below, then the increment of a twice continuously differentiable ambient test equals the time integral of the sphere generator plus the terminal value of a martingale starting at zero.\n\nThe coordinate index set is finite with decidable equality. The ambient measure is finite. Brownian motion is standard relative to the filtration, and the filtration satisfies the usual conditions.\nThe initial coordinates are strongly measurable for the time-zero sigma algebra. The drift coordinates are strongly progressive with almost surely integrable time sections. The Brownian integrands are progressive and square-integrable on the horizon.\nThe process stays on the unit sphere for every time in the horizon on a common full-measure event. A sphere point supplies a measurable fallback for exceptional samples in the compact Itô construction. The test is $C^2$ at each sphere point.\nThe deterministic temperature is continuous and nonnegative on the horizon. The vector field evaluated along the process has almost surely continuous time paths. Almost surely throughout the horizon the drift is $-u_s-\\lambda_s(d-1)X_s$ and the $j$th noise column is $\\sqrt{2\\lambda_s}(e_j-(X_s)_jX_s)$.\n\nf(X_T)-f(X_0)=\\int_0^T\\big[-Df(X_s)[u_s]+\\lambda_s\\Delta_{S^{d-1}}^{\\rm ext} f(X_s)\\big]\\,ds+M_T\\quad\\text{almost surely}.",
+    "text_sha256": "411dcc2608e9950754af19f6355eae083e17c440fd30cf52c9d6405a4cad8d9a"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoFormula.ito_formula_sphere_at_horizon",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereItoFormula.lean",
+    "statement": "theorem anonymous_target.{u_1, u_2}\n  {Ω : Type u_1} {I : Type u_2} [MeasurableSpace Ω] [Fintype I] [DecidableEq I]\n  {filtration : MeasureTheory.Filtration NNReal inferInstance} {μ : MeasureTheory.Measure Ω}\n  [MeasureTheory.IsFiniteMeasure μ] {T : NNReal} {B : NNReal → Ω → EuclideanSpace ℝ I}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration μ)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration μ)\n  (η :\n    I → I → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration μ T)\n  (x : Ω → I → ℝ) (hx : ∀ (i : I), MeasureTheory.StronglyMeasurable fun ω => x ω i) (b : I → NNReal → Ω → ℝ)\n  (hb : ∀ (i : I), MeasureTheory.IsStronglyProgressive filtration (b i))\n  (hbi :\n    ∀ (i : I),\n      ∀ᵐ (ω : Ω) ∂μ,\n        MeasureTheory.Integrable (fun s => b i s ω)\n          (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T))\n  (fallback : ↑(Metric.sphere 0 1)) (f : EuclideanSpace ℝ I → ℝ) (hf : ∀ w ∈ Metric.sphere 0 1, ContDiffAt ℝ 2 f w)\n  (u : NNReal → Ω → EuclideanSpace ℝ I) (hu : ∀ᵐ (ω : Ω) ∂μ, ContinuousOn (fun s => u s ω) (Set.Icc 0 T))\n  (temperature : NNReal → ℝ) (hTemperature : ContinuousOn temperature (Set.Icc 0 T))\n  (hNonneg : ∀ t ≤ T, 0 ≤ temperature t) :\n  have A := fun i t ω =>\n    x ω i +\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess (b i) t ω;\n  have X := fun t ω =>\n    WithLp.toLp 2 fun i =>\n      A i t ω +\n        ∑ j,\n          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (η i j) hT ⋯\n            hUsual t ω;\n  (∀ᵐ (ω : Ω) ∂μ, ∀ t ≤ T, X t ω ∈ Metric.sphere 0 1) →\n    (∀ᵐ (ω : Ω) ∂μ,\n        ∀ t ≤ T, (WithLp.toLp 2 fun i => b i t ω) = -u t ω - (temperature t * ↑(Fintype.card I - 1)) • X t ω) →\n      (∀ᵐ (ω : Ω) ∂μ,\n          ∀ t ≤ T,\n            ∀ (j : I),\n              (WithLp.toLp 2 fun i => (η i j).process t ω) =\n                √(2 * temperature t) •\n                  local_symbol_235fd8b746d6 j (X t ω)) →\n        ∃ M,\n          MeasureTheory.Martingale M filtration μ ∧\n            (∀ (ω : Ω), M 0 ω = 0) ∧\n              ∀ᵐ (ω : Ω) ∂μ,\n                f (X T ω) - f (X 0 ω) =\n                  ∫ (s : NNReal),\n                      -(fderiv ℝ f (X s ω)) (u s ω) +\n                        temperature s *\n                          local_symbol_e27025fd0d42 f\n                            (X s ω) ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T +\n                    M T ω",
+    "statement_sha256": "58c6640160912fb7f5986a7e987284a5f4d7ae8b088e7e59a1c4b7048bef2571",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Finite Euclidean coordinate type I; filtered Brownian data with J=I; matrix of integrands eta_ij; initial coordinates x_i; drifts b_i; resulting Euclidean process X; a chosen fallback unit vector; scalar f; vector process u; deterministic temperature a; existential real martingale M.\n\nOmega is measurable with finite measure mu and a filtration F indexed by nonnegative reals. T>0 is fixed. The Euclidean coordinate type J is finite with decidable equality. B:[0,infinity)×Omega→R^J. lambda_T denotes the pullback under NNReal.toReal of Lebesgue measure restricted to [0,T]. Here J=I, and I is finite with decidable equality. x:Omega→(I→R); b_i:[0,infinity)×Omega→R; u:[0,infinity)×Omega→R^I; a:[0,infinity)→R; f:R^I→R; fallback∈{w:||w||=1}.\n\nAssumptions: B starts at zero for every omega, has jointly independent increments over disjoint half-open intervals, every continuous real linear functional ell sends B_t-B_s (s<t) to a centered Gaussian of variance (t-s)||ell||², and paths are continuous mu-a.e. B is strongly adapted to F and B_t-B_s is independent of F_s for s≤t. F is right-continuous and every subset S⊆Omega with mu(S)=0 belongs to F_t for every t≥0. A progressive L² integrand is a real process a(t,omega), strongly progressive for F, for which (omega,t)↦a(t,omega) is in L²(mu⊗lambda_T). Each x_i is strongly measurable for F_0; every b_i is strongly progressive and lambda_T-integrable pathwise mu-a.e. f is ambient C² at every unit vector. u has continuous paths on [0,T] mu-a.e. a is continuous on [0,T] and nonnegative at every t≤T. Let d=card(I) dotminus 1 in N, then cast to R. For mu-a.e. omega and all t≤T, ||X(t,omega)||=1. For mu-a.e. omega and all t≤T, (b_i(t,omega))_i=-u(t,omega)-a(t)d X(t,omega). For mu-a.e. omega, all t≤T and all j∈I, (eta_ij(t,omega))_i=sqrt(2a(t))(e_j-X_j(t,omega)X(t,omega)).\n\nConclusion: I_j(a)(t,omega) denotes the specified completed Ito integral driven by the scalar coordinate B^j(t,omega)=(B(t,omega))_j. Its representative is the pointwise limit of chosen elementary stochastic integrals off the null complement of their uniform Cauchy event, and zero on that complement; it is held constant after T. Define X_i(t,omega)=x_i(omega)+∫b_i(s,omega)d lambda_t(s)+∑_j I_j(eta_ij)(t,omega). Define Lf(w)=Δf(w)-D²f(w)[w,w]-d Df(w)[w], with Δ=Laplacian.laplacian and natural truncated subtraction in d. Then there exists a real F-martingale M under mu, M(0,omega)=0 for every omega, such that mu-a.e.: f(X(T))-f(X(0))=∫[-Df(X(s))[u(s)]+a(s)Lf(X(s))]d lambda_T(s)+M(T).\n\nQuantifier order: Universally quantify the listed data and hypotheses. Define X from x,b,eta. Then assume successively: mu-a.e. all-time sphere inclusion, mu-a.e. all-time vector drift identity, and mu-a.e. all-time/all-coordinate diffusion identity. Under these three hypotheses there exists one M satisfying the martingale, pointwise-zero-initial-value and a.e. terminal-balance assertions.\n\nScope: The identity is asserted only at the supplied terminal horizon T, mu-a.e.; the range and coefficient hypotheses hold on full-measure events simultaneously for all times in [0,T]. M is a true martingale on nonnegative times. No separate tangency, boundedness, or progressivity hypothesis on u is stated. The fallback unit vector is supplied although absent from the final formula.\n\nConstant dependencies: M can depend on the entire supplied setup including f,T and integrands. The geometric coefficient d is card(I)-1 in N before coercion. No unspecified numerical bound.",
+    "text_sha256": "dc5d73c68c5938e8d97566f1ff3d9918683f7ea1ee2bb53050b1c359e0f2d5b5",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "d0d1b4209c89bced07d29eb6797cb0cba0fe6eb7fa028c62a656a028c9c70b20",
+    "decoder_run_sha256": "7005eeec8fcaaf0cada7603997143108fe309b98d95d08f92f9000bc71a91bdb",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "073f63000ce12b9446f177ad638ab5f3ddaf7989b516259d411690c4372380c5",
+  "candidate_publication_context": {
+    "file": "0a9330105eb720a374be76311cec309bb33109d965c1eef35fe22ab6e4b66543",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula\nimport AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator\nimport Mathlib.MeasureTheory.Function.LocallyIntegrable\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoFormula\n\nopen Filter MeasureTheory ProbabilityTheory Set\nopen scoped BigOperators NNReal\nopen BrownianMotion ProgressiveL2 EuclideanBrownianCoordinates ItoIntegralProcess\n  ProgressiveDriftIntegral ItoInitializedDrift ItoEuclideanRowRegularity ItoCompactEuclideanFormula\nopen AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise\n  AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator\n\n/-- Apply the compact Euclidean Itô formula to an actual process on the unit\nsphere and identify its generator from the projected columns and radial drift. -/\ntheorem ito_formula_sphere_at_horizon\n    {Ω I : Type*} [MeasurableSpace Ω] [Fintype I] [DecidableEq I]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    {μ : Measure Ω} [IsFiniteMeasure μ] {T : ℝ≥0}\n    {B : ℝ≥0 → Ω → EuclideanSpace ℝ I}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration μ) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration μ)\n    (η : I → I → ProgressiveL2Integrand filtration μ T)\n    (x : Ω → I → ℝ) (hx : ∀ i, StronglyMeasurable[filtration 0] (fun ω => x ω i))\n    (b : I → ℝ≥0 → Ω → ℝ) (hb : ∀ i, IsStronglyProgressive filtration (b i))\n    (hbi : ∀ i, ∀ᵐ ω ∂μ, Integrable (fun s => b i s ω) (TimeMeasure.upTo T))\n    (fallback : Metric.sphere (0 : EuclideanSpace ℝ I) 1)\n    (f : EuclideanSpace ℝ I → ℝ)\n    (hf : ∀ w ∈ Metric.sphere (0 : EuclideanSpace ℝ I) 1, ContDiffAt ℝ 2 f w)\n    (u : ℝ≥0 → Ω → EuclideanSpace ℝ I)\n    (hu : ∀ᵐ ω ∂μ, ContinuousOn (fun s => u s ω) (Icc 0 T))\n    (temperature : ℝ≥0 → ℝ) (hTemperature : ContinuousOn temperature (Icc 0 T))\n    (hNonneg : ∀ t ≤ T, 0 ≤ temperature t) :\n    let A := fun (i : I) (t : ℝ≥0) (ω : Ω) => x ω i + prefixIntegralProcess (b i) t ω\n    let X := fun (t : ℝ≥0) (ω : Ω) => WithLp.toLp 2 (fun i : I => A i t ω + ∑ j : I,\n      itoIntegralProcess (η i j) hT ((coordinateFamily hB).isBrownian j) hUsual t ω)\n    (∀ᵐ ω ∂μ, ∀ t ≤ T, X t ω ∈ Metric.sphere 0 1) →\n    (∀ᵐ ω ∂μ, ∀ t ≤ T, WithLp.toLp 2 (fun i => b i t ω) =\n      -u t ω - (temperature t * ((Fintype.card I - 1 : ℕ) : ℝ)) • X t ω) →\n    (∀ᵐ ω ∂μ, ∀ t ≤ T, ∀ j : I, WithLp.toLp 2 (fun i => (η i j).process t ω) =\n      Real.sqrt (2 * temperature t) • projectedNoiseColumn j (X t ω)) →\n    ∃ M : ℝ≥0 → Ω → ℝ, Martingale M filtration μ ∧ (∀ ω, M 0 ω = 0) ∧\n      (∀ᵐ ω ∂μ, f (X T ω) - f (X 0 ω) =\n        (∫ s, -fderiv ℝ f (X s ω) (u s ω) + temperature s * sphereLaplacian f (X s ω)\n          ∂(TimeMeasure.upTo T)) + M T ω) := by\n  intro A X hSphere hDrift hColumns\n  have hK := isCompact_sphere (0 : EuclideanSpace ℝ I) 1\n  obtain ⟨θ, _, hM, hM0, hIto⟩ :=\n    ito_formula_compact_euclidean_at_horizon hB hT hUsual η x hx b hb hbi hK fallback f hf hSphere\n  let M (s : ℝ≥0) (ω : Ω) := ∑ q : I × I,\n    itoIntegralProcess (θ q) hT ((coordinateFamily hB).isBrownian q.2) hUsual s ω\n  refine ⟨M, hM, hM0, ?_⟩\n  have hA (i : I) := initialized_drift_progressive_continuous_boundedVariation\n    (fun ω => x ω i) (hx i) (b i) (hb i) (hbi i)\n  have hAmeas (i : I) (s : ℝ≥0) (_ : s ≤ T) : AEStronglyMeasurable (A i s) μ :=\n    (((hA i).1.stronglyAdapted s).mono (filtration.le s)).aestronglyMeasurable\n  obtain ⟨_, hXc⟩ := measurable_continuousOn_euclidean_ito_rows hB hT hUsual η A hAmeas\n    (fun i => (hA i).2.2.mono fun _ h => h.1)\n  filter_upwards [hIto, hSphere, hDrift, hColumns, hXc, hu] with ω hω hS hbω hηω hcX hU\n  let ν := TimeMeasure.upTo T\n  let v (s : ℝ≥0) := WithLp.toLp 2 (fun i => b i s ω)\n  let σ (j : I) (s : ℝ≥0) := WithLp.toLp 2 (fun i => (η i j).process s ω)\n  let D (s : ℝ≥0) := fderiv ℝ f (X s ω) (v s)\n  let Q (s : ℝ≥0) := (1 / 2 : ℝ) * ∑ j : I,\n    fderiv ℝ (fderiv ℝ f) (X s ω) (σ j s) (σ j s)\n  have hMem : ∀ᵐ s ∂ν, s ∈ Icc (0 : ℝ≥0) T :=\n    (TimeMeasure.ae_mem_Ioc_zero_upTo T).mono fun _ hs => ⟨hs.1.le, hs.2⟩\n  have hRest : ν.restrict (Icc 0 T) = ν := Measure.restrict_eq_self_of_ae_mem hMem\n  have hMaps : MapsTo (fun s => X s ω) (Icc 0 T) (Metric.sphere 0 1) :=\n    fun _ hs => hS _ hs.2\n  have hFirst : ContinuousOn (fun s => fderiv ℝ f (X s ω)) (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ f) (Metric.sphere 0 1) from fun w hw =>\n      ((hf w hw).continuousAt_fderiv (by decide)).continuousWithinAt).comp hcX hMaps\n  have hSecond : ContinuousOn (fun s => fderiv ℝ (fderiv ℝ f) (X s ω)) (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ (fderiv ℝ f)) (Metric.sphere 0 1) from fun w hw =>\n      (((hf w hw).fderiv_right (m := 1) (by decide)).continuousAt_fderiv\n        (by decide)).continuousWithinAt).comp hcX hMaps\n  have hV : ContinuousOn v (Icc 0 T) := by\n    have hDim : ContinuousOn (fun _ : ℝ≥0 => ((Fintype.card I - 1 : ℕ) : ℝ))\n        (Icc 0 T) := continuousOn_const\n    refine (hU.neg.sub ((hTemperature.mul hDim).smul hcX)).congr ?_\n    exact fun s hs => hbω s hs.2\n  have hσ (j : I) : ContinuousOn (σ j) (Icc 0 T) := by\n    have hCol : ContinuousOn (fun s => projectedNoiseColumn j (X s ω)) (Icc 0 T) := by\n      let L : EuclideanSpace ℝ I →L[ℝ] ℝ := PiLp.proj (p := 2) (𝕜 := ℝ)\n        (β := fun _ : I => ℝ) j\n      exact continuousOn_const.sub ((L.continuous.comp_continuousOn hcX).smul hcX)\n    have hRoot : ContinuousOn (fun s => Real.sqrt (2 * temperature s)) (Icc 0 T) :=\n      Real.continuous_sqrt.comp_continuousOn ((continuousOn_const (c := (2 : ℝ))).mul hTemperature)\n    exact (hRoot.smul hCol).congr fun s hs => hηω s hs.2 j\n  have hD : Integrable D ν := by\n    rw [← hRest]\n    exact (hFirst.clm_apply hV).integrableOn_compact isCompact_Icc\n  have hQ : Integrable Q ν := by\n    rw [← hRest]\n    exact ((continuousOn_const (c := (1 / 2 : ℝ))).mul (continuousOn_finsetSum _ fun j _ =>\n      (hSecond.clm_apply (hσ j)).clm_apply (hσ j))).integrableOn_compact isCompact_Icc\n  change f (X T ω) - f (X 0 ω) =\n    (∫ s, D s ∂ν) + (∫ s, Q s ∂ν) + M T ω at hω\n  rw [hω, ← integral_add hD hQ]\n  apply congrArg (· + M T ω)\n  apply integral_congr_ae\n  filter_upwards [hMem] with s hs\n  have hUnit : ‖X s ω‖ = 1 := mem_sphere_zero_iff_norm.1 (hS s hs.2)\n  simp only [D, Q, v, σ, hbω s hs.2, hηω s hs.2]\n  exact ito_generator_eq_sphereLaplacian f hUnit (u s ω) (hNonneg s hs.2)\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoFormula\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-sphere-ito-formula-3dce7417",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/SphereItoFormula.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: The terminal Itô formula for a unit-sphere diffusion. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "On a positive finite horizon $[0,T]$, form the Euclidean process $X$ from its initial vector, progressive drift integral and completed Brownian coordinate integrals. Assume the process stays on the unit sphere almost surely throughout the horizon. If its drift and noise columns have the spherical coefficients below, then the increment of a twice continuously differentiable ambient test equals the time integral of the sphere generator plus the terminal value of a martingale starting at zero.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "f(X_T)-f(X_0)=\\int_0^T\\big[-Df(X_s)[u_s]+\\lambda_s\\Delta_{S^{d-1}}^{\\rm ext} f(X_s)\\big]\\,ds+M_T\\quad\\text{almost surely}."
+      }
+    ],
+    "assumptions": [
+      "The coordinate index set is finite with decidable equality. The ambient measure is finite. Brownian motion is standard relative to the filtration, and the filtration satisfies the usual conditions.",
+      "The initial coordinates are strongly measurable for the time-zero sigma algebra. The drift coordinates are strongly progressive with almost surely integrable time sections. The Brownian integrands are progressive and square-integrable on the horizon.",
+      "The process stays on the unit sphere for every time in the horizon on a common full-measure event. A sphere point supplies a measurable fallback for exceptional samples in the compact Itô construction. The test is $C^2$ at each sphere point.",
+      "The deterministic temperature is continuous and nonnegative on the horizon. The vector field evaluated along the process has almost surely continuous time paths. Almost surely throughout the horizon the drift is $-u_s-\\lambda_s(d-1)X_s$ and the $j$th noise column is $\\sqrt{2\\lambda_s}(e_j-(X_s)_jX_s)$."
+    ],
+    "obligations": [
+      {
+        "id": "sphere-ito-formula-3dce7417",
+        "label": "The terminal Itô formula for a unit-sphere diffusion"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoFormula.ito_formula_sphere_at_horizon",
+      "kind": "theorem",
+      "title": "The terminal Itô formula for a unit-sphere diffusion",
+      "statement": "On a positive finite horizon $[0,T]$, form the Euclidean process $X$ from its initial vector, progressive drift integral and completed Brownian coordinate integrals. Assume the process stays on the unit sphere almost surely throughout the horizon. If its drift and noise columns have the spherical coefficients below, then the increment of a twice continuously differentiable ambient test equals the time integral of the sphere generator plus the terminal value of a martingale starting at zero.",
+      "formula": "f(X_T)-f(X_0)=\\int_0^T\\big[-Df(X_s)[u_s]+\\lambda_s\\Delta_{S^{d-1}}^{\\rm ext} f(X_s)\\big]\\,ds+M_T\\quad\\text{almost surely}.",
+      "assumptions": [
+        "The coordinate index set is finite with decidable equality. The ambient measure is finite. Brownian motion is standard relative to the filtration, and the filtration satisfies the usual conditions.",
+        "The initial coordinates are strongly measurable for the time-zero sigma algebra. The drift coordinates are strongly progressive with almost surely integrable time sections. The Brownian integrands are progressive and square-integrable on the horizon.",
+        "The process stays on the unit sphere for every time in the horizon on a common full-measure event. A sphere point supplies a measurable fallback for exceptional samples in the compact Itô construction. The test is $C^2$ at each sphere point.",
+        "The deterministic temperature is continuous and nonnegative on the horizon. The vector field evaluated along the process has almost surely continuous time paths. Almost surely throughout the horizon the drift is $-u_s-\\lambda_s(d-1)X_s$ and the $j$th noise column is $\\sqrt{2\\lambda_s}(e_j-(X_s)_jX_s)$."
+      ],
+      "steps": [
+        {
+          "title": "Apply the compact Itô formula on the unit sphere",
+          "text": "The sphere is compact. On the event where all time points are on the sphere, the compact formula uses the original process and yields its two finite-variation integrals and a genuine completed martingale.",
+          "formula": "f(X_T)-f(X_0)=\\int_0^T Df(X_s)[b_s]\\,ds+\\frac12\\int_0^T\\sum_jD^2f(X_s)[\\sigma_{j,s},\\sigma_{j,s}]\\,ds+M_T.",
+          "lean": "  intro A X hSphere hDrift hColumns\n  have hK := isCompact_sphere (0 : EuclideanSpace ℝ I) 1\n  obtain ⟨θ, _, hM, hM0, hIto⟩ :=\n    ito_formula_compact_euclidean_at_horizon hB hT hUsual η x hx b hb hbi hK fallback f hf hSphere\n  let M (s : ℝ≥0) (ω : Ω) := ∑ q : I × I,\n    itoIntegralProcess (θ q) hT ((coordinateFamily hB).isBrownian q.2) hUsual s ω\n  refine ⟨M, hM, hM0, ?_⟩"
+        },
+        {
+          "title": "Identify and combine the integrands",
+          "text": "On almost every path the drift and Hessian terms are continuous on the compact time interval. Add the two integrals and substitute the pointwise generator identity on the unit states.",
+          "formula": "Df(X_s)[b_s]+\\tfrac12\\sum_jD^2 f(X_s)[\\sigma_{j,s},\\sigma_{j,s}]=-Df(X_s)[u_s]+\\lambda_s\\Delta_{S^{d-1}}^{\\rm ext}f(X_s).",
+          "lean": "  have hA (i : I) := initialized_drift_progressive_continuous_boundedVariation\n    (fun ω => x ω i) (hx i) (b i) (hb i) (hbi i)\n  have hAmeas (i : I) (s : ℝ≥0) (_ : s ≤ T) : AEStronglyMeasurable (A i s) μ :=\n    (((hA i).1.stronglyAdapted s).mono (filtration.le s)).aestronglyMeasurable\n  obtain ⟨_, hXc⟩ := measurable_continuousOn_euclidean_ito_rows hB hT hUsual η A hAmeas\n    (fun i => (hA i).2.2.mono fun _ h => h.1)\n  filter_upwards [hIto, hSphere, hDrift, hColumns, hXc, hu] with ω hω hS hbω hηω hcX hU\n  let ν := TimeMeasure.upTo T\n  let v (s : ℝ≥0) := WithLp.toLp 2 (fun i => b i s ω)\n  let σ (j : I) (s : ℝ≥0) := WithLp.toLp 2 (fun i => (η i j).process s ω)\n  let D (s : ℝ≥0) := fderiv ℝ f (X s ω) (v s)\n  let Q (s : ℝ≥0) := (1 / 2 : ℝ) * ∑ j : I,\n    fderiv ℝ (fderiv ℝ f) (X s ω) (σ j s) (σ j s)\n  have hMem : ∀ᵐ s ∂ν, s ∈ Icc (0 : ℝ≥0) T :=\n    (TimeMeasure.ae_mem_Ioc_zero_upTo T).mono fun _ hs => ⟨hs.1.le, hs.2⟩\n  have hRest : ν.restrict (Icc 0 T) = ν := Measure.restrict_eq_self_of_ae_mem hMem\n  have hMaps : MapsTo (fun s => X s ω) (Icc 0 T) (Metric.sphere 0 1) :=\n    fun _ hs => hS _ hs.2\n  have hFirst : ContinuousOn (fun s => fderiv ℝ f (X s ω)) (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ f) (Metric.sphere 0 1) from fun w hw =>\n      ((hf w hw).continuousAt_fderiv (by decide)).continuousWithinAt).comp hcX hMaps\n  have hSecond : ContinuousOn (fun s => fderiv ℝ (fderiv ℝ f) (X s ω)) (Icc 0 T) :=\n    (show ContinuousOn (fderiv ℝ (fderiv ℝ f)) (Metric.sphere 0 1) from fun w hw =>\n      (((hf w hw).fderiv_right (m := 1) (by decide)).continuousAt_fderiv\n        (by decide)).continuousWithinAt).comp hcX hMaps\n  have hV : ContinuousOn v (Icc 0 T) := by\n    have hDim : ContinuousOn (fun _ : ℝ≥0 => ((Fintype.card I - 1 : ℕ) : ℝ))\n        (Icc 0 T) := continuousOn_const\n    refine (hU.neg.sub ((hTemperature.mul hDim).smul hcX)).congr ?_\n    exact fun s hs => hbω s hs.2\n  have hσ (j : I) : ContinuousOn (σ j) (Icc 0 T) := by\n    have hCol : ContinuousOn (fun s => projectedNoiseColumn j (X s ω)) (Icc 0 T) := by\n      let L : EuclideanSpace ℝ I →L[ℝ] ℝ := PiLp.proj (p := 2) (𝕜 := ℝ)\n        (β := fun _ : I => ℝ) j\n      exact continuousOn_const.sub ((L.continuous.comp_continuousOn hcX).smul hcX)\n    have hRoot : ContinuousOn (fun s => Real.sqrt (2 * temperature s)) (Icc 0 T) :=\n      Real.continuous_sqrt.comp_continuousOn ((continuousOn_const (c := (2 : ℝ))).mul hTemperature)\n    exact (hRoot.smul hCol).congr fun s hs => hηω s hs.2 j\n  have hD : Integrable D ν := by\n    rw [← hRest]\n    exact (hFirst.clm_apply hV).integrableOn_compact isCompact_Icc\n  have hQ : Integrable Q ν := by\n    rw [← hRest]\n    exact ((continuousOn_const (c := (1 / 2 : ℝ))).mul (continuousOn_finsetSum _ fun j _ =>\n      (hSecond.clm_apply (hσ j)).clm_apply (hσ j))).integrableOn_compact isCompact_Icc\n  change f (X T ω) - f (X 0 ω) =\n    (∫ s, D s ∂ν) + (∫ s, Q s ∂ν) + M T ω at hω\n  rw [hω, ← integral_add hD hQ]\n  apply congrArg (· + M T ω)\n  apply integral_congr_ae\n  filter_upwards [hMem] with s hs\n  have hUnit : ‖X s ω‖ = 1 := mem_sphere_zero_iff_norm.1 (hS s hs.2)\n  simp only [D, Q, v, σ, hbω s hs.2, hηω s hs.2]\n  exact ito_generator_eq_sphereLaplacian f hUnit (u s ω) (hNonneg s hs.2)"
+        }
+      ],
+      "lean_statement": "The conclusion supplies an existential real martingale with $M_0=0$ at every sample and the terminal identity almost surely. The proof chooses the completed martingale from the compact formula.",
+      "lean_proof": "Combine the compact stochastic formula and the extrinsic generator identity on the common full-measure events.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula.ito_formula_compact_euclidean_at_horizon",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator.ito_generator_eq_sphereLaplacian",
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.projectedNoiseColumn"
+      ],
+      "mathlib_dependencies": [
+        "isCompact_sphere",
+        "ContinuousOn.integrableOn_compact",
+        "MeasureTheory.integral_add",
+        "MeasureTheory.integral_congr_ae"
+      ],
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoCompactEuclideanFormula.lean",
+          "label": "Compact Euclidean Itô formula",
+          "scope": "The stochastic integral and terminal martingale are constructed there."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereDiffusionGenerator.lean",
+          "label": "Extrinsic sphere generator",
+          "scope": "The projected noise and radial drift produce the displayed generator."
+        }
+      ],
+      "tests": [
+        "Focused local Lean 4.33.0 compilation."
+      ],
+      "reading_layout": "progressive"
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereItoFormula.ito_formula_sphere_at_horizon",
+      "role": "prerequisite",
+      "supports": [
+        "sphere-ito-formula-3dce7417"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The coordinate index set is finite with decidable equality. The ambient measure is finite. Brownian motion is standard relative to the filtration, and the filtration satisfies the usual conditions.",
+        "lean": "The coordinate index set is finite with decidable equality. The ambient measure is finite. Brownian motion is standard relative to the filtration, and the filtration satisfies the usual conditions."
+      },
+      {
+        "source": "The initial coordinates are strongly measurable for the time-zero sigma algebra. The drift coordinates are strongly progressive with almost surely integrable time sections. The Brownian integrands are progressive and square-integrable on the horizon.",
+        "lean": "The initial coordinates are strongly measurable for the time-zero sigma algebra. The drift coordinates are strongly progressive with almost surely integrable time sections. The Brownian integrands are progressive and square-integrable on the horizon."
+      },
+      {
+        "source": "The process stays on the unit sphere for every time in the horizon on a common full-measure event. A sphere point supplies a measurable fallback for exceptional samples in the compact Itô construction. The test is $C^2$ at each sphere point.",
+        "lean": "The process stays on the unit sphere for every time in the horizon on a common full-measure event. A sphere point supplies a measurable fallback for exceptional samples in the compact Itô construction. The test is $C^2$ at each sphere point."
+      },
+      {
+        "source": "The deterministic temperature is continuous and nonnegative on the horizon. The vector field evaluated along the process has almost surely continuous time paths. Almost surely throughout the horizon the drift is $-u_s-\\lambda_s(d-1)X_s$ and the $j$th noise column is $\\sqrt{2\\lambda_s}(e_j-(X_s)_jX_s)$.",
+        "lean": "The deterministic temperature is continuous and nonnegative on the horizon. The vector field evaluated along the process has almost surely continuous time paths. Almost surely throughout the horizon the drift is $-u_s-\\lambda_s(d-1)X_s$ and the $j$th noise column is $\\sqrt{2\\lambda_s}(e_j-(X_s)_jX_s)$."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "c7085cdf48853a5a34e367ea36744b38f86386819032743b04f240f2e194ff82"
+}

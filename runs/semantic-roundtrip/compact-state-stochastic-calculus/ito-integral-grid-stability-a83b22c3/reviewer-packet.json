@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-71c6124e66a30bfd",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-a-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-integral-grid-stability-a83b22c3",
+    "anchor": "Original Samplinglib supplement: Compare squared increments of two Itô rows. Exact assumptions and formula below.",
+    "original_text": "For each of finitely many coordinates, integrate two progressive square-integrable integrands against the same coordinate Brownian motion. Sum the resulting coordinate integrals to form each row. The difference of their squared-increment sums is integrable, and its expected absolute value is bounded uniformly over finite deterministic grids.\n\nOn a positive finite time horizon, the given filtration and finite sample measure satisfy the usual conditions used to construct the completed Itô integral.\nThe grid lies in [0,T] and is nondecreasing. The coordinate index type J is finite and may be empty.\nFor each j, both integrands are real, progressive and square integrable. They share the same Brownian motion Bⱼ relative to the given filtration. The drivers at different indices may be dependent.\n\n\\begin{gathered}R_f(t)=\\sum_{j\\in J} I_j(f_j)(t),\\qquad Q(f)=\\sum_i(\\Delta_i R_f)^2,\\\\ E(f)=\\sum_{j\\in J}\\|f_j\\|_{L^2(\\Omega\\times[0,T],\\,\\mu\\otimes dt)}^2,\\\\ \\int |Q(\\eta)-Q(\\xi)|\\,d\\mu\\le |J|\\sqrt{E(\\eta+\\xi)}\\,\\sqrt{E(\\eta-\\xi)}.\\end{gathered}",
+    "text_sha256": "2ccb74a2b73d66235185f8ee89c629c42414a67d8fd21ed5ee5f878304490abb"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability.itoIntegralProcess_row_grid_quadraticVariation_L1_le",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralGridStability.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2}\n  {Omega : Type u_1} {J : Type u_2} {m : MeasurableSpace Omega} [Fintype J]\n  {filtration : MeasureTheory.Filtration NNReal m} {mu : MeasureTheory.Measure Omega} [MeasureTheory.IsFiniteMeasure mu]\n  {T : NNReal} {B : J → NNReal → Omega → ℝ}\n  (eta xi :\n    J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T)\n  (hT : 0 < T)\n  (hB :\n    ∀ (j : J),\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration (B j)\n        filtration mu)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu)\n  {n : ℕ} (times : Fin (n + 1) → NNReal) (hmono : Monotone times) (hlast : times (Fin.last n) ≤ T) :\n  have row := fun f t omega =>\n    ∑ j,\n      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (f j) hT ⋯ hUsual t\n        omega;\n  have qv := fun f omega => ∑ i, (row f (times i.succ) omega - row f (times i.castSucc) omega) ^ 2;\n  MeasureTheory.Integrable (fun omega => qv eta omega - qv xi omega) mu ∧\n    ∫ (omega : Omega), |qv eta omega - qv xi omega| ∂mu ≤\n      ↑(Fintype.card J) *\n          √(∑ j,\n              ‖(AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Algebra.add (eta j) (xi j)).toLp‖ ^\n                2) *\n        √(∑ j,\n            ‖(AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Algebra.sub (eta j) (xi j)).toLp‖ ^ 2)",
+    "statement_sha256": "e700d4b0e3bd6a654654d72773a22f1f2066a5a5e750995989bd32181a71a95a",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Let Omega be a measurable space with finite measure mu, F a filtration satisfying the usual conditions, T>0, and J a finite type. For each j in J let B_j:NNReal x Omega->R be a scalar Brownian motion with F: centered Gaussian finite-dimensional laws with covariance min(s,t), mu-almost surely continuous paths, strong F-adaptedness, and independence of B_j(t)-B_j(s) from F_s whenever s<=t. No mutual independence between the B_j is assumed. Usual conditions mean every mu-null set is in every F_t and F is right-continuous. Let eta_j and xi_j be real strongly progressive L2 integrands on mu product lambda_T, with lambda_T the transported Lebesgue measure on [0,T]. For any such family h let R_h(t)=sum_j I^T_{B_j}(h_j)(t), where each integral is the specified continuous completed Ito version, patched to zero on its exceptional null set and held constant after T. Let n in N and let t_0,...,t_n be any nondecreasing NNReal times with t_n<=T. Define Q_h(omega)=sum_{i=0}^{n-1}(R_h(t_{i+1},omega)-R_h(t_i,omega))^2. Then Q_eta-Q_xi is mu-integrable and\nintegral |Q_eta-Q_xi| dmu <= real(card J)*sqrt(sum_j ||eta_j+xi_j||_{L2(mu product lambda_T)}^2)*sqrt(sum_j ||eta_j-xi_j||_{L2(mu product lambda_T)}^2).\nThe plus/minus integrands are defined pointwise by eta_j(t,omega) plus/minus xi_j(t,omega); their toLp values are precisely the L2 equivalence classes of the associated (omega,t)-functions. No condition t_0=0 or t_n=T is imposed.",
+    "text_sha256": "bae8478a196f0aead3360410193afc88f370c9bcd89290f49e7c2d60b4a6debd",
+    "decoder": "independent-decoder-a-20261116",
+    "decoder_packet_sha256": "56197f8e39b68e9e02254d6e93baa84b21d2315bc11560e914553ad140f5c8b7",
+    "decoder_run_sha256": "8b91d3b484afb461f59b61de416081b9bcc6658c0f9958c058746df31dd60d80",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "a56d79681c3785ad8775393b2406342d2a9cb82d98541fe066b922107a68eaaa",
+  "candidate_publication_context": {
+    "file": "af57abc7c763d837262d110343ed5b6a3d7ecdcc0dbf818ac2a489a57bf9d405",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridEnergy\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessCongruence\n\n/-! # Stability of squared grid increments under changes of the integrand -/\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability\n\nopen Filter MeasureTheory\nopen scoped NNReal BigOperators\nopen BrownianMotion ProgressiveL2 ElementaryItoIntegral ElementaryItoL2\n  ItoIntegralProcess ItoIntegralIncrement ItoIntegralGridEnergy ItoIntegralProcessCongruence\n\nprivate theorem integral_abs_sum_products_le\n    {Omega I : Type*} [MeasurableSpace Omega] [Fintype I] {mu : Measure Omega}\n    {u v : I → Omega → ℝ}\n    (hu : ∀ i, MemLp (u i) 2 mu) (hv : ∀ i, MemLp (v i) 2 mu) :\n    Integrable (fun omega => ∑ i : I, u i omega * v i omega) mu ∧\n      (∫ omega, |∑ i : I, u i omega * v i omega| ∂mu) ≤\n        Real.sqrt (∑ i : I, ∫ omega, (u i omega)^2 ∂mu) *\n          Real.sqrt (∑ i : I, ∫ omega, (v i omega)^2 ∂mu) := by\n  let A := fun i => ∫ omega, (u i omega)^2 ∂mu\n  let B := fun i => ∫ omega, (v i omega)^2 ∂mu\n  have hA (i) : 0 ≤ A i := integral_nonneg fun _ => sq_nonneg _\n  have hB (i) : 0 ≤ B i := integral_nonneg fun _ => sq_nonneg _\n  have hprod (i) : Integrable (fun omega => u i omega * v i omega) mu :=\n    (hu i).integrable_mul (hv i)\n  have hsum := integrable_finsetSum Finset.univ (fun i _ => hprod i)\n  refine ⟨hsum, ?_⟩\n  have hholder : Real.HolderConjugate 2 2 := by\n    rw [Real.holderConjugate_iff]\n    norm_num\n  have hcell (i) : (∫ omega, |u i omega * v i omega| ∂mu) ≤\n      Real.sqrt (A i) * Real.sqrt (B i) := by\n    have h := integral_mul_norm_le_Lp_mul_Lq hholder\n      (by simpa using hu i) (by simpa using hv i)\n    simpa [A, B, Real.norm_eq_abs, abs_mul, Real.rpow_two, sq_abs, Real.sqrt_eq_rpow]\n      using h\n  calc\n    _ ≤ ∫ omega, ∑ i : I, |u i omega * v i omega| ∂mu :=\n      integral_mono hsum.abs\n        (integrable_finsetSum Finset.univ (fun i _ => (hprod i).abs))\n        (fun omega => Finset.abs_sum_le_sum_abs _ _)\n    _ = ∑ i : I, ∫ omega, |u i omega * v i omega| ∂mu :=\n      integral_finsetSum _ (fun i _ => (hprod i).abs)\n    _ ≤ ∑ i : I, Real.sqrt (A i) * Real.sqrt (B i) :=\n      Finset.sum_le_sum (fun i _ => hcell i)\n    _ ≤ Real.sqrt (∑ i : I, A i) * Real.sqrt (∑ i : I, B i) := by\n      rw [← Real.sqrt_mul (Finset.sum_nonneg fun i _ => hA i)]\n      apply Real.le_sqrt_of_sq_le\n      simpa only [Real.sq_sqrt (hA _), Real.sq_sqrt (hB _)]\n        using Finset.sum_mul_sq_le_sq_mul_sq Finset.univ\n          (fun i : I => Real.sqrt (A i)) (fun i : I => Real.sqrt (B i))\n\n/-- The expected absolute change in the squared-increment sum of an Itô row\nis controlled by product-space `L²` energies, uniformly over the time grid. -/\ntheorem itoIntegralProcess_row_grid_quadraticVariation_L1_le\n    {Omega J : Type*} {m : MeasurableSpace Omega} [Fintype J]\n    {filtration : Filtration ℝ≥0 m} {mu : Measure Omega} [IsFiniteMeasure mu]\n    {T : ℝ≥0} {B : J → ℝ≥0 → Omega → ℝ}\n    (eta xi : J → ProgressiveL2Integrand filtration mu T) (hT : 0 < T)\n    (hB : ∀ j, IsBrownianMotionWithFiltration (B j) filtration mu)\n    (hUsual : SatisfiesUsualConditions filtration mu)\n    {n : ℕ} (times : Fin (n + 1) → ℝ≥0)\n    (hmono : Monotone times) (hlast : times (Fin.last n) ≤ T) :\n    let row := fun (f : J → ProgressiveL2Integrand filtration mu T) t omega =>\n      ∑ j : J, itoIntegralProcess (f j) hT (hB j) hUsual t omega\n    let qv := fun f omega => ∑ i : Fin n,\n      (row f (times i.succ) omega - row f (times i.castSucc) omega)^2\n    Integrable (fun omega => qv eta omega - qv xi omega) mu ∧\n      (∫ omega, |qv eta omega - qv xi omega| ∂mu) ≤\n        (Fintype.card J : ℝ) *\n          Real.sqrt (∑ j : J, ‖(ProgressiveL2Algebra.add (eta j) (xi j)).toLp‖^2) *\n          Real.sqrt (∑ j : J, ‖(ProgressiveL2Algebra.sub (eta j) (xi j)).toLp‖^2) := by\n  classical\n  intro row qv\n  let plus := fun j => ProgressiveL2Algebra.add (eta j) (xi j)\n  let minus := fun j => ProgressiveL2Algebra.sub (eta j) (xi j)\n  let coordinate := fun (f : J → ProgressiveL2Integrand filtration mu T) (j : J)\n      (i : Fin n) omega =>\n    itoIntegralProcess (f j) hT (hB j) hUsual (times i.succ) omega -\n      itoIntegralProcess (f j) hT (hB j) hUsual (times i.castSucc) omega\n  let inc := fun f (i : Fin n) omega =>\n    row f (times i.succ) omega - row f (times i.castSucc) omega\n  have hinc (f) (i : Fin n) (omega : Omega) :\n      inc f i omega = ∑ j : J, coordinate f j i omega := by\n    simp only [inc, row, coordinate, Finset.sum_sub_distrib]\n  have htime (i : Fin (n + 1)) : times i ≤ T :=\n    (hmono (Fin.le_last _)).trans hlast\n  have hcoord (f) (j : J) (i : Fin n) : MemLp (coordinate f j i) 2 mu :=\n    (itoIntegralProcess_increment_isometry (f j) hT (hB j) hUsual\n      (hmono (Fin.castSucc_le_succ (i := i))) (htime i.succ)).1\n  have hmem (f) (i : Fin n) : MemLp (inc f i) 2 mu := by\n    rw [show inc f i = (fun omega => ∑ j : J, coordinate f j i omega) from funext (hinc f i)]\n    exact memLp_finsetSum Finset.univ (fun j _ => hcoord f j i)\n  have hend (t : ℝ≥0) (ht : t ≤ T) : ∀ᵐ omega ∂mu,\n      row plus t omega = row eta t omega + row xi t omega ∧\n      row minus t omega = row eta t omega - row xi t omega := by\n    have hj (j : J) : ∀ᵐ omega ∂mu,\n        itoIntegralProcess (plus j) hT (hB j) hUsual t omega =\n          itoIntegralProcess (eta j) hT (hB j) hUsual t omega +\n            itoIntegralProcess (xi j) hT (hB j) hUsual t omega ∧\n        itoIntegralProcess (minus j) hT (hB j) hUsual t omega =\n          itoIntegralProcess (eta j) hT (hB j) hUsual t omega -\n            itoIntegralProcess (xi j) hT (hB j) hUsual t omega := by\n      have heq : (ProgressiveL2Algebra.add (minus j) (xi j)).toLp = (eta j).toLp := by\n        rw [ProgressiveL2Algebra.toLp_add]\n        dsimp only [minus]\n        rw [ProgressiveL2Algebra.toLp_sub, sub_add_cancel]\n      filter_upwards [itoIntegralProcess_add (eta j) (xi j) hT (hB j) hUsual ht,\n        itoIntegralProcess_add (minus j) (xi j) hT (hB j) hUsual ht,\n        itoIntegralProcess_congr_toLp_ae _ _ hT (hB j) hUsual heq ht]\n        with omega hplus hsum hequal\n      exact ⟨hplus, eq_sub_of_add_eq (hsum.symm.trans hequal)⟩\n    filter_upwards [ae_all_iff.2 hj] with omega homega\n    constructor\n    · simp only [row, ← Finset.sum_add_distrib]\n      exact Finset.sum_congr rfl (fun j _ => (homega j).1)\n    · simp only [row, ← Finset.sum_sub_distrib]\n      exact Finset.sum_congr rfl (fun j _ => (homega j).2)\n  have hfactor (i : Fin n) : ∀ᵐ omega ∂mu,\n      (inc eta i omega)^2 - (inc xi i omega)^2 = inc plus i omega * inc minus i omega := by\n    filter_upwards [hend _ (htime i.succ), hend _ (htime i.castSucc)] with omega hr hl\n    dsimp only [inc]\n    rw [hr.1, hr.2, hl.1, hl.2]\n    ring\n  have hq : (fun omega => qv eta omega - qv xi omega) =ᵐ[mu]\n      (fun omega => ∑ i : Fin n, inc plus i omega * inc minus i omega) := by\n    filter_upwards [ae_all_iff.2 hfactor] with omega homega\n    change (∑ i : Fin n, (inc eta i omega)^2) - (∑ i : Fin n, (inc xi i omega)^2) = _\n    rw [← Finset.sum_sub_distrib]\n    exact Finset.sum_congr rfl (fun i _ => homega i)\n  have hcs := integral_abs_sum_products_le (hmem plus) (hmem minus)\n  refine ⟨hcs.1.congr hq.symm, ?_⟩\n  have henergy (f) :\n      (∑ i : Fin n, ∫ omega, (inc f i omega)^2 ∂mu) ≤\n        (Fintype.card J : ℝ) * ∑ j : J, ‖(f j).toLp‖^2 := by\n    have hsq (i : Fin n) (omega : Omega) :\n        (inc f i omega)^2 ≤ (Fintype.card J : ℝ) * ∑ j : J, (coordinate f j i omega)^2 := by\n      rw [hinc]\n      simpa [mul_comm] using Finset.sum_mul_sq_le_sq_mul_sq Finset.univ\n        (fun j : J => coordinate f j i omega) (fun _ : J => (1 : ℝ))\n    have hsingle (j : J) :\n        (∑ i : Fin n, ∫ omega, (coordinate f j i omega)^2 ∂mu) ≤ ‖(f j).toLp‖^2 := by\n      have hgrid := (itoIntegralProcess_grid_isometry (f j) hT (hB j) hUsual\n        times hmono hlast).2\n      change (∫ omega, ∑ i : Fin n, (coordinate f j i omega)^2 ∂mu) = _ at hgrid\n      rw [integral_finsetSum _ (fun i _ => (hcoord f j i).integrable_sq)] at hgrid\n      rw [hgrid]\n      change _ ≤ ‖(f j).memLp.toLp (processFunction (f j).process)‖^2\n      rw [norm_sq_toLp_eq_integral_sq]\n      exact integral_mono_measure Measure.restrict_le_self (Eventually.of_forall fun _ => sq_nonneg _)\n        (f j).memLp.integrable_sq\n    calc\n      _ ≤ ∑ i : Fin n, (Fintype.card J : ℝ) * ∑ j : J,\n          ∫ omega, (coordinate f j i omega)^2 ∂mu := by\n        refine Finset.sum_le_sum (fun i _ => ?_)\n        rw [← integral_finsetSum _ (fun j _ => (hcoord f j i).integrable_sq), ← integral_const_mul]\n        exact integral_mono (hmem f i).integrable_sq\n          ((integrable_finsetSum Finset.univ (fun j _ => (hcoord f j i).integrable_sq)).const_mul _)\n          (hsq i)\n      _ = (Fintype.card J : ℝ) * ∑ j : J, ∑ i : Fin n,\n          ∫ omega, (coordinate f j i omega)^2 ∂mu := by\n        rw [← Finset.mul_sum, Finset.sum_comm]\n      _ ≤ _ := mul_le_mul_of_nonneg_left (Finset.sum_le_sum (fun j _ => hsingle j)) (by positivity)\n  calc\n    _ = ∫ omega, |∑ i : Fin n, inc plus i omega * inc minus i omega| ∂mu :=\n      integral_congr_ae (hq.mono fun _ h => congrArg abs h)\n    _ ≤ _ := hcs.2\n    _ ≤ _ := by\n      calc\n        _ ≤ Real.sqrt ((Fintype.card J : ℝ) * ∑ j : J, ‖(plus j).toLp‖^2) *\n            Real.sqrt ((Fintype.card J : ℝ) * ∑ j : J, ‖(minus j).toLp‖^2) :=\n          mul_le_mul (Real.sqrt_le_sqrt (henergy plus)) (Real.sqrt_le_sqrt (henergy minus))\n            (Real.sqrt_nonneg _) (Real.sqrt_nonneg _)\n        _ = _ := by\n          rw [Real.sqrt_mul (by positivity : 0 ≤ (Fintype.card J : ℝ)),\n            Real.sqrt_mul (by positivity : 0 ≤ (Fintype.card J : ℝ))]\n          rw [mul_mul_mul_comm, Real.mul_self_sqrt (by positivity : 0 ≤ (Fintype.card J : ℝ)),\n            mul_assoc]\n\n#print axioms itoIntegralProcess_row_grid_quadraticVariation_L1_le\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-integral-grid-stability-a83b22c3",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralGridStability.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: Compare squared increments of two Itô rows. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "For each of finitely many coordinates, integrate two progressive square-integrable integrands against the same coordinate Brownian motion. Sum the resulting coordinate integrals to form each row. The difference of their squared-increment sums is integrable, and its expected absolute value is bounded uniformly over finite deterministic grids.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\begin{gathered}R_f(t)=\\sum_{j\\in J} I_j(f_j)(t),\\qquad Q(f)=\\sum_i(\\Delta_i R_f)^2,\\\\ E(f)=\\sum_{j\\in J}\\|f_j\\|_{L^2(\\Omega\\times[0,T],\\,\\mu\\otimes dt)}^2,\\\\ \\int |Q(\\eta)-Q(\\xi)|\\,d\\mu\\le |J|\\sqrt{E(\\eta+\\xi)}\\,\\sqrt{E(\\eta-\\xi)}.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "On a positive finite time horizon, the given filtration and finite sample measure satisfy the usual conditions used to construct the completed Itô integral.",
+      "The grid lies in [0,T] and is nondecreasing. The coordinate index type J is finite and may be empty.",
+      "For each j, both integrands are real, progressive and square integrable. They share the same Brownian motion Bⱼ relative to the given filtration. The drivers at different indices may be dependent."
+    ],
+    "obligations": [
+      {
+        "id": "ito-integral-grid-stability-a83b22c3",
+        "label": "Compare squared increments of two Itô rows"
+      }
+    ],
+    "lesson": {
+      "kind": "theorem",
+      "reading_layout": "progressive",
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability.itoIntegralProcess_row_grid_quadraticVariation_L1_le",
+      "title": "Compare squared increments of two Itô rows",
+      "statement": "For each of finitely many coordinates, integrate two progressive square-integrable integrands against the same coordinate Brownian motion. Sum the resulting coordinate integrals to form each row. The difference of their squared-increment sums is integrable, and its expected absolute value is bounded uniformly over finite deterministic grids.",
+      "formula": "\\begin{gathered}R_f(t)=\\sum_{j\\in J} I_j(f_j)(t),\\qquad Q(f)=\\sum_i(\\Delta_i R_f)^2,\\\\ E(f)=\\sum_{j\\in J}\\|f_j\\|_{L^2(\\Omega\\times[0,T],\\,\\mu\\otimes dt)}^2,\\\\ \\int |Q(\\eta)-Q(\\xi)|\\,d\\mu\\le |J|\\sqrt{E(\\eta+\\xi)}\\,\\sqrt{E(\\eta-\\xi)}.\\end{gathered}",
+      "assumptions": [
+        "On a positive finite time horizon, the given filtration and finite sample measure satisfy the usual conditions used to construct the completed Itô integral.",
+        "The grid lies in [0,T] and is nondecreasing. The coordinate index type J is finite and may be empty.",
+        "For each j, both integrands are real, progressive and square integrable. They share the same Brownian motion Bⱼ relative to the given filtration. The drivers at different indices may be dependent."
+      ],
+      "steps": [
+        {
+          "title": "Factor the difference of squares",
+          "text": "At the two deterministic endpoints in each cell, linearity identifies the increments of the sum and difference of the integrands. Multiply these two increments and add over cells.",
+          "formula": "Q(\\eta)-Q(\\xi)=\\sum_i U_iV_i\\quad\\mu\\text{-a.e.},\\qquad U_i=\\Delta_i R_{\\eta+\\xi},\\quad V_i=\\Delta_i R_{\\eta-\\xi}.",
+          "lean": "  have hfactor (i : Fin n) : ∀ᵐ omega ∂mu,\n      (inc eta i omega)^2 - (inc xi i omega)^2 = inc plus i omega * inc minus i omega := by\n    filter_upwards [hend _ (htime i.succ), hend _ (htime i.castSucc)] with omega hr hl\n    dsimp only [inc]\n    rw [hr.1, hr.2, hl.1, hl.2]\n    ring\n  have hq : (fun omega => qv eta omega - qv xi omega) =ᵐ[mu]\n      (fun omega => ∑ i : Fin n, inc plus i omega * inc minus i omega) := by\n    filter_upwards [ae_all_iff.2 hfactor] with omega homega\n    change (∑ i : Fin n, (inc eta i omega)^2) - (∑ i : Fin n, (inc xi i omega)^2) = _\n    rw [← Finset.sum_sub_distrib]\n    exact Finset.sum_congr rfl (fun i _ => homega i)\n"
+        },
+        {
+          "title": "Apply Cauchy–Schwarz twice",
+          "text": "Each row increment is in L² by the scalar cell isometries and finite summation. The products are therefore integrable, as is the signed difference. Bound the absolute value of the finite sum by the sum of the absolute products. Apply integral Cauchy–Schwarz in each cell, then finite Cauchy–Schwarz to the resulting list of square roots.",
+          "formula": "\\int\\left|\\sum_i U_iV_i\\right|\\,d\\mu\\le\\sqrt{\\sum_i\\int U_i^2\\,d\\mu}\\sqrt{\\sum_i\\int V_i^2\\,d\\mu}.",
+          "lean": "  have hprod (i) : Integrable (fun omega => u i omega * v i omega) mu :=\n    (hu i).integrable_mul (hv i)\n  have hsum := integrable_finsetSum Finset.univ (fun i _ => hprod i)\n  refine ⟨hsum, ?_⟩\n  have hholder : Real.HolderConjugate 2 2 := by\n    rw [Real.holderConjugate_iff]\n    norm_num\n  have hcell (i) : (∫ omega, |u i omega * v i omega| ∂mu) ≤\n      Real.sqrt (A i) * Real.sqrt (B i) := by\n    have h := integral_mul_norm_le_Lp_mul_Lq hholder\n      (by simpa using hu i) (by simpa using hv i)\n    simpa [A, B, Real.norm_eq_abs, abs_mul, Real.rpow_two, sq_abs, Real.sqrt_eq_rpow]\n      using h\n  calc\n    _ ≤ ∫ omega, ∑ i : I, |u i omega * v i omega| ∂mu :=\n      integral_mono hsum.abs\n        (integrable_finsetSum Finset.univ (fun i _ => (hprod i).abs))\n        (fun omega => Finset.abs_sum_le_sum_abs _ _)\n    _ = ∑ i : I, ∫ omega, |u i omega * v i omega| ∂mu :=\n      integral_finsetSum _ (fun i _ => (hprod i).abs)\n    _ ≤ ∑ i : I, Real.sqrt (A i) * Real.sqrt (B i) :=\n      Finset.sum_le_sum (fun i _ => hcell i)\n    _ ≤ Real.sqrt (∑ i : I, A i) * Real.sqrt (∑ i : I, B i) := by\n      rw [← Real.sqrt_mul (Finset.sum_nonneg fun i _ => hA i)]\n      apply Real.le_sqrt_of_sq_le\n      simpa only [Real.sq_sqrt (hA _), Real.sq_sqrt (hB _)]\n        using Finset.sum_mul_sq_le_sq_mul_sq Finset.univ\n          (fun i : I => Real.sqrt (A i)) (fun i : I => Real.sqrt (B i))\n"
+        },
+        {
+          "title": "Control the row energies",
+          "text": "Cauchy–Schwarz across the coordinates bounds the square of each row increment by the coordinate count times the sum of the coordinate squares. Apply the exact scalar grid isometry to each coordinate and enlarge the grid span to [0,T]. Each square root contributes a factor √|J|.",
+          "formula": "\\sum_i\\int(\\Delta_i R_f)^2\\,d\\mu\\le |J|E(f).",
+          "lean": "  have henergy (f) :\n      (∑ i : Fin n, ∫ omega, (inc f i omega)^2 ∂mu) ≤\n        (Fintype.card J : ℝ) * ∑ j : J, ‖(f j).toLp‖^2 := by\n    have hsq (i : Fin n) (omega : Omega) :\n        (inc f i omega)^2 ≤ (Fintype.card J : ℝ) * ∑ j : J, (coordinate f j i omega)^2 := by\n      rw [hinc]\n      simpa [mul_comm] using Finset.sum_mul_sq_le_sq_mul_sq Finset.univ\n        (fun j : J => coordinate f j i omega) (fun _ : J => (1 : ℝ))\n    have hsingle (j : J) :\n        (∑ i : Fin n, ∫ omega, (coordinate f j i omega)^2 ∂mu) ≤ ‖(f j).toLp‖^2 := by\n      have hgrid := (itoIntegralProcess_grid_isometry (f j) hT (hB j) hUsual\n        times hmono hlast).2\n      change (∫ omega, ∑ i : Fin n, (coordinate f j i omega)^2 ∂mu) = _ at hgrid\n      rw [integral_finsetSum _ (fun i _ => (hcoord f j i).integrable_sq)] at hgrid\n      rw [hgrid]\n      change _ ≤ ‖(f j).memLp.toLp (processFunction (f j).process)‖^2\n      rw [norm_sq_toLp_eq_integral_sq]\n      exact integral_mono_measure Measure.restrict_le_self (Eventually.of_forall fun _ => sq_nonneg _)\n        (f j).memLp.integrable_sq\n    calc\n      _ ≤ ∑ i : Fin n, (Fintype.card J : ℝ) * ∑ j : J,\n          ∫ omega, (coordinate f j i omega)^2 ∂mu := by\n        refine Finset.sum_le_sum (fun i _ => ?_)\n        rw [← integral_finsetSum _ (fun j _ => (hcoord f j i).integrable_sq), ← integral_const_mul]\n        exact integral_mono (hmem f i).integrable_sq\n          ((integrable_finsetSum Finset.univ (fun j _ => (hcoord f j i).integrable_sq)).const_mul _)\n          (hsq i)\n      _ = (Fintype.card J : ℝ) * ∑ j : J, ∑ i : Fin n,\n          ∫ omega, (coordinate f j i omega)^2 ∂mu := by\n        rw [← Finset.mul_sum, Finset.sum_comm]\n      _ ≤ _ := mul_le_mul_of_nonneg_left (Finset.sum_le_sum (fun j _ => hsingle j)) (by positivity)\n"
+        }
+      ],
+      "lean_statement": "The folded signature uses the literal completed Itô process and its stated deterministic grid.",
+      "lean_proof": "The complete proof is available with the declaration. Each step below shows the corresponding part of that proof.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralIncrement.itoIntegralProcess_increment_isometry",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridEnergy.itoIntegralProcess_grid_isometry",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess_add",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcessCongruence.itoIntegralProcess_congr_toLp_ae"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.integral_mul_norm_le_Lp_mul_Lq",
+        "Finset.sum_mul_sq_le_sq_mul_sq",
+        "MeasureTheory.integral_mono_measure"
+      ],
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/150a8a5587d5960a2b4f96de86b7f42e16b2e91b/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoIntegralProcess.lean",
+          "label": "Completed Itô integral",
+          "scope": "Samplinglib's construction and its terminal representation."
+        }
+      ],
+      "tests": [],
+      "reader_note": "The bound depends on the coordinate count and the integrand energies. Refining the time grid leaves the bound unchanged."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralGridStability.itoIntegralProcess_row_grid_quadraticVariation_L1_le",
+      "role": "prerequisite",
+      "supports": [
+        "ito-integral-grid-stability-a83b22c3"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "On a positive finite time horizon, the given filtration and finite sample measure satisfy the usual conditions used to construct the completed Itô integral.",
+        "lean": "On a positive finite time horizon, the given filtration and finite sample measure satisfy the usual conditions used to construct the completed Itô integral."
+      },
+      {
+        "source": "The grid lies in [0,T] and is nondecreasing. The coordinate index type J is finite and may be empty.",
+        "lean": "The grid lies in [0,T] and is nondecreasing. The coordinate index type J is finite and may be empty."
+      },
+      {
+        "source": "For each j, both integrands are real, progressive and square integrable. They share the same Brownian motion Bⱼ relative to the given filtration. The drivers at different indices may be dependent.",
+        "lean": "For each j, both integrands are real, progressive and square integrable. They share the same Brownian motion Bⱼ relative to the given filtration. The drivers at different indices may be dependent."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "a68feb66d5847f8a84f44c01a045c284b9393636ca5b8376e1764dd87776757f"
+}

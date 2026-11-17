@@ -1,0 +1,270 @@
+{
+  "schema_version": 1,
+  "task": "independent-semantic-source-review",
+  "packet_id": "ASTIS-REVIEW-140649f012db03a6",
+  "anti_anchoring": {
+    "prior_semantic_slots_included": false,
+    "prior_deltas_included": false,
+    "prior_verdict_included": false,
+    "prior_repairs_included": false
+  },
+  "roles": {
+    "formalizer": "public-stochastic-foundations-formalizer",
+    "blind_decoder": "independent-decoder-b-20261116",
+    "reviewer_must_differ_from_both": true
+  },
+  "source": {
+    "source_id": "astis-original-ito-dyadic-hessian-742e56e3",
+    "anchor": "Original Samplinglib supplement: The quadratic Taylor term converges to the diffusion Hessian contraction. Exact assumptions and formula below.",
+    "original_text": "Construct a Euclidean process from completed Itô rows. Suppose it stays in compact K almost surely throughout the horizon and the scalar test is twice continuously Fréchet differentiable at every point of K. The dyadic sum of half the Hessian applied twice to the actual increment converges in measure to the time integral of half the sum of the Hessian on the diffusion columns.\n\nThe positive horizon is T. The sample measure is finite, the filtration satisfies the usual conditions, and the driving standard vector Brownian motion is relative to that filtration and measure.\nThe finite coordinate rows have progressive product-square-integrable diffusion coefficients. Their drift evaluations at each fixed time t≤T are almost-everywhere strongly measurable.\nAlmost every drift path is continuous with bounded variation on [0,T].\nThe compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T]. The test is twice continuously Fréchet differentiable at each point of K.\n\n\\sum_i \\tfrac12 D^2 f(X_{t_i})[\\Delta_iX,\\Delta_iX]\\xrightarrow{\\mu}\\int_{[0,T]}\\tfrac12\\sum_j D^2f(X_s)[\\sigma_j(s),\\sigma_j(s)]\\,ds.",
+    "text_sha256": "7305e3c2ed2ce9d9f7cf790f0e9ba0d6da66eedf6fbbc88fc12fd2c3088f33fe"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian.tendstoInMeasure_dyadic_half_hessian_increments",
+    "file": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicHessian.lean",
+    "statement": "theorem anonymous_target.{u_1,\n    u_2, u_3}\n  {Ω : Type u_1} {I : Type u_2} {J : Type u_3} [MeasurableSpace Ω] [Fintype I] [DecidableEq I] [Fintype J]\n  [DecidableEq J] {filtration : MeasureTheory.Filtration NNReal inferInstance} {μ : MeasureTheory.Measure Ω}\n  [MeasureTheory.IsFiniteMeasure μ] {T : NNReal} {B : NNReal → Ω → EuclideanSpace ℝ J}\n  (hB :\n    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B\n      filtration μ)\n  (hT : 0 < T)\n  (hUsual : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration μ)\n  (η :\n    I → J → AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration μ T)\n  (A : I → NNReal → Ω → ℝ) (hAmeas : ∀ (i : I), ∀ t ≤ T, MeasureTheory.AEStronglyMeasurable (A i t) μ)\n  (hA :\n    ∀ (i : I),\n      ∀ᵐ (ω : Ω) ∂μ,\n        ContinuousOn (fun t => A i t ω) (Set.Icc 0 T) ∧ BoundedVariationOn (fun t => A i t ω) (Set.Icc 0 T))\n  {K : Set (EuclideanSpace ℝ I)} (hK : IsCompact K) (fallback : ↑K) (f : EuclideanSpace ℝ I → ℝ)\n  (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x) :\n  have X := fun t ω =>\n    WithLp.toLp 2 fun i =>\n      A i t ω +\n        ∑ j,\n          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess (η i j) hT ⋯\n            hUsual t ω;\n  have H := fderiv ℝ (fderiv ℝ f);\n  have σ := fun j t ω => WithLp.toLp 2 fun i => (η i j).process t ω;\n  (∀ᵐ (ω : Ω) ∂μ, ∀ t ≤ T, X t ω ∈ K) →\n    MeasureTheory.TendstoInMeasure μ\n      (fun n ω =>\n        have t :=\n          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.regularGridTimes\n            (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SampledElementaryApproximation.dyadicMesh T n)\n            (2 ^ n);\n        ∑ i,\n          have Δ := X (t i.succ) ω - X (t i.castSucc) ω;\n          1 / 2 * ((H (X (t i.castSucc) ω)) Δ) Δ)\n      Filter.atTop fun ω =>\n      ∫ (s : NNReal),\n        1 / 2 *\n          ∑ j,\n            ((H (X s ω)) (σ j s ω)) (σ j s ω) ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T",
+    "statement_sha256": "5784be27cbf5077516538351c0c4fd9b835d1982516e34d410684d3ac3bce4d2",
+    "compiled": true
+  },
+  "blind_reconstruction": {
+    "text": "Finite state type I and Brownian type J; eta_ij; finite-variation coordinate processes A_i; resulting X; compact K and fallback∈K; scalar f. Hessian H=D(Df), diffusion columns sigma_j=(eta_ij)_i.\n\nOmega is measurable with finite measure mu and a filtration F indexed by nonnegative reals. T>0 is fixed. The Euclidean coordinate type J is finite with decidable equality. B:[0,infinity)×Omega→R^J. lambda_T denotes the pullback under NNReal.toReal of Lebesgue measure restricted to [0,T]. I is finite with decidable equality. A_i:[0,infinity)×Omega→R; X:[0,infinity)×Omega→R^I; f:R^I→R; K⊆R^I.\n\nAssumptions: B starts at zero for every omega, has jointly independent increments over disjoint half-open intervals, every continuous real linear functional ell sends B_t-B_s (s<t) to a centered Gaussian of variance (t-s)||ell||², and paths are continuous mu-a.e. B is strongly adapted to F and B_t-B_s is independent of F_s for s≤t. F is right-continuous and every subset S⊆Omega with mu(S)=0 belongs to F_t for every t≥0. A progressive L² integrand is a real process a(t,omega), strongly progressive for F, for which (omega,t)↦a(t,omega) is in L²(mu⊗lambda_T). For every i and t≤T, A_i(t,·) is mu-a.e. strongly measurable. For every i, mu-a.e. omega, A_i(·,omega) is continuous and of bounded variation on [0,T]. K compact, fallback∈K; f is ambient C² at every point of K. On one mu-full set, X(t,omega)∈K for every t≤T. No progressivity of A_i is explicitly assumed.\n\nConclusion: I_j(a)(t,omega) denotes the specified completed Ito integral driven by the scalar coordinate B^j(t,omega)=(B(t,omega))_j. Its representative is the pointwise limit of chosen elementary stochastic integrals off the null complement of their uniform Cauchy event, and zero on that complement; it is held constant after T. Define X_i(t)=A_i(t)+∑_j I_j(eta_ij)(t), t_r^n=rT/2^n, Delta_r^n X=X(t_{r+1}^n)-X(t_r^n). With H=D(Df) and sigma_j(s)=(eta_ij(s))_i, the functions (1/2)∑_{r=0}^{2^n-1}H(X(t_r^n))[Delta_r^n X,Delta_r^n X] converge in mu-measure to ∫(1/2)∑_j H(X(s))[sigma_j(s),sigma_j(s)]d lambda_T(s).\n\nQuantifier order: Universally quantify setup, A, compact K, fallback and f. Under the full-measure all-time range condition X(t,omega)∈K for t≤T, the stated dyadic sums converge in measure.\n\nScope: Fixed positive horizon; dyadic sequence n→infinity; convergence in measure only. A_i need not be given as a drift integral. Path and range hypotheses are almost sure and simultaneous in time, whereas A_i's marginal measurability is for each time.\n\nConstant dependencies: No unspecified numerical constants or convergence rate; fallback is supplied but does not occur in the displayed limit.",
+    "text_sha256": "e71a3191b97795432e28f5a0f5143e47022bc232b05810324cb253f37bf900ac",
+    "decoder": "independent-decoder-b-20261116",
+    "decoder_packet_sha256": "d092bf9e883db642e51325915daa7ad9cb27527bd89def35536b771a0ba3089b",
+    "decoder_run_sha256": "096f2f986342a69f8a1df8ea6439a9e3f7346c85626aa97a408c6006b35eb169",
+    "source_text_visible": false
+  },
+  "review_contract": {
+    "semantic_slots": [
+      "objects",
+      "domains",
+      "quantifiers",
+      "assumptions",
+      "conclusion",
+      "scopes",
+      "constant_dependencies"
+    ],
+    "slot_relations": [
+      "different",
+      "equivalent",
+      "explicit-elaboration",
+      "missing-from-lean",
+      "missing-from-source",
+      "not-audited",
+      "same",
+      "stronger-in-lean",
+      "weaker-in-lean"
+    ],
+    "verdicts": [
+      "domain-mismatch",
+      "equivalent-after-elaboration",
+      "exact",
+      "implicit-assumption-exposed",
+      "lean-strengthened-assumptions",
+      "lean-weakened-conclusion",
+      "possible-source-error",
+      "quantifier-mismatch",
+      "source-underspecified"
+    ],
+    "repair_classes": [
+      "assumption-addition",
+      "conclusion-correction",
+      "domain-clarification",
+      "micro-correction",
+      "notation-resolution",
+      "quantifier-clarification"
+    ],
+    "repair_necessities": [
+      "formalization-artifact-risk",
+      "mathematically-necessary",
+      "source-implicit",
+      "uncertain"
+    ],
+    "rule": "Text similarity is not semantic equivalence. Repair proposals remain separate from the pinned source theorem."
+  },
+  "output_contract": {
+    "semantic_slots": {
+      "objects": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "domains": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "quantifiers": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "assumptions": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "conclusion": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "scopes": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      },
+      "constant_dependencies": {
+        "original": "",
+        "reconstructed": "",
+        "relation": "not-audited",
+        "evidence": ""
+      }
+    },
+    "deltas": [],
+    "verdict": "",
+    "repairs": [],
+    "reviewer": "",
+    "independent_from_formalizer": true,
+    "independent_from_decoder": true,
+    "review_evidence": "",
+    "review_run_sha256": "",
+    "reviewer_packet_sha256": ""
+  },
+  "publication_binding_sha256": "2a7f79c21b531046d18830c8e1b21b077a93708a49c3602b642d4665b26a300f",
+  "candidate_publication_context": {
+    "file": "dd1177ac8b02efa971dbcd14cbfd92d3ab595c2d27960a28420bd8764533bb1e",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.CompactStateRepresentative\nimport AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteSumConvergenceInMeasure\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanRowRegularity\nimport AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicWeightedCovariation\nimport Mathlib.Analysis.Calculus.ContDiff.Comp\n\nnamespace AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian\n\nopen Filter MeasureTheory Set\nopen scoped BigOperators NNReal Topology\nopen BrownianMotion ProgressiveL2 ElementaryItoIntegral SampledElementaryApproximation\n  DyadicElementaryRefinement EuclideanBrownianCoordinates ItoIntegralProcess\n  ItoDyadicWeightedCovariation FiniteSumConvergenceInMeasure ItoEuclideanRowRegularity\nopen AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates\n\nopen CompactStateRepresentative\n\nset_option maxHeartbeats 500000 in\n/-- The actual quadratic Taylor terms of the completed vector Itô process\nconverge to the Hessian contraction against its diffusion columns. -/\ntheorem tendstoInMeasure_dyadic_half_hessian_increments\n    {Ω I J : Type*} [MeasurableSpace Ω] [Fintype I] [DecidableEq I] [Fintype J] [DecidableEq J]\n    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}\n    {μ : Measure Ω} [IsFiniteMeasure μ] {T : ℝ≥0}\n    {B : ℝ≥0 → Ω → EuclideanSpace ℝ J}\n    (hB : IsStandardBrownianMotionWithFiltration B filtration μ) (hT : 0 < T)\n    (hUsual : SatisfiesUsualConditions filtration μ)\n    (η : I → J → ProgressiveL2Integrand filtration μ T) (A : I → ℝ≥0 → Ω → ℝ)\n    (hAmeas : ∀ i t, t ≤ T → AEStronglyMeasurable (A i t) μ)\n    (hA : ∀ i, ∀ᵐ ω ∂μ, ContinuousOn (fun t => A i t ω) (Icc 0 T) ∧\n      BoundedVariationOn (fun t => A i t ω) (Icc 0 T))\n    {K : Set (EuclideanSpace ℝ I)} (hK : IsCompact K) (fallback : K) (f : EuclideanSpace ℝ I → ℝ)\n    (hf : ∀ x ∈ K, ContDiffAt ℝ 2 f x) :\n    let X := fun (t : ℝ≥0) (ω : Ω) => WithLp.toLp 2 (fun i : I => A i t ω + ∑ j : J,\n      itoIntegralProcess (η i j) hT ((coordinateFamily hB).isBrownian j) hUsual t ω)\n    let H := fderiv ℝ (fderiv ℝ f)\n    let σ := fun (j : J) (t : ℝ≥0) (ω : Ω) =>\n      WithLp.toLp 2 (fun i : I => (η i j).process t ω)\n    (∀ᵐ ω ∂μ, ∀ t ≤ T, X t ω ∈ K) →\n    TendstoInMeasure μ (fun n ω =>\n      let t := regularGridTimes (dyadicMesh T n) (2 ^ n)\n      ∑ i : Fin (2 ^ n),\n        let Δ := X (t i.succ) ω - X (t i.castSucc) ω\n        (1 / 2 : ℝ) * H (X (t i.castSucc) ω) Δ Δ) atTop\n      (fun ω => ∫ s, (1 / 2 : ℝ) * (∑ j : J, H (X s ω) (σ j s ω) (σ j s ω))\n        ∂(TimeMeasure.upTo T)) := by\n  intro X H σ hRange\n  let t (n : ℕ) := regularGridTimes (dyadicMesh T n) (2 ^ n)\n  let e := EuclideanSpace.basisFun I ℝ\n  let W (q : I × I) (s : ℝ≥0) (ω : Ω) := (1 / 2 : ℝ) * H (X s ω) (e q.1) (e q.2)\n  let Δ (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) := X (t n i.succ) ω - X (t n i.castSucc) ω\n  let b (q : I × I) (s : ℝ≥0) (ω : Ω) :=\n    ∑ j : J, (η q.1 j).process s ω * (η q.2 j).process s ω\n  let F (q : I × I) (n : ℕ) (ω : Ω) :=\n    ∑ i : Fin (2 ^ n), W q (t n i.castSucc) ω * (Δ n i ω q.1 * Δ n i ω q.2)\n  let G (q : I × I) (ω : Ω) := ∫ s, W q s ω * b q s ω ∂(TimeMeasure.upTo T)\n  have hH : ContinuousOn H K := fun x hx =>\n    (((hf x hx).fderiv_right (m := 1) (by decide)).continuousAt_fderiv\n      (by decide)).continuousWithinAt\n  have hEntry (q : I × I) :\n      ContinuousOn (fun x => (1 / 2 : ℝ) * H x (e q.1) (e q.2)) K :=\n    continuousOn_const.mul ((hH.clm_apply continuousOn_const).clm_apply continuousOn_const)\n  obtain ⟨hXm, hXc⟩ := measurable_continuousOn_euclidean_ito_rows\n    hB hT hUsual η A hAmeas (fun i => (hA i).mono fun _ h => h.1)\n  have hWm (q : I × I) (s : ℝ≥0) (hs : s ≤ T) : AEStronglyMeasurable (W q s) μ := by\n    have hY := (measurable_restrictState hK.isClosed.measurableSet fallback).comp (hXm s hs)\n    refine ((hEntry q).domRestrict.measurable.comp hY).aestronglyMeasurable.congr ?_\n    filter_upwards [hRange] with ω hr\n    change (1 / 2 : ℝ) * H (restrictState fallback (X s ω) : EuclideanSpace ℝ I)\n      (e q.1) (e q.2) = W q s ω\n    rw [coe_restrictState_of_mem fallback (hr s hs)]\n  have hWc : ∀ᵐ ω ∂μ, ∀ q : I × I, ContinuousOn (fun s => W q s ω) (Icc 0 T) := by\n    filter_upwards [hXc, hRange] with ω hω hr q\n    exact (hEntry q).comp hω (fun s hs => hr s hs.2)\n  have hLim (q : I × I) : TendstoInMeasure μ (F q) atTop (G q) :=\n    tendstoInMeasure_dyadic_weighted_covariation_of_ito_rows hB hT hUsual\n      (η q.1) (η q.2) (A q.1) (A q.2) (W q) (hAmeas q.1) (hAmeas q.2)\n      (hWm q) (hA q.1) (hA q.2) (hWc.mono fun _ h => h q)\n  have ht (n : ℕ) (i : Fin (2 ^ n + 1)) : t n i ≤ T :=\n    ((regularGridTimes_strictMono (dyadicMesh_pos hT n) _).monotone (Fin.le_last i)).trans_eq\n      (regularDyadic_last_time T n)\n  have hFm (q : I × I) (n : ℕ) : AEStronglyMeasurable (F q n) μ := by\n    have hΔm (i : Fin (2 ^ n)) (j : I) : AEStronglyMeasurable (fun ω => Δ n i ω j) μ :=\n      ((EuclideanSpace.proj j).continuous.measurable.comp\n        ((hXm _ (ht n i.succ)).sub (hXm _ (ht n i.castSucc)))).aestronglyMeasurable\n    have hCell (i : Fin (2 ^ n)) :\n        AEStronglyMeasurable (fun ω => W q (t n i.castSucc) ω *\n          (Δ n i ω q.1 * Δ n i ω q.2)) μ :=\n      (hWm q _ (ht n i.castSucc)).mul ((hΔm i q.1).mul (hΔm i q.2))\n    exact (Finset.aestronglyMeasurable_sum Finset.univ fun i _ => hCell i).congr\n      (Eventually.of_forall fun ω => by simp only [F, Finset.sum_apply])\n  have hHalf (x v : EuclideanSpace ℝ I) :\n      (1 / 2 : ℝ) * H x v v = ∑ q : I × I,\n        ((1 / 2 : ℝ) * H x (e q.1) (e q.2)) * (v q.1 * v q.2) := by\n    rw [euclidean_bilinear_eq_sum_basis (H x) v v, Finset.mul_sum, Fintype.sum_prod_type]\n    apply Finset.sum_congr rfl\n    intro i _\n    rw [Finset.mul_sum]\n    apply Finset.sum_congr rfl\n    intro j _\n    ring\n  have hSum := tendstoInMeasure_fintype_sum hFm hLim\n  refine TendstoInMeasure.congr ?_ ?_ hSum\n  · intro n\n    exact Eventually.of_forall fun ω => by\n      change (∑ q : I × I, ∑ i : Fin (2 ^ n),\n        W q (t n i.castSucc) ω * (Δ n i ω q.1 * Δ n i ω q.2)) =\n        ∑ i : Fin (2 ^ n), (1 / 2 : ℝ) * H (X (t n i.castSucc) ω) (Δ n i ω) (Δ n i ω)\n      rw [Finset.sum_comm]\n      apply Finset.sum_congr rfl\n      intro i _\n      exact (hHalf _ _).symm\n  · have hProduct : ∀ᵐ ω ∂μ, ∀ q : I × I, ∀ j : J,\n        Integrable (fun s => (η q.1 j).process s ω * (η q.2 j).process s ω)\n          (TimeMeasure.upTo T) :=\n      ae_all_iff.2 fun q => ae_all_iff.2 fun j =>\n        ((η q.1 j).memLp.integrable_mul (η q.2 j).memLp).prod_right_ae\n    filter_upwards [hProduct, hWc] with ω hp hw\n    let ν := TimeMeasure.upTo T\n    have hMem : ∀ᵐ s ∂ν, s ∈ Icc (0 : ℝ≥0) T :=\n      (TimeMeasure.ae_mem_Ioc_zero_upTo T).mono fun _ hs => ⟨hs.1.le, hs.2⟩\n    have hRest : ν.restrict (Icc 0 T) = ν := Measure.restrict_eq_self_of_ae_mem hMem\n    have hInt (q : I × I) : Integrable (fun s => W q s ω * b q s ω) ν := by\n      have hDensity : Integrable (fun s => b q s ω) ν := integrable_finsetSum _ (fun j _ => hp q j)\n      obtain ⟨C, hC⟩ := isCompact_Icc.bddAbove_image (hw q).norm\n      have hMeas : AEStronglyMeasurable (fun s => W q s ω) ν := by\n        rw [← hRest]\n        exact (hw q).aestronglyMeasurable measurableSet_Icc\n      exact hDensity.bdd_mul hMeas (hMem.mono fun s hs => hC ⟨s, hs, rfl⟩)\n    change (∑ q : I × I, ∫ s, W q s ω * b q s ω ∂ν) =\n      ∫ s, (1 / 2 : ℝ) * (∑ j : J, H (X s ω) (σ j s ω) (σ j s ω)) ∂ν\n    rw [← integral_finsetSum _ (fun q _ => hInt q)]\n    apply integral_congr_ae\n    exact Eventually.of_forall fun s => by\n      simp only [b, Finset.mul_sum]\n      rw [Finset.sum_comm]\n      apply Finset.sum_congr rfl\n      intro j _\n      exact (hHalf _ (σ j s ω)).symm\n\nend AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-ito-dyadic-hessian-742e56e3",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/a375ae8ab8774d9aa819687a9fcaddda802f412a/AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicHessian.lean",
+      "edition": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+      "anchor": "Original Samplinglib supplement: The quadratic Taylor term converges to the diffusion Hessian contraction. Exact assumptions and formula below.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib library statement. External textbook links in the lesson provide mathematical context; this is not claimed to be a verbatim numbered textbook theorem."
+    },
+    "statement": "Construct a Euclidean process from completed Itô rows. Suppose it stays in compact K almost surely throughout the horizon and the scalar test is twice continuously Fréchet differentiable at every point of K. The dyadic sum of half the Hessian applied twice to the actual increment converges in measure to the time integral of half the sum of the Hessian on the diffusion columns.",
+    "formulae": [
+      {
+        "label": "Claim",
+        "tex": "\\sum_i \\tfrac12 D^2 f(X_{t_i})[\\Delta_iX,\\Delta_iX]\\xrightarrow{\\mu}\\int_{[0,T]}\\tfrac12\\sum_j D^2f(X_s)[\\sigma_j(s),\\sigma_j(s)]\\,ds."
+      }
+    ],
+    "assumptions": [
+      "The positive horizon is T. The sample measure is finite, the filtration satisfies the usual conditions, and the driving standard vector Brownian motion is relative to that filtration and measure.",
+      "The finite coordinate rows have progressive product-square-integrable diffusion coefficients. Their drift evaluations at each fixed time t≤T are almost-everywhere strongly measurable.",
+      "Almost every drift path is continuous with bounded variation on [0,T].",
+      "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T]. The test is twice continuously Fréchet differentiable at each point of K."
+    ],
+    "obligations": [
+      {
+        "id": "ito-dyadic-hessian-742e56e3",
+        "label": "The quadratic Taylor term converges to the diffusion Hessian contraction"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian.tendstoInMeasure_dyadic_half_hessian_increments",
+      "kind": "theorem",
+      "title": "The quadratic Taylor term converges to the diffusion Hessian contraction",
+      "statement": "Construct a Euclidean process from completed Itô rows. Suppose it stays in compact K almost surely throughout the horizon and the scalar test is twice continuously Fréchet differentiable at every point of K. The dyadic sum of half the Hessian applied twice to the actual increment converges in measure to the time integral of half the sum of the Hessian on the diffusion columns.",
+      "formula": "\\sum_i \\tfrac12 D^2 f(X_{t_i})[\\Delta_iX,\\Delta_iX]\\xrightarrow{\\mu}\\int_{[0,T]}\\tfrac12\\sum_j D^2f(X_s)[\\sigma_j(s),\\sigma_j(s)]\\,ds.",
+      "assumptions": [
+        "The positive horizon is T. The sample measure is finite, the filtration satisfies the usual conditions, and the driving standard vector Brownian motion is relative to that filtration and measure.",
+        "The finite coordinate rows have progressive product-square-integrable diffusion coefficients. Their drift evaluations at each fixed time t≤T are almost-everywhere strongly measurable.",
+        "Almost every drift path is continuous with bounded variation on [0,T].",
+        "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T]. The test is twice continuously Fréchet differentiable at each point of K."
+      ],
+      "notation": [
+        {
+          "symbol": "Rows and columns",
+          "text": "The process rows use the actual completed integrals. The jth diffusion column has ith coordinate ηᵢⱼ.",
+          "formula": "X_t^i=A_i(t)+\\sum_j\\int_0^t\\eta_{ij}(s)\\,dB^j_s.\\qquad \\sigma_j(s)=(\\eta_{ij}(s))_i."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Use each Hessian entry as a weight",
+          "text": "The Hessian is continuous on K, so the weight path is continuous on the common event. Compose each measurable slice with the measurable fallback into K, then with the continuous restricted Hessian entry. This representative equals the actual Hessian entry almost everywhere, so the actual weight slice is almost everywhere strongly measurable.",
+          "formula": "W_{ab}(s)=\\tfrac12D^2f(X_s)[e_a,e_b].",
+          "lean": "  intro X H σ hRange\n  let t (n : ℕ) := regularGridTimes (dyadicMesh T n) (2 ^ n)\n  let e := EuclideanSpace.basisFun I ℝ\n  let W (q : I × I) (s : ℝ≥0) (ω : Ω) := (1 / 2 : ℝ) * H (X s ω) (e q.1) (e q.2)\n  let Δ (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) := X (t n i.succ) ω - X (t n i.castSucc) ω\n  let b (q : I × I) (s : ℝ≥0) (ω : Ω) :=\n    ∑ j : J, (η q.1 j).process s ω * (η q.2 j).process s ω\n  let F (q : I × I) (n : ℕ) (ω : Ω) :=\n    ∑ i : Fin (2 ^ n), W q (t n i.castSucc) ω * (Δ n i ω q.1 * Δ n i ω q.2)\n  let G (q : I × I) (ω : Ω) := ∫ s, W q s ω * b q s ω ∂(TimeMeasure.upTo T)\n  have hH : ContinuousOn H K := fun x hx =>\n    (((hf x hx).fderiv_right (m := 1) (by decide)).continuousAt_fderiv\n      (by decide)).continuousWithinAt\n  have hEntry (q : I × I) :\n      ContinuousOn (fun x => (1 / 2 : ℝ) * H x (e q.1) (e q.2)) K :=\n    continuousOn_const.mul ((hH.clm_apply continuousOn_const).clm_apply continuousOn_const)\n  obtain ⟨hXm, hXc⟩ := measurable_continuousOn_euclidean_ito_rows\n    hB hT hUsual η A hAmeas (fun i => (hA i).mono fun _ h => h.1)\n  have hWm (q : I × I) (s : ℝ≥0) (hs : s ≤ T) : AEStronglyMeasurable (W q s) μ := by\n    have hY := (measurable_restrictState hK.isClosed.measurableSet fallback).comp (hXm s hs)\n    refine ((hEntry q).domRestrict.measurable.comp hY).aestronglyMeasurable.congr ?_\n    filter_upwards [hRange] with ω hr\n    change (1 / 2 : ℝ) * H (restrictState fallback (X s ω) : EuclideanSpace ℝ I)\n      (e q.1) (e q.2) = W q s ω\n    rw [coe_restrictState_of_mem fallback (hr s hs)]\n  have hWc : ∀ᵐ ω ∂μ, ∀ q : I × I, ContinuousOn (fun s => W q s ω) (Icc 0 T) := by\n    filter_upwards [hXc, hRange] with ω hω hr q\n    exact (hEntry q).comp hω (fun s hs => hr s hs.2)"
+        },
+        {
+          "title": "Take the coordinate-pair limits",
+          "text": "Apply continuous-weight covariation to the corresponding completed rows, and sum over the finite set of ordered coordinate pairs.",
+          "formula": "\\sum_i W_{ab}(t_i)\\Delta_iX^a\\Delta_iX^b\\xrightarrow{\\mu}\\int W_{ab}(s)\\sum_j\\eta_{aj}(s)\\eta_{bj}(s)\\,ds.",
+          "lean": "  have hLim (q : I × I) : TendstoInMeasure μ (F q) atTop (G q) :=\n    tendstoInMeasure_dyadic_weighted_covariation_of_ito_rows hB hT hUsual\n      (η q.1) (η q.2) (A q.1) (A q.2) (W q) (hAmeas q.1) (hAmeas q.2)\n      (hWm q) (hA q.1) (hA q.2) (hWc.mono fun _ h => h q)\n  have ht (n : ℕ) (i : Fin (2 ^ n + 1)) : t n i ≤ T :=\n    ((regularGridTimes_strictMono (dyadicMesh_pos hT n) _).monotone (Fin.le_last i)).trans_eq\n      (regularDyadic_last_time T n)\n  have hFm (q : I × I) (n : ℕ) : AEStronglyMeasurable (F q n) μ := by\n    have hΔm (i : Fin (2 ^ n)) (j : I) : AEStronglyMeasurable (fun ω => Δ n i ω j) μ :=\n      ((EuclideanSpace.proj j).continuous.measurable.comp\n        ((hXm _ (ht n i.succ)).sub (hXm _ (ht n i.castSucc)))).aestronglyMeasurable\n    have hCell (i : Fin (2 ^ n)) :\n        AEStronglyMeasurable (fun ω => W q (t n i.castSucc) ω *\n          (Δ n i ω q.1 * Δ n i ω q.2)) μ :=\n      (hWm q _ (ht n i.castSucc)).mul ((hΔm i q.1).mul (hΔm i q.2))\n    exact (Finset.aestronglyMeasurable_sum Finset.univ fun i _ => hCell i).congr\n      (Eventually.of_forall fun ω => by simp only [F, Finset.sum_apply])"
+        },
+        {
+          "title": "Recover the bilinear evaluations",
+          "text": "The ordered coordinate expansion recovers the actual quadratic term on each increment and the Hessian on each diffusion column. Product L² gives integrable coefficient products on almost every time section. Continuity bounds the weights on each such sample's compact time interval.",
+          "formula": "\\sum_{a,b}W_{ab}(s)\\sum_j\\eta_{aj}(s)\\eta_{bj}(s)=\\tfrac12\\sum_jD^2f(X_s)[\\sigma_j(s),\\sigma_j(s)].",
+          "lean": "  have hHalf (x v : EuclideanSpace ℝ I) :\n      (1 / 2 : ℝ) * H x v v = ∑ q : I × I,\n        ((1 / 2 : ℝ) * H x (e q.1) (e q.2)) * (v q.1 * v q.2) := by\n    rw [euclidean_bilinear_eq_sum_basis (H x) v v, Finset.mul_sum, Fintype.sum_prod_type]\n    apply Finset.sum_congr rfl\n    intro i _\n    rw [Finset.mul_sum]\n    apply Finset.sum_congr rfl\n    intro j _\n    ring\n  have hSum := tendstoInMeasure_fintype_sum hFm hLim\n  refine TendstoInMeasure.congr ?_ ?_ hSum\n  · intro n\n    exact Eventually.of_forall fun ω => by\n      change (∑ q : I × I, ∑ i : Fin (2 ^ n),\n        W q (t n i.castSucc) ω * (Δ n i ω q.1 * Δ n i ω q.2)) =\n        ∑ i : Fin (2 ^ n), (1 / 2 : ℝ) * H (X (t n i.castSucc) ω) (Δ n i ω) (Δ n i ω)\n      rw [Finset.sum_comm]\n      apply Finset.sum_congr rfl\n      intro i _\n      exact (hHalf _ _).symm\n  · have hProduct : ∀ᵐ ω ∂μ, ∀ q : I × I, ∀ j : J,\n        Integrable (fun s => (η q.1 j).process s ω * (η q.2 j).process s ω)\n          (TimeMeasure.upTo T) :=\n      ae_all_iff.2 fun q => ae_all_iff.2 fun j =>\n        ((η q.1 j).memLp.integrable_mul (η q.2 j).memLp).prod_right_ae\n    filter_upwards [hProduct, hWc] with ω hp hw\n    let ν := TimeMeasure.upTo T\n    have hMem : ∀ᵐ s ∂ν, s ∈ Icc (0 : ℝ≥0) T :=\n      (TimeMeasure.ae_mem_Ioc_zero_upTo T).mono fun _ hs => ⟨hs.1.le, hs.2⟩\n    have hRest : ν.restrict (Icc 0 T) = ν := Measure.restrict_eq_self_of_ae_mem hMem\n    have hInt (q : I × I) : Integrable (fun s => W q s ω * b q s ω) ν := by\n      have hDensity : Integrable (fun s => b q s ω) ν := integrable_finsetSum _ (fun j _ => hp q j)\n      obtain ⟨C, hC⟩ := isCompact_Icc.bddAbove_image (hw q).norm\n      have hMeas : AEStronglyMeasurable (fun s => W q s ω) ν := by\n        rw [← hRest]\n        exact (hw q).aestronglyMeasurable measurableSet_Icc\n      exact hDensity.bdd_mul hMeas (hMem.mono fun s hs => hC ⟨s, hs, rfl⟩)\n    change (∑ q : I × I, ∫ s, W q s ω * b q s ω ∂ν) =\n      ∫ s, (1 / 2 : ℝ) * (∑ j : J, H (X s ω) (σ j s ω) (σ j s ω)) ∂ν\n    rw [← integral_finsetSum _ (fun q _ => hInt q)]\n    apply integral_congr_ae\n    exact Eventually.of_forall fun s => by\n      simp only [b, Finset.mul_sum]\n      rw [Finset.sum_comm]\n      apply Finset.sum_congr rfl\n      intro j _\n      exact (hHalf _ (σ j s ω)).symm"
+        }
+      ],
+      "lean_statement": "The Hessian is the derivative of the Fréchet derivative, evaluated on the actual vector increments and diffusion columns.",
+      "lean_proof": "Use coordinate weighted covariation and exact finite summation, with the pathwise integral justified by product L² and continuity.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteSumConvergenceInMeasure.tendstoInMeasure_fintype_sum",
+        "AutoSamplingTheory.TechnicalLemmas.Analysis.EuclideanBilinearCoordinates.euclidean_bilinear_eq_sum_basis",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoEuclideanRowRegularity.measurable_continuousOn_euclidean_ito_rows",
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicWeightedCovariation.tendstoInMeasure_dyadic_weighted_covariation_of_ito_rows"
+      ],
+      "mathlib_dependencies": [
+        "ContDiffAt.fderiv_right",
+        "MeasureTheory.Integrable.prod_right_ae",
+        "MeasureTheory.integral_finsetSum"
+      ],
+      "sources": [
+        {
+          "url": "https://chewisinho.github.io/main.pdf",
+          "label": "Sinho Chewi, Log-Concave Sampling, August 9, 2026, §3.1",
+          "scope": "Textbook context for the second-order term in Itô calculus. These are Samplinglib supplements."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/StochasticProcesses/ItoDyadicWeightedCovariation.lean",
+          "label": "Continuous-weight covariation",
+          "scope": "The actual coordinate-pair limits."
+        }
+      ],
+      "tests": [
+        "Focused Lean 4.33.0 compilation and axiom audit."
+      ],
+      "reading_layout": "progressive"
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoDyadicHessian.tendstoInMeasure_dyadic_half_hessian_increments",
+      "role": "prerequisite",
+      "supports": [
+        "ito-dyadic-hessian-742e56e3"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "The positive horizon is T. The sample measure is finite, the filtration satisfies the usual conditions, and the driving standard vector Brownian motion is relative to that filtration and measure.",
+        "lean": "The positive horizon is T. The sample measure is finite, the filtration satisfies the usual conditions, and the driving standard vector Brownian motion is relative to that filtration and measure."
+      },
+      {
+        "source": "The finite coordinate rows have progressive product-square-integrable diffusion coefficients. Their drift evaluations at each fixed time t≤T are almost-everywhere strongly measurable.",
+        "lean": "The finite coordinate rows have progressive product-square-integrable diffusion coefficients. Their drift evaluations at each fixed time t≤T are almost-everywhere strongly measurable."
+      },
+      {
+        "source": "Almost every drift path is continuous with bounded variation on [0,T].",
+        "lean": "Almost every drift path is continuous with bounded variation on [0,T]."
+      },
+      {
+        "source": "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T]. The test is twice continuously Fréchet differentiable at each point of K.",
+        "lean": "The compact set K has a selected fallback point k₀. On one event of full measure, the process belongs to K at every time in [0,T]. The test is twice continuously Fréchet differentiable at each point of K."
+      }
+    ]
+  },
+  "publication_review_rule": "Independently compare the current Lean module, its scoped assumptions, source statement and candidate natural-language formula proof. These are claims to check, not previous reviewer verdicts. Do not infer equivalence from a hash or compilation alone.",
+  "packet_sha256": "e7a26157e545ed7662905cdbdf96d51231b84f28706c1c1ebfb304400f8f728e"
+}

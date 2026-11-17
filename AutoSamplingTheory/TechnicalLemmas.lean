@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport
 import AutoSamplingTheory.TechnicalLemmas.Analysis
 import AutoSamplingTheory.TechnicalLemmas.Analysis.HessianStrongConvexity
 import AutoSamplingTheory.TechnicalLemmas.Analysis.QuadraticRegularization

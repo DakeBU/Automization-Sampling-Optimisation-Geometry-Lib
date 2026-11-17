@@ -49,6 +49,9 @@ def _artifact_backed_audit(fragment: dict[str, Any], fragment_path: Path) -> dic
     decoder_packet_value = _json(decoder_packet_path)
     decoder_result = _json(decoder_result_path)
     review_result = _json(review_result_path)
+    decoder_hash = decoder_result.get("decoder_packet_sha256", decoder_result.get("packet_sha256", ""))
+    if decoder_result.get("packet_sha256", decoder_hash) != decoder_hash:
+        raise ValueError(f"{fragment_path}: conflicting decoder packet hashes")
 
     publication_context = reviewer_packet.get("candidate_publication_context", {})
     source = dict(reviewer_packet.get("source", {}))
@@ -67,7 +70,7 @@ def _artifact_backed_audit(fragment: dict[str, Any], fragment_path: Path) -> dic
         "text_sha256": decoder_result.get("reconstructed_text_sha256", ""),
         "decoder": decoder_result.get("decoder", ""),
         "decoder_run_sha256": decoder_result.get("decoder_run_sha256", ""),
-        "decoder_packet_sha256": decoder_result.get("packet_sha256", ""),
+        "decoder_packet_sha256": decoder_hash,
         "source_text_visible": decoder_result.get("source_text_visible"),
         "lean_statement_sha256": lean.get("statement_sha256", ""),
         "input_artifacts": decoder_result.get("input_artifacts", []),

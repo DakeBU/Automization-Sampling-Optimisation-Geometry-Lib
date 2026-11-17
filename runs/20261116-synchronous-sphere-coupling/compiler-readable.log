@@ -1,0 +1,488 @@
+@SynchronousSphereCoupling.synchronous_sphere_expected_chord_energy_balance : ∀ {d N : ℕ} {Ω : Type u_1}
+  [inst : MeasurableSpace Ω] {filtration : MeasureTheory.Filtration NNReal inferInstance}
+  (P : MeasureTheory.ProbabilityMeasure Ω),
+  0 < N →
+    ∀ (B : Fin N → NNReal → Ω → EuclideanSpace ℝ (Fin d))
+      (hB :
+        ∀ (i : Fin N),
+          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration
+            (B i) filtration ↑P)
+      (hUsual :
+        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration ↑P)
+      (X Y : Fin N → NNReal → Ω → ↑(Metric.sphere 0 1)) (hX : ∀ (i : Fin N), Measurable (Function.uncurry (X i)))
+      (hY : ∀ (i : Fin N), Measurable (Function.uncurry (Y i)))
+      (hProgressiveX : ∀ (i : Fin N), MeasureTheory.IsStronglyProgressive filtration (X i))
+      (hProgressiveY : ∀ (i : Fin N), MeasureTheory.IsStronglyProgressive filtration (Y i))
+      (bX bY :
+        NNReal → (Fin N → ↑(Metric.sphere 0 1)) → (Fin N → ↑(Metric.sphere 0 1)) → Fin N → EuclideanSpace ℝ (Fin d)),
+      (∀ (i : Fin N), Continuous fun z => bX z.1 z.2.1 z.2.2 i) →
+        (∀ (i : Fin N), Continuous fun z => bY z.1 z.2.1 z.2.2 i) →
+          ∀ (lambda : ℝ),
+            0 ≤ lambda →
+              (∀ (T : NNReal) (hT : 0 < T),
+                  ∀ᵐ (ω : Ω) ∂↑P,
+                    ∀ t ≤ T,
+                      ∀ (i : Fin N) (k : Fin d),
+                        (↑(X i t ω)).ofLp k =
+                            (↑(X i 0 ω)).ofLp k +
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess
+                                  (fun v a =>
+                                    (bX v (fun l => X l v a) (fun l => Y l v a) i).ofLp k -
+                                      lambda * (↑d - 1) * (↑(X i v a)).ofLp k)
+                                  t ω +
+                              ∑ j,
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess
+                                  (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand
+                                    T (X i) ⋯ ⋯ (fun x => lambda) ⋯ ⋯ k j)
+                                  hT ⋯ hUsual t ω ∧
+                          (↑(Y i t ω)).ofLp k =
+                            (↑(Y i 0 ω)).ofLp k +
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess
+                                  (fun v a =>
+                                    (bY v (fun l => X l v a) (fun l => Y l v a) i).ofLp k -
+                                      lambda * (↑d - 1) * (↑(Y i v a)).ofLp k)
+                                  t ω +
+                              ∑ j,
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess
+                                  (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand
+                                    T (Y i) ⋯ ⋯ (fun x => lambda) ⋯ ⋯ k j)
+                                  hT ⋯ hUsual t ω) →
+                have delta := fun i t ω => ↑(X i t.toNNReal ω) - ↑(Y i t.toNNReal ω);
+                have D := fun t => (↑N)⁻¹ * ∑ i, ∫ (ω : Ω), ‖delta i t ω‖ ^ 2 ∂↑P;
+                have R4 := fun t => (↑N)⁻¹ * ∑ i, ∫ (ω : Ω), ‖delta i t ω‖ ^ 4 ∂↑P;
+                have L := fun t =>
+                  2 * (↑N)⁻¹ *
+                    ∑ i,
+                      ∫ (ω : Ω),
+                        inner ℝ (delta i t ω)
+                          (bX t.toNNReal (fun l => X l t.toNNReal ω) (fun l => Y l t.toNNReal ω) i -
+                            bY t.toNNReal (fun l => X l t.toNNReal ω) (fun l => Y l t.toNNReal ω) i) ∂↑P;
+                have G := fun t => L t - 2 * lambda * (↑d - 3) * D t - lambda * R4 t;
+                Continuous G ∧
+                  MeasureTheory.LocallyIntegrable G MeasureTheory.volume ∧
+                    (∀ (a b : NNReal), D ↑b - D ↑a = ∫ (t : ℝ) in ↑a..↑b, G t) ∧
+                      (∀ (T : NNReal), AbsolutelyContinuousOnInterval D 0 ↑T) ∧
+                        (∀ (t : ℝ), 0 < t → HasDerivAt D (G t) t) ∧ HasDerivWithinAt D (G 0) (Set.Ici 0) 0
+'SynchronousSphereCoupling.synchronous_sphere_expected_chord_energy_balance' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotion.{u_1, u_2} : {Omega :
+    Type u_1} →
+  {E : Type u_2} →
+    [inst : MeasurableSpace Omega] →
+      [inst_1 : NormedAddCommGroup E] →
+        [InnerProductSpace ℝ E] → [MeasurableSpace E] → (NNReal → Omega → E) → MeasureTheory.Measure Omega → Prop :=
+fun {Omega} {E} [MeasurableSpace Omega] [NormedAddCommGroup E] [InnerProductSpace ℝ E] [MeasurableSpace E] B mu =>
+  (∀ (omega : Omega), B 0 omega = 0) ∧
+    (∀ (n : ℕ) (s t : Fin n → NNReal),
+        (∀ (i : Fin n), s i ≤ t i) →
+          (Pairwise fun i j => Disjoint (Set.Ioc (s i) (t i)) (Set.Ioc (s j) (t j))) →
+            ProbabilityTheory.iIndepFun (fun i omega => B (t i) omega - B (s i) omega) mu) ∧
+      (∀ (s t : NNReal),
+          s < t →
+            ∀ (ell : StrongDual ℝ E),
+              ProbabilityTheory.HasLaw (fun omega => ell (B t omega - B s omega))
+                (ProbabilityTheory.gaussianReal 0
+                  (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.projectedIncrementVariance s t
+                    ell))
+                mu) ∧
+        ∀ᵐ (omega : Omega) ∂mu, Continuous fun t => B t omega
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.projectedIncrementVariance.{u_2} : {E :
+    Type u_2} →
+  [inst : NormedAddCommGroup E] → [inst_1 : InnerProductSpace ℝ E] → NNReal → NNReal → StrongDual ℝ E → NNReal :=
+fun {E} [NormedAddCommGroup E] [InnerProductSpace ℝ E] s t ell => (↑(t - s) * ‖ell‖ ^ 2).toNNReal
+structure AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration.{u_3,
+    u_4}
+  {Omega : Type u_3} {E : Type u_4} [MeasurableSpace Omega] [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] (B : NNReal → Omega → E)
+  (filtration : MeasureTheory.Filtration NNReal inferInstance) (mu : MeasureTheory.Measure Omega) : Prop
+number of parameters: 11
+fields:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration.isStandard : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotion
+      B mu
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration.stronglyAdapted : MeasureTheory.StronglyAdapted
+      filtration B
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration.incrementIndependent : ∀
+      (s t : NNReal),
+      s ≤ t →
+        ProbabilityTheory.Indep (↑filtration s) (MeasurableSpace.comap (fun omega => B t omega - B s omega) (borel E))
+          mu
+constructor:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration.mk.{u_3,
+      u_4}
+    {Omega : Type u_3} {E : Type u_4} [MeasurableSpace Omega] [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {B : NNReal → Omega → E}
+    {filtration : MeasureTheory.Filtration NNReal inferInstance} {mu : MeasureTheory.Measure Omega}
+    (isStandard : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotion B mu)
+    (stronglyAdapted : MeasureTheory.StronglyAdapted filtration B)
+    (incrementIndependent :
+      ∀ (s t : NNReal),
+        s ≤ t →
+          ProbabilityTheory.Indep (↑filtration s) (MeasurableSpace.comap (fun omega => B t omega - B s omega) (borel E))
+            mu) :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration B
+      filtration mu
+structure AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration.{u_3}
+  {Omega : Type u_3} {m : MeasurableSpace Omega} (B : NNReal → Omega → ℝ)
+  (filtration : MeasureTheory.Filtration NNReal m) (mu : MeasureTheory.Measure Omega) : Prop
+number of parameters: 5
+fields:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration.isBrownian : ProbabilityTheory.IsBrownianReal
+      B mu
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration.stronglyAdapted : MeasureTheory.StronglyAdapted
+      filtration B
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration.incrementIndependent : ∀
+      (s t : NNReal),
+      s ≤ t →
+        ProbabilityTheory.Indep (↑filtration s) (MeasurableSpace.comap (fun omega => B t omega - B s omega) (borel ℝ))
+          mu
+constructor:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration.mk.{u_3}
+    {Omega : Type u_3} {m : MeasurableSpace Omega} {B : NNReal → Omega → ℝ}
+    {filtration : MeasureTheory.Filtration NNReal m} {mu : MeasureTheory.Measure Omega}
+    (isBrownian : ProbabilityTheory.IsBrownianReal B mu) (stronglyAdapted : MeasureTheory.StronglyAdapted filtration B)
+    (incrementIndependent :
+      ∀ (s t : NNReal),
+        s ≤ t →
+          ProbabilityTheory.Indep (↑filtration s) (MeasurableSpace.comap (fun omega => B t omega - B s omega) (borel ℝ))
+            mu) :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration B filtration mu
+structure ProbabilityTheory.IsBrownianReal.{u_1} {Ω : Type u_1} {mΩ : MeasurableSpace Ω} (X : NNReal → Ω → ℝ)
+  (P : MeasureTheory.Measure Ω := by volume_tac) : Prop
+number of parameters: 4
+parents:
+  ProbabilityTheory.IsBrownianReal.toIsPreBrownianReal : ProbabilityTheory.IsPreBrownianReal X P
+fields:
+  ProbabilityTheory.IsPreBrownianReal.hasLaw : ∀ (I : Finset NNReal),
+      ProbabilityTheory.HasLaw (fun ω => I.restrict fun x => X x ω) (ProbabilityTheory.BrownianReal.projectiveFamily I)
+        P
+  ProbabilityTheory.IsBrownianReal.cont : ∀ᵐ (ω : Ω) ∂P, Continuous fun x => X x ω
+constructor:
+  ProbabilityTheory.IsBrownianReal.mk.{u_1} {Ω : Type u_1} {mΩ : MeasurableSpace Ω} {X : NNReal → Ω → ℝ}
+    {P : autoParam (MeasureTheory.Measure Ω) ProbabilityTheory.IsBrownianReal._auto_1}
+    (toIsPreBrownianReal : ProbabilityTheory.IsPreBrownianReal X P) (cont : ∀ᵐ (ω : Ω) ∂P, Continuous fun x => X x ω) :
+    ProbabilityTheory.IsBrownianReal X P
+field notation resolution order:
+  ProbabilityTheory.IsBrownianReal, ProbabilityTheory.IsPreBrownianReal
+def MeasureTheory.IsStronglyProgressive.{u_1, u_2, u_3} : {Ω : Type u_1} →
+  {ι : Type u_2} →
+    {m : MeasurableSpace Ω} →
+      [inst : Preorder ι] →
+        {β : Type u_3} →
+          [TopologicalSpace β] → [MeasurableSpace ι] → MeasureTheory.Filtration ι m → (ι → Ω → β) → Prop :=
+fun {Ω} {ι} {m} [Preorder ι] {β} [TopologicalSpace β] [MeasurableSpace ι] f u =>
+  ∀ (i : ι), MeasureTheory.StronglyMeasurable fun p => u (↑p.1) p.2
+def MeasureTheory.StronglyAdapted.{u_1, u_2, u_3} : {Ω : Type u_1} →
+  {ι : Type u_2} →
+    {m : MeasurableSpace Ω} →
+      [inst : Preorder ι] →
+        {β : ι → Type u_3} →
+          [(i : ι) → TopologicalSpace (β i)] → MeasureTheory.Filtration ι m → ((i : ι) → Ω → β i) → Prop :=
+fun {Ω} {ι} {m} [Preorder ι] {β} [(i : ι) → TopologicalSpace (β i)] f u =>
+  ∀ (i : ι), MeasureTheory.StronglyMeasurable (u i)
+structure AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions.{u_1}
+  {Omega : Type u_1} {m : MeasurableSpace Omega} (filtration : MeasureTheory.Filtration NNReal m)
+  (mu : MeasureTheory.Measure Omega) : Prop
+number of parameters: 4
+fields:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions.completeAt : ∀
+      (t : NNReal) (s : Set Omega), mu s = 0 → MeasurableSet s
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions.rightContinuous : filtration.IsRightContinuous
+constructor:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions.mk.{u_1}
+    {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m}
+    {mu : MeasureTheory.Measure Omega} (completeAt : ∀ (t : NNReal) (s : Set Omega), mu s = 0 → MeasurableSet s)
+    (rightContinuous : filtration.IsRightContinuous) :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu
+structure AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand.{u_1}
+  {Omega : Type u_1} {m : MeasurableSpace Omega} (filtration : MeasureTheory.Filtration NNReal m)
+  (mu : MeasureTheory.Measure Omega) (T : NNReal) : Type u_1
+number of parameters: 5
+fields:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand.process : NNReal →
+      Omega → ℝ
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand.progressive : MeasureTheory.IsStronglyProgressive
+      filtration self.process
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand.memLp : MeasureTheory.MemLp
+      (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.processFunction self.process) 2
+      (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.processTimeMeasure mu T)
+constructor:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand.mk.{u_1}
+    {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m}
+    {mu : MeasureTheory.Measure Omega} {T : NNReal} (process : NNReal → Omega → ℝ)
+    (progressive : MeasureTheory.IsStronglyProgressive filtration process)
+    (memLp :
+      MeasureTheory.MemLp (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.processFunction process)
+        2 (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.processTimeMeasure mu T)) :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand.toLp.{u_1} : {Omega :
+    Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {mu : MeasureTheory.Measure Omega} →
+        {T : NNReal} →
+          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T →
+            ↥(MeasureTheory.Lp ℝ 2
+                (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.processTimeMeasure mu
+                  T)) :=
+fun {Omega} {m} {filtration} {mu} {T} eta =>
+  MeasureTheory.MemLp.toLp
+    (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.processFunction eta.process) ⋯
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.processFunction.{u_1} : {Omega : Type u_1} →
+  (NNReal → Omega → ℝ) → Omega × NNReal → ℝ :=
+fun {Omega} eta z => eta z.2 z.1
+structure AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess.CoordinateBrownianFamilyWithFiltration.{u_1,
+    u_2}
+  {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m}
+  {mu : MeasureTheory.Measure Omega} (kappa : Type u_2) : Type (max u_1 u_2)
+number of parameters: 5
+fields:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess.CoordinateBrownianFamilyWithFiltration.process : kappa →
+      NNReal → Omega → ℝ
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess.CoordinateBrownianFamilyWithFiltration.isBrownian : ∀
+      (j : kappa),
+      AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration
+        (self.process j) filtration mu
+constructor:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess.CoordinateBrownianFamilyWithFiltration.mk.{u_1,
+      u_2}
+    {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m}
+    {mu : MeasureTheory.Measure Omega} {kappa : Type u_2} (process : kappa → NNReal → Omega → ℝ)
+    (isBrownian :
+      ∀ (j : kappa),
+        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration (process j)
+          filtration mu) :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess.CoordinateBrownianFamilyWithFiltration
+      kappa
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.EuclideanBrownianCoordinates.coordinateFamily.{u_1, u_2} : {Omega :
+    Type u_1} →
+  {kappa : Type u_2} →
+    [inst : Fintype kappa] →
+      [DecidableEq kappa] →
+        {m : MeasurableSpace Omega} →
+          {filtration : MeasureTheory.Filtration NNReal m} →
+            {mu : MeasureTheory.Measure Omega} →
+              {B : NNReal → Omega → EuclideanSpace ℝ kappa} →
+                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration
+                    B filtration mu →
+                  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.FiniteDimensionalItoProcess.CoordinateBrownianFamilyWithFiltration
+                    kappa :=
+fun {Omega} {kappa} [Fintype kappa] [DecidableEq kappa] {m} {filtration} {mu} {B} hB =>
+  { process := fun j t omega => (B t omega).ofLp j, isBrownian := ⋯ }
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand.{u_1, u_2} : {I :
+    Type u_1} →
+  [inst : Fintype I] →
+    [DecidableEq I] →
+      {Ω : Type u_2} →
+        [inst_2 : MeasurableSpace Ω] →
+          {filtration : MeasureTheory.Filtration NNReal inferInstance} →
+            {μ : MeasureTheory.Measure Ω} →
+              [MeasureTheory.IsFiniteMeasure μ] →
+                (T : NNReal) →
+                  (X : NNReal → Ω → ↑(Metric.sphere 0 1)) →
+                    Measurable (Function.uncurry X) →
+                      MeasureTheory.IsStronglyProgressive filtration X →
+                        (temperature : NNReal → ℝ) →
+                          Measurable temperature →
+                            (∃ C, ∀ t ≤ T, ‖temperature t‖ ≤ C) →
+                              I →
+                                I →
+                                  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand
+                                    filtration μ T :=
+fun {I} [Fintype I] [DecidableEq I] {Ω} [MeasurableSpace Ω] {filtration} {μ} [MeasureTheory.IsFiniteMeasure μ] T X hX
+    hProgressive temperature hTemperature hBound i j =>
+  have L := fun k => PiLp.proj 2 (fun x => ℝ) k;
+  let c₀ := fun w =>
+    (AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.projectedNoiseColumn j ↑w).ofLp i;
+  let c := fun q => √(2 * temperature q.1) * c₀ q.2;
+  have hState := ⋯;
+  have hProjected := ⋯;
+  have hC₀ := ⋯;
+  have hRoot := ⋯;
+  have hc := ⋯;
+  have hCompact := ⋯;
+  have hC := ⋯;
+  have h := ⋯;
+  { process := fun t ω => c (t, X t ω), progressive := ⋯, memLp := ⋯ }
+def AutoSamplingTheory.TechnicalLemmas.Geometry.SphereProjectedNoise.projectedNoiseColumn.{u_1} : {ι : Type u_1} →
+  [DecidableEq ι] → ι → EuclideanSpace ℝ ι → EuclideanSpace ℝ ι :=
+fun {ι} [DecidableEq ι] j x => EuclideanSpace.single j 1 - x.ofLp j • x
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess.{u_1, u_2} : {Omega :
+    Type u_1} →
+  {E : Type u_2} → [inst : NormedAddCommGroup E] → [NormedSpace ℝ E] → (NNReal → Omega → E) → NNReal → Omega → E :=
+fun {Omega} {E} [NormedAddCommGroup E] [NormedSpace ℝ E] b t omega =>
+  ∫ (s : NNReal), b s omega ∂AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo t
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo : NNReal → MeasureTheory.Measure NNReal :=
+fun T => MeasureTheory.Measure.comap NNReal.toReal (MeasureTheory.volume.restrict (Set.Icc 0 ↑T))
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.processTimeMeasure.{u_1} : {Omega :
+    Type u_1} →
+  [inst : MeasurableSpace Omega] → MeasureTheory.Measure Omega → NNReal → MeasureTheory.Measure (Omega × NNReal) :=
+fun {Omega} [MeasurableSpace Omega] mu T =>
+  mu.prod (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.TimeMeasure.upTo T)
+structure AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.{u_1}
+  {Omega : Type u_1} {m : MeasurableSpace Omega} (filtration : MeasureTheory.Filtration NNReal m) (n : ℕ) : Type u_1
+number of parameters: 4
+fields:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.times : Fin
+        (n + 1) →
+      NNReal
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.times_strictMono : StrictMono
+      self.times
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.coeff : Fin n →
+      Omega → ℝ
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.coeff_stronglyMeasurable : ∀
+      (i : Fin n), MeasureTheory.StronglyMeasurable (self.coeff i)
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.coeff_bounded : ∀
+      (i : Fin n), ∃ C, ∀ (omega : Omega), |self.coeff i omega| ≤ C
+constructor:
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.mk.{u_1}
+    {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m} {n : ℕ}
+    (times : Fin (n + 1) → NNReal) (times_strictMono : StrictMono times) (coeff : Fin n → Omega → ℝ)
+    (coeff_stronglyMeasurable : ∀ (i : Fin n), MeasureTheory.StronglyMeasurable (coeff i))
+    (coeff_bounded : ∀ (i : Fin n), ∃ C, ∀ (omega : Omega), |coeff i omega| ≤ C) :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess filtration n
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess.value.{u_1} : {Omega :
+    Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {n : ℕ} →
+        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess filtration
+            n →
+          NNReal → Omega → ℝ :=
+fun {Omega} {m} {filtration} {n} eta t omega =>
+  ∑ i, if eta.times i.castSucc < t ∧ t ≤ eta.times i.succ then eta.coeff i omega else 0
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.elementaryItoIntegral.{u_1} : {Omega :
+    Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {n : ℕ} →
+        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoIntegral.ElementaryAdaptedProcess filtration
+            n →
+          (NNReal → Omega → ℝ) → NNReal → Omega → ℝ :=
+fun {Omega} {m} {filtration} {n} eta B T omega =>
+  ∑ i, eta.coeff i omega * (B (min (eta.times i.succ) T) omega - B (min (eta.times i.castSucc) T) omega)
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess.{u_1} : {Omega :
+    Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {mu : MeasureTheory.Measure Omega} →
+        {T : NNReal} →
+          {B : NNReal → Omega → ℝ} →
+            [MeasureTheory.IsFiniteMeasure mu] →
+              AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu
+                  T →
+                0 < T →
+                  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration B
+                      filtration mu →
+                    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions
+                        filtration mu →
+                      NNReal → Omega → ℝ :=
+fun {Omega} {m} {filtration} {mu} {T} {B} [MeasureTheory.IsFiniteMeasure mu] eta hT _hB _hUsual t omega =>
+  if omega ∈ AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.uniformBadSet eta hT B then 0
+  else AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.canonicalPathLimit eta hT B t omega
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.canonicalPathLimit.{u_1} : {Omega :
+    Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {mu : MeasureTheory.Measure Omega} →
+        {T : NNReal} →
+          [MeasureTheory.IsFiniteMeasure mu] →
+            AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu
+                T →
+              0 < T → (NNReal → Omega → ℝ) → NNReal → Omega → ℝ :=
+fun {Omega} {m} {filtration} {mu} {T} [MeasureTheory.IsFiniteMeasure mu] eta hT B t omega =>
+  Filter.atTop.limUnder fun n =>
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.canonicalItoProcess eta hT B n t omega
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.uniformBadSet.{u_1} : {Omega : Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {mu : MeasureTheory.Measure Omega} →
+        {T : NNReal} →
+          [MeasureTheory.IsFiniteMeasure mu] →
+            AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu
+                T →
+              0 < T → (NNReal → Omega → ℝ) → Set Omega :=
+fun {Omega} {m} {filtration} {mu} {T} [MeasureTheory.IsFiniteMeasure mu] eta hT B =>
+  (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.uniformCauchyEvent eta hT B)ᶜ
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.uniformCauchyEvent.{u_1} : {Omega :
+    Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {mu : MeasureTheory.Measure Omega} →
+        {T : NNReal} →
+          [MeasureTheory.IsFiniteMeasure mu] →
+            AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu
+                T →
+              0 < T → (NNReal → Omega → ℝ) → Set Omega :=
+fun {Omega} {m} {filtration} {mu} {T} [MeasureTheory.IsFiniteMeasure mu] eta hT B =>
+  {omega |
+    (∀ᶠ (n : ℕ) in Filter.atTop,
+        omega ∉ AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.uniformBadEvent eta hT B n) ∧
+      ∀ (n : ℕ),
+        Continuous fun t =>
+          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.canonicalItoProcess eta hT B n t
+            omega}
+def AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.canonicalItoProcess.{u_1} : {Omega :
+    Type u_1} →
+  {m : MeasurableSpace Omega} →
+    {filtration : MeasureTheory.Filtration NNReal m} →
+      {mu : MeasureTheory.Measure Omega} →
+        {T : NNReal} →
+          [MeasureTheory.IsFiniteMeasure mu] →
+            AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu
+                T →
+              0 < T → (NNReal → Omega → ℝ) → ℕ → NNReal → Omega → ℝ :=
+fun {Omega} {m} {filtration} {mu} {T} [MeasureTheory.IsFiniteMeasure mu] eta hT B n =>
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ElementaryItoProcess.elementaryItoProcess
+    (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2Density.canonicalElementaryApprox eta hT
+        n).process
+    B T
+@AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess_at_zero : ∀
+  {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m}
+  {mu : MeasureTheory.Measure Omega} {T : NNReal} {B : NNReal → Omega → ℝ} [inst : MeasureTheory.IsFiniteMeasure mu]
+  (eta : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T)
+  (hT : 0 < T)
+  (hB :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration B filtration
+      mu)
+  (hUsual :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu),
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess eta hT hB hUsual 0 = 0
+@AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess_terminal_eq : ∀
+  {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m}
+  {mu : MeasureTheory.Measure Omega} {T : NNReal} {B : NNReal → Omega → ℝ} [inst : MeasureTheory.IsFiniteMeasure mu]
+  (eta : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T)
+  (hT : 0 < T)
+  (hB :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration B filtration
+      mu)
+  (hUsual :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu),
+  AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess eta hT hB hUsual T =ᵐ[mu]
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.terminalRepresentative eta hT hB
+@AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess_martingale : ∀
+  {Omega : Type u_1} {m : MeasurableSpace Omega} {filtration : MeasureTheory.Filtration NNReal m}
+  {mu : MeasureTheory.Measure Omega} {T : NNReal} {B : NNReal → Omega → ℝ} [inst : MeasureTheory.IsFiniteMeasure mu]
+  (eta : AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.ProgressiveL2Integrand filtration mu T)
+  (hT : 0 < T)
+  (hB :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsBrownianMotionWithFiltration B filtration
+      mu)
+  (hUsual :
+    AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration mu),
+  MeasureTheory.Martingale
+    (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess eta hT hB hUsual)
+    filtration mu
+def Real.toNNReal : ℝ → NNReal :=
+fun r => NNReal.mk (max r 0) ⋯
+constructor WithLp.toLp.{u_1} : (p : ENNReal) → {V : Type u_1} → V → WithLp p V
+private def SynchronousSphereCoupling.block : {d : ℕ} →
+  Bool → EuclideanSpace ℝ (Bool × Fin d) →L[ℝ] EuclideanSpace ℝ (Fin d) :=
+fun {d} b =>
+  ↑(PiLp.continuousLinearEquiv 2 ℝ fun x => ℝ).symm ∘SL ContinuousLinearMap.pi fun j => PiLp.proj 2 (fun x => ℝ) (b, j)
+private def SynchronousSphereCoupling.difference : {d : ℕ} →
+  EuclideanSpace ℝ (Bool × Fin d) →L[ℝ] EuclideanSpace ℝ (Fin d) :=
+fun {d} => block false - block true
+private def SynchronousSphereCoupling.pair : {d : ℕ} →
+  EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Fin d) → EuclideanSpace ℝ (Bool × Fin d) :=
+fun {d} x y => WithLp.toLp 2 fun q => if q.1 = true then y.ofLp q.2 else x.ofLp q.2

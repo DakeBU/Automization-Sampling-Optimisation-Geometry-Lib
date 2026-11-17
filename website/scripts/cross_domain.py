@@ -16,6 +16,7 @@ PLAN_PATH = ROOT / 'Libraries/cross-domain-program.json'
 MIRROR_POLICY_PATH = ROOT / 'Libraries/conceptual-mirror-protocol.json'
 FUNCTOR_PATH = ROOT / 'website/content/functor_hypergraph.json'
 GRAPH_MEMORY_PATH = ROOT / 'website/content/graph_memory_index.json'
+SHARED_SPINE_PATH = ROOT / 'Libraries/frontloaded-shared-spine.json'
 OT_BASE = 'libraries/statistical-optimal-transport/'
 RESEARCH_PAGE = 'progress/higher-order-sampling-detail.html'
 
@@ -286,8 +287,12 @@ def add_to_graph(builder) -> dict[str, Any]:
 
 
 def graph_guide_html() -> str:
+    import declaration_lessons
+
     model = load(FUNCTOR_PATH)
     memory = load(GRAPH_MEMORY_PATH)
+    extensions = {row['id']: row for row in load(SHARED_SPINE_PATH).get('reviewed_extensions', [])}
+    lesson_titles = {unit['declaration']: unit['title'] for unit in declaration_lessons.load_units()}
     view_cards = ''.join(
         f'''<article><b>{escape(view_id.upper())}</b><h3>{escape(view['label'])}</h3><p>{escape(view['question'])}</p><small>{escape(view['status_semantics'])}</small></article>'''
         for view_id, view in memory['views'].items()
@@ -303,8 +308,25 @@ def graph_guide_html() -> str:
             for binding in family.get('compiled_substrate_bindings', [])
         )
         compiled = f'<p><strong>Compiled substrates</strong></p><ul>{bindings}</ul>' if bindings else ''
+        reading = ''
+        if extension_id := family.get('proof_spine_extension'):
+            extension = extensions[extension_id]
+            groups = []
+            for group in extension['groups']:
+                leaves = ''.join(
+                    f'<li><a href="{escape(declaration_lessons.lesson_path(name))}" title="{escape(name)}">{escape(lesson_titles[name])}</a></li>'
+                    for name in group['declarations']
+                )
+                groups.append(
+                    f'<li><p>{escape(group["conceptual_move"])}</p><p><small>{escape(group["boundary"])}</small></p>'
+                    f'<details><summary>Exact statements and proofs ({len(group["declarations"])})</summary><ul>{leaves}</ul></details></li>'
+                )
+            reading = (
+                '<details class="family-proof-spine"><summary>Read the proof route and its exact theorem statements</summary>'
+                f'<ol>{"".join(groups)}</ol><p><small>{escape(extension["boundary"])}</small></p></details>'
+            )
         family_cards.append(
-            f'''<article id="{escape(family['id'].replace(':','-'))}"><b>{escape(family['id'])}</b><h3>{escape(family['label'])}</h3><p>{escape(family['plain_language'])}</p>{compiled}<p><strong>Do not conflate:</strong> {escape(family['do_not_conflate'])}</p><nav class="ulg-functor-links" aria-label="{escape(family['label'])}">{jumps}</nav></article>'''
+            f'''<article id="{escape(family['id'].replace(':','-'))}"><b>{escape(family['id'])}</b><h3>{escape(family['label'])}</h3><p>{escape(family['plain_language'])}</p>{compiled}{reading}<p><strong>Do not conflate:</strong> {escape(family['do_not_conflate'])}</p><nav class="ulg-functor-links" aria-label="{escape(family['label'])}">{jumps}</nav></article>'''
         )
     links = ''.join(f'<button type="button" data-functor-jump="{escape(e["id"])}">{escape(e["label"])}</button>' for e in model['hyperedges'])
     return r'''<section class="ulg-semantics" id="graph-truth-contract"><div class="section-heading"><span>One data model · three truth views</span><h2>Overview, Lean Branches, and Functor Hypergraph answer different questions.</h2></div><p>Agents should read stable family and bridge ids before expanding the full declaration graph. Readers can use the same order: orient by source/project topology, understand the recurring mathematical mechanism, then inspect the exact compiled Lean substrate. A conceptual bridge never upgrades the Lean view.</p><div>''' + view_cards + r'''</div></section>

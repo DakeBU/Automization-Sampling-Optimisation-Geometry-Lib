@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "units": [
+    {
+      "id": "path-law-transport-vanishes",
+      "short_name": "tendsto_transportCost_marginal_of_ae_continuous",
+      "title": "Continuous paths give vanishing transport cost",
+      "statement": "Let \\(T\\) be a first-countable topological space, \\(\\Omega\\) a measurable space, and \\(E\\) a compact topological space with a measurable structure for which every open subset of \\(E\\times E\\) is measurable in the product sigma algebra. Let \\(P\\) be a probability law on \\(\\Omega\\), and let \\(X_t:\\Omega\\to E\\) be measurable for every \\(t\\in T\\). Assume that, on one event of full probability, \\(t\\mapsto X_t\\) is continuous on all of \\(T\\). Write \\(\\mu_t=(X_t)_\\#P\\). Let \\(c:E\\times E\\to[0,\\infty)\\) be a continuous finite cost with \\(c(x,x)=0\\) for every \\(x\\). For every fixed \\(s\\in T\\), the Kantorovich cost with cost \\(c\\) from \\(\\mu_t\\) to \\(\\mu_s\\) tends to zero as \\(t\\to s\\). The limit is in the extended nonnegative reals.",
+      "assumptions": [
+        "\\(T\\) is first-countable. \\(E\\) is compact; its product topology has measurable open sets in the product sigma algebra.",
+        "\\(P\\) is a probability law, every time slice \\(X_t\\) is measurable, and entire paths are continuous on a single event of full probability.",
+        "The continuous cost \\(c\\) takes values in the finite nonnegative reals and vanishes on the diagonal."
+      ],
+      "formula": "\\mathsf C_c(\\mu,\\nu):=\\inf_{\\pi\\in\\Pi(\\mu,\\nu)}\\int c\\,d\\pi,\\qquad \\mathsf C_c(\\mu_t,\\mu_s)\\longrightarrow0\\quad(t\\to s).",
+      "boundary": "The cost need not be a metric or symmetric. Compactness and the finite continuous cost are retained. This is a limit at each fixed time, without a quantitative rate.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw.continuous_marginal_law_of_ae_continuous",
+        "AutoSamplingTheory.TechnicalLemmas.Measure.Transport.transportCost_le_lintegral_of_isCoupling"
+      ],
+      "mathlib_dependencies": [
+        "MeasureTheory.ProbabilityMeasure.continuous_lintegral_continuousMap",
+        "MeasureTheory.lintegral_map",
+        "tendsto_of_tendsto_of_tendsto_of_le_of_le"
+      ],
+      "steps": [
+        {
+          "title": "Use the same sample at two times",
+          "text": "The paired process \\(Z_t=(X_t,X_s)\\) has continuous sample paths on the original full event. The marginal-law theorem therefore makes \\(\\gamma_t=(Z_t)_\\#P\\) weakly continuous. Its two marginals are \\(\\mu_t,\\mu_s\\).",
+          "formula": "\\gamma_t=(X_t,X_s)_\\#P\\in\\Pi(\\mu_t,\\mu_s).",
+          "lean": "  let Z (t : T) (ω : Ω) := (X t ω, X s ω)\n  have hZ (t : T) : Measurable (Z t) := (hX t).prodMk (hX s)\n  have hZpaths : ∀ᵐ ω ∂(P : Measure Ω), Continuous (fun t => Z t ω) :=\n    hpaths.mono fun _ hω => hω.prodMk continuous_const\n  let γ (t : T) := P.map (hZ t).aemeasurable\n  have hγ : Continuous γ := continuous_marginal_law_of_ae_continuous P Z hZ hZpaths\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 1
+        },
+        {
+          "title": "Integrate the continuous cost",
+          "text": "Compactness bounds the continuous cost, and the measurable-open-set assumption makes it measurable. Its integral is continuous in the probability law. At \\(s\\), both coordinates coincide, so this cost integral is zero.",
+          "formula": "C(t):=\\int c\\,d\\gamma_t\\longrightarrow C(s)=\\int c(X_s,X_s)\\,dP=0.",
+          "lean": "  let C (t : T) := ∫⁻ z, (c z : ℝ≥0∞) ∂(γ t : Measure (E × E))\n  have hC : Continuous C := (ProbabilityMeasure.continuous_lintegral_continuousMap c).comp hγ\n  have hCs : C s = 0 := by\n    dsimp [C, γ]\n    have hc : Measurable (fun z : E × E => (c z : ℝ≥0∞)) :=\n      measurable_coe_nnreal_ennreal.comp c.continuous.measurable\n    rw [lintegral_map hc (hZ s)]\n    simp [Z, hzero]\n  have hlim : Tendsto C (𝓝 s) (𝓝 0) := hCs ▸ hC.continuousAt\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 2
+        },
+        {
+          "title": "Bound the infimum by this coupling",
+          "text": "The transport cost is nonnegative and at most the cost of the explicit coupling. Squeezing gives the asserted limit.",
+          "formula": "0\\le\\mathsf C_c(\\mu_t,\\mu_s)\\le C(t)\\longrightarrow0.",
+          "lean": "  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hlim (fun _ => bot_le) ?_\n  intro t\n  apply transportCost_le_lintegral_of_isCoupling\n  constructor\n  · simp only [γ, ProbabilityMeasure.toMeasure_map, Z, Measure.fst_map_prodMk (hX s)]\n  · simp only [γ, ProbabilityMeasure.toMeasure_map, Z, Measure.snd_map_prodMk (hX t)]\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 3
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.tendsto_transportCost_marginal_of_ae_continuous",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+      "source_line": 18,
+      "classification": "canonical shared library node; original mathematical supplement",
+      "reading_layout": "progressive",
+      "lean_statement": "The exact declaration retains the probability pushforwards, the product measurable structure and the whole-path almost-sure quantifier.",
+      "lean_proof": "The proof uses the actual same-sample coupling and the displayed order bounds; the adjacent excerpts preserve all local definitions.",
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+          "label": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+          "scope": "Original Samplinglib path-law transport supplement: Continuous paths give vanishing transport cost Original shared supplement; no numbered textbook theorem or whole-model completion claim."
+        }
+      ]
+    },
+    {
+      "id": "path-law-field-continuity",
+      "short_name": "continuous_of_path_law_transport_bound",
+      "title": "A transport estimate gives joint continuity",
+      "statement": "Let \\(T\\) be a first-countable topological space, \\(\\Omega\\) a measurable space, and \\(E\\) a compact topological space with a measurable structure for which every open subset of \\(E\\times E\\) is measurable in the product sigma algebra. Let \\(P\\) be a probability law on \\(\\Omega\\), and let \\(X_t:\\Omega\\to E\\) be measurable for every \\(t\\in T\\). Assume that, on one event of full probability, \\(t\\mapsto X_t\\) is continuous on all of \\(T\\). Write \\(\\mu_t=(X_t)_\\#P\\). Let \\(c:E\\times E\\to[0,\\infty)\\) be a continuous finite cost with \\(c(x,x)=0\\) for every \\(x\\). Let \\(F\\) be a normed additive commutative group, \\(U:T\\times E\\to F\\) any field, and \\(L\\in\\mathbb R\\). Suppose the bound below holds for every pair \\((t,x),(s,y)\\). Then \\(U\\) is jointly continuous. Here \\(\\Pi(\\mu,\\nu)\\) denotes the probability couplings. The map \\(\\operatorname{toReal}\\) takes the ordinary real value at finite inputs and sends \\(\\infty\\) to zero; the costs \\(Q(t,s)\\) here are finite by compactness and the explicit same-sample coupling.",
+      "assumptions": [
+        "\\(T\\) is first-countable. \\(E\\) is compact; its product topology has measurable open sets in the product sigma algebra.",
+        "\\(P\\) is a probability law, every time slice \\(X_t\\) is measurable, and entire paths are continuous on a single event of full probability.",
+        "The continuous cost \\(c\\) takes values in the finite nonnegative reals and vanishes on the diagonal.",
+        "\\(F\\) is a normed additive commutative group; no scalar action or completeness is required.",
+        "The displayed estimate holds for all pairs in \\(T\\times E\\), with one real constant \\(L\\). No sign assumption on \\(L\\), or prior regularity of \\(U\\), is required."
+      ],
+      "formula": "\\begin{gathered}Q(t,s):=\\inf_{\\pi\\in\\Pi(\\mu_t,\\mu_s)}\\int c^2\\,d\\pi,\\\\ \\|U(t,x)-U(s,y)\\|\\le L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\quad\\Longrightarrow\\quad U\\text{ is continuous}.\\end{gathered}",
+      "boundary": "The estimate is an explicit input to this general continuity principle. A model application must establish it separately. The proof uses continuity of the extended-real toReal map at zero; no separate finite-cost premise is inserted.",
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.tendsto_transportCost_marginal_of_ae_continuous"
+      ],
+      "mathlib_dependencies": [
+        "ENNReal.tendsto_toReal",
+        "Filter.Tendsto.sqrt",
+        "tendsto_iff_norm_sub_tendsto_zero",
+        "tendsto_of_tendsto_of_tendsto_of_le_of_le"
+      ],
+      "steps": [
+        {
+          "title": "Apply the transport limit to the squared cost",
+          "text": "Fix \\(q=(s,y)\\). The squared cost is continuous, nonnegative and zero on the diagonal. The preceding theorem, composed with the time projection, gives the transport limit.",
+          "formula": "Q(t,s)\\longrightarrow0\\qquad((t,x)\\to(s,y)).",
+          "lean": "  rw [continuous_iff_continuousAt]\n  intro q\n  rw [ContinuousAt, tendsto_iff_norm_sub_tendsto_zero]\n  let Q (p : T × E) := transportCost (fun z => ((c z : ℝ≥0∞) ^ 2))\n    (P.map (hX p.1).aemeasurable : Measure E) (P.map (hX q.1).aemeasurable : Measure E)\n  let c₂ : C(E × E, ℝ≥0) := c ^ 2\n  have hzero₂ (x : E) : c₂ (x, x) = 0 := by simp [c₂, hzero]\n  have hQ : Tendsto Q (𝓝 q) (𝓝 0) := by\n    have h := (tendsto_transportCost_marginal_of_ae_continuous P X hX hpaths c₂ hzero₂ q.1).comp\n      continuous_fst.continuousAt\n    simpa only [Q, c₂, Function.comp_def, ContinuousMap.pow_apply, ENNReal.coe_pow] using h\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 1
+        },
+        {
+          "title": "Make the majorant tend to zero",
+          "text": "The real-value map is continuous at the finite value zero, and square root is continuous. The point cost tends to its diagonal value. Adding these terms and multiplying by the fixed real constant gives a vanishing majorant.",
+          "formula": "L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\longrightarrow L(0+0)=0.",
+          "lean": "  have hroot : Tendsto (fun p => Real.sqrt (Q p).toReal) (𝓝 q) (𝓝 0) := by\n    simpa only [Function.comp_def, ENNReal.toReal_zero, Real.sqrt_zero] using\n      ((ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hQ).sqrt\n  have hc : Continuous (fun p : T × E => (c (p.2, q.2) : ℝ)) :=\n    NNReal.continuous_coe.comp (c.continuous.comp (continuous_snd.prodMk continuous_const))\n  have hpoint : Tendsto (fun p : T × E => (c (p.2, q.2) : ℝ)) (𝓝 q) (𝓝 0) := by\n    simpa only [hzero, NNReal.coe_zero] using (hc.continuousAt (x := q)).tendsto\n  have hmajor : Tendsto (fun p => L * (Real.sqrt (Q p).toReal + (c (p.2, q.2) : ℝ)))\n      (𝓝 q) (𝓝 0) := by\n    simpa only [add_zero, mul_zero] using tendsto_const_nhds.mul (hroot.add hpoint)\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 2
+        },
+        {
+          "title": "Squeeze the norm difference",
+          "text": "The assumed estimate bounds the nonnegative norm by that majorant. The norm difference tends to zero at every \\(q\\), which is joint continuity.",
+          "formula": "0\\le\\|U(t,x)-U(s,y)\\|\\le L\\bigl(\\sqrt{\\operatorname{toReal}Q(t,s)}+c(x,y)\\bigr)\\longrightarrow0.",
+          "lean": "  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hmajor\n    (fun _ => norm_nonneg _) (fun p => hbound p q)\n",
+          "detail": "Exact excerpt from the canonical proof; the complete theorem supplies the displayed local definitions.",
+          "number": 3
+        }
+      ],
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport.continuous_of_path_law_transport_bound",
+      "kind": "theorem",
+      "module": "AutoSamplingTheory.TechnicalLemmas.Measure.PathLawTransport",
+      "source_file": "AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+      "source_line": 49,
+      "classification": "canonical shared library node; original mathematical supplement",
+      "reading_layout": "progressive",
+      "lean_statement": "The exact declaration retains the probability pushforwards, the product measurable structure and the whole-path almost-sure quantifier.",
+      "lean_proof": "The proof uses the actual same-sample coupling and the displayed order bounds; the adjacent excerpts preserve all local definitions.",
+      "sources": [
+        {
+          "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/9ebb4f57fbdcb8db51701547ed0e0043ef743b4f/AutoSamplingTheory/TechnicalLemmas/Measure/PathLawTransport.lean",
+          "label": "Samplinglib shared mathematical supplements, Lean 4.33.0",
+          "scope": "Original Samplinglib path-law transport supplement: A transport estimate gives joint continuity Original shared supplement; no numbered textbook theorem or whole-model completion claim."
+        }
+      ]
+    }
+  ]
+}

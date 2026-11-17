@@ -203,8 +203,7 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
     proof_title = 'Mathematical proof' if is_proof else 'Construction and meaning'
     progressive = unit.get('reading_layout') == 'progressive'
     roadmap = ''.join(
-        f'<li><span>{i}</span><strong>{base.esc(s["title"])}</strong>'
-        f'<p>{inline_text(s["text"])}</p></li>'
+        f'<li><span>{i}</span><strong>{base.esc(s["title"])}</strong></li>'
         for i, s in enumerate(unit['steps'], 1)
     )
     steps = ''.join(
@@ -256,7 +255,8 @@ def render_unit(unit: dict, page: str, *, source_comparison: str = '') -> str:
                                         explanation='Complete literal proposition asserted by the theorem above.',
                                         page=page, trim_following_docstring=True)
                   for helper in statement_helpers)
-        + ('' if progressive else '<h3>Proof roadmap</h3><ol class="proof-roadmap">' + roadmap + '</ol>')
+        + ('' if progressive else '<details class="reader-ledger"><summary>Proof roadmap</summary>'
+           '<ol class="proof-roadmap">' + roadmap + '</ol></details>')
         + (f'<p class="reader-scope-note">{inline_text(unit["reader_note"])}</p>' if unit.get('reader_note') else '')
         + '</section>'
         '<details class="reader-ledger assumption-ledger"><summary>Full assumptions and notation</summary>'

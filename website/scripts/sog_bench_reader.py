@@ -460,12 +460,14 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     rel = HUB + core['id'] + '.html'
     known = known or astis_site._SOURCE_BY_NAME or {d.full_name: d for d in astis_site.scan_project_sources()[1]}
     declaration = known[core['declaration']]
+    composed = core.get('fixed_candidate') == 'sogb-035'
     href, _ = astis_site.source_href(declaration, from_path=rel)
     anchor_kind, graph_id = bench.graph_anchor(core['declaration'], core['source_file'], graph_ids)
     anchor_label = {'declaration': 'Declaration anchor', 'owning-module': 'Owning-module anchor',
                     'not-indexed': 'Not indexed in Lean Graph', 'not-checked': 'Graph position not checked'}[anchor_kind]
     owned_original = bench.ORIGINAL_EXAMPLE_ANSWERS.get(core['source_file']) == core['declaration']
-    graph_label = ('Locate the existing Lean declaration' if anchor_kind == 'declaration'
+    graph_label = ('Locate the source-comparison declaration' if composed and anchor_kind == 'declaration'
+                   else 'Locate the existing Lean declaration' if anchor_kind == 'declaration'
                    else 'Locate the owning module (declaration not yet indexed in this graph)')
     graph_href = ('../../underlying-lean-graph/index.html?focus=' + quote(graph_id, safe='')
                   if graph_id is not None else None)
@@ -474,6 +476,12 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     graph_short = f'<a href="{graph_href}">Lean Graph ↗</a> · ' if graph_href else ''
     graph_detail = f' · <a href="{graph_href}">{graph_label}</a>' if graph_href else ' · ' + anchor_label
     status = 'Trusted reference compilation recorded for this source state.' if checked else 'No current trusted-reference compiler receipt recorded in this build.'
+    reading_index = (
+        '<nav class="sog-reading-index" aria-label="On this question">'
+        '<a href="#assumptions">Assumptions</a><a href="#natural-language">Question and proof</a>'
+        + ('<a href="#lean">Lean challenge</a>' if bench.has_lean(core)
+           else '<a href="#lean">Lean coverage</a>')
+        + '<a href="#verification-scope">Scope</a></nav>')
     assumptions = '<ul>' + ''.join('<li>' + prose(s, paragraph=False) + '</li>'
                                    for s in core['assumptions']) + '</ul>'
     proof = '<ol>' + ''.join('<li>' + prose(s) + '</li>' for s in core['steps']) + '</ol>'
@@ -483,6 +491,29 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
     lean = (prose(core['lean_explanation']) + '<div data-lean-code-panel><button type="button" data-lean-copy>Copy Lean reference</button><span data-lean-copy-status role="status" aria-live="polite"></span>'
             + astis_site.code_html(core['lean_reference']) + '</div>'
             '<p><a href="downloads/lean/' + core['id'] + '-reference.lean" download>Download runnable reference</a></p>')
+    if composed:
+        github = 'https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/'
+        bench_folder = 'benchmarks/samplingoptimisationgeometrybench/'
+        owned_revision = 'ffd1ee02652c961a0230182b2cda550dc0de005d'
+        candidate_root = github + 'blob/' + owned_revision + '/' + bench_folder + 'candidates/'
+        lean = (
+            '<h3>How the formula proof maps to Lean</h3><ol>'
+            '<li><strong>Prefix likelihood and its square bound.</strong> '
+            '<code>conditional_sq_likelihood</code> sums over both child bits of each prefix. '
+            '<code>integral_sq_le_exp_of_pathwise_conditional_budget</code> normalizes the squared '
+            'likelihood by the predictable product. These implement the first two steps above.</li>'
+            '<li><strong>Full law and finite work.</strong> <code>exists_full_density_of_prefix_integrals</code> '
+            'uses uniform integrability and agrees with the given law on every finite-history event. '
+            '<code>binary_stopped_work_transfer</code> applies absolute continuity before taking real '
+            'values of the two finite work integrals. This is an alternative to the displayed '
+            'norm-convergence route.</li>'
+            '<li><strong>Counterexample.</strong> <code>binary_padded_averaged_budget_counterexample</code> '
+            'pushes two finite probability laws to infinite paths and checks their actual prefix tables, '
+            'budget and charge. There is no Lean obligation for the final sampler applicability audit.</li></ol>'
+            '<p><a href="' + candidate_root + 'conditional-budget-transfer.lean#L685">Owned positive proof</a> · '
+            '<a href="' + candidate_root + 'padded-budget-counterexample.lean#L215">Owned negative proof</a> · '
+            '<a href="' + github + 'tree/main/' + bench_folder + 'reviews/formal-25-stopped-work">'
+            'Exact independent review and test scope</a></p>' + lean)
     if not bench.has_lean(core):
         lean = prose(core['lean_explanation'])
         if core.get('support_source_view'):
@@ -492,7 +523,11 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                 + astis_site.code_html(core['support_lean_source']) + '</div>'
                 '<p><a href="downloads/lean/' + core['id'] + '-support.lean" download>Download exact supporting module</a>'
                 ' · Uses the project toolchain and its listed imports; not a standalone replacement QA proof.</p>'))
-    formal_view = ('<section id="lean"><h2>Lean question</h2><p>Keep the target and context fixed; replace the comment slot with your proof. Ancestor libraries are allowed, but the target module is not imported directly.</p>'
+    formal_instructions = (
+        'Prove both conjuncts without changing the supplied Mathlib-only model. The negative conjunct gives the family to verify; the sampler audit remains in the natural-language track.'
+        if composed else
+        'Keep the target and context fixed; replace the comment slot with your proof. Ancestor libraries are allowed, but the target module is not imported directly.')
+    formal_view = ('<section id="lean"><h2>Lean question</h2>' + prose(formal_instructions)
         + prompt_actions(core, 'lean', review_row)
         + fold('Show fixed Lean task', astis_site.code_html(core['lean_task'])
                + '<p><a href="downloads/lean/' + core['id'] + '-task.lean.txt" download>Download task template</a></p>')
@@ -506,7 +541,7 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
            if owned_original else '<p>This support theorem does not certify the complete QA or its explanatory counterexamples.</p>')
         + '</section>')
     dependencies = ''.join('<h3>' + label + '</h3><ul>' + ''.join('<li><code>' + escape(n) + '</code></li>' for n in core['dependencies'][key]) + '</ul>'
-                           for key, label in (('astis', 'ASTIS definitions / proof calls' if bench.has_lean(core) else 'ASTIS formal support (not an equivalent QA)'), ('mathlib', 'Mathlib facts / definitions')))
+                           for key, label in (('astis', 'ASTIS source-comparison anchors (not Lean proof calls)' if composed else 'ASTIS definitions / proof calls' if bench.has_lean(core) else 'ASTIS formal support (not an equivalent QA)'), ('mathlib', 'Mathlib facts / definitions')))
     support_links = ''
     for support in core.get('supporting_declarations', []):
         support_href, _ = astis_site.source_href(known[support['declaration']], from_path=rel)
@@ -523,27 +558,29 @@ def core_page(core: dict, checked: bool, graph_ids: set[str] | None = None, know
                  ' · '.join('<a href="'+g['id']+'.html">'+escape(g['title'])+'</a>' for g in related)+'</p>') if related else ''
     graph_position = ('<aside class="sog-graph-position" data-lean-graph-position="' + escape(graph_id or '') + '">'
         '<p class="sog-graph-short">' + graph_short + '<a href="' + escape(href) + '">Source ↗</a>'
-        + '<small>' + ('Aligned fixed target' if bench.has_lean(core) else
+        + '<small>' + ('Comparison anchor · separate fixed target' if composed else 'Aligned fixed target' if bench.has_lean(core) else
             'Owned example answer' if owned_original else 'Supporting Lean only') + ' · '
         + anchor_label + '</small></p>'
         + fold('Graph location and verification scope', '<h2>' + escape(declaration.short_name) + '</h2>'
-            + prose('Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
+            + prose('This graph node anchors the source comparison. The separately checked binary-path target does not use it as a theorem dependency.'
+                    if composed else 'Aligned fixed Lean task; its conclusion does not certify every explanatory claim.'
                     if bench.has_lean(core) else 'Library support only: this question has no aligned fixed Lean reconstruction task.')
             + '<p class="sog-caption">A graph location is not a proof-dependency or mathematical-necessity claim. Read the exact scope below.</p>')
         + '</aside>')
     return (f'<article class="sog-reader" {MARKER}><p><a href="index.html">Bench</a> / ' + escape(core['domain']) + '</p>'
         '<div class="eyebrow">' + escape(core['id']) + ' · public-dev · editorial and formal status separate</div><h1>' + escape(core['title']) + '</h1>'
         + '<p>' + escape(domain_names(core)) + ' · ' + escape(' / '.join(t + ': ' + l for t, l in core['track_levels'].items())) + ' (author-assigned; calibration pending)</p>'
+        + reading_index
         + graph_position
         + exercise_panel(core, checked)
-        + '<section><h2>Assumptions and conventions</h2>' + assumptions + '</section>'
+        + '<section id="assumptions"><h2>Assumptions and conventions</h2>' + assumptions + '</section>'
         '<section id="natural-language"><h2>Natural-language question</h2>' + prompt_actions(core, 'natural-language', review_row) + prose(core['question'])
         + fold('Reference mathematical proof', proof + fold('How the Lean proof follows these steps' if bench.has_lean(core) else support_title, lean))
         + fold('Assessment rubric · 4 points', rubric) + '</section>'
         + formal_view
         + fold('Why this difficulty?', prose(core['difficulty_reason']))
         + review_panel(core, review_row)
-        + graph_links + '<section><h2>What this does—and does not—verify</h2>' + prose(bench.mathematical_scope(core))
+        + graph_links + '<section id="verification-scope"><h2>What this does—and does not—verify</h2>' + prose(bench.mathematical_scope(core))
         + ('<p>This original worked example does not add a Registry leaf or close any paper theorem.</p>'
            if owned_original else '<p>Existing library mathematics reused; no new mathematical leaf or paper-completion credit.</p>')
         + '<p>The editorial panel records the exact current review scope and remaining unformalized explanation.</p></section>'

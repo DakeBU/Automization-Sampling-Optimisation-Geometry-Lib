@@ -66,17 +66,40 @@ class FixedCandidateTest(unittest.TestCase):
             core = next(c for c in data["cores"] if c["id"] == candidate.ID)
             core["question"] += " Changed after review."
             catalog.write_bytes(candidate.runtime.bench.encoded(data))
-            with self.assertRaisesRegex(ValueError, "reviewed, still-unpaired"):
+            with self.assertRaisesRegex(ValueError, "reviewed prose question"):
                 candidate.load_sources(root)
 
     def test_admitted_export_cannot_use_candidate_path(self):
+        # Model the absence of independent editorial approval, even after a
+        # release-shaped core exists. The native admission gate stays in force.
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "ordinary-export"
-            with patch.object(candidate.runtime, "_run_bound_submission") as transport:
+            import sog_bench_review as editorial
+            with patch.object(candidate.runtime, "_run_bound_submission") as transport, patch.object(
+                    editorial, "accepted", return_value=False):
                 with self.assertRaisesRegex(ValueError, "currently admitted aligned tasks"):
                     candidate.runtime.export(output, [candidate.ID])
                 transport.assert_not_called()
             self.assertFalse(output.exists())
+
+    def test_release_shaped_packet_preserves_exact_oracle_and_no_answer_starter(self):
+        bench = candidate.runtime.bench
+        item = next(c for c in bench.materialize() if c['id'] == candidate.ID)
+        if item.get('fixed_candidate') != candidate.ID:
+            self.skipTest('Only applicable to the release-shaped catalogue')
+        packet = candidate.runtime.packet(item)
+        reviewed = candidate.sources(bench.ROOT)
+        self.assertEqual(packet['oracle/Solution.lean.txt'], reviewed['reference'].encode())
+        self.assertEqual(bench.sha(packet['oracle/Solution.lean.txt']),
+                         '9b1ddd8c76e6ed58304fc4b7c8106713c59eb9370c72a8fa1ebe412b57b2dfb6')
+        self.assertEqual(bench.sha(packet['verifier/Challenge.lean']),
+                         'f700b8fe50562887de7757b815743e4c361594781e656db2d9c65adcdd6c45e5')
+        self.assertEqual(bench.sha(packet['verifier/config.json']),
+                         '3c36564eaa878374edcab9ed37542c7ee605ffdd184174f74e2af006d328fbb8')
+        self.assertNotIn(candidate.POSITIVE.encode(), packet['agent/Solution.lean.txt'])
+        self.assertNotIn(candidate.NEGATIVE.encode(), packet['agent/Solution.lean.txt'])
+        self.assertEqual(candidate.runtime.local_imports(item['imports']), [])
+        self.assertEqual(item['track_levels'], {'natural-language': 'L5', 'lean': 'L4'})
 
 
 if __name__ == "__main__":

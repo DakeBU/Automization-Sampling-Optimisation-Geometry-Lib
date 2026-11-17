@@ -37,6 +37,10 @@ The existing native exporter only accepts an admitted exact catalogue
 packet. Do not relabel this prototype as admitted to force a run; a
 pre-admission fixed-oracle check must preserve that public export guard.
 
+Subsequent [native candidate acceptance](https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/actions/runs/43609438548)
+and [independent paired review](../formal-25-stopped-work/README.md) are
+separate from the historical prototype audit above.
+
 ### Reproduce the fixed candidate check
 
 ```sh

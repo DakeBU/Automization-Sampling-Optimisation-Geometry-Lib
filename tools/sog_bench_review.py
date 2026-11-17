@@ -19,6 +19,7 @@ PAIRED_REPAIR_SCOPE = 'independent exact scoring repair; paired Lean conclusions
 PAIRED_PROSE_REPAIR_SCOPE = 'independent exact proof-prose repair; paired Lean conclusions unchanged'
 SLOTS = ('objects', 'domains', 'quantifiers', 'assumptions', 'conclusion', 'senses', 'constants')
 AUTHOR = 'agent-task:root'
+LEGACY_STOPPED_WORK_PROSE = '482e5bbb34839dab933fe7100898048f001d45963b86c0b27c1ec8eec3ae8db4'
 
 
 def context_binding(core: dict) -> str:
@@ -410,12 +411,21 @@ def summary(cores: list[dict]) -> dict:
     import sog_bench_formal_review
     rows = statuses(cores)
     prose_rounds = [PROSE_ROUND, *sorted((BASE / 'reviews').glob('prose-*'))]
-    for additional in [*(prose_statuses(cores, directory) for directory in prose_rounds),
-                       sog_bench_formal_review.statuses(cores)]:
+    for directory in prose_rounds:
+        additional = prose_statuses(cores, directory)
         for identity, row in additional.items():
             if rows[identity]['editorial'] != 'pending':
                 raise ValueError('Overlapping review rounds require an explicit supersession policy')
             rows[identity] = row
+    for identity, row in sog_bench_formal_review.statuses(cores).items():
+        previous = rows[identity]
+        if previous['editorial'] != 'pending':
+            prior = BASE / 'reviews/prose-10/source-review.json'
+            if not (identity == 'sogb-035' and previous['editorial'] == 'stale'
+                    and row.get('supersedes_prose_report_sha256') == LEGACY_STOPPED_WORK_PROSE
+                    and bench.sha(prior.read_bytes()) == LEGACY_STOPPED_WORK_PROSE):
+                raise ValueError('Overlapping review rounds require an explicit supersession policy')
+        rows[identity] = row
     return {'kind': 'independent AI editorial review; not canonical theorem publication',
             'accepted_cores': sum(accepted(r) for r in rows.values()), 'total_cores': len(cores),
             'difficulty_calibrated': False, 'model_performance_measured': False, 'items': rows}

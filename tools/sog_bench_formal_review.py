@@ -39,6 +39,25 @@ def decoder_payload(cores: list[dict]) -> tuple[dict, dict]:
         raise ValueError('Select distinct aligned Lean cores')
     cases, mapping = [], {}
     for index, core in enumerate(cores):
+        alias = f'case-{index + 1}'
+        if core.get('fixed_candidate') == 'sogb-035':
+            # The target is a conjunction of two defined propositions. Its
+            # opaque name alone would give the blind reader no statement.
+            from sog_bench_candidate_native import REVIEW, REVIEW_SHA256
+            review_input = (bench.ROOT / REVIEW).read_bytes()
+            if bench.sha(review_input) != REVIEW_SHA256:
+                raise ValueError('Exact stopped-work review input drift')
+            anonymous = json.loads(review_input)['decoder_input_sha256']
+            frozen_path = bench.ROOT / REVIEW.with_name('anonymous-input.json')
+            frozen = frozen_path.read_bytes()
+            if bench.sha(frozen) != anonymous:
+                raise ValueError('Exact blind stopped-work signature drift')
+            original = json.loads(frozen)
+            cases.append({'case': alias, 'context': 'Both statements are required conjuncts.',
+                          'statement': '\n\n'.join(original['statements']),
+                          'definition_context': original['definition_context']})
+            mapping[alias] = {'core_id': core['id'], 'binding_sha256': core['binding_sha256']}
+            continue
         definitions = core.get('decoder_definitions')
         if not isinstance(definitions, list) or not definitions or not all(isinstance(s, str) and s.strip() for s in definitions):
             raise ValueError('Supply plain minimal definition context, not source identity or a gold proof')
@@ -64,7 +83,6 @@ def decoder_payload(cores: list[dict]) -> tuple[dict, dict]:
             target, count = re.subn(r'(?<![\w.])' + re.escape(name) + r'(?![\w.])', label, target)
             if not count or not any(label in definition for definition in definitions):
                 raise ValueError('Each decoder alias needs a target occurrence and a definition')
-        alias = f'case-{index + 1}'
         cases.append({'case': alias, 'context': context, 'statement': target, 'definition_context': definitions})
         mapping[alias] = {'core_id': core['id'], 'binding_sha256': core['binding_sha256']}
     packet = {'schema_version': 1, 'compiler_version': 'Lean 4.33.0', 'cases': cases,
@@ -186,6 +204,11 @@ def round_statuses(cores: list[dict], directory: Path) -> dict:
             'formal_alignment': 'not-reviewed' if stale else 'conclusion-only', 'issues': row['repair_requests'],
             'reviewer': report['actor_identity'], 'report_sha256': bench.sha(report_path.read_bytes()),
             'remaining_unformalized': row['remaining_unformalized']}
+        if core.get('fixed_candidate') == 'sogb-035':
+            from sog_bench_review import LEGACY_STOPPED_WORK_PROSE
+            if row.get('supersedes_prose_report_sha256') != LEGACY_STOPPED_WORK_PROSE:
+                raise ValueError('The paired stopped-work review must explicitly preserve/supersede the exact prose report')
+            result[identity]['supersedes_prose_report_sha256'] = LEGACY_STOPPED_WORK_PROSE
     review.apply_scoped_repair(cores, directory, packet, report, result, formal=True)
     return result
 

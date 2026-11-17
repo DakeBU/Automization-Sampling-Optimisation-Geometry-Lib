@@ -22,6 +22,17 @@ backend. Canonical questions, families, splits and source reviews are unchanged.
   Actual formal structure, source-proof overlays and conceptual mechanisms keep
   their distinct evidence meanings in the real graph views.
 
+On QA pages, lead with the question identity and a local reading index. State
+the objects, notation and hypotheses before the derivation; keep the reviewed
+proof, rubric and optional Lean within that question. For paired questions,
+say which mathematical obligations the fixed proposition checks and which
+prose reasoning it does not. Use an adjacent step correspondence when the
+Lean route differs from the written proof. Show primary references with their
+actual edition and location; distinguish attribution, external Mathlib calls,
+owned proofs and comparison-only graph links. A proof, compiler check,
+independent alignment review, native acceptance and measured result are
+different claims.
+
 ## What the benchmark must measure
 
 The intended tasks test domain knowledge, mathematical reasoning and Agentic Lean

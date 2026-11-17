@@ -1,0 +1,73 @@
+-- Candidate declaration type only: NOT compiled, NOT a theorem artifact, no proof body.
+-- Proposed imports are existing canonical producers; no new axioms/opaque wrappers.
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoCompactEuclideanFormula
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakDiffusionLaw
+import AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.WeakMeasurableEvolution
+
+open MeasureTheory ProbabilityTheory Set
+open scoped BigOperators NNReal RealInnerProductSpace
+open AutoSamplingTheory.TechnicalLemmas.StochasticProcesses
+open BrownianMotion ProgressiveL2 EuclideanBrownianCoordinates ItoIntegralProcess
+  ProgressiveDriftIntegral SphereMeasurableCoordinateSDE
+
+-- Notation in this signature sheet only. No proposed new exported definitions.
+variable {N d : ℕ}
+local notation "E" => EuclideanSpace ℝ (Fin d)
+local notation "S" => Metric.sphere (0 : E) 1
+local notation "C" => Fin N → S
+
+theorem synchronous_sphere_expected_chord_energy_balance
+    {Ω : Type*} [MeasurableSpace Ω]
+    {filtration : Filtration ℝ≥0 (inferInstance : MeasurableSpace Ω)}
+    (P : ProbabilityMeasure Ω) (hN : 0 < N)
+    (B : Fin N → ℝ≥0 → Ω → E)
+    (hB : ∀ i, IsStandardBrownianMotionWithFiltration (B i) filtration (P : Measure Ω))
+    (hUsual : SatisfiesUsualConditions filtration (P : Measure Ω))
+    (X Y : Fin N → ℝ≥0 → Ω → S)
+    (hX : ∀ i, Measurable (Function.uncurry (X i)))
+    (hY : ∀ i, Measurable (Function.uncurry (Y i)))
+    (hProgressiveX : ∀ i, IsStronglyProgressive filtration (X i))
+    (hProgressiveY : ∀ i, IsStronglyProgressive filtration (Y i))
+    (bX bY : ℝ≥0 → C → C → Fin N → E)
+    (hbX : ∀ i, Continuous (fun z : ℝ≥0 × (C × C) => bX z.1 z.2.1 z.2.2 i))
+    (hbY : ∀ i, Continuous (fun z : ℝ≥0 × (C × C) => bY z.1 z.2.1 z.2.2 i))
+    (lambda : ℝ) (hlambda : 0 ≤ lambda)
+    (hEquation : ∀ (T : ℝ≥0) (hT : 0 < T), ∀ᵐ ω ∂(P : Measure Ω),
+      ∀ t ≤ T, ∀ (i : Fin N) (k : Fin d),
+        ((X i t ω : E) k = (X i 0 ω : E) k +
+          prefixIntegralProcess (fun v a =>
+            (bX v (fun l => X l v a) (fun l => Y l v a) i) k -
+              lambda * ((d : ℝ) - 1) * (X i v a : E) k) t ω +
+          ∑ j : Fin d, itoIntegralProcess
+            (sphereMeasurableNoiseIntegrand (μ := (P : Measure Ω)) T (X i)
+              (hX i) (hProgressiveX i) (fun _ => lambda) measurable_const
+              ⟨‖lambda‖, fun _ _ => le_rfl⟩ k j)
+            hT ((coordinateFamily (hB i)).isBrownian j) hUsual t ω) ∧
+        ((Y i t ω : E) k = (Y i 0 ω : E) k +
+          prefixIntegralProcess (fun v a =>
+            (bY v (fun l => X l v a) (fun l => Y l v a) i) k -
+              lambda * ((d : ℝ) - 1) * (Y i v a : E) k) t ω +
+          ∑ j : Fin d, itoIntegralProcess
+            (sphereMeasurableNoiseIntegrand (μ := (P : Measure Ω)) T (Y i)
+              (hY i) (hProgressiveY i) (fun _ => lambda) measurable_const
+              ⟨‖lambda‖, fun _ _ => le_rfl⟩ k j)
+            hT ((coordinateFamily (hB i)).isBrownian j) hUsual t ω)) :
+    let delta := fun (i : Fin N) (t : ℝ) (ω : Ω) =>
+      (X i t.toNNReal ω : E) - (Y i t.toNNReal ω : E)
+    let D := fun t : ℝ => (N : ℝ)⁻¹ * ∑ i : Fin N,
+      ∫ ω, ‖delta i t ω‖ ^ 2 ∂(P : Measure Ω)
+    let R4 := fun t : ℝ => (N : ℝ)⁻¹ * ∑ i : Fin N,
+      ∫ ω, ‖delta i t ω‖ ^ 4 ∂(P : Measure Ω)
+    let L := fun t : ℝ => 2 * (N : ℝ)⁻¹ * ∑ i : Fin N,
+      ∫ ω, inner ℝ (delta i t ω)
+        (bX t.toNNReal (fun l => X l t.toNNReal ω) (fun l => Y l t.toNNReal ω) i -
+         bY t.toNNReal (fun l => X l t.toNNReal ω) (fun l => Y l t.toNNReal ω) i)
+        ∂(P : Measure Ω)
+    let G := fun t : ℝ => L t - 2 * lambda * ((d : ℝ) - 3) * D t - lambda * R4 t
+    Continuous G ∧ LocallyIntegrable G volume ∧
+      (∀ a b : ℝ≥0, D b - D a = ∫ t in (a : ℝ)..(b : ℝ), G t) ∧
+      (∀ T : ℝ≥0, AbsolutelyContinuousOnInterval D 0 (T : ℝ)) ∧
+      (∀ t : ℝ, 0 < t → HasDerivAt D (G t) t) ∧
+      HasDerivWithinAt D (G 0) (Ici 0) 0
+-- Deliberately ends at the type. Proof construction and elaboration are pending.

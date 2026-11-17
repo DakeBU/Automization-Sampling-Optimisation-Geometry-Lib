@@ -1,0 +1,65 @@
+@SynchronousSphereCoupling.synchronous_sphere_expected_chord_energy_balance : ∀ {d N : ℕ} {Ω : Type u_1}
+  [inst : MeasurableSpace Ω] {filtration : MeasureTheory.Filtration NNReal inferInstance}
+  (P : MeasureTheory.ProbabilityMeasure Ω),
+  0 < N →
+    ∀ (B : Fin N → NNReal → Ω → EuclideanSpace ℝ (Fin d))
+      (hB :
+        ∀ (i : Fin N),
+          AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.BrownianMotion.IsStandardBrownianMotionWithFiltration
+            (B i) filtration ↑P)
+      (hUsual :
+        AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveL2.SatisfiesUsualConditions filtration ↑P)
+      (X Y : Fin N → NNReal → Ω → ↑(Metric.sphere 0 1)) (hX : ∀ (i : Fin N), Measurable (Function.uncurry (X i)))
+      (hY : ∀ (i : Fin N), Measurable (Function.uncurry (Y i)))
+      (hProgressiveX : ∀ (i : Fin N), MeasureTheory.IsStronglyProgressive filtration (X i))
+      (hProgressiveY : ∀ (i : Fin N), MeasureTheory.IsStronglyProgressive filtration (Y i))
+      (bX bY :
+        NNReal → (Fin N → ↑(Metric.sphere 0 1)) → (Fin N → ↑(Metric.sphere 0 1)) → Fin N → EuclideanSpace ℝ (Fin d)),
+      (∀ (i : Fin N), Continuous fun z => bX z.1 z.2.1 z.2.2 i) →
+        (∀ (i : Fin N), Continuous fun z => bY z.1 z.2.1 z.2.2 i) →
+          ∀ (lambda : ℝ),
+            0 ≤ lambda →
+              (∀ (T : NNReal) (hT : 0 < T),
+                  ∀ᵐ (ω : Ω) ∂↑P,
+                    ∀ t ≤ T,
+                      ∀ (i : Fin N) (k : Fin d),
+                        (↑(X i t ω)).ofLp k =
+                            (↑(X i 0 ω)).ofLp k +
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess
+                                  (fun v a =>
+                                    (bX v (fun l => X l v a) (fun l => Y l v a) i).ofLp k -
+                                      lambda * (↑d - 1) * (↑(X i v a)).ofLp k)
+                                  t ω +
+                              ∑ j,
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess
+                                  (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand
+                                    T (X i) ⋯ ⋯ (fun x => lambda) ⋯ ⋯ k j)
+                                  hT ⋯ hUsual t ω ∧
+                          (↑(Y i t ω)).ofLp k =
+                            (↑(Y i 0 ω)).ofLp k +
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ProgressiveDriftIntegral.prefixIntegralProcess
+                                  (fun v a =>
+                                    (bY v (fun l => X l v a) (fun l => Y l v a) i).ofLp k -
+                                      lambda * (↑d - 1) * (↑(Y i v a)).ofLp k)
+                                  t ω +
+                              ∑ j,
+                                AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.ItoIntegralProcess.itoIntegralProcess
+                                  (AutoSamplingTheory.TechnicalLemmas.StochasticProcesses.SphereMeasurableCoordinateSDE.sphereMeasurableNoiseIntegrand
+                                    T (Y i) ⋯ ⋯ (fun x => lambda) ⋯ ⋯ k j)
+                                  hT ⋯ hUsual t ω) →
+                have delta := fun i t ω => ↑(X i t.toNNReal ω) - ↑(Y i t.toNNReal ω);
+                have D := fun t => (↑N)⁻¹ * ∑ i, ∫ (ω : Ω), ‖delta i t ω‖ ^ 2 ∂↑P;
+                have R4 := fun t => (↑N)⁻¹ * ∑ i, ∫ (ω : Ω), ‖delta i t ω‖ ^ 4 ∂↑P;
+                have L := fun t =>
+                  2 * (↑N)⁻¹ *
+                    ∑ i,
+                      ∫ (ω : Ω),
+                        inner ℝ (delta i t ω)
+                          (bX t.toNNReal (fun l => X l t.toNNReal ω) (fun l => Y l t.toNNReal ω) i -
+                            bY t.toNNReal (fun l => X l t.toNNReal ω) (fun l => Y l t.toNNReal ω) i) ∂↑P;
+                have G := fun t => L t - 2 * lambda * (↑d - 3) * D t - lambda * R4 t;
+                Continuous G ∧
+                  MeasureTheory.LocallyIntegrable G MeasureTheory.volume ∧
+                    (∀ (a b : NNReal), D ↑b - D ↑a = ∫ (t : ℝ) in ↑a..↑b, G t) ∧
+                      (∀ (T : NNReal), AbsolutelyContinuousOnInterval D 0 ↑T) ∧
+                        (∀ (t : ℝ), 0 < t → HasDerivAt D (G t) t) ∧ HasDerivWithinAt D (G 0) (Set.Ici 0) 0

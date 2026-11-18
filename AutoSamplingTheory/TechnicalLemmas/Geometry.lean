@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereTangentialIntegration
 import AutoSamplingTheory.TechnicalLemmas.Geometry.UnitSphereInducedPathDistance
 import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator

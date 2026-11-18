@@ -1,0 +1,8 @@
+import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator
+set_option pp.fullNames true
+set_option pp.deepTerms true
+set_option pp.proofs true
+set_option pp.maxSteps 1000000
+#check @AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator.sphere_differential_operators_comp_neg
+#print AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator.sphereLaplacian
+#print axioms AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator.sphere_differential_operators_comp_neg

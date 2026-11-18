@@ -1,3 +1,4 @@
+import Tests.SphereAntipodalGenerator
 import Tests.Shared.SubgaussianEvenMoments
 import Tests.GaussianFiniteFeatures
 import Tests.SmoothBoundedTimeCoefficients

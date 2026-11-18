@@ -1,0 +1,133 @@
+{
+  "publication_binding_sha256": "0381e0f56a7afde54bc4e30ff08806a98902e6292ef2b7e3ec3a9d7e2500686f",
+  "publication_context": {
+    "file": "5d1ce1d56daeb49ff5c143aee788abab61271a6fae82b141d38f57b8e1292c19",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator\nimport Mathlib.Analysis.Calculus.FDeriv.Equiv\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator\n\nopen SphereDiffusionGenerator\nopen scoped Laplacian\n\n/-- Negation transports the actual first derivative and commutes with the\nexisting extrinsic sphere expression. These are total-operator identities;\nclassical generator applications separately supply smooth tests and unit points. -/\ntheorem sphere_differential_operators_comp_neg\n    {I : Type*} [Fintype I] [DecidableEq I]\n    (f : EuclideanSpace ℝ I → ℝ) (w : EuclideanSpace ℝ I) :\n    (∀ h : EuclideanSpace ℝ I,\n      fderiv ℝ (fun x => f (-x)) w h = -fderiv ℝ f (-w) h) ∧\n    sphereLaplacian (fun x => f (-x)) w = sphereLaplacian f (-w) := by\n  have hD (x : EuclideanSpace ℝ I) :\n      fderiv ℝ (fun y => f (-y)) x = -fderiv ℝ f (-x) := by\n    simpa only [neg_one_smul] using (fderiv_comp_smul (f := f) (x := x) (-1 : ℝ))\n  have hDfun : fderiv ℝ (fun x => f (-x)) = fun x => -fderiv ℝ f (-x) :=\n    funext hD\n  have hH (x : EuclideanSpace ℝ I) :\n      fderiv ℝ (fderiv ℝ (fun y => f (-y))) x = fderiv ℝ (fderiv ℝ f) (-x) := by\n    rw [hDfun]\n    change fderiv ℝ (-(fun y => fderiv ℝ f (-y))) x = _\n    rw [fderiv_neg]\n    have ht := fderiv_comp_smul (f := fderiv ℝ f) (x := x) (-1 : ℝ)\n    simpa only [neg_one_smul, neg_neg] using congrArg (fun L => -L) ht\n  have hLap : (Δ (fun x => f (-x))) w = (Δ f) (-w) := by\n    rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_orthonormalBasis _\n        (EuclideanSpace.basisFun I ℝ),\n      InnerProductSpace.laplacian_eq_iteratedFDeriv_orthonormalBasis _\n        (EuclideanSpace.basisFun I ℝ)]\n    simp only [iteratedFDeriv_two_apply, Matrix.cons_val_zero, Matrix.cons_val_one, hH]\n  constructor\n  · intro h\n    simpa only [neg_apply] using congrArg (fun L => L h) (hD w)\n  · simp only [sphereLaplacian, hLap, hH, hD, neg_apply,\n      map_neg, neg_neg]\n\nend AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-sphere-antipodal-generator",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/85d52449151838b7edaa7ba560e3b85dc42a550d/AutoSamplingTheory/TechnicalLemmas/Geometry/SphereDiffusionGenerator.lean",
+      "edition": "Samplinglib original shared mathematical supplement, 2026-11-18; Lean 4.33.0",
+      "anchor": "Original reflection identity stated in runs/20261118-sphere-antipodal-generator/source-statement.txt. The linked pinned source supplies the existing extrinsic operator definition.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib derivation from the pinned operator definition and Mathlib derivative transport. The linked file defines the operator; it is not presented as an external proof of this new bundled statement.",
+      "statement_sha256": "ab975c5edaf5cd241168cde86dba866893671f13fb9590ab9e930e5bdfd5fdc4"
+    },
+    "statement": "Let A(x)=-x on E=R^I, where I is finite. For every real-valued ambient function f and every w,h∈E, the first derivative of f∘A at w applied to h equals -Df(-w)[h]. The existing extrinsic spherical differential expression commutes with reflection: L_S(f∘A)(w)=L_Sf(-w). These equalities use the total Mathlib derivative operators. In the classical smooth setting at unit points, they give the familiar reflection symmetry of the spherical generator.",
+    "formulae": [
+      {
+        "label": "Reflection identities",
+        "tex": "D(f\\circ A)(w)[h]=-Df(-w)[h],\\qquad \\mathcal L_S(f\\circ A)(w)=\\mathcal L_Sf(-w)."
+      }
+    ],
+    "assumptions": [
+      "I is a finite coordinate type with decidable equality, and E is the real Euclidean space with coordinates indexed by I.",
+      "f:E→R and w∈E are arbitrary; the first identity quantifies every direction h∈E. No smoothness, unit-norm or positive-dimension premise is imposed on the total-operator identity.",
+      "The radial correction uses max(|I|−1,0), implemented by natural-number subtraction before conversion to R."
+    ],
+    "obligations": [
+      {
+        "id": "sphere-antipodal-generator",
+        "label": "Transport the actual first derivative and extrinsic sphere expression under negation"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator.sphere_differential_operators_comp_neg",
+      "kind": "theorem",
+      "title": "Reflection symmetry of the spherical differential expression",
+      "statement": "Let A(x)=-x on E=R^I, where I is finite. For every real-valued ambient function f and every w,h∈E, the first derivative of f∘A at w applied to h equals -Df(-w)[h]. The existing extrinsic spherical differential expression commutes with reflection: L_S(f∘A)(w)=L_Sf(-w). These equalities use the total Mathlib derivative operators. In the classical smooth setting at unit points, they give the familiar reflection symmetry of the spherical generator.",
+      "formula": "D(f\\circ A)(w)[h]=-Df(-w)[h],\\qquad \\mathcal L_S(f\\circ A)(w)=\\mathcal L_Sf(-w).",
+      "assumptions": [
+        "I is a finite coordinate type with decidable equality, and E is the real Euclidean space with coordinates indexed by I.",
+        "f:E→R and w∈E are arbitrary; the first identity quantifies every direction h∈E. No smoothness, unit-norm or positive-dimension premise is imposed on the total-operator identity.",
+        "The radial correction uses max(|I|−1,0), implemented by natural-number subtraction before conversion to R."
+      ],
+      "notation": [
+        {
+          "symbol": "A",
+          "text": "Ambient negation A(x)=-x.",
+          "formula": "A(x)=-x."
+        },
+        {
+          "symbol": "D and D²",
+          "text": "The total Frechet derivative and D(Df), respectively; classical derivatives when the corresponding regularity is available.",
+          "formula": "D^2f=D(Df)."
+        },
+        {
+          "symbol": "L_S",
+          "text": "The existing expression Delta f(w)-D²f(w)[w,w]-max(|I|-1,0) Df(w)[w].",
+          "formula": "\\mathcal L_Sf(w)=\\Delta f(w)-D^2f(w)[w,w]-\\max(\\lvert I\\rvert-1,0)Df(w)[w]."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Transport the first derivative",
+          "text": "Negation is multiplication by the nonzero scalar -1. Mathlib transports the total derivative through this invertible change of variables, including the nondifferentiable cases handled by its total definition.",
+          "formula": "D(f\\circ A)(x)=-Df(-x).",
+          "lean": "  have hD (x : EuclideanSpace ℝ I) :\n      fderiv ℝ (fun y => f (-y)) x = -fderiv ℝ f (-x) := by\n    simpa only [neg_one_smul] using (fderiv_comp_smul (f := f) (x := x) (-1 : ℝ))\n"
+        },
+        {
+          "title": "Differentiate the transported derivative",
+          "text": "The first derivative is the function x↦-Df(-x). Applying total derivative transport once more introduces a second minus sign; the two signs cancel. This gives equality of the actual continuous bilinear derivative expressions.",
+          "formula": "D^2(f\\circ A)(x)=D^2f(-x).",
+          "lean": "  have hDfun : fderiv ℝ (fun x => f (-x)) = fun x => -fderiv ℝ f (-x) :=\n    funext hD\n  have hH (x : EuclideanSpace ℝ I) :\n      fderiv ℝ (fderiv ℝ (fun y => f (-y))) x = fderiv ℝ (fderiv ℝ f) (-x) := by\n    rw [hDfun]\n    change fderiv ℝ (-(fun y => fderiv ℝ f (-y))) x = _\n    rw [fderiv_neg]\n    have ht := fderiv_comp_smul (f := fderiv ℝ f) (x := x) (-1 : ℝ)\n    simpa only [neg_one_smul, neg_neg] using congrArg (fun L => -L) ht\n"
+        },
+        {
+          "title": "Contract and remove the radial terms",
+          "text": "The ambient Laplacian is the finite diagonal sum of the second derivative in an orthonormal basis, so its reflected value agrees. Bilinearity cancels the two signs in the radial Hessian. The sign of the first derivative is absorbed by replacing the radial vector w by -w. Substitute these three identities into the existing sphere expression.",
+          "formula": "\\begin{aligned}\\Delta(f\\circ A)(w)&=\\Delta f(-w),\\\\D^2f(-w)[-w,-w]&=D^2f(-w)[w,w],\\\\Df(-w)[-w]&=-Df(-w)[w].\\end{aligned}",
+          "lean": "  have hLap : (Δ (fun x => f (-x))) w = (Δ f) (-w) := by\n    rw [InnerProductSpace.laplacian_eq_iteratedFDeriv_orthonormalBasis _\n        (EuclideanSpace.basisFun I ℝ),\n      InnerProductSpace.laplacian_eq_iteratedFDeriv_orthonormalBasis _\n        (EuclideanSpace.basisFun I ℝ)]\n    simp only [iteratedFDeriv_two_apply, Matrix.cons_val_zero, Matrix.cons_val_one, hH]\n  constructor\n  · intro h\n    simpa only [neg_apply] using congrArg (fun L => L h) (hD w)\n  · simp only [sphereLaplacian, hLap, hH, hD, neg_apply,\n      map_neg, neg_neg]\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereDiffusionGenerator.sphereLaplacian"
+      ],
+      "mathlib_dependencies": [
+        "fderiv_comp_smul",
+        "fderiv_neg",
+        "InnerProductSpace.laplacian_eq_iteratedFDeriv_orthonormalBasis",
+        "iteratedFDeriv_two_apply"
+      ],
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereAntipodalGenerator.lean",
+          "label": "Original Samplinglib mathematical supplement",
+          "scope": "The bundled reflection identity and its proof; no numbered external theorem is claimed verbatim."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Geometry/SphereDiffusionGenerator.lean",
+          "label": "Existing extrinsic sphere expression",
+          "scope": "The exact operator definition reused by the theorem."
+        }
+      ],
+      "tests": [
+        "Tests/SphereAntipodalGenerator.lean checks preservation of antipodal-even observables by the sphere expression and prints the bundled declaration and its axioms."
+      ],
+      "lean_statement": "The exact Lean statement appears in the adjacent initially closed disclosure.",
+      "lean_proof": "The exact Lean proof is initially folded beside the displayed mathematical steps."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator.sphere_differential_operators_comp_neg",
+      "role": "prerequisite",
+      "supports": [
+        "sphere-antipodal-generator"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "I is a finite coordinate type with decidable equality, and E is the real Euclidean space with coordinates indexed by I.",
+        "lean": "I is a finite coordinate type with decidable equality, and E is the real Euclidean space with coordinates indexed by I."
+      },
+      {
+        "source": "f:E→R and w∈E are arbitrary; the first identity quantifies every direction h∈E. No smoothness, unit-norm or positive-dimension premise is imposed on the total-operator identity.",
+        "lean": "f:E→R and w∈E are arbitrary; the first identity quantifies every direction h∈E. No smoothness, unit-norm or positive-dimension premise is imposed on the total-operator identity."
+      },
+      {
+        "source": "The radial correction uses max(|I|−1,0), implemented by natural-number subtraction before conversion to R.",
+        "lean": "The radial correction uses max(|I|−1,0), implemented by natural-number subtraction before conversion to R."
+      }
+    ]
+  }
+}

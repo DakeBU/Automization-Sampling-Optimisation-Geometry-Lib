@@ -6650,6 +6650,16 @@ def variationalMemory : List LemmaMemoryEntry := [
 
 def geometryMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.sphere-antipodal-generator",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereAntipodalGenerator.sphere_differential_operators_comp_neg",
+    upstreamDecl := "fderiv_comp_smul / fderiv_neg / laplacian_eq_iteratedFDeriv_orthonormalBasis",
+    upstreamFile := "Mathlib.Analysis.Calculus.FDeriv.Equiv; Mathlib.Analysis.Calculus.FDeriv.Add; Mathlib.Analysis.InnerProductSpace.Laplacian",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["geometry", "sphere", "reflection", "shared"],
+    saldUse := "Transport reflected ambient tests through the spherical differential expression",
+    note := "Bundled first-derivative reflection and commutation of the actual extrinsic sphere expression with negation. Total operators on arbitrary ambient functions; no smoothness or unit-point assertion is inferred. Classical generator applications separately supply C2 tests and unit points. No weak-evolution uniqueness, invariant-law or LSI conclusion is included."
+  },
+  {
     key := "shared.sphere-ibp-sphere-product-tangential-integration-by-parts",
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Geometry.SphereTangentialIntegration.sphere_product_tangential_integration_by_parts",
     upstreamDecl := "Main integration-by-parts identity",

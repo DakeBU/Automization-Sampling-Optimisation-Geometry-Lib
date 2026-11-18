@@ -1648,6 +1648,16 @@ def analysisMemory : List LemmaMemoryEntry := [
 
 def gaussianMemory : List LemmaMemoryEntry := [
   {
+    key := "shared.gaussian-potential-smooth",
+    localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth.gaussian_polynomial_joint_potential_smooth_uniform_derivatives",
+    upstreamDecl := "standard_gaussian_polynomial_ridge_L2_smooth / gaussian_polynomial_joint_feature_gradient_representation / ContinuousLinearMap.norm_iteratedFDeriv_comp_left",
+    upstreamFile := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth; AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient; Mathlib.Analysis.Calculus.ContDiff.Bounds",
+    status := LemmaMemoryStatus.formalizedLocal,
+    tags := ["probability", "gaussian", "polynomial", "smoothness", "shared"],
+    saldUse := "Uniform local spatial derivatives for actual sphere-averaged Gaussian statistical potentials",
+    note := "The literal joint-data potential is ambient C-infinity and each local derivative bound is uniform over all sphere probability laws. The label needs only L2; no independence, teacher relation, normalization or parity is added. The bound may depend on radius and derivative order. Time-dependent coefficient binding, uniqueness, marginal symmetry, centering and LSI remain separate."
+  },
+  {
     key := "gaussian.lipschitz.sharp-standard-mgf"
     localDecl := "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianLipschitzExponential.integral_exp_centered_le_stdGaussian_of_lipschitz"
     upstreamDecl := "IsGaussian.map_rotation_eq_self / actual weighted Stein / Herbst / same-L bump approximation"

@@ -1,0 +1,20 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal InnerProductSpace ContDiff
+
+#check (fun {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]
+    (_hGaussian : P.map Prod.fst = stdGaussian E)
+    (p : Polynomial ℝ) (_hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) =>
+    let S := {w : E // ‖w‖ = 1}
+    let V : Measure S → E → ℝ := fun ρ w =>
+      2 * ∫ z : E × ℝ,
+        ((∫ v : S, p.eval ⟪(v : E), z.1⟫_ℝ ∂ρ) - z.2) *
+          p.eval ⟪w, z.1⟫_ℝ ∂P
+    (∀ ρ : Measure S, IsProbabilityMeasure ρ → ContDiff ℝ (∞ : ℕ∞ω) (V ρ)) ∧
+    ∀ (R : ℝ) (n : ℕ), ∃ C : ℝ, 0 ≤ C ∧
+      ∀ ρ : Measure S, IsProbabilityMeasure ρ →
+        ∀ w : E, ‖w‖ ≤ R → ‖iteratedFDeriv ℝ n (V ρ) w‖ ≤ C)

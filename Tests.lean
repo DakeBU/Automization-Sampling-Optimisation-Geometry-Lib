@@ -1,3 +1,4 @@
+import Tests.GaussianPolynomialPotentialSmooth
 import Tests.SphereAntipodalGenerator
 import Tests.Shared.SubgaussianEvenMoments
 import Tests.GaussianFiniteFeatures

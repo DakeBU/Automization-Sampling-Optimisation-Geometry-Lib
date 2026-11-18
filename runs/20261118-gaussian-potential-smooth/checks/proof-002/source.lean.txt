@@ -1,0 +1,88 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient
+import Mathlib.Analysis.Calculus.ContDiff.Bounds
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal InnerProductSpace ContDiff
+
+namespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth
+
+open AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth
+open AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient
+
+/-- The actual data potential is ambient smooth, with local derivatives uniformly bounded
+over every probability measure on the unit sphere. Only an L2 label is required. -/
+theorem gaussian_polynomial_joint_potential_smooth_uniform_derivatives
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]
+    (hGaussian : P.map Prod.fst = stdGaussian E)
+    (p : Polynomial ℝ) (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :
+    let S := {w : E // ‖w‖ = 1}
+    let V : Measure S → E → ℝ := fun ρ w =>
+      2 * ∫ z : E × ℝ,
+        ((∫ v : S, p.eval ⟪(v : E), z.1⟫_ℝ ∂ρ) - z.2) *
+          p.eval ⟪w, z.1⟫_ℝ ∂P
+    (∀ ρ : Measure S, IsProbabilityMeasure ρ → ContDiff ℝ (∞ : ℕ∞ω) (V ρ)) ∧
+    ∀ (R : ℝ) (n : ℕ), ∃ C : ℝ, 0 ≤ C ∧
+      ∀ ρ : Measure S, IsProbabilityMeasure ρ →
+        ∀ w : E, ‖w‖ ≤ R → ‖iteratedFDeriv ℝ n (V ρ) w‖ ≤ C := by
+  classical
+  intro S V
+  let : CompleteSpace E := FiniteDimensional.complete ℝ E
+  obtain ⟨hf, hdf, D, M₁, M₂, _, _, _, _, _, _, hRep⟩ :=
+    gaussian_polynomial_joint_feature_gradient_representation P hGaussian p hlabel
+  let F : E → Lp ℝ 2 P := fun w =>
+    (hf w).toLp (fun z : E × ℝ => p.eval ⟪w, z.1⟫_ℝ)
+  let label : Lp ℝ 2 P := hlabel.toLp (fun z : E × ℝ => z.2)
+  let mean : Measure S → Lp ℝ 2 P := fun ρ => ∫ v : S, F v.1 ∂ρ
+  obtain ⟨hg, hgSmooth⟩ := standard_gaussian_polynomial_ridge_L2_smooth (E := E) p
+  have hmarg : MeasurePreserving (Prod.fst : E × ℝ → E) P (stdGaussian E) :=
+    ⟨measurable_fst, hGaussian⟩
+  let J : Lp ℝ 2 (stdGaussian E) →ₗᵢ[ℝ] Lp ℝ 2 P :=
+    Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hmarg
+  have hF : ContDiff ℝ (∞ : ℕ∞ω) F := by
+    have he : F = fun w => J ((hg w).toLp (fun x : E => p.eval ⟪w, x⟫_ℝ)) := by
+      rfl
+    rw [he]
+    exact J.toContinuousLinearMap.contDiff.comp hgSmooth
+  have hV (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) :
+      V ρ = fun w : E => 2 * ⟪mean ρ - label, F w⟫_ℝ :=
+    (hRep ρ hρ).2.2.2.1
+  let L (ρ : Measure S) : Lp ℝ 2 P →L[ℝ] ℝ :=
+    (2 : ℝ) • innerSL ℝ (mean ρ - label)
+  have hVL (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) : V ρ = L ρ ∘ F := by
+    rw [hV ρ hρ]
+    rfl
+  refine ⟨fun ρ hρ => ?_, ?_⟩
+  · rw [hVL ρ hρ]
+    exact (L ρ).contDiff.comp hF
+  · obtain ⟨B, hB⟩ := (isCompact_closedBall (0 : E) 1).exists_bound_of_continuousOn
+      hF.continuous.continuousOn
+    have hB0 : 0 ≤ B := (norm_nonneg (F 0)).trans (hB 0 (by simp))
+    have hMean (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) : ‖mean ρ‖ ≤ B := by
+      let := hρ
+      have hbound : ∀ᵐ v : S ∂ρ, ‖F v.1‖ ≤ B :=
+        Filter.Eventually.of_forall fun v => hB v.1 (by simpa using v.property.le)
+      simpa only [mean, Measure.real, measure_univ, ENNReal.toReal_one, mul_one] using
+        norm_integral_le_of_norm_le_const hbound
+    have hL (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) :
+        ‖L ρ‖ ≤ 2 * (B + ‖label‖) := by
+      have hr : ‖mean ρ - label‖ ≤ B + ‖label‖ :=
+        (norm_sub_le _ _).trans (add_le_add (hMean ρ hρ) le_rfl)
+      simpa only [L, norm_smul, Real.norm_of_nonneg (by norm_num : (0 : ℝ) ≤ 2),
+        innerSL_apply_norm] using mul_le_mul_of_nonneg_left hr (by norm_num : (0 : ℝ) ≤ 2)
+    intro R n
+    have hn : (n : ℕ∞ω) ≤ (∞ : ℕ∞ω) := by simp
+    obtain ⟨C, hC⟩ := (isCompact_closedBall (0 : E) R).exists_bound_of_continuousOn
+      (hF.continuous_iteratedFDeriv hn).continuousOn
+    refine ⟨2 * (B + ‖label‖) * max C 0, by positivity, ?_⟩
+    intro ρ hρ w hw
+    rw [hVL ρ hρ]
+    exact ((L ρ).norm_iteratedFDeriv_comp_left hF.contDiffAt hn).trans
+      (mul_le_mul (hL ρ hρ) ((hC w (by simpa using hw)).trans (le_max_left _ _))
+        (norm_nonneg _) (by positivity))
+
+#print axioms gaussian_polynomial_joint_potential_smooth_uniform_derivatives
+
+end AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth

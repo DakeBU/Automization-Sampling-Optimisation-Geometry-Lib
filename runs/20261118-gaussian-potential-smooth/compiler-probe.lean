@@ -1,0 +1,7 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth
+set_option pp.fullNames true
+set_option pp.deepTerms true
+set_option pp.proofs true
+set_option pp.maxSteps 1000000
+#check @AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth.gaussian_polynomial_joint_potential_smooth_uniform_derivatives
+#print axioms AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth.gaussian_polynomial_joint_potential_smooth_uniform_derivatives

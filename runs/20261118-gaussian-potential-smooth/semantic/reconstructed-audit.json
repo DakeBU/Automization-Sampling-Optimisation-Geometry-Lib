@@ -1,0 +1,192 @@
+{
+  "id": "ASTIS-RT-20261118-GaussianPotentialSmooth",
+  "state": "reconstructed",
+  "source": {
+    "source_id": "astis-original-gaussian-potential-smooth",
+    "anchor": "Original statement in runs/20261118-gaussian-potential-smooth/source-statement.txt. The pinned linked parent proves the actual joint-feature representation.",
+    "original_text": "Let E be a finite-dimensional real inner-product space, and P a probability on E times R whose first marginal is the standard Gaussian. Let p be any real polynomial and assume only that the label is square integrable. For every probability rho on the unit sphere, V_rho(w)=2 E_P[(integral p(inner(v,X)) d rho(v)-Y) p(inner(w,X))] is smooth on all of E. For each real radius R and derivative order n, a finite nonnegative bound C exists such that the operator norm of D^n V_rho(w) is at most C for every sphere probability rho and every ambient w of norm at most R. The constant is uniform in rho and w, but may depend on the data distribution, polynomial, dimension, radius and derivative order. Order zero is included.",
+    "text_sha256": "f9c543067e53605026c4778d73e3bc84a5b04a774ca4bb6bd60a11b1d41a55b0"
+  },
+  "lean": {
+    "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth.gaussian_polynomial_joint_potential_smooth_uniform_derivatives",
+    "file": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialPotentialSmooth.lean",
+    "statement": "anonymous_statement : ∀\n  {E : Type u_1} [inst : NormedAddCommGroup E] [inst_1 : InnerProductSpace ℝ E] [inst_2 : FiniteDimensional ℝ E]\n  [inst_3 : MeasurableSpace E] [BorelSpace E] (P : MeasureTheory.Measure (E × ℝ))\n  [MeasureTheory.IsProbabilityMeasure P],\n  MeasureTheory.Measure.map Prod.fst P = ProbabilityTheory.stdGaussian E →\n    ∀ (p : Polynomial ℝ),\n      MeasureTheory.MemLp (fun z => z.2) 2 P →\n        let S := { w // ‖w‖ = 1 };\n        have V := fun ρ w =>\n          2 *\n            ∫ (z : E × ℝ),\n              (∫ (v : S), Polynomial.eval (Inner.inner ℝ (↑v) z.1) p ∂ρ - z.2) *\n                Polynomial.eval (Inner.inner ℝ w z.1) p ∂P;\n        (∀ (ρ : MeasureTheory.Measure S), MeasureTheory.IsProbabilityMeasure ρ → ContDiff ℝ (↑⊤) (V ρ)) ∧\n          ∀ (R : ℝ) (n : ℕ),\n            ∃ C,\n              0 ≤ C ∧\n                ∀ (ρ : MeasureTheory.Measure S),\n                  MeasureTheory.IsProbabilityMeasure ρ → ∀ (w : E), ‖w‖ ≤ R → ‖iteratedFDeriv ℝ n (V ρ) w‖ ≤ C",
+    "statement_sha256": "9765ef298716527dbf92ab9fc3f0e077c5b54111b463206e0591194d3a4d651e",
+    "compiled": true,
+    "formalizer": "codex-gaussian-potential-smooth-formalizer",
+    "decoder_context": [
+      "All typeclasses and operators in the printed statement are standard Mathlib objects. The real inner product is literal Inner.inner R; the subtype S carries its induced Borel sigma algebra. stdGaussian E is the standard Gaussian probability on the finite-dimensional real inner-product space E. MemLp f 2 P means square integrability. The integral notation denotes the Bochner integral with Mathlib total semantics, returning zero when integrability fails; notation alone must not be read as a new integrability hypothesis or assertion.",
+      "The displayed smoothness order ContDiff R (up-arrow top) uses the coercion of the top of ENat into the extended smoothness-order type ENatOmega. It denotes C-infinity, not the analytic top order omega. iteratedFDeriv R n is the total n-fold Frechet derivative as a continuous multilinear map; at order zero its norm equals the norm of the function value. Its norm for positive orders is the multilinear operator norm. The definition of V and every dependence on the sphere measure are printed literally."
+    ]
+  },
+  "repairs": [],
+  "publication_binding_sha256": "3969313629aa583c283b31c4b3eda6a1d027ab7b4fcc271c0e1a8cdb5bed2dfb",
+  "publication_context": {
+    "file": "d04309b59fd80e680b633f5e3da950b417b8122c2c52a2f518e26ca4556d4a77",
+    "current_lean_module": "import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth\nimport AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient\nimport Mathlib.Analysis.Calculus.ContDiff.Bounds\n\nopen MeasureTheory ProbabilityTheory\nopen scoped ENNReal InnerProductSpace ContDiff\n\nnamespace AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth\n\nopen AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth\nopen AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient\n\n/-- The actual data potential is ambient smooth, with local derivatives uniformly bounded\nover every probability measure on the unit sphere. Only an L2 label is required. -/\ntheorem gaussian_polynomial_joint_potential_smooth_uniform_derivatives\n    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]\n    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]\n    (P : Measure (E × ℝ)) [IsProbabilityMeasure P]\n    (hGaussian : P.map Prod.fst = stdGaussian E)\n    (p : Polynomial ℝ) (hlabel : MemLp (fun z : E × ℝ => z.2) 2 P) :\n    let S := {w : E // ‖w‖ = 1}\n    let V : Measure S → E → ℝ := fun ρ w =>\n      2 * ∫ z : E × ℝ,\n        ((∫ v : S, p.eval ⟪(v : E), z.1⟫_ℝ ∂ρ) - z.2) *\n          p.eval ⟪w, z.1⟫_ℝ ∂P\n    (∀ ρ : Measure S, IsProbabilityMeasure ρ → ContDiff ℝ (∞ : ℕ∞ω) (V ρ)) ∧\n    ∀ (R : ℝ) (n : ℕ), ∃ C : ℝ, 0 ≤ C ∧\n      ∀ ρ : Measure S, IsProbabilityMeasure ρ →\n        ∀ w : E, ‖w‖ ≤ R → ‖iteratedFDeriv ℝ n (V ρ) w‖ ≤ C := by\n  classical\n  intro S V\n  let : CompleteSpace E := FiniteDimensional.complete ℝ E\n  obtain ⟨hf, hdf, D, M₁, M₂, _, _, _, _, _, _, hRep⟩ :=\n    gaussian_polynomial_joint_feature_gradient_representation P hGaussian p hlabel\n  let F : E → Lp ℝ 2 P := fun w =>\n    (hf w).toLp (fun z : E × ℝ => p.eval ⟪w, z.1⟫_ℝ)\n  let label : Lp ℝ 2 P := hlabel.toLp (fun z : E × ℝ => z.2)\n  let mean : Measure S → Lp ℝ 2 P := fun ρ => ∫ v : S, F v.1 ∂ρ\n  obtain ⟨hg, hgSmooth⟩ := standard_gaussian_polynomial_ridge_L2_smooth (E := E) p\n  have hmarg : MeasurePreserving (Prod.fst : E × ℝ → E) P (stdGaussian E) :=\n    ⟨measurable_fst, hGaussian⟩\n  let J : Lp ℝ 2 (stdGaussian E) →ₗᵢ[ℝ] Lp ℝ 2 P :=\n    Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hmarg\n  have hF : ContDiff ℝ (∞ : ℕ∞ω) F := by\n    have he : F = fun w => J ((hg w).toLp (fun x : E => p.eval ⟪w, x⟫_ℝ)) := by\n      rfl\n    rw [he]\n    exact J.toContinuousLinearMap.contDiff.comp hgSmooth\n  have hV (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) :\n      V ρ = fun w : E => 2 * ⟪mean ρ - label, F w⟫_ℝ :=\n    (hRep ρ hρ).2.2.2.1\n  let L (ρ : Measure S) : Lp ℝ 2 P →L[ℝ] ℝ :=\n    (2 : ℝ) • innerSL ℝ (mean ρ - label)\n  have hVL (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) : V ρ = L ρ ∘ F := by\n    rw [hV ρ hρ]\n    rfl\n  refine ⟨fun ρ hρ => ?_, ?_⟩\n  · rw [hVL ρ hρ]\n    exact (L ρ).contDiff.comp hF\n  · obtain ⟨B, hB⟩ := (isCompact_closedBall (0 : E) 1).exists_bound_of_continuousOn\n      hF.continuous.continuousOn\n    have hB0 : 0 ≤ B := (norm_nonneg (F 0)).trans (hB 0 (by simp))\n    have hMean (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) : ‖mean ρ‖ ≤ B := by\n      let := hρ\n      have hbound : ∀ᵐ v : S ∂ρ, ‖F v.1‖ ≤ B :=\n        Filter.Eventually.of_forall fun v => hB v.1 (by simpa using v.property.le)\n      simpa only [mean, Measure.real, measure_univ, ENNReal.toReal_one, mul_one] using\n        norm_integral_le_of_norm_le_const hbound\n    have hL (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) :\n        ‖L ρ‖ ≤ 2 * (B + ‖label‖) := by\n      have hr : ‖mean ρ - label‖ ≤ B + ‖label‖ :=\n        (norm_sub_le _ _).trans (add_le_add (hMean ρ hρ) le_rfl)\n      simpa only [L, norm_smul, Real.norm_of_nonneg (by norm_num : (0 : ℝ) ≤ 2),\n        innerSL_apply_norm] using mul_le_mul_of_nonneg_left hr (by norm_num : (0 : ℝ) ≤ 2)\n    intro R n\n    have hn : (n : ℕ∞ω) ≤ (∞ : ℕ∞ω) :=\n      WithTop.coe_le_coe.mpr (le_top : (n : ℕ∞) ≤ ⊤)\n    obtain ⟨C, hC⟩ := (isCompact_closedBall (0 : E) R).exists_bound_of_continuousOn\n      (hF.continuous_iteratedFDeriv hn).continuousOn\n    refine ⟨2 * (B + ‖label‖) * max C 0, by positivity, ?_⟩\n    intro ρ hρ w hw\n    rw [hVL ρ hρ]\n    exact ((L ρ).norm_iteratedFDeriv_comp_left hF.contDiffAt hn).trans\n      (mul_le_mul (hL ρ hρ) ((hC w (by simpa using hw)).trans (le_max_left _ _))\n        (norm_nonneg _) (by positivity))\n\n#print axioms gaussian_polynomial_joint_potential_smooth_uniform_derivatives\n\nend AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth\n",
+    "toolchain": "302cd63c54178885b89e669f33b38f12f4dd7ae7e5cac537b3203e3768d8fb2b",
+    "dependencies": "b83ca83b9cf7caa85fa8b023c2ff9a3fb7a7cce7e1c332e810c348535ec49c37",
+    "source": {
+      "id": "astis-original-gaussian-potential-smooth",
+      "url": "https://github.com/DakeBU/Automization-Sampling-Optimisation-Geometry-Lib/blob/52614056362e16beaa8a165f9d26b5e8143f1cf4/AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialFeatureGradient.lean",
+      "edition": "Samplinglib original statistical-model supplement, 2026-11-18; Lean 4.33.0",
+      "anchor": "Original statement in runs/20261118-gaussian-potential-smooth/source-statement.txt. The pinned linked parent proves the actual joint-feature representation.",
+      "wording_status": "licensed original",
+      "attribution": "Original Samplinglib derivation from existing Gaussian L2 smoothness, actual potential representation and compact derivative bounds. The linked parent is not presented as an external proof of the new all-order estimate.",
+      "statement_sha256": "f9c543067e53605026c4778d73e3bc84a5b04a774ca4bb6bd60a11b1d41a55b0"
+    },
+    "statement": "Let E be a finite-dimensional real inner-product space and let (X,Y) have joint probability law P, with X standard Gaussian and Y square integrable. For any real polynomial p and any probability rho on the unit sphere S, define the predictor and actual data potential by the integrals below. The potential V_rho is smooth on all of E. For every real radius R and derivative order n, there is a finite nonnegative constant C, chosen before rho and w, that bounds the norm of D^n V_rho(w) for every sphere probability rho and every ambient w with norm at most R.",
+    "formulae": [
+      {
+        "label": "Smoothness and common local derivative bounds",
+        "tex": "\\begin{gathered}V_\\rho\\in C^\\infty(E;\\mathbb R)\\quad(\\rho\\in\\mathcal P(S)),\\\\\\forall R\\in\\mathbb R\\ \\forall n\\in\\mathbb N\\ \\exists C\\ge0:\\\\\\forall\\rho\\in\\mathcal P(S)\\ \\forall w\\in E,\\\\\\|w\\|\\le R\\ \\Longrightarrow\\ \\|D^nV_\\rho(w)\\|\\le C.\\end{gathered}"
+      }
+    ],
+    "assumptions": [
+      "E is a finite-dimensional real inner-product space with its Borel sigma algebra. No positive dimension is assumed; an empty sphere has no probability law to instantiate.",
+      "P is a probability on E times R whose first marginal is exactly the standard Gaussian on E. The label Y is in L2(P); no independence or higher label moment is assumed.",
+      "p is any real polynomial. No parity, coefficient normalization, prescribed degree cutoff or conditional teacher relation is assumed.",
+      "For each R and n, the bound C may depend on P, p, E, R and n, but is uniform over rho and w. Order zero is included; a negative radius gives an empty spatial condition."
+    ],
+    "obligations": [
+      {
+        "id": "gaussian-potential-smooth",
+        "label": "Derive ambient smoothness and local derivative bounds uniform over every sphere probability law"
+      }
+    ],
+    "lesson": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth.gaussian_polynomial_joint_potential_smooth_uniform_derivatives",
+      "kind": "theorem",
+      "title": "Smooth Gaussian polynomial data potentials",
+      "statement": "Let E be a finite-dimensional real inner-product space and let (X,Y) have joint probability law P, with X standard Gaussian and Y square integrable. For any real polynomial p and any probability rho on the unit sphere S, define the predictor and actual data potential by the integrals below. The potential V_rho is smooth on all of E. For every real radius R and derivative order n, there is a finite nonnegative constant C, chosen before rho and w, that bounds the norm of D^n V_rho(w) for every sphere probability rho and every ambient w with norm at most R.",
+      "formula": "\\begin{gathered}V_\\rho\\in C^\\infty(E;\\mathbb R)\\quad(\\rho\\in\\mathcal P(S)),\\\\\\forall R\\in\\mathbb R\\ \\forall n\\in\\mathbb N\\ \\exists C\\ge0:\\\\\\forall\\rho\\in\\mathcal P(S)\\ \\forall w\\in E,\\\\\\|w\\|\\le R\\ \\Longrightarrow\\ \\|D^nV_\\rho(w)\\|\\le C.\\end{gathered}",
+      "assumptions": [
+        "E is a finite-dimensional real inner-product space with its Borel sigma algebra. No positive dimension is assumed; an empty sphere has no probability law to instantiate.",
+        "P is a probability on E times R whose first marginal is exactly the standard Gaussian on E. The label Y is in L2(P); no independence or higher label moment is assumed.",
+        "p is any real polynomial. No parity, coefficient normalization, prescribed degree cutoff or conditional teacher relation is assumed.",
+        "For each R and n, the bound C may depend on P, p, E, R and n, but is uniform over rho and w. Order zero is included; a negative radius gives an empty spatial condition."
+      ],
+      "notation": [
+        {
+          "symbol": "S and f_rho",
+          "text": "S is the unit sphere; f_rho is the sphere-averaged polynomial predictor.",
+          "formula": "S=\\{v\\in E:\\|v\\|=1\\},\\qquad f_\\rho(x)=\\int_S p(\\langle v,x\\rangle)\\,d\\rho(v)."
+        },
+        {
+          "symbol": "V_rho",
+          "text": "The actual joint-data integral potential, evaluated at any ambient point w.",
+          "formula": "V_\\rho(w)=2\\int_{E\\times\\mathbb R}(f_\\rho(x)-y)p(\\langle w,x\\rangle)\\,dP(x,y)."
+        },
+        {
+          "symbol": "D^n and its norm",
+          "text": "The iterated Frechet derivative and its multilinear operator norm. Smoothness is proved, so the total Lean operators are classical derivatives here. At order zero the norm is the absolute value of the potential.",
+          "formula": "\\|D^0V_\\rho(w)\\|=|V_\\rho(w)|."
+        },
+        {
+          "symbol": "H, F, ell and m_rho",
+          "text": "H is joint-data L2; F is the polynomial feature class, ell is the label class, and m_rho is the Bochner mean of the feature.",
+          "formula": "\\begin{gathered}H=L^2(P),\\quad F(w)=[(x,y)\\mapsto p(\\langle w,x\\rangle)],\\\\\\ell=[Y],\\qquad m_\\rho=\\int_S F(v)\\,d\\rho(v).\\end{gathered}"
+        }
+      ],
+      "steps": [
+        {
+          "title": "Pull the smooth Gaussian feature into joint-data L2",
+          "text": "The existing polynomial ridge theorem gives a smooth map into Gaussian L2. Pullback by the first coordinate is a linear isometry into H, because the input marginal is exactly Gaussian. Its image is the actual polynomial feature class F. The membership witnesses are proof-irrelevant; no response differentiation or extra response moment is used.",
+          "formula": "F:E\\longrightarrow L^2(P)\\text{ is }C^\\infty.",
+          "lean": "  classical\n  intro S V\n  let : CompleteSpace E := FiniteDimensional.complete ℝ E\n  obtain ⟨hf, hdf, D, M₁, M₂, _, _, _, _, _, _, hRep⟩ :=\n    gaussian_polynomial_joint_feature_gradient_representation P hGaussian p hlabel\n  let F : E → Lp ℝ 2 P := fun w =>\n    (hf w).toLp (fun z : E × ℝ => p.eval ⟪w, z.1⟫_ℝ)\n  let label : Lp ℝ 2 P := hlabel.toLp (fun z : E × ℝ => z.2)\n  let mean : Measure S → Lp ℝ 2 P := fun ρ => ∫ v : S, F v.1 ∂ρ\n  obtain ⟨hg, hgSmooth⟩ := standard_gaussian_polynomial_ridge_L2_smooth (E := E) p\n  have hmarg : MeasurePreserving (Prod.fst : E × ℝ → E) P (stdGaussian E) :=\n    ⟨measurable_fst, hGaussian⟩\n  let J : Lp ℝ 2 (stdGaussian E) →ₗᵢ[ℝ] Lp ℝ 2 P :=\n    Lp.compMeasurePreservingₗᵢ ℝ Prod.fst hmarg\n  have hF : ContDiff ℝ (∞ : ℕ∞ω) F := by\n    have he : F = fun w => J ((hg w).toLp (fun x : E => p.eval ⟪w, x⟫_ℝ)) := by\n      rfl\n    rw [he]\n    exact J.toContinuousLinearMap.contDiff.comp hgSmooth\n"
+        },
+        {
+          "title": "Identify the literal data potential",
+          "text": "The existing joint-feature representation supplies the integrability and the displayed identity for the actual double integral. For each law, pairing with its residual is a continuous linear functional. Composition with the smooth feature therefore proves ambient smoothness.",
+          "formula": "\\begin{aligned}L_\\rho(h)&=2\\langle m_\\rho-\\ell,h\\rangle_H,\\\\V_\\rho(w)&=L_\\rho(F(w)).\\end{aligned}",
+          "lean": "  have hV (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) :\n      V ρ = fun w : E => 2 * ⟪mean ρ - label, F w⟫_ℝ :=\n    (hRep ρ hρ).2.2.2.1\n  let L (ρ : Measure S) : Lp ℝ 2 P →L[ℝ] ℝ :=\n    (2 : ℝ) • innerSL ℝ (mean ρ - label)\n  have hVL (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) : V ρ = L ρ ∘ F := by\n    rw [hV ρ hρ]\n    rfl\n  refine ⟨fun ρ hρ => ?_, ?_⟩\n  · rw [hVL ρ hρ]\n    exact (L ρ).contDiff.comp hF\n"
+        },
+        {
+          "title": "Bound every residual uniformly over the parameter law",
+          "text": "Continuity of F on the compact unit ball gives a nonnegative bound B. Integrating its norm against a probability law bounds every feature mean by B. The label has one fixed finite L2 norm, so every residual and every pairing functional have the same bound.",
+          "formula": "\\begin{aligned}\\|m_\\rho\\|_H&\\le B,\\\\\\|m_\\rho-\\ell\\|_H&\\le B+\\|\\ell\\|_H,\\\\\\|L_\\rho\\|&\\le2(B+\\|\\ell\\|_H).\\end{aligned}",
+          "lean": "  · obtain ⟨B, hB⟩ := (isCompact_closedBall (0 : E) 1).exists_bound_of_continuousOn\n      hF.continuous.continuousOn\n    have hB0 : 0 ≤ B := (norm_nonneg (F 0)).trans (hB 0 (by simp))\n    have hMean (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) : ‖mean ρ‖ ≤ B := by\n      let := hρ\n      have hbound : ∀ᵐ v : S ∂ρ, ‖F v.1‖ ≤ B :=\n        Filter.Eventually.of_forall fun v => hB v.1 (by simpa using v.property.le)\n      simpa only [mean, Measure.real, measure_univ, ENNReal.toReal_one, mul_one] using\n        norm_integral_le_of_norm_le_const hbound\n    have hL (ρ : Measure S) (hρ : IsProbabilityMeasure ρ) :\n        ‖L ρ‖ ≤ 2 * (B + ‖label‖) := by\n      have hr : ‖mean ρ - label‖ ≤ B + ‖label‖ :=\n        (norm_sub_le _ _).trans (add_le_add (hMean ρ hρ) le_rfl)\n      simpa only [L, norm_smul, Real.norm_of_nonneg (by norm_num : (0 : ℝ) ≤ 2),\n        innerSL_apply_norm] using mul_le_mul_of_nonneg_left hr (by norm_num : (0 : ℝ) ≤ 2)\n"
+        },
+        {
+          "title": "Transfer compact bounds on every derivative",
+          "text": "For each R and n, continuity of the n-th feature derivative gives a finite nonnegative bound M on the compact closed ball. Continuous-linear composition multiplies this bound by the common residual-functional bound. The resulting C is independent of the parameter law and evaluation point. The same rule includes order zero.",
+          "formula": "\\begin{aligned}D^nV_\\rho(w)&=L_\\rho\\circ D^nF(w),\\\\\\|D^nV_\\rho(w)\\|&\\le2(B+\\|\\ell\\|_H)M_{R,n}.\\end{aligned}",
+          "lean": "    intro R n\n    have hn : (n : ℕ∞ω) ≤ (∞ : ℕ∞ω) :=\n      WithTop.coe_le_coe.mpr (le_top : (n : ℕ∞) ≤ ⊤)\n    obtain ⟨C, hC⟩ := (isCompact_closedBall (0 : E) R).exists_bound_of_continuousOn\n      (hF.continuous_iteratedFDeriv hn).continuousOn\n    refine ⟨2 * (B + ‖label‖) * max C 0, by positivity, ?_⟩\n    intro ρ hρ w hw\n    rw [hVL ρ hρ]\n    exact ((L ρ).norm_iteratedFDeriv_comp_left hF.contDiffAt hn).trans\n      (mul_le_mul (hL ρ hρ) ((hC w (by simpa using hw)).trans (le_max_left _ _))\n        (norm_nonneg _) (by positivity))\n"
+        }
+      ],
+      "astis_dependencies": [
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth.standard_gaussian_polynomial_ridge_L2_smooth",
+        "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialFeatureGradient.gaussian_polynomial_joint_feature_gradient_representation"
+      ],
+      "mathlib_dependencies": [
+        "Lp.compMeasurePreservingₗᵢ",
+        "IsCompact.exists_bound_of_continuousOn",
+        "norm_integral_le_of_norm_le_const",
+        "ContDiff.continuous_iteratedFDeriv",
+        "ContinuousLinearMap.norm_iteratedFDeriv_comp_left"
+      ],
+      "reading_layout": "progressive",
+      "sources": [
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialPotentialSmooth.lean",
+          "label": "Original Samplinglib statistical-model supplement",
+          "scope": "The actual potential smoothness and probability-uniform derivative estimate; no external numbered theorem is claimed."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialRidgeSmooth.lean",
+          "label": "Existing smooth Gaussian L2 ridge",
+          "scope": "Ambient smoothness of the literal polynomial feature."
+        },
+        {
+          "path": "AutoSamplingTheory/TechnicalLemmas/Probability/GaussianPolynomialFeatureGradient.lean",
+          "label": "Existing joint-data potential representation",
+          "scope": "Exact equality and integrability of the actual data potential."
+        }
+      ],
+      "tests": [
+        "Tests/GaussianPolynomialPotentialSmooth.lean applies a single common third-derivative bound to two different parameter laws and prints the theorem and its axioms."
+      ],
+      "lean_statement": "The exact Lean statement is folded beside the mathematics.",
+      "lean_proof": "The complete proof and exact step excerpts are initially folded.",
+      "reader_note": "A changing parameter distribution should not require a new spatial bound at every time. The proof keeps one smooth Gaussian feature map and controls every law-dependent residual by the same norm estimate."
+    },
+    "binding": {
+      "declaration": "AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth.gaussian_polynomial_joint_potential_smooth_uniform_derivatives",
+      "role": "prerequisite",
+      "supports": [
+        "gaussian-potential-smooth"
+      ]
+    },
+    "candidate_assumptions": [
+      {
+        "source": "E is a finite-dimensional real inner-product space with its Borel sigma algebra. No positive dimension is assumed; an empty sphere has no probability law to instantiate.",
+        "lean": "E is a finite-dimensional real inner-product space with its Borel sigma algebra. No positive dimension is assumed; an empty sphere has no probability law to instantiate."
+      },
+      {
+        "source": "P is a probability on E times R whose first marginal is exactly the standard Gaussian on E. The label Y is in L2(P); no independence or higher label moment is assumed.",
+        "lean": "P is a probability on E times R whose first marginal is exactly the standard Gaussian on E. The label Y is in L2(P); no independence or higher label moment is assumed."
+      },
+      {
+        "source": "p is any real polynomial. No parity, coefficient normalization, prescribed degree cutoff or conditional teacher relation is assumed.",
+        "lean": "p is any real polynomial. No parity, coefficient normalization, prescribed degree cutoff or conditional teacher relation is assumed."
+      },
+      {
+        "source": "For each R and n, the bound C may depend on P, p, E, R and n, but is uniform over rho and w. Order zero is included; a negative radius gives an empty spatial condition.",
+        "lean": "For each R and n, the bound C may depend on P, p, E, R and n, but is uniform over rho and w. Order zero is included; a negative radius gives an empty spatial condition."
+      }
+    ]
+  },
+  "reconstruction": {
+    "text": "Let E be any finite-dimensional real inner-product space with its induced norm and Borel measurable structure. Let P be a probability measure on E times R such that its pushforward under the first-coordinate projection is the standard centered Gaussian with identity covariance on E. Let p be any real polynomial, and assume that the response coordinate (x,y)->y is square integrable under P, in the MemLp exponent-2 sense. No other restriction on p or on the conditional distribution of the response is assumed.\n\nDefine S={v in E:||v||=1}, with its induced Borel sigma algebra. For any measure rho on S define the real-valued function V_rho on all of E by\nV_rho(w)=2 integral_{E times R} [(integral_S p(<v,x>) drho(v))-y] p(<w,x>) dP(x,y).\nThe inner and outer integrals are the actual Bochner integrals with Mathlib total semantics, returning zero if the relevant integrability condition fails. This formula defines V_rho even for measures rho not assumed to be probabilities; the conclusions below quantify only probability measures. The occurrence of either integral in the definition is not an additional integrability assumption or a separate assertion of integrability.\n\nThen both following assertions hold. First, for every probability measure rho on S, V_rho:E->R is C-infinity on the entire ambient space E. The printed smoothness order is the image of the top element of ENat in ENatOmega, meaning infinitely continuously Frechet differentiable, not the analytic order omega.\n\nSecond, for every real number R and every natural number n, there exists a finite real constant C>=0 such that, simultaneously for every probability measure rho on S and every w in E satisfying ||w||<=R,\n||iteratedFDeriv_R(n,V_rho)(w)|| <= C.\nFor n>0, this is the continuous n-linear Frechet derivative at w, with its multilinear operator norm. For n=0, the norm of the zero-order derivative is |V_rho(w)|, so the conclusion includes a uniform bound on function values themselves. In every derivative, rho, P and p are held fixed while differentiating the ambient variable w.\n\nThe constant C may depend on the fixed space and its structures, the data law P, the polynomial p, the radius R and the derivative order n. Its quantifier comes before rho and w, so it cannot depend on either the chosen sphere probability or the point of the ball. It is not one constant required to work for all radii or derivative orders, and the statement gives no explicit numerical formula or dimension-independent estimate for C. The factor 2 in V_rho is exact. The derivative bound is an ordinary pointwise bound, not an almost-everywhere bound.\n\nR need not be positive. If R<0 the set ||w||<=R is empty and the bound clause is vacuous; if R=0 it concerns w=0. Natural order n=0 is explicitly included. The space may be zero-dimensional; then S is empty, so there is no probability measure on S and both universal assertions over sphere probabilities are vacuous, with the existence of a nonnegative bound still satisfied. No nonempty-sphere or positive-dimension hypothesis is present. The zero polynomial and arbitrary polynomial coefficients are permitted.\n\nThe C-infinity statement is a genuine regularity conclusion about V_rho, rather than a conclusion solely about totalized derivative values. Nevertheless, the theorem does not separately assert integrability of each defining integrand, analytic regularity, or a polynomial representation of V_rho. It also gives no continuity or differentiability with respect to rho, no global bound uniform over all w without a fixed radius, and no uniform constant across changing data laws, polynomials, radii or orders. There is no unit-norm requirement on the evaluation point w beyond the ball condition in the bound; only the integration variable v lies on the unit sphere. rho is arbitrary among sphere probability measures, without a density, smoothness, symmetry or moment-normalization assumption. There is no target vector, conditional-mean regression identity, residual independence, coefficient normalization or degree cutoff among the hypotheses.",
+    "text_sha256": "1bebd2fb66f2164acf45ea3b0fd801f072db0b7aa5ee3f06505409207387e608",
+    "decoder": "independent-uniform-smooth-potential-decoder-20261118",
+    "decoder_run_sha256": "2dbaaf318a8cf58432150bf83b45f4f92bb3d2197376274712b5c8f492132aee",
+    "decoder_packet_sha256": "2ab522e4f05f835ca2448bf99921dc09ac767895208458f7a4d2d9c42f2ed4e7",
+    "source_text_visible": false,
+    "lean_statement_sha256": "9765ef298716527dbf92ab9fc3f0e077c5b54111b463206e0591194d3a4d651e",
+    "input_artifacts": [
+      "lean-statement",
+      "approved-definition-context"
+    ]
+  }
+}

@@ -1,3 +1,4 @@
+import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialPotentialSmooth
 import AutoSamplingTheory.TechnicalLemmas.Probability.SubgaussianEvenMoments
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianPolynomialRidgeSmooth
 import AutoSamplingTheory.TechnicalLemmas.Probability.GaussianHermiteFeatureCore

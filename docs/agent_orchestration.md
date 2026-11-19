@@ -1,11 +1,10 @@
 # Agent Orchestration
 
-ASTIS uses the same plain-file discipline as the Quantum automation project:
-role prompt decks live in `runs/<run-id>/`, a dialogue board lives beside them,
-and trial memory is appended to `runs/trials.jsonl`.
-
-Public Quantum reference:
-https://github.com/DakeBU/Quantum-Computing-Block-Encoding/tree/wip/ghl2025-faithful-20260518-0201
+Samplinglib formalizes sampling, optimisation, and geometry. This document
+describes the historical plain-file workflow: prompt decks and dialogue
+boards live in `runs/<run-id>/`; trial memory is appended to `runs/trials.jsonl`.
+Use [AGENTS.md](../AGENTS.md) for the current theorem-sized Harness and the
+[contributor contract](contributor-codex-contract.md) for English public readers.
 
 MathCode workflow reference:
 https://github.com/math-ai-org/mathcode

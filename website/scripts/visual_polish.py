@@ -3,8 +3,7 @@
 
 The information architecture remains ASTIS-specific.  This layer only owns
 reader-facing typography, visual rhythm, and the canonical Samplinglib home
-masthead.  Its design tokens intentionally follow the restrained academic
-language used by the QuantumComputinglib public site.
+masthead for sampling, optimisation, and geometry.
 """
 
 from __future__ import annotations
@@ -15,9 +14,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE_CSS = ROOT / "website" / "static" / "quantumcomputinglib-polish.css"
-DETAIL_CSS = ROOT / "website" / "static" / "quantumcomputinglib-detail-polish.css"
-STYLE_NAMES = ("quantumcomputinglib-polish.css", "quantumcomputinglib-detail-polish.css")
+STYLE_NAMES = ("samplinglib-polish.css", "samplinglib-detail-polish.css")
+SOURCE_CSS, DETAIL_CSS = (ROOT / "website" / "static" / name for name in STYLE_NAMES)
 HOME = Path("index.html")
 LIBRARY_SUBTITLE = "Verified Sampling, Optimisation, Geometry Theory in Lean"
 HOME_LEDE = (

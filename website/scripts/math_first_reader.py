@@ -7,7 +7,6 @@ chat transcript.  This final post-build layer therefore:
 * removes the long undergraduate story ladder from canonical section pages;
 * rewrites completed Chewi lessons as source statement -> displayed equations
   -> source proof status -> ASTIS formal expansion -> Lean correspondence;
-* removes user-facing Chinese controls and forces the Lean tutor to English;
 * repairs leaked Markdown bold markers and a small set of raw ASCII formulas;
 * fails the build on visible CJK text or leaked Markdown in generated HTML.
 
@@ -137,17 +136,6 @@ PROOF_OVERRIDES: dict[str, list[dict[str, str]]] = {
             "latex": r"M_t=\int_0^t\eta_s\,dB_s\in\mathcal M_{\mathrm{loc}}\cap C([0,\infty)).",
         },
     ],
-}
-
-
-VISIBLE_REPLACEMENTS = {
-    "数学证明 → 形式化证明": "mathematics → formal proof",
-    "中文讲解": "Explanation",
-    "Beginner · 本科入门": "Beginner",
-    "Rigorous · 严格证明": "Rigorous",
-    "Lean learner · 学 Lean": "Lean learner",
-    "Proof tree · 证明树": "Proof tree",
-    "Dependency network · 依赖网": "Dependency network",
 }
 
 
@@ -318,8 +306,6 @@ def repair_visible_markup(text: str) -> str:
     parts = non_code_segments(text)
     for i in range(0, len(parts), 2):
         segment = parts[i]
-        for old, new in VISIBLE_REPLACEMENTS.items():
-            segment = segment.replace(old, new)
         segment = re.sub(r"\*\*([^*<>]+?)\*\*", r"<strong>\1</strong>", segment)
         segment = re.sub(r"(<p[^>]*>)\s*-\s*(?=<strong>)", r"\1", segment)
         segment = segment.replace(
@@ -332,29 +318,6 @@ def repair_visible_markup(text: str) -> str:
         )
         parts[i] = segment
     return "".join(parts)
-
-
-def force_english_lean_tutor(text: str) -> str:
-    text = re.sub(
-        r'<button class="lean-language-toggle"[^>]*>.*?</button>',
-        "",
-        text,
-        flags=re.S,
-    )
-    if "lean-tutor.js" in text and "samplinglib-lean-language" not in text:
-        marker = '<script defer src="'
-        pos = text.find(marker)
-        while pos >= 0:
-            end = text.find('</script>', pos)
-            if end < 0:
-                break
-            tag = text[pos:end + len('</script>')]
-            if "lean-tutor.js" in tag:
-                force = '<script>try{localStorage.setItem("samplinglib-lean-language","en");}catch(e){}</script>\n  '
-                text = text[:pos] + force + text[pos:]
-                break
-            pos = text.find(marker, end)
-    return text
 
 
 def inject_style(text: str, rel: Path) -> str:
@@ -438,7 +401,6 @@ def enrich_site(output: Path = DEFAULT_OUTPUT) -> None:
         rel = path.relative_to(output)
         text = path.read_text(encoding="utf-8")
         text = repair_visible_markup(text)
-        text = force_english_lean_tutor(text)
         text = inject_style(text, rel)
         path.write_text(text, encoding="utf-8", newline="\n")
 

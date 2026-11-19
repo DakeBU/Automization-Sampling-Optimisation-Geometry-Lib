@@ -11,6 +11,7 @@ presentation restatements keyed by stable source-correspondence ids.
 from __future__ import annotations
 
 import json
+from html.parser import HTMLParser
 import re
 import shutil
 from pathlib import Path
@@ -28,6 +29,42 @@ FORMULA_SUPPLEMENTS = ROOT / "website" / "content" / "chapter1_formula_supplemen
 PROOF_SUPPLEMENTS = ROOT / "website" / "content" / "chapter1_proof_supplements.json"
 SOURCE_CORRESPONDENCE = ROOT / "website" / "content" / "source_correspondence.json"
 FORMULA_FIRST_SECTIONS = ("1.1", "1.2", "1.3", "1.4")
+READER_TEXT_ATTRIBUTES = {"aria-label", "aria-description", "aria-roledescription",
+                          "aria-valuetext", "alt", "title", "placeholder"}
+
+
+class ReaderLanguageAttributes(HTMLParser):
+    """Check language metadata and reader attributes without rewriting source."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.errors: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        for name, value in attrs:
+            if name in {"lang", "xml:lang"} and not re.fullmatch(
+                    r"en(?:-[a-z0-9]+)*", value or "", re.I):
+                self.errors.append(f"<{tag}> has non-English {name}={value!r}")
+            if name in READER_TEXT_ATTRIBUTES and value and base.CJK_RE.search(value):
+                self.errors.append(f"<{tag}> has non-English/CJK {name}={value[:100]!r}")
+
+
+def public_language_errors(text: str) -> list[str]:
+    tags = re.sub(r"<!--.*?-->|<(script|style)\b[^>]*>.*?</\1>", "", text, flags=re.S | re.I)
+    root = re.search(r"<html(?=\s|>)[^>]*>", tags, re.I)
+    errors: list[str] = []
+    if not root or not re.search(r"""\slang\s*=\s*(?:"en(?:-[a-z0-9]+)*"|'en(?:-[a-z0-9]+)*'|en(?:-[a-z0-9]+)*(?=\s|>))""",
+                                 root[0], re.I):
+        errors.append("public document must declare English with <html lang=\"en\">")
+    # Most pages have only the root lang and no CJK/encoded attribute text.
+    # Parse only candidates so the whole-site gate stays inexpensive.
+    if (re.search(r"<[^>]+\s(?:lang|xml:lang)\s*=", tags[(root.end() if root else 0):], re.I)
+            or re.search(r"<[^>]*(?:" + base.CJK_RE.pattern + r"|&#)[^>]*>", tags)):
+        parser = ReaderLanguageAttributes()
+        parser.feed(tags)
+        parser.close()
+        errors.extend(parser.errors)
+    return errors
 
 
 def _write_diagnostic(message: str) -> None:
@@ -58,7 +95,7 @@ def _proof_supplements() -> dict[str, dict[str, Any]]:
 
 
 def validate_page(path: Path, text: str) -> list[str]:
-    errors: list[str] = []
+    errors = [f"{path}: {error}" for error in public_language_errors(text)]
     visible = base.visible_text(text)
     cjk = base.CJK_RE.search(visible)
     if cjk:

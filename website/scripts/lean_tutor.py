@@ -19,6 +19,8 @@ import os
 import re
 from pathlib import Path
 
+from math_first_reader import CJK_RE
+
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = ROOT / "_site"
@@ -36,17 +38,16 @@ def studio_html() -> str:
 <section class="lean-learning-studio" data-lean-studio>
   <header>
     <div>
-      <span class="studio-kicker">Lean learning studio · 数学证明 → 形式化证明</span>
+      <span class="studio-kicker">Lean learning studio · mathematics → formal proof</span>
       <h2>Read the mathematics first, then descend into Lean</h2>
       <p>You do not need to know Lean before opening this panel. The page keeps the paper-level theorem, rigorous proof obligations, exact Lean declaration, and proof dependencies as separate layers so a first-time reader can move down one layer at a time.</p>
     </div>
-    <button class="lean-language-toggle" type="button" data-lean-language-toggle>中文讲解</button>
   </header>
 
   <div class="reading-mode-strip" role="group" aria-label="Reading depth">
-    <button class="mode-button active" type="button" data-reading-mode="beginner" aria-pressed="true">Beginner · 本科入门</button>
-    <button class="mode-button" type="button" data-reading-mode="rigorous" aria-pressed="false">Rigorous · 严格证明</button>
-    <button class="mode-button" type="button" data-reading-mode="lean" aria-pressed="false">Lean learner · 学 Lean</button>
+    <button class="mode-button active" type="button" data-reading-mode="beginner" aria-pressed="true">Beginner</button>
+    <button class="mode-button" type="button" data-reading-mode="rigorous" aria-pressed="false">Rigorous</button>
+    <button class="mode-button" type="button" data-reading-mode="lean" aria-pressed="false">Lean learner</button>
   </div>
   <div class="mode-explanation">
     <div><strong>Beginner</strong><span>Why this theorem exists → intuition → statement → one hand calculation. Hide proof-engineering detail.</span></div>
@@ -60,8 +61,8 @@ def studio_html() -> str:
       <p class="lean-studio-intro">Start with the tree when learning: prerequisites sit below the theorem and downstream results sit above it. Switch to the network when you want to understand where this declaration lives in the local formal library. Every mapped node is clickable.</p>
       <div class="graph-toolbar">
         <div class="graph-mode-strip" role="group" aria-label="Lean graph mode">
-          <button class="graph-mode-button active" type="button" data-graph-mode="tree" aria-pressed="true">Proof tree · 证明树</button>
-          <button class="graph-mode-button" type="button" data-graph-mode="network" aria-pressed="false">Dependency network · 依赖网</button>
+          <button class="graph-mode-button active" type="button" data-graph-mode="tree" aria-pressed="true">Proof tree</button>
+          <button class="graph-mode-button" type="button" data-graph-mode="network" aria-pressed="false">Dependency network</button>
         </div>
         <div class="lean-graph-stats" data-lean-graph-stats></div>
       </div>
@@ -184,8 +185,11 @@ def validate_site(output: Path = DEFAULT_OUTPUT) -> list[str]:
         "module-lean-tutor.js",
         "module-lean-tutor.css",
     ):
-        if not (output / "assets" / asset).exists():
+        path = output / "assets" / asset
+        if not path.exists():
             errors.append(f"generated assets/{asset} is missing")
+        elif asset.endswith(".js") and CJK_RE.search(path.read_text(encoding="utf-8")):
+            errors.append(f"assets/{asset}: Lean tutor explanations must be English")
 
     eligible = 0
     for path in dedicated_pages(output):

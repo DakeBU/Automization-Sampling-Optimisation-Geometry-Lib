@@ -14,6 +14,56 @@ ROOT=Path(__file__).resolve().parents[2]
 HUB='benchmarks/samplingoptimisationgeometrybench/'
 
 
+def check_english_readers(browser, base, root):
+    """Exercise client-rendered explanations with a non-English browser."""
+    context = browser.new_context(locale='zh-CN')
+    context.add_init_script('localStorage.setItem("samplinglib-lean-language", "zh")')
+    context.route('**/*', lambda route: route.continue_()
+                  if route.request.url.startswith((base, 'data:')) else route.abort())
+    page = context.new_page()
+    errors = []
+    page.on('pageerror', lambda error: errors.append(str(error)))
+
+    def assert_english(locator):
+        assert locator.evaluate(r"""node => !/[\u3400-\u9fff]/u.test(
+            node.textContent + Array.from(node.querySelectorAll('[title], [aria-label]'),
+                n => n.getAttribute('title') + ' ' + n.getAttribute('aria-label')).join(' ')
+        )""")
+
+    try:
+        assert page.goto(base + 'maintenance.html').ok
+        assert page.get_by_role('heading', name='Public reader standard').is_visible()
+        assert 'sampling, optimisation, and geometry' in page.locator('main').inner_text()
+        assert page.locator('html').get_attribute('lang') == 'en'
+
+        for folder, marker in (('theorems', 'data-lean-studio'),
+                               ('modules', 'class="declaration"')):
+            path = next(path for path in sorted((root / folder).glob('*.html'))
+                        if marker in path.read_text(encoding='utf-8'))
+            assert page.goto(base + path.relative_to(root).as_posix()).ok
+            if folder == 'theorems':
+                studio = page.locator('[data-lean-studio]')
+                studio.locator('.lean-line-natural').first.wait_for(state='attached')
+                assert studio.locator('[data-lean-language-toggle]').count() == 0
+                for panel in ('header', '[data-lean-glossary]', '.lean-line-natural'):
+                    for node in studio.locator(panel).all():
+                        assert_english(node)
+            else:
+                declaration = page.locator('details.declaration').first
+                declaration.locator('summary').first.click()
+                tutor = declaration.locator('[data-module-lean-tutor]')
+                tutor.locator('summary').click()
+                assert tutor.get_by_text('Read the mathematics first.', exact=True).is_visible()
+                assert_english(
+                    tutor.locator('.module-tutor-route, .lean-syntax-glossary').first)
+                assert_english(tutor.locator('.lean-syntax-glossary'))
+                for node in tutor.locator('.lean-line-natural').all():
+                    assert_english(node)
+        assert not errors, errors
+    finally:
+        context.close()
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root',type=Path,default=ROOT/'_site')
@@ -38,6 +88,7 @@ def main():
             for rel,label in routes:
                 page.set_viewport_size({'width':1440,'height':1000})
                 assert page.goto(base+rel).status==200
+                assert 'Sampling · Optimisation · Geometry' in page.locator('#site-sidebar').inner_text()
                 assert page.locator('.sidebar-graphs a').count()==2
                 assert page.locator('.sidebar-benches [data-bench-collection]').count()==3
                 assert page.locator('.library-source-hubs > a').count()==7
@@ -97,9 +148,11 @@ def main():
             assert copied.replace('\r\n','\n')==expected.replace('\r\n','\n')
             assert json.loads(copied)==json.loads(expected)
             assert 'steps' not in json.loads(expected) and 'lean_reference' not in json.loads(expected)
+            check_english_readers(browser, base, args.root)
             assert not errors,errors
             report.update({'peer_shelves':True,'graph_doors_visible':True,'visual_doors':True,'progressive_task_lists':True,
-                           'prompt_only_copy':True,'agentic_lean_gap_explicit':True,'mobile_overflow':False})
+                           'prompt_only_copy':True,'agentic_lean_gap_explicit':True,'mobile_overflow':False,
+                           'english_maintainer_and_tutors':True})
             (args.evidence/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
             print(json.dumps(report))
             browser.close()

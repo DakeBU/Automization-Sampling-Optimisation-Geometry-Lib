@@ -6,6 +6,23 @@ Statistical Optimal Transport, Discrete Sampling, Lower Bounds, and MCMC.
 The active Goal lives in the current human chat; this file is its durable
 handoff, not a parallel scheduler. Preserve unrelated frontiers and collaborator files.
 
+## Continuation checkpoint (2026-11-17)
+
+Use current catalog/review/compiler receipts, not the historical counts and
+open-item lists below. The stopped-work pair's release is tracked in PR433;
+exact-head integration and deployment are separate from its earlier native
+candidate and semantic acceptance. The next evaluation increment records a
+small paired graph-access experiment under
+`runs/20261117-bench-local-graph-first`: two public families, fresh conditions,
+pinned local model, unedited outputs and replayable accounting. All four
+outputs violate the action format; neither condition makes a valid graph
+lookup or final. This is a protocol diagnostic, not mathematical calibration.
+Do not retry that unchanged small-model protocol or repair its archived outputs
+to obtain a success. A stronger model or structured-output condition requires a
+new frozen selection. Source/exercise depth, human grading, broader actual-model
+evaluation and genuinely private families remain required; no Bench experiment
+advances the paper frontiers or Registry.
+
 Lower Bounds was added to the Goal on 2026-11-10. Seven-domain references in
 the historical checkpoints below predate this addition. Use the cross-library
 [Lower Bounds research route](../../docs/lower-bounds-reader.md), preserving

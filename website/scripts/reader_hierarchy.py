@@ -123,6 +123,24 @@ def enrich_site(output: Path) -> None:
 
 def validate_site(output: Path) -> list[str]:
     errors = []
+    homepage = output / 'index.html'
+    if homepage.is_file():
+        main = homepage.read_text(encoding='utf-8')
+        for marker in (
+            '<h1>Sampling, Optimisation &amp; Geometry</h1>',
+            'what a new method actually contributes',
+            'Non-agentic mathematical QA',
+            'Agentic Lean-assisted QA',
+            'natural-language/index.html',
+            'lean/index.html',
+            'training/index.html',
+            'evaluation/index.html',
+            'not an unseen test set or a measured model leaderboard',
+        ):
+            if marker not in main:
+                errors.append('Homepage research/QA purpose missing: ' + marker)
+        if 'Learn the mathematics.<br>Explore the proofs.' in main:
+            errors.append('Obsolete generic homepage headline was restored')
     for rel in ('index.html', 'lean-foundations.html', 'textbook/index.html', bench_portals.HUB+'index.html',
                 *(bench_portals.HUB+c['id']+'/index.html' for c in bench_portals.configuration()['collections'])):
         path = output / rel

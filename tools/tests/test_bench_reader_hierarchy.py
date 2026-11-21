@@ -49,6 +49,34 @@ class BenchReaderHierarchyTests(unittest.TestCase):
         self.assertIn('view=functor', text)
         self.assertNotIn('<table', text)
 
+    def test_home_explains_research_purpose_and_two_distinct_qa_modes(self):
+        text = reader_hierarchy.home()
+        self.assertIn('<h1>Sampling, Optimisation &amp; Geometry</h1>', text)
+        self.assertIn('new mathematical techniques', text)
+        self.assertIn('what a new method actually contributes', text)
+        self.assertIn('formal proof edges', text)
+        self.assertIn('Non-agentic mathematical QA', text)
+        self.assertIn('Agentic Lean-assisted QA', text)
+        self.assertIn('natural-language/index.html', text)
+        self.assertIn('lean/index.html', text)
+        self.assertIn('training/index.html', text)
+        self.assertIn('evaluation/index.html', text)
+        self.assertIn('experimental', text)
+        self.assertIn('not an unseen test set or a measured model leaderboard', text)
+        self.assertNotIn('Learn the mathematics.<br>Explore the proofs.', text)
+
+    def test_bench_hub_is_for_training_and_evaluation_not_a_score_claim(self):
+        text = bench_portals.home([], [])
+        self.assertIn('Train and evaluate models specialising', text)
+        self.assertIn('Non-agentic mathematical QA', text)
+        self.assertIn('Agentic Lean-assisted QA', text)
+        self.assertIn('natural-language/index.html', text)
+        self.assertIn('lean/index.html', text)
+        self.assertIn('graph-json/index.html', text)
+        self.assertIn('not a hosted arbitrary-submission evaluator', text)
+        self.assertIn('no unseen test set or measured specialist-model ranking', text)
+        self.assertEqual(text.count('class="sog-portal-card"'), 3)
+
     def test_collection_list_preserves_real_task_ids_and_supports_progressive_loading(self):
         core={'id':'sogb-fixture', 'title':'A source-backed task', 'family':'one-family',
               'library_domains':['optimisation'], 'track_levels':{'natural-language':'L3'}}

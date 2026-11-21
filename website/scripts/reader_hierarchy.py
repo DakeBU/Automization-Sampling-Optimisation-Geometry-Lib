@@ -54,21 +54,53 @@ def sidebar(text: str, rel: str) -> str:
 
 def home() -> str:
     cards = [
-        ('Lean Graph', 'Locate the formal results and their checked structure.', 'lean-foundations.html?view=lean', 'lean'),
-        ('Functor Hypergraph', 'Compare recurring proof mechanisms and their boundaries.', 'lean-foundations.html?view=functor', 'functor'),
-        ('Libraries', 'Read the mathematics across seven connected subjects.', 'libraries/index.html', 'libraries'),
-        ('Benchmarks', 'Mathematical tasks, proof evidence and evaluation tools.', bench_portals.HUB+'index.html', 'bench'),
+        ('Research libraries',
+         'Explore seven connected textbook and research routes, including SampleWiki.',
+         'libraries/index.html', 'libraries'),
+        ('Lean proof graph',
+         'Trace locally checked statements, hypotheses, and actual proof dependencies.',
+         'lean-foundations.html?view=lean', 'lean'),
+        ('Functor Hypergraph',
+         'Compare mathematical techniques across fields, with explicit assumption and failure maps.',
+         'lean-foundations.html?view=functor', 'functor'),
+        ('Domain QA Bench',
+         'Train and evaluate specialist reasoning with non-agentic QA and agentic Lean-assisted tasks.',
+         bench_portals.HUB+'index.html', 'bench'),
     ]
-    return ('<section class="reader-home" data-reader-home><p class="eyebrow">Samplinglib</p>'
-            '<h1>Learn the mathematics.<br>Explore the proofs.</h1>'
-            '<p class="lede">Sampling, optimisation and geometry — connected by formal mathematics.</p>'
-            '<div class="reader-home-grid" data-sog-bench-entry>'
-            + ''.join(bench_portals.card(*row) for row in cards) + '</div>'
-            '<p class="reader-home-note">Read by subject: '
-            + ' · '.join(lower_bounds.link(p, label, page="index.html") for p, label in subject_readers.SUBJECTS) + '</p>'
-            '<p class="reader-home-note">Early formalisation. Inspect the evidence for each result. <a href="progress/index.html">Current progress →</a></p>'
-            '<p class="sog-caption">Navigation sketches are illustrative; graph views distinguish formal edges from conceptual overlays.</p></section>')
-
+    cards_html = ''.join(bench_portals.card(*row) for row in cards)
+    subject_links = ' · '.join(
+        lower_bounds.link(p, label, page="index.html")
+        for p, label in subject_readers.SUBJECTS
+    )
+    bench = bench_portals.HUB
+    return f'''<section class="reader-home" data-reader-home>
+      <p class="eyebrow">Samplinglib · research platform</p>
+      <h1>Sampling, Optimisation &amp; Geometry</h1>
+      <p class="lede">Understand new mathematical techniques through their proofs, assumptions, and connections.</p>
+      <p class="reader-home-purpose">Samplinglib connects textbook foundations and frontier papers to source-aligned explanations, Lean-checked results where available, and navigable proof graphs. Researchers can inspect what a new method actually contributes, identify reusable ingredients, and see where hypotheses or verification still limit an argument.</p>
+      <div class="reader-home-grid" data-sog-bench-entry>{cards_html}</div>
+      <section class="reader-home-bench" aria-labelledby="reader-home-bench-title">
+        <p class="eyebrow">Sampling-Optimisation-Geometry-Bench</p>
+        <h2 id="reader-home-bench-title">QA Bench for training and evaluating domain-specific models</h2>
+        <p>One source-grounded curriculum spans sampling, optimisation, geometry and their connected subjects. It distinguishes two different kinds of mathematical QA:</p>
+        <div class="reader-home-qa-grid">
+          <a href="{bench}natural-language/index.html">
+            <strong>Non-agentic mathematical QA</strong>
+            <span>Answer questions, derive formulas, and explain proofs without interactive tools. Reviewed solutions and rubrics support specialist-model development and mathematical assessment.</span>
+            <small>Explore natural-language QA →</small>
+          </a>
+          <a href="{bench}lean/index.html">
+            <strong>Agentic Lean-assisted QA</strong>
+            <span>Work toward fixed formal proof targets using Lean and compiler feedback. This tests tool-assisted proof construction rather than text-only answers; the isolated Lean environment remains experimental.</span>
+            <small>Explore Lean-assisted QA →</small>
+          </a>
+        </div>
+        <p class="reader-home-bench-note"><a href="{bench}training/index.html">Training resources</a> · <a href="{bench}evaluation/index.html">Evaluation protocols</a> · <a href="{bench}graph-json/index.html">Separate graph QA</a>. This is a public-development curriculum, not an unseen test set or a measured model leaderboard.</p>
+      </section>
+      <p class="reader-home-note">Read by subject: {subject_links}</p>
+      <p class="reader-home-note">Formalisation is ongoing; only locally verified results receive formal proof edges. <a href="progress/index.html">Current progress →</a></p>
+      <p class="sog-caption">Navigation sketches are illustrative; the graph views distinguish formal dependencies from conceptual connections.</p>
+    </section>'''
 
 def enrich_site(output: Path) -> None:
     for name in ('reader-hierarchy.css', 'sog-navigation.js'):
@@ -91,6 +123,24 @@ def enrich_site(output: Path) -> None:
 
 def validate_site(output: Path) -> list[str]:
     errors = []
+    homepage = output / 'index.html'
+    if homepage.is_file():
+        main = homepage.read_text(encoding='utf-8')
+        for marker in (
+            '<h1>Sampling, Optimisation &amp; Geometry</h1>',
+            'what a new method actually contributes',
+            'Non-agentic mathematical QA',
+            'Agentic Lean-assisted QA',
+            'natural-language/index.html',
+            'lean/index.html',
+            'training/index.html',
+            'evaluation/index.html',
+            'not an unseen test set or a measured model leaderboard',
+        ):
+            if marker not in main:
+                errors.append('Homepage research/QA purpose missing: ' + marker)
+        if 'Learn the mathematics.<br>Explore the proofs.' in main:
+            errors.append('Obsolete generic homepage headline was restored')
     for rel in ('index.html', 'lean-foundations.html', 'textbook/index.html', bench_portals.HUB+'index.html',
                 *(bench_portals.HUB+c['id']+'/index.html' for c in bench_portals.configuration()['collections'])):
         path = output / rel

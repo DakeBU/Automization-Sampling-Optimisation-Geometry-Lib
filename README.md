@@ -1,8 +1,10 @@
 <div align="center">
 
-# An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry
+# Samplinglib
 
-**Samplinglib:** Verified Sampling, Optimisation, Geometry Theory in Lean
+**Sampling, Optimisation & Geometry — a research platform grounded in formal mathematics**
+
+*An Automated Theorem Proving System and Visualized Lean Library for Sampling Theory, Optimisation and Geometry*
 
 [![Samplinglib](https://img.shields.io/badge/Samplinglib-formal_knowledge_graph-155EEF?style=flat-square)](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/)
 [![Lean 4](https://img.shields.io/badge/Lean-4-6B4FBB?style=flat-square)](https://lean-lang.org/)
@@ -11,6 +13,7 @@
 [**Home**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/)
 · [**Technical report**](https://openreview.net/forum?id=UkKpNtVED2)
 · [**Libraries**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/libraries/)
+· [**Domain QA Bench**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/)
 · [**Research Resources**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/resources/)
 · [**Current Progress**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/progress/)
 · [**Underlying Lean Graph**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/underlying-lean-graph/)
@@ -18,7 +21,9 @@
 
 </div>
 
-ASTIS builds **Samplinglib**: natural-language mathematics, source anchors, Lean declarations, and theorem dependencies for sampling, optimisation, and geometry in one inspectable graph. Primary sources, official supplements, background textbooks, and formal upstream libraries have different roles and are recorded separately; frontier papers are inserted into the same graph so that their actual mathematical contribution can be compared, verified, and reused.
+**Samplinglib is a researcher-facing platform for Sampling, Optimisation and Geometry**, not just a collection of Lean files. It connects textbook foundations and frontier papers to readable mathematical arguments, explicit assumptions, Lean-checked declarations where available, and navigable proof graphs. Researchers can understand how a new method works, compare its proof ingredients with previous techniques, locate genuinely reusable mathematical structure, and see which claims remain unverified. Formal dependencies and conceptual analogies are shown separately.
+
+The accompanying **[Sampling–Optimisation–Geometry QA Bench](benchmarks/samplingoptimisationgeometrybench/)** develops training and evaluation tasks for **domain-specific mathematical models**: non-agentic mathematical QA, agentic Lean-assisted proof tasks, and separately scoped structural graph QA. Its current data is public development material, not a held-out model leaderboard.
 
 ## Technical report
 
@@ -57,11 +62,17 @@ The next research layer uses the Lean graph and Functor Hypergraph for **cross-p
 - **2026-08-29:** Added source-fidelity checks and theorem denoising.
 - **2026-07-17:** Established Auto-Sampling-Theory-In-Sleep.
 
-## SamplingOptimisationGeometryBench
+## Sampling–Optimisation–Geometry QA Bench
 
-[**Dataset, tasks and usage**](benchmarks/samplingoptimisationgeometrybench/) · [**Website reader**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/)
+**Goal:** develop a source-grounded curriculum for **training and evaluating AI models specialised in sampling, optimisation and geometry**, not simply an online list of mathematics exercises.
 
-A public development curriculum for domain knowledge and reasoning across seven subject routes, with provisional L1–L5 levels, natural-language QA, aligned Lean QA where available, and source-hashed structural graph questions. Formula solutions, rubrics, source bindings, folded Lean and coverage gaps come from one catalog. Public development is not held-out evaluation; independent semantic review and empirical calibration remain pending. Commands and the continuing Goal are in the dataset guide. No new theorem or paper-completion credit is claimed.
+- **[Non-agentic mathematical QA](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/natural-language/):** assess domain knowledge, assumptions, derivations, and proof explanations without interactive tools. Reviewed original answers and mathematical rubrics can be used for training and human-assessed evaluation.
+- **[Agentic Lean-assisted QA](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/lean/):** assess whether an agent can work toward an exact formal proof target using Lean and compiler feedback, rather than merely produce plausible natural-language text. The isolated fixed-target Lean environment is experimental; it is not a general hosted proof-evaluation service.
+- **[Structured graph QA](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/graph-json/):** separately test knowledge of source-bound proof relationships and formal graph structure without confusing conceptual links with Lean dependencies.
+
+One versioned catalog spans **eight domains** (including Lower Bounds), with overlapping [SamplingBench](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/sampling/), [OptimisationBench](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/optimisation/) and [GeometryBench](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/geometry/) views. Tasks carry provisional, track-specific L1–L5 difficulty, source and family identity, rubric, verification scope, and explicit gaps. **Public-development data is not an unseen test set; published answers must be kept out of evaluation prompts.** There is no claimed measured model leaderboard or complete agentic Lean execution service.
+
+[**Explore tasks and usage**](benchmarks/samplingoptimisationgeometrybench/) · [**Training resources**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/training/) · [**Evaluation protocol**](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/evaluation/) · [**Current Goal and readiness**](benchmarks/samplingoptimisationgeometrybench/GOAL.md).
 
 ## Research aim
 

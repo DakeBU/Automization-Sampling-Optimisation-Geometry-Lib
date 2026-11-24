@@ -1,6 +1,12 @@
 # Sampling-Optimisation-Geometry-Bench
 
-**Natural-language QA**, aligned **Lean-assisted QA** where available, and separate **structured graph QA** for sampling, optimisation and geometry. This is a **public development curriculum**, not a leaderboard or a held-out test set.
+**Purpose:** train and evaluate **domain-specific mathematical AI models** for sampling, optimisation, geometry and related areas, using one source-grounded public development curriculum.
+
+- **Non-agentic mathematical QA:** solve mathematical questions and explain formulas, assumptions and proofs without interactive tools. Reviewed original answers and rubrics support explicit model training and mathematical assessment.
+- **Agentic Lean-assisted QA:** solve fixed formal proof targets with Lean and compiler feedback, measuring interactive proof construction rather than text-only plausibility. The isolated fixed-target environment is experimental; no hosted arbitrary-submission evaluator or model leaderboard is claimed.
+- **Structured graph QA:** separately test source-bound formal/structural proof relationships, with explicit graph-evidence boundaries.
+
+The curriculum covers **eight domains** with three overlapping public subject collections. Public-development questions and reference solutions are not a held-out evaluation set; keep reference answers out of closed-book/model prompts, and distinguish actual model runs from software fixtures.
 
 [Website](https://dakebu.github.io/Automization-Sampling-Optimisation-Geometry-Lib/benchmarks/samplingoptimisationgeometrybench/) · [Continuing Goal and admission order](GOAL.md) · [Machine-readable curriculum](curriculum.json)
 

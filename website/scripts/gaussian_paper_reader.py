@@ -151,7 +151,7 @@ def render(row, source, comparison, prose):
             + ' to try sampling proof tasks. A benchmark task is not a proof certificate.</p></div></div>'
             + '<details class="gp-methods"><summary>How Samplinglib checks meaning and maps related proofs</summary>'
             + '<p><strong>Encoder–denoiser.</strong> Encode the paper statement in Lean; have a reader who has not seen the source reconstruct the mathematics. Compare the assumptions, quantifiers and conclusion. Here, changing a cap on every run to an expected budget would change the theorem. '
-            + link(REPO + "/blob/main/docs/theorem-publication-protocol.md", "Read the publication protocol") + '.</p>'
+            + link(blob + "docs/theorem-publication-protocol.md", "Read the publication protocol") + '.</p>'
             + '<p><strong>Two graph views.</strong> Locate ' + link(SITE + "lean-foundations.html?view=lean&focus=decl:AutoSamplingTheory.ExampleCases.GaussianComplexity.ActualTotalVariation.actual_radial_test_tv", "the radial test in the Lean graph")
             + ' to trace a concrete library result. The ' + link(SITE + "lean-foundations.html?view=functor", "Functor Hypergraph")
             + ' compares mechanisms: both proofs exploit symmetry left over after a query, but that alone does not make their lemmas interchangeable.</p>'

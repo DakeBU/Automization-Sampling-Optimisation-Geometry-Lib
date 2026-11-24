@@ -13,6 +13,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 import astis_site
+import gaussian_paper_reader
 import source_lineage
 import samplewiki_navigation
 from samplewiki_reader_contract import formula_html, href_from
@@ -353,7 +354,7 @@ def comparison_html(row):
         parents[edge["consumer"]].append(labels[edge["parent"]])
     nodes = "".join(
         f'<li id="source-{escape(node["id"])}"><h4>{escape(node["label"])}</h4>'
-        f'<p>Source: {escape(node["anchor"])}. Lean: open.</p>'
+        f'<p>Source: {escape(node["anchor"])}.</p>'
         f'<p>Source inputs: {escape("; ".join(parents[node["id"]]) or "source definition or background obligation")}</p></li>'
         for node in outline["nodes"]
     )
@@ -370,12 +371,12 @@ def nav(rel):
     return f'<nav class="reader-breadcrumb"><a href="{href_from(rel, samplewiki_navigation.PAPER_HOME)}">SampleWiki</a></nav>'
 
 
-def write(output, rel, title, body):
+def write(output, rel, title, body, *, description=None):
     styles = "".join(f'<link rel="stylesheet" href="{href_from(rel, "assets/" + name)}">'
                      for name in ("samplewiki-math-reader.css", "samplewiki-companions.css", samplewiki_navigation.STYLE_NAME))
     styles += f'<script defer src="{href_from(rel, "assets/" + samplewiki_navigation.SCRIPT_NAME)}"></script>'
     page = astis_site.page(title, rel, '<article class="companion-reader">' + nav(rel) + body + '</article>',
-                           active="SampleWiki", description=title + "; source-pinned proof route, local Lean work open.", extra_head=styles)
+                           active="SampleWiki", description=description or title + "; source-pinned proof route, local Lean work open.", extra_head=styles)
     page = source_lineage.canonical_shell(page, rel, output)
     page = samplewiki_navigation.inject_paper_directory(page, rel)
     if rel == HOME:
@@ -486,6 +487,12 @@ def enrich_site(output):
     (assets / 'samplewiki-proof-delta.svg').write_text(proof_delta_svg(delta_model), encoding='utf-8')
     rows = [*m["cases"], m["composition"]]
     for row in rows:
+        if row['id'] == gaussian_paper_reader.CASE:
+            source = m['sources'][row['source_ids'][0]]
+            body = gaussian_paper_reader.render(row, source, comparison_html(row), reader_prose)
+            write(output, BASE + row['slug'] + '.html', source['title'], body,
+                  description=row['reader_summary'])
+            continue
         body = (f'<header class="paper-reader-header"><h1>{escape(row.get("reader_label", row["title"]))}</h1>'
                 f'<p class="paper-subtitle">{escape(row.get("reader_summary", row["role"]))}</p>'
                 '<p class="companion-status">Main paper results remain open in Lean. Verified building blocks are listed separately below.</p></header>')
@@ -635,6 +642,9 @@ def validate_site(output):
     for row in [*m['cases'], m['composition']]:
         path = output / (BASE + row['slug'] + '.html')
         text = path.read_text(encoding='utf-8') if path.exists() else ''
+        if row['id'] == gaussian_paper_reader.CASE:
+            errors.extend(gaussian_paper_reader.check(text, row))
+            continue
         expected_step_folds = 0
         for t in row['theorems']:
             expected_step_folds += sum(1 for s in t['steps'] if not s.get('compiled_support'))

@@ -9,12 +9,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT/'tools'), str(ROOT/'website/scripts')]
 import samplewiki_companions as companion
+import gaussian_paper_reader as gaussian
 import research_workspace
 import cross_domain
 from underlying_lean_graph_model import GraphBuilder
 
 
 class CompanionTests(unittest.TestCase):
+    def test_public_gaussian_replay_is_not_a_main_branch_badge(self):
+        model = companion.load()
+        row = next(r for r in model["cases"] if r["id"] == gaussian.CASE)
+        rendered = gaussian.render(row, model["sources"][row["source_ids"][0]],
+                                   companion.comparison_html(row), companion.reader_prose)
+        self.assertEqual(gaussian.check(rendered, row), [])
+        self.assertEqual(rendered.count("<h1>"), 1)
+        self.assertNotIn("<details open", rendered)
+        self.assertIn("not a main-branch release", rendered)
+        self.assertIn("Remark 4.8 is an open question", rendered)
+        self.assertIn("GCFinishBoundary.lean", rendered)
+        self.assertEqual(row["status"], "planned")
+        for theorem in row["theorems"]:
+            self.assertIn(f'id="{theorem["id"]}"', rendered)
+            self.assertIn(f'id="{theorem["id"]}-proof"', rendered)
+        # Keep existing graph, workspace and publication deep links working.
+        for node in row["source_graph"]["nodes"]:
+            self.assertEqual(rendered.count(f'id="source-{node["id"]}"'), 1)
+
     def test_renyi_definition_is_one_complete_inline_formula(self):
         note = next(x for x in companion.load()['setting']['notes'] if 'R_2(P||Q)' in x)
         rendered = companion.reader_prose(note)

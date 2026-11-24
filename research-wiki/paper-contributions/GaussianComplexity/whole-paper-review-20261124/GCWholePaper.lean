@@ -1,0 +1,110 @@
+import HaarConditional
+import GC13KnownMinimum
+import GC47Dimension
+import GC47FullGram
+import GC44Uniform
+import GC41Power
+import GC12Overlap
+import GC42Comparison
+import GC44Nyquist
+import GCFinishGram
+import GCFinishAccuracy
+import GCFinishDirectionSpan
+import GC3ConditionalDistribution
+import GC3DeterminedWitness
+import GCCTaggedUnit
+import GCCAmbientRevelation
+import GCCHaarImage
+import GCCActualRestriction
+import GCCCompletionEndpoints
+import GCCRotatedPreimageWitness
+import GCCExactUpdate
+import GCCRestrictionLaw
+import GCCIntrinsicSupport
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SphericalPoisson
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.BlockFamily
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.DeterminantCancellation
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.SingleBlockSeparation
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineExpansion
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumCosineGram
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumExactMeans
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumVariances
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumBias
+import AutoSamplingTheory.ExampleCases.GaussianComplexity.FixedSpectrumAdmissibility
+
+/-! Source index for the original mathematical results of Zhou and Suzuki,
+*On Complexity of Gaussian Sampling*, arXiv:2610.20492v1.
+Each command reports the named declaration's transitive axioms. -/
+
+namespace AutoSamplingTheory.ExampleCases.GaussianComplexity
+
+-- Theorems 1.1 and 1.2 are the informal versions of 3.1 and 4.1.
+#print axioms FirstOrderIndistinguishability.gaussian_query_complexity_lower_bound_real
+#print axioms HiddenEigenbasis.gaussian_query_lower_bound_with_disclosed_spectrum
+#print axioms HiddenEigenbasis.gaussian_query_lower_bound_real
+#print axioms LogConcaveSubclass.known_min_query_bound
+#print axioms LogConcaveSubclass.known_min_query_bound_general_condition
+#print axioms RateComparison.polynomial_condition_matching
+#print axioms RateComparison.polynomial_accuracy_matching
+#print axioms RateComparison.saturated_rate
+#print axioms RateComparison.gaussian_complexity_overlap
+#print axioms RateComparison.hidden_spectrum_upper_rate
+#print axioms RateComparison.boundary_rate_below_every_linear_constant
+
+-- Sections 3 and 4.
+#print axioms FirstOrderIndistinguishability.averaged_first_order_indistinguishability
+#print axioms FirstOrderIndistinguishability.averaged_target_separation
+#print axioms DeterminantFamily.blockPrecision_regular
+#print axioms DeterminantFamily.blockPrecision_unique_minimizer
+#print axioms FixedSpectrumAffine.actual_affine_precision_query
+#print axioms FixedSpectrumFirstOrder.actual_first_order_query
+#print axioms FixedSpectrumCoupling.actual_output_representation
+#print axioms FixedSpectrumKrylov.uniform_bound_independent_gaussian_starts
+#print axioms FixedSpectrumExactMeans.actual_diagonal_gaussian_exact_means
+#print axioms FixedSpectrumVariances.actual_diagonal_gaussian_quadratic_variances
+#print axioms FixedSpectrumBias.actual_diagonal_gaussian_exponential_bias
+#print axioms FixedSpectrumAdmissibility.actual_precision_admissible
+#print axioms FixedSpectrumRotation.eventual_rotated_target_power
+#print axioms FixedSpectrumKrylov.dimension_of_independent_gaussian_starts
+#print axioms FixedSpectrumKrylov.saturated_cosine_obstruction
+#print axioms FixedSpectrumKrylov.endpoint_full_span_zero_statistic
+#print axioms FixedSpectrumTargetEvent.accuracy_certificate_query_ceiling
+
+-- Appendices A and B.
+#print axioms SphericalPoisson.spherical_poisson_moments
+#print axioms HaarConditional.component_conditional_law
+#print axioms AdaptivePosterior.adaptive_posterior_factorization
+#print axioms AdaptivePosterior.conditional_distribution_of_raw_residual
+#print axioms DeterminedHistoryWitness.two_requests_one_exposure
+#print axioms HaarPosterior.padded_transcript_indistinguishability
+#print axioms DeterminantCancellation.signed_sqrt_det_integral
+#print axioms SingleBlockSeparation.single_block_separation
+
+-- Appendix C.
+#print axioms HaarRevelation.measurable_two_subspace_frames
+#print axioms HaarRevelation.TaggedState.unit_revelation
+#print axioms HaarRevelation.actual_unit_revelation
+#print axioms MeasurableFrames.measurable_frames_all_ranks
+#print axioms HaarRevelation.completion_eq_of_observation
+#print axioms HaarRevelation.measurable_intrinsicCompletion
+#print axioms HaarRevelation.IntrinsicState.auxiliary
+#print axioms HaarRevelation.IntrinsicState.reveal
+#print axioms HaarRevelation.IntrinsicState.exact_update
+#print axioms HaarRevelation.intrinsicState_iff_restriction_law
+#print axioms HaarRevelation.IntrinsicState.exists_taggedState
+#print axioms HaarRevelation.completion_zero_pair
+#print axioms HaarRevelation.completion_identity_projector
+#print axioms HaarRevelation.TaggedState.auxiliary
+#print axioms HaarRevelation.TaggedState.reveal_ambient
+#print axioms HaarRevelation.TaggedState.actual_perpendicular_restriction
+#print axioms HaarRevelation.TaggedState.physical_image_uniform
+#print axioms HaarRevelation.TaggedState.physical_preimage_uniform
+#print axioms RotatedPreimageWitness.opposite_directions_half
+#print axioms FixedSpectrumCoupling.gaussianize_uniform_complement
+#print axioms FixedSpectrumKrylov.range_feature
+#print axioms FixedSpectrumCosineGram.actual_cosine_frame_gram
+#print axioms FixedSpectrumKrylov.independent_start_gram_means
+#print axioms FixedSpectrumKrylov.gram_concentration_independent_starts
+#print axioms FixedSpectrumCosineExpansion.actual_inverse_spectrum_cosine_expansion
+
+end AutoSamplingTheory.ExampleCases.GaussianComplexity

@@ -36,6 +36,16 @@ their exact source anchors. The generated reader begins at
 `example-cases/samplewiki/companions/index.html`.
 
 Add or update a theorem contract in the companion model, not in generated HTML.
+The Gaussian Sampling Complexity reader uses that model for the paper, formulas,
+step anchors and library placements. Its two adjacent Lean quotations are from
+Huanjian Zhou's public review revision, not from the local declaration registry.
+To refresh them, update `website/content/gaussian_paper_replay.json` from the
+reviewed Git tree: match each excerpt and starting line to `git show REV:PATH`,
+check all step-source paths, and inspect the new whole-paper manifest and scope
+notes. Do not promote graph edges or library badges by changing this citation.
+Run `python -m unittest discover -s tools/tests -p test_samplewiki_companions.py`
+and the normal website build and browser checks before publishing.
+
 Keep the actual law, proxy law, divergence convention, oracle and expected-cost
 contracts separate. Every teaching statement/proof has an adjacent closed Lean
 disclosure; without a local declaration the disclosure says so instead of
